@@ -1,0 +1,559 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.9.8)  20 DEC 2021 11:14
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**cudd
+(./cudd.tex
+LaTeX2e <2020-10-01> patch level 4
+L3 programming layer <2021-02-18>
+(/usr/local/texlive/2021/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2020/04/10 v1.4m Standard LaTeX document class
+(/usr/local/texlive/2021/texmf-dist/tex/latex/base/size11.clo
+File: size11.clo 2020/04/10 v1.4m Standard LaTeX file (size option)
+)
+\c@part=\count179
+\c@section=\count180
+\c@subsection=\count181
+\c@subsubsection=\count182
+\c@paragraph=\count183
+\c@subparagraph=\count184
+\c@figure=\count185
+\c@table=\count186
+\abovecaptionskip=\skip47
+\belowcaptionskip=\skip48
+\bibindent=\dimen138
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/base/makeidx.sty
+Package: makeidx 2014/09/29 v1.0m Standard LaTeX package
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2020/09/09 v1.2b Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks15
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2020/08/30 v1.4c Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 105.
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/graphics-def/pdftex.def
+File: pdftex.def 2020/10/05 v1.2a Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen139
+\Gin@req@width=\dimen140
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/graphics/color.sty
+Package: color 2020/02/24 v1.2b Standard LaTeX Color (DPC)
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/graphics-cfg/color.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package color Info: Driver file: pdftex.def on input line 147.
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/hyperref/hyperref.sty
+Package: hyperref 2021-02-27 v7.00k Hypertext links for LaTeX
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
+Package: ltxcmds 2020-05-10 v1.25 LaTeX kernel commands for general use (HO)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/iftex/iftex.sty
+Package: iftex 2020/03/06 v1.0d TeX engine tests
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
+Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/infwarerr/infwarerr.sty
+Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+)
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/kvsetkeys/kvsetkeys.sty
+Package: kvsetkeys 2019/12/15 v1.18 Key value parser (HO)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty
+Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/pdfescape/pdfescape.sty
+Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/hycolor/hycolor.sty
+Package: hycolor 2020-01-27 v1.10 Color options for hyperref/bookmark (HO)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/letltxmacro/letltxmacro.sty
+Package: letltxmacro 2019/12/03 v1.6 Let assignment for LaTeX macros (HO)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/auxhook/auxhook.sty
+Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/kvoptions/kvoptions.sty
+Package: kvoptions 2020-10-07 v3.14 Key value format for package options (HO)
+)
+\@linkdim=\dimen141
+\Hy@linkcounter=\count187
+\Hy@pagecounter=\count188
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/hyperref/pd1enc.def
+File: pd1enc.def 2021-02-27 v7.00k Hyperref: PDFDocEncoding definition (HO)
+Now handling font encoding PD1 ...
+... no UTF-8 mapping file for font encoding PD1
+)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/hyperref/hyperref-langpatches.def
+File: hyperref-langpatches.def 2021-02-27 v7.00k Hyperref: patches for babel la
+nguages
+) (/usr/local/texlive/2021/texmf-dist/tex/generic/intcalc/intcalc.sty
+Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/etexcmds/etexcmds.sty
+Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
+)
+\Hy@SavedSpaceFactor=\count189
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/hyperref/puenc.def
+File: puenc.def 2021-02-27 v7.00k Hyperref: PDF Unicode definition (HO)
+Now handling font encoding PU ...
+... no UTF-8 mapping file for font encoding PU
+)
+Package hyperref Info: Option `pdfpagelabels' set `false' on input line 4073.
+Package hyperref Info: Option `pageanchor' set `true' on input line 4073.
+Package hyperref Info: Option `hyperindex' set `true' on input line 4073.
+Package hyperref Info: Option `plainpages' set `false' on input line 4073.
+Package hyperref Info: Hyper figures OFF on input line 4192.
+Package hyperref Info: Link nesting OFF on input line 4197.
+Package hyperref Info: Hyper index ON on input line 4200.
+Package hyperref Info: Plain pages OFF on input line 4207.
+Package hyperref Info: Backreferencing OFF on input line 4212.
+Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
+Package hyperref Info: Bookmarks ON on input line 4445.
+\c@Hy@tempcnt=\count190
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/url/url.sty
+\Urlmuskip=\muskip16
+Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 4804.
+\XeTeXLinkMargin=\dimen142
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/bitset/bitset.sty
+Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
+
+(/usr/local/texlive/2021/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty
+Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
+)
+))
+\Fld@menulength=\count191
+\Field@Width=\dimen143
+\Fld@charsize=\dimen144
+Package hyperref Info: Hyper figures OFF on input line 6075.
+Package hyperref Info: Link nesting OFF on input line 6080.
+Package hyperref Info: Hyper index ON on input line 6083.
+Package hyperref Info: backreferencing OFF on input line 6090.
+Package hyperref Info: Link coloring OFF on input line 6095.
+Package hyperref Info: Link coloring with OCG OFF on input line 6100.
+Package hyperref Info: PDF/A mode OFF on input line 6105.
+LaTeX Info: Redefining \ref on input line 6145.
+LaTeX Info: Redefining \pageref on input line 6149.
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/base/atbegshi-ltx.sty
+Package: atbegshi-ltx 2020/08/17 v1.0a Emulation of the original atbegshi packa
+ge
+with kernel methods
+)
+\c@Item=\count192
+\c@Hfootnote=\count193
+)
+Package hyperref Info: Driver (autodetected): hpdftex.
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/hyperref/hpdftex.def
+File: hpdftex.def 2021-02-27 v7.00k Hyperref driver for pdfTeX
+\Fld@listcount=\count194
+\c@bookmark@seq@number=\count195
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
+Package: rerunfilecheck 2019/12/05 v1.9 Rerun checks for auxiliary files (HO)
+(/usr/local/texlive/2021/texmf-dist/tex/latex/base/atveryend-ltx.sty
+Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atvery packag
+e
+with kernel methods
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
+Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
+)
+Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
+86.
+)
+\Hy@SectionHShift=\skip49
+)
+\@indexfile=\write3
+\openout3 = `cudd.idx'.
+
+
+Writing index file cudd.idx
+(/usr/local/texlive/2021/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+File: l3backend-pdftex.def 2021-03-18 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count196
+\l__pdf_internal_box=\box47
+)
+(./cudd.aux)
+\openout1 = `cudd.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+
+(/usr/local/texlive/2021/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count197
+\scratchdimen=\dimen145
+\scratchbox=\box48
+\nofMPsegments=\count198
+\nofMParguments=\count199
+\everyMPshowfont=\toks16
+\MPscratchCnt=\count266
+\MPscratchDim=\dimen146
+\MPnumerator=\count267
+\makeMPintoPDFobject=\count268
+\everyMPtoPDFconversion=\toks17
+) (/usr/local/texlive/2021/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
+))
+Package hyperref Info: Link coloring OFF on input line 19.
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/hyperref/nameref.sty
+Package: nameref 2021-04-02 v2.47 Cross-referencing by name of section
+
+(/usr/local/texlive/2021/texmf-dist/tex/latex/refcount/refcount.sty
+Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
+)
+(/usr/local/texlive/2021/texmf-dist/tex/generic/gettitlestring/gettitlestring.s
+ty
+Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
+)
+\c@section@level=\count269
+)
+LaTeX Info: Redefining \ref on input line 19.
+LaTeX Info: Redefining \pageref on input line 19.
+LaTeX Info: Redefining \nameref on input line 19.
+ (./cudd.out) (./cudd.out)
+\@outlinefile=\write4
+\openout4 = `cudd.out'.
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 22.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 22.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 22.
+ (./cudd.toc
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <10.95> on input line 3.
+ [1
+
+{/usr/local/texlive/2021/texmf-var/fonts/map/pdftex/updmap/pdftex.map}])
+\tf@toc=\write5
+\openout5 = `cudd.toc'.
+
+ [2] [3] [4
+
+]
+Overfull \hbox (4.63304pt too wide) in paragraph at lines 89--93
+\OT1/cmr/m/n/10.95 The CUDD pack-age is avail-able via anony-mous FTP[] from vl
+si.Colorado.EDU.
+ []
+
+
+Overfull \hbox (45.42007pt too wide) in paragraph at lines 108--110
+\OT1/cmtt/m/n/10.95 nanotrav -p 1 -autodyn -reordering sifting -trav mult32a.bl
+if 
+ []
+
+
+Overfull \hbox (11.23369pt too wide) in paragraph at lines 111--117
+\OT1/cmr/m/n/10.95 duced by the pro-gram is checked against \OT1/cmtt/m/n/10.95
+ cudd-2.7.0/nanotrav/mult32a.out\OT1/cmr/m/n/10.95 .
+ []
+
+
+Overfull \hbox (26.01599pt too wide) in paragraph at lines 124--126
+\OT1/cmr/m/n/10.95 Two CUDD ex-ten-sions are avail-able via anony-mous FTP[] fr
+om vlsi.Colorado.EDU. 
+ []
+
+[5]
+Overfull \hbox (34.87605pt too wide) in paragraph at lines 189--196
+[]\OT1/cmr/m/n/10.95 If the ap-pli-ca-tion uses gen-er-a-tors[] (\OT1/cmr/m/it/
+10.95 Cudd[]ForeachCube []\OT1/cmr/m/n/10.95 and \OT1/cmr/m/it/10.95 Cudd[]Fore
+achNode[]\OT1/cmr/m/n/10.95 )
+ []
+
+[6] [7] [8]
+Overfull \hbox (7.91602pt too wide) in paragraph at lines 318--318
+[]  \OT1/cmtt/m/n/10.95 manager = Cudd_Init(0,0,CUDD_UNIQUE_SLOTS,CUDD_CACHE_SL
+OTS,0);[] 
+ []
+
+[9]
+Overfull \hbox (28.57875pt too wide) in paragraph at lines 409--420
+\OT1/cmr/m/n/10.95 (\OT1/cmr/m/it/10.95 Cudd[]ForeachCube[]\OT1/cmr/m/n/10.95 )
+, and pro-ce-dures that count minterms[] (\OT1/cmr/m/it/10.95 Cudd[]CountMinter
+m[]\OT1/cmr/m/n/10.95 ). 
+ []
+
+[10] [11]
+Overfull \hbox (4.43666pt too wide) in paragraph at lines 488--499
+\OT1/cmr/m/n/10.95 Common ma-nip-u-la-tions of BDDs can be ac-com-plished by ca
+ll-ing \OT1/cmr/m/it/10.95 Cudd[]bddIte\OT1/cmr/m/n/10.95 .
+ []
+
+[12] [13] [14]
+Overfull \hbox (71.32233pt too wide) in paragraph at lines 660--672
+\OT1/cmr/m/n/10.95 fer-ent cri-te-ria. (\OT1/cmr/m/it/10.95 Cudd[]addBddPattern
+[]\OT1/cmr/m/n/10.95 , \OT1/cmr/m/it/10.95 Cudd[]addBddInterval[]\OT1/cmr/m/n/1
+0.95 , and \OT1/cmr/m/it/10.95 Cudd[]addBddThreshold[]\OT1/cmr/m/n/10.95 .)
+ []
+
+[15]
+Overfull \hbox (8.51886pt too wide) in paragraph at lines 686--696
+\OT1/cmr/m/n/10.95 vari-ables and ZDD vari-ables is one-to-one. Hence, \OT1/cmr
+/m/it/10.95 Cudd[]zddVarsFromBddVars
+ []
+
+
+Overfull \hbox (16.44394pt too wide) in paragraph at lines 697--706
+\OT1/cmr/m/n/10.95 able is as-so-ci-ated with the neg-a-tive lit-eral. A call t
+o \OT1/cmr/m/it/10.95 Cudd[]zddVarsFromBddVars[]
+ []
+
+[16]
+Overfull \hbox (15.6963pt too wide) in paragraph at lines 769--775
+[]\OT1/cmr/m/n/10.95 If passed to \OT1/cmr/m/it/10.95 Cudd[]AutodynEnable[]\OT1
+/cmr/m/n/10.95 , this method
+ []
+
+
+Overfull \hbox (56.68648pt too wide) in paragraph at lines 782--787
+[]\OT1/cmr/m/n/10.95 Same as CUDD[]REORDER[]RANDOM,
+ []
+
+
+Overfull \hbox (1.53427pt too wide) in paragraph at lines 787--794
+[]\OT1/cmr/m/n/10.95 This method is an im-ple-men-ta-tion of Rudell's
+ []
+
+[17]
+Overfull \hbox (2.11395pt too wide) in paragraph at lines 821--823
+[]\OT1/cmr/m/n/10.95 This is the con-verg-ing[] vari-
+ []
+
+
+Overfull \hbox (0.5922pt too wide) in paragraph at lines 824--828
+[]\OT1/cmr/m/n/10.95 This method is an im-ple-men-ta-tion
+ []
+
+
+Overfull \hbox (31.02905pt too wide) in paragraph at lines 835--837
+[]\OT1/cmr/m/n/10.95 Similar to CUDD[]REORDER[]WINDOW2,
+ []
+
+
+Overfull \hbox (31.02905pt too wide) in paragraph at lines 837--839
+[]\OT1/cmr/m/n/10.95 Similar to CUDD[]REORDER[]WINDOW2,
+ []
+
+[18]
+Overfull \hbox (35.50565pt too wide) in paragraph at lines 880--885
+\OT1/cmr/m/n/10.95 The cur-rent tree reg-is-tered with the man-ager can be read
+ with \OT1/cmr/m/it/10.95 Cudd[]ReadTree[]\OT1/cmr/m/n/10.95 . 
+ []
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <9> on input line 894.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 894.
+[19]
+Overfull \hbox (10.40593pt too wide) in paragraph at lines 922--930
+\OT1/cmr/m/n/10.95 they are cre-ated. There-fore, ap-pli-ca-tions that rely on 
+\OT1/cmr/m/it/10.95 Cudd[]bddNewVarAtLevel[]
+ []
+
+
+Overfull \hbox (10.53778pt too wide) in paragraph at lines 940--951
+\OT1/cmr/m/n/10.95 en-able dy-namic[] re-order-ing, the ap-pli-ca-tion must cal
+l \OT1/cmr/m/it/10.95 Cudd[]AutodynEnableZdd[]\OT1/cmr/m/n/10.95 ,
+ []
+
+[20]
+Overfull \hbox (22.8843pt too wide) in paragraph at lines 963--965
+[]\OT1/cmr/m/n/10.95 To cre-ate ZDD vari-able groups, the ap-pli-ca-tion calls 
+\OT1/cmr/m/it/10.95 Cudd[]MakeZddTreeNode[]\OT1/cmr/m/n/10.95 . 
+ []
+
+
+Overfull \hbox (5.93063pt too wide) in paragraph at lines 966--966
+[]\OT1/cmr/bx/n/12 Keeping Con-sis-tent Vari-able Or-ders for BDDs and ZDDs 
+ []
+
+[21]
+Overfull \hbox (2.29327pt too wide) in paragraph at lines 1015--1028
+\OT1/cmr/m/it/10.95 Cudd[]UnsetTimeLimit[]\OT1/cmr/m/n/10.95 , \OT1/cmr/m/it/10
+.95 Cudd[]UpdateTimeLimit[]\OT1/cmr/m/n/10.95 , \OT1/cmr/m/it/10.95 Cudd[]Incre
+aseTimeLimit[]\OT1/cmr/m/n/10.95 .)
+ []
+
+[22]
+<../doc/phase.pdf, id=471, 519.9425pt x 794.97pt>
+File: ../doc/phase.pdf Graphic file (type pdf)
+<use ../doc/phase.pdf>
+Package pdftex.def Info: ../doc/phase.pdf  used on input line 1061.
+(pdftex.def)             Requested size: 288.4525pt x 441.01772pt.
+
+Overfull \hbox (14.82913pt too wide) in paragraph at lines 1053--1072
+\OT1/cmr/m/n/10.95 may be used to draw ZDDs. \OT1/cmr/m/it/10.95 Cudd[]zddDumpD
+ot[] \OT1/cmr/m/n/10.95 is the ana-log of \OT1/cmr/m/it/10.95 Cudd[]DumpDot
+ []
+
+[23] [24 <../doc/phase.pdf>] [25] [26] [27] [28] [29] [30] [31] [32]
+Overfull \hbox (60.5886pt too wide) in paragraph at lines 1570--1581
+\OT1/cmr/m/n/10.95 iden-tify this type of prob-lems, the pack-age pro-vides a f
+unc-tion called \OT1/cmr/m/it/10.95 Cudd[]CheckZeroRef[]\OT1/cmr/m/n/10.95 .
+ []
+
+[33] [34] [35] [36] [37] [38] [39] [40]
+Overfull \hbox (2.05003pt too wide) in paragraph at lines 1955--1961
+\OT1/cmr/m/n/10.95 Ken McMil-lan, Shin-Ichi Mi-nato, Jae-hong Park, Ra-jeev Ran
+-jan, Rick Rudell,
+ []
+
+[41] (./cudd.ind [42]
+Overfull \hbox (4.4295pt too wide) in paragraph at lines 6--7
+[]\OT1/cmr/m/n/10.95 Algebraic De-ci-sion Di-a-gram, \OT1/cmr/m/it/10.95 see \O
+T1/cmr/m/n/10.95 ADD 
+ []
+
+[43
+
+]
+Overfull \hbox (6.03108pt too wide) in paragraph at lines 115--116
+[]\OT1/cmr/m/n/10.95 CUDD[]REORDER[]ANNEALING, []17[] 
+ []
+
+
+Overfull \hbox (7.69183pt too wide) in paragraph at lines 118--119
+[]\OT1/cmr/m/n/10.95 CUDD[]REORDER[]GROUP[]SIFT, []16[] 
+ []
+
+
+Overfull \hbox (31.10054pt too wide) in paragraph at lines 119--120
+[]\OT1/cmr/m/n/10.95 CUDD[]REORDER[]GROUP[]SIFT[]CONV,
+ []
+
+
+Overfull \hbox (6.1984pt too wide) in paragraph at lines 121--122
+[]\OT1/cmr/m/n/10.95 CUDD[]REORDER[]RANDOM, []15[], []19[] 
+ []
+
+
+Overfull \hbox (15.82831pt too wide) in paragraph at lines 122--123
+[]\OT1/cmr/m/n/10.95 CUDD[]REORDER[]RANDOM[]PIVOT,
+ []
+
+
+Overfull \hbox (17.88142pt too wide) in paragraph at lines 125--126
+[]\OT1/cmr/m/n/10.95 CUDD[]REORDER[]SIFT[]CONVERGE,
+ []
+
+
+Overfull \hbox (4.57414pt too wide) in paragraph at lines 126--127
+[]\OT1/cmr/m/n/10.95 CUDD[]REORDER[]SYMM[]SIFT, []16[],
+ []
+
+
+Overfull \hbox (24.94118pt too wide) in paragraph at lines 127--128
+[]\OT1/cmr/m/n/10.95 CUDD[]REORDER[]SYMM[]SIFT[]CONV,
+ []
+
+
+Overfull \hbox (18.26164pt too wide) in paragraph at lines 129--130
+[]\OT1/cmr/m/n/10.95 CUDD[]REORDER[]WINDOW2[]CONV,
+ []
+
+
+Overfull \hbox (18.26164pt too wide) in paragraph at lines 131--132
+[]\OT1/cmr/m/n/10.95 CUDD[]REORDER[]WINDOW3[]CONV,
+ []
+
+
+Overfull \hbox (18.26164pt too wide) in paragraph at lines 133--134
+[]\OT1/cmr/m/n/10.95 CUDD[]REORDER[]WINDOW4[]CONV,
+ []
+
+[44] [45] [46]) (./cudd.aux)
+Package rerunfilecheck Info: File `cudd.out' has not changed.
+(rerunfilecheck)             Checksum: CBEFCCC4C15DC94B443AF219C6705D5A;9985.
+ ) 
+Here is how much of TeX's memory you used:
+ 8082 strings out of 478994
+ 119603 string characters out of 5858185
+ 426056 words of memory out of 5000000
+ 25324 multiletter control sequences out of 15000+600000
+ 411072 words of font info for 52 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 71i,8n,77p,491b,460s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/local/texlive/2021/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc
+}</usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb>
+</usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><
+/usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb>
+</usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
+/usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></
+usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></us
+r/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/
+local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/lo
+cal/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/loca
+l/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/t
+exlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texl
+ive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive
+/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/
+2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/20
+21/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/202
+1/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2021/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2021/t
+exmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb></usr/local/texlive/2021/tex
+mf-dist/fonts/type1/urw/times/utmr8a.pfb>
+Output written on cudd.pdf (46 pages, 401179 bytes).
+PDF statistics:
+ 1089 PDF objects out of 1200 (max. 8388607)
+ 1009 compressed objects within 11 object streams
+ 147 named destinations out of 1000 (max. 500000)
+ 470 words of extra memory for PDF output out of 10000 (max. 10000000)
+

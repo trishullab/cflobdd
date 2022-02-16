@@ -263,6 +263,7 @@ struct DdNode {
     DdHalfWord index;		/**< variable index */
     DdHalfWord ref;		/**< reference count */
     DdNode *next;		/**< next pointer for unique table */
+    total_path_info* numPaths;
     union {
 	CUDD_VALUE_TYPE value;	/**< for constant (terminal) nodes */
 	DdChildren kids;	/**< for internal nodes */

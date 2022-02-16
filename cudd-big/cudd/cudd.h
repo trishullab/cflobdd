@@ -188,6 +188,8 @@ typedef struct val_type {
     mpfr_t t_val;
 } val_type;
 
+
+
 /**
    @brief Type of the value of a terminal node.
 */
@@ -212,6 +214,22 @@ typedef struct DdManager DdManager;
    @brief CUDD generator.
 */
 typedef struct DdGen DdGen;
+
+
+typedef struct path_info {
+    CUDD_VALUE_TYPE weight;
+    mpfr_t path_count;
+    long int index;
+    long int l_index;
+    mpfr_t l_path_count;
+    long int r_index;
+    mpfr_t r_path_count;
+} path_info;
+
+typedef struct total_path_info {
+    path_info* info;
+    unsigned int size;
+} total_path_info;
 
 /**
    @brief Type of an arbitrary precision integer "digit."
@@ -669,6 +687,10 @@ extern DdNode * Cudd_addExistAbstract(DdManager *manager, DdNode *f, DdNode *cub
 extern DdNode * Cudd_addUnivAbstract(DdManager *manager, DdNode *f, DdNode *cube);
 extern DdNode * Cudd_addOrAbstract(DdManager *manager, DdNode *f, DdNode *cube);
 extern DdNode * Cudd_addApply(DdManager *dd, DD_AOP op, DdNode *f, DdNode *g);
+extern DdNode * Cudd_addPathCounts(DdManager * dd,DdNode * f, int period, unsigned int N);
+extern DdNode * Cudd_addPathCounts_dup(DdManager * dd,DdNode * f);
+extern int Cudd_addPrintPathInfo(DdManager* dd, DdNode* f);
+extern int* Cudd_addSamplePath(DdManager* dd, DdNode* f, unsigned int N,unsigned int period);
 extern DdNode * Cudd_addPlus(DdManager *dd, DdNode **f, DdNode **g);
 extern DdNode * Cudd_addTimes(DdManager *dd, DdNode **f, DdNode **g);
 extern DdNode * Cudd_addSimonsRemoveMinusOne(DdManager *dd, DdNode *f);

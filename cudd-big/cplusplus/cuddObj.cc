@@ -940,6 +940,45 @@ ADD::SquareTerminalValues() const
     return ADD(p, result);
 }
 
+ADD
+ADD::UpdatePathInfo(int period, unsigned int N) const
+{
+    DdNode* result = Cudd_addPathCounts(p->manager, node, period, N);
+    checkReturnValue(result);
+    return ADD(p, result);
+}
+
+void
+ADD::PrintPathInfo() const
+{
+    Cudd_addPrintPathInfo(p->manager, node);
+}
+
+std::string
+ADD::SamplePath(unsigned int N, unsigned int period, std::string fn_name) const
+{
+    int* sampled_path = Cudd_addSamplePath(p->manager, node, N, period);
+    std::string s(N, '0');
+
+    if (fn_name != "simons"){
+        for (unsigned int i = 0; i < N; i++){
+            s[i] = (sampled_path[i] == 0) ? '0' : '1';
+        }
+    }else{
+        int j = 0;
+        for (unsigned int i = 0; i < N; i++){
+            if (i % 2 == 0){
+                s[j] = (sampled_path[i] == 0) ? '0' : '1';
+            }
+            else{
+                s[j+N/2] = (sampled_path[i] == 0) ? '0' : '1';
+                j++;
+            }
+        }
+    }
+    return s;
+}
+
 
 bool
 ADD::IsZero() const

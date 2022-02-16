@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <utility>
 #include <typeinfo>
+#include <fstream>
 using namespace std::chrono;
 #define RND_TYPE MPFR_RNDN
 
@@ -102,10 +103,15 @@ ADD PermutationMatrix(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_v
 	if (N <= 8){
 
 		unsigned vals_size = pow(2, N);
+		std::vector<unsigned int> v(vals_size);
+		for (unsigned int i = 0; i < v.size(); i++){
+			v[i] = i;
+		}
+		std::random_shuffle(v.begin(), v.end());
 		ADD ans = mgr.addZero();
 		for (unsigned int i = 0; i < pow(2, N); i++){
 			ADD tmp_ans = mgr.addOne();
-			unsigned int y_val = rand() % vals_size;
+			unsigned int y_val = v[i];
 
 			std::string x_string = getBits(i, N);
 			std::string y_string = getBits(y_val, N);
@@ -221,10 +227,10 @@ ADD Create2To1Func(Cudd& mgr, ADD F1, ADD F2, std::string s1, std::string s2, un
 		std::vector<ADD> first_half_z, first_half_x;
 		first_half_z.insert(first_half_z.end(), z_vars.begin(), z_vars.begin() + n/2);
 		first_half_x.insert(first_half_x.end(), x_vars.begin(), x_vars.begin() + n/2);
-		ADD P1 = PermutationMatrix(mgr, x_vars, z_vars, n/2);
-		ADD P2 = PermutationMatrix(mgr, new_x, new_z, n/2);
+		ADD P1 = PermutationMatrix(mgr, z_vars, x_vars, n/2);
+		ADD P2 = PermutationMatrix(mgr, new_z, new_x, n/2); // z , x
 
-		F1Permute = F1Permute.MatrixMultiply(P1, first_half_z);
+		F1Permute = F1Permute.MatrixMultiply(P1, first_half_z); // w,z ; z,x
 		F2Permute = F2Permute.MatrixMultiply(P2, new_z);
 
 		F1Permute = F1Permute.SwapVariables(first_half_x, first_half_z);
@@ -287,6 +293,39 @@ ADD CreateFnMatrix(Cudd &mgr, std::string s, unsigned int n, std::vector<ADD>& w
 	}
 }
 
+std::pair<std::string, ADD> ReadFromFile(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars){
+	std::ifstream inp_file("simons_16.txt");
+	std::string s = "";
+	ADD ans = mgr.addZero();
+
+	std::getline(inp_file, s);
+	for (unsigned int i = 0; i < pow(2, s.length()); i++){
+		std::string line;
+		std::getline(inp_file, line);
+		size_t pos = 0;
+		pos = line.find(" ");
+		std::string x = line.substr(0, pos);
+		std::string y = line.substr(pos + 1);
+
+		ADD tmp_ans = mgr.addOne();
+	    for (unsigned int j = 0; j < s.length(); j++){
+	      if (x[j] == '1')
+			tmp_ans *= x_vars[j];
+	      else
+			tmp_ans *= ~x_vars[j];
+	    }
+	    for (unsigned int j = 0; j < s.length(); j++){
+	      if (y[j] == '1')
+			tmp_ans *= y_vars[j];
+	      else
+			tmp_ans *= ~y_vars[j];
+	    }
+	    ans += tmp_ans;
+	}
+
+	return std::make_pair(s,ans);
+}
+
 unsigned int simons(Cudd &mgr, int n){
 
 	adjustPrecision(mgr, n, 6);
@@ -298,15 +337,17 @@ unsigned int simons(Cudd &mgr, int n){
     w_vars.push_back(mgr.addVar(4*i+2));
     z_vars.push_back(mgr.addVar(4*i+3));
   }
-  srand(2);
+  // srand(2);
   std::string s(N, '0');
   for (unsigned int i = 0; i < N; i++){
   	s[i] = (rand() % 2) ? '1' : '0';
   }
-  // s = "1110";
+  // s = "10";
   ADD U = CreateFnMatrix(mgr, s, N, w_vars, z_vars, x_vars, y_vars);
-  // U = U.SwapVariables(z_vars, w_vars);
-  //ADD C = C_n(mgr, 0, pow(2, n), x_vars, y_vars, w_vars, z_vars);
+  // std::pair<std::string, ADD> f = ReadFromFile(mgr, w_vars, z_vars);
+  // s = f.first;
+  // ADD U = f.second;
+  std::cout << "U nodeCount: " << U.nodeCount() << " U leafCount: " << U.CountLeaves() << std::endl;
   std::cout << "Algo start.." << std::endl;
   high_resolution_clock::time_point start = high_resolution_clock::now();
   ADD C = CNOT_matrix(x_vars[0], y_vars[0], w_vars[0], z_vars[0]);
@@ -346,7 +387,16 @@ unsigned int simons(Cudd &mgr, int n){
   ans = HU.MatrixMultiply(ans, swap_array);
   ans = ans.SwapVariables(swap_array, mult_array);
   ans = ans.SquareTerminalValues();
+  ans = ans.UpdatePathInfo(2, 2*N);
+  ans.PrintPathInfo();
+  std::string out_s;
+  for (unsigned int i = 0; i < 10; i++){
+	    out_s = ans.SamplePath(2*N, 2, "simons").substr(0, N);
+	    std::cout << out_s << std::endl;
+	}
   high_resolution_clock::time_point end = high_resolution_clock::now();
+  // ans.print(4*N,2);
+  // ans.PrintPathInfo();
   duration<double> time_taken = duration_cast<duration<double>>(end - start);
   std::cout << "string s: " << s << " U nodeCount: " << U.nodeCount() << std::endl;
   std::cout << "nodeCount: " << ans.nodeCount() << " time: " << time_taken.count() << std::endl;
@@ -386,6 +436,50 @@ ADD MkU_s(Cudd &mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars){//, std
   return X;
 }
 
+std::pair<ADD, ADD> MultiplyRec(Cudd& mgr, ADD M, unsigned long long int iters, std::vector<ADD>& x_vars, 
+  std::vector<ADD>& y_vars, std::vector<ADD>& z_vars, 
+  std::unordered_map<unsigned long long int, ADD>& memo,
+  unsigned int n,
+  unsigned int* level){
+  auto it = memo.find(iters);
+  if (it != memo.end())
+    return std::make_pair(it->second, it->second);
+  if (iters == 1){
+    if ((*level) >= n)
+      memo[iters] = M;
+    if ((*level) < n){
+      *level = *level + 1;
+      CUDD_VALUE_TYPE val;
+		mpfr_init_set_d(val.t_val, 0.5, RND_TYPE);
+		mpfr_exp2(val.t_val, val.t_val, RND_TYPE);
+		mpfr_d_div(val.t_val, 1.0, val.t_val, RND_TYPE);
+      auto ans = std::make_pair(mgr.constant(val) * M, M);
+      mpfr_clear(val.t_val);
+      return ans;
+    }
+    return std::make_pair(M, M);
+  }
+  unsigned long long int half_iters = iters/2;
+  auto X = MultiplyRec(mgr, M, half_iters, x_vars, y_vars, z_vars, memo, n, level);
+  auto Y = MultiplyRec(mgr, M, iters - half_iters, x_vars, y_vars, z_vars, memo, n, level);
+  ADD M1 = X.first;
+  ADD M2 = Y.first;
+  M1 = M1.SwapVariables(y_vars, z_vars);
+  M2 = M2.SwapVariables(z_vars, x_vars);
+  ADD ans = M1.MatrixMultiply(M2, z_vars);
+
+  ADD M1P = X.second;
+  ADD M2P = Y.second;
+  M1P = M1P.SwapVariables(y_vars, z_vars);
+  M2P = M2P.SwapVariables(z_vars, x_vars);
+  ADD ansP = M1P.MatrixMultiply(M2P, z_vars);
+
+  if ((*level) >= n)
+    memo[iters] = ansP;
+  return std::make_pair(ans, ansP);
+
+}
+
 unsigned int grover(Cudd &mgr, int n){
 
 	adjustPrecision(mgr, n, 8);
@@ -407,28 +501,40 @@ unsigned int grover(Cudd &mgr, int n){
   ADD U_s = MkU_s(mgr, x_vars, w_vars);//, z_vars, y_vars);//* mgr.constant(1.0/pow(2,n));
   ADD M = U_s.MatrixMultiply(U_w, w_vars); 
   std::cout << "M leaf counts: " << M.CountLeaves() << std::endl;
-  M = M.SwapVariables(w_vars, z_vars);
+  M = M.SwapVariables(w_vars, z_vars); // x_vars, w_vars
   double const pi = 4 * std::atan(1);
   unsigned long long int iters = (unsigned long long int)floor(pi * 0.25 * pow(2, N/2)); 
-  CUDD_VALUE_TYPE val;
-  mpfr_init_set_si(val.t_val, N/2, RND_TYPE);
-  mpfr_exp2(val.t_val, val.t_val, RND_TYPE);
-  mpfr_d_div(val.t_val, 1.0, val.t_val, RND_TYPE);
-  ADD ans = mgr.constant(val);
+  ADD ans = mgr.addOne();
   std::cout << "M count: " << M.nodeCount() << " ans count: " << ans.nodeCount() << std::endl;
   std::cout << "iters count: " << iters << std::endl;
-  for (unsigned long long int i = 0; i < iters; i++){
-    ans = M.MatrixMultiply(ans, w_vars);// * mgr.constant(1.0/pow(2,n));
-    // std::cout << "i : " << i << " ans count: " << ans.nodeCount() << " M leaves: " << M.CountLeaves() << " ans leaves: " << ans.CountLeaves() << std::endl;
-    ans = ans.SwapVariables(x_vars, w_vars);
+  std::unordered_map<unsigned long long int, ADD> memo;
+  unsigned int ulevel = 0;
+  if (N > iters){
+  	CUDD_VALUE_TYPE val;
+	mpfr_init_set_d(val.t_val, (N-iters)/2, RND_TYPE);
+	mpfr_exp2(val.t_val, val.t_val, RND_TYPE);
+	mpfr_d_div(val.t_val, 1.0, val.t_val, RND_TYPE);
+    ans = ans * mgr.constant(val);
+    mpfr_clear(val.t_val);
   }
-  ans = ans.SwapVariables(x_vars, w_vars);
+  auto M_rec = MultiplyRec(mgr, M, iters, x_vars, w_vars, y_vars, memo, N, &ulevel);
+  ADD M_actual = M_rec.first;
+  // M_actual.print(4*N, 2);
+  // M_rec.second.print(4*N, 2);
+  // ans.print(4*N, 2);
+  ans = M_actual.MatrixMultiply(ans, w_vars);
+  // for (unsigned long long int i = 0; i < iters; i++){
+  //   ans = M.MatrixMultiply(ans, w_vars);
+  //   std::cout << "i : " << i << " ans count: " << ans.nodeCount() << " M leaves: " << M.CountLeaves() << " ans leaves: " << ans.CountLeaves() << std::endl;
+  //   ans = ans.SwapVariables(x_vars, w_vars);
+  // }
+  // ans = ans.SwapVariables(x_vars, w_vars);
   high_resolution_clock::time_point end = high_resolution_clock::now();
   duration<double> time_taken = duration_cast<duration<double>>(end - start);
   std::cout << "string: " << s << std::endl;
   std::cout << "nodeCount: " <<  ans.nodeCount() << " leaf count: " << ans.CountLeaves() << " time_taken: " << time_taken.count() << std::endl;
   // ans.PrintMinterm();
-  // ans.print(4*n,2);
+  ans.print(4*n,2);
   return ans.nodeCount();
 }
 
@@ -468,7 +574,15 @@ unsigned int GHZ(Cudd &mgr, unsigned int n){
   ADD H_0 = hadamard_matrix(mgr, x_vars[N-1], y_vars[N-1]);
   H = H * H_0;
   ans = H.MatrixMultiply(ans, y_vars);
+  ans = ans.SquareTerminalValues();
+  ans = ans.UpdatePathInfo(3, N);
+  // ans.PrintPathInfo();
   // ans.print(3*N,2);
+  std::string s;
+    for (unsigned int i = 0; i < 10; i++){
+	    s = ans.SamplePath(N, 3, "GHZ");
+	    std::cout << s << std::endl;
+	}
   high_resolution_clock::time_point end = high_resolution_clock::now();
   duration<double> time_taken = duration_cast<duration<double>>(end - start);
   std::cout << "nodeCount: " <<  ans.nodeCount() << " time_taken: " << time_taken.count() << std::endl;
@@ -544,56 +658,6 @@ unsigned int BV(Cudd &mgr, int n){
 }
 
 ADD CreateBalancedFn(Cudd& mgr, unsigned int N, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars, std::vector<ADD>& z_vars){
-	// if (N <= 2){
-	// 	unsigned int count = 0;
-	// 	CUDD_VALUE_TYPE zero;
-	// 	mpfr_init_set_si(zero.t_val, 0, RND_TYPE);
-	// 	ADD ans = mgr.constant(zero);
-	// 	mpfr_clear(zero.t_val);
-	// 	for (unsigned int i = 0; i < pow(2, N-1); i++){
-	// 		int f_x = (rand() % 2);
-	// 		if (count >= pow(2, N)/2)
-	// 			f_x = 0;
-	// 		if (f_x == 1)
-	// 			count++;
-	// 		std::string x_string = getBits(i, N-1);
-	// 		CUDD_VALUE_TYPE one;
-	// 		mpfr_init_set_si(one.t_val, 1, RND_TYPE);
-	// 		ADD tmp_ans = mgr.constant(one);
-	// 		mpfr_clear(one.t_val);
-	// 		for (unsigned int j = 0; j < N-1; j++){
-	// 			if (x_string[j] == '1')
-	// 				tmp_ans *= x_vars[j] * y_vars[j];
-	// 			else
-	// 				tmp_ans *= ~x_vars[j] * ~y_vars[j];
-	// 		}
-
-	// 		if (f_x == 0){
-	// 			ans += (tmp_ans * ~x_vars[N-1] * ~y_vars[N-1]) + (tmp_ans * x_vars[N-1] * y_vars[N-1]);
-	// 		}
-	// 		else{
-	// 			ans += (tmp_ans * ~x_vars[N-1] * y_vars[N-1]) + (tmp_ans * x_vars[N-1] * ~y_vars[N-1]);				
-	// 		}
-
-	// 	}
-	// 	return ans;
-	// }
-	// else{
-	// 	ADD F = CreateBalancedFn(mgr, N/2, x_vars, y_vars, z_vars);
-	// 	F.print(3*N, 2);
-	// 	std::vector<ADD> new_x_vec(x_vars.begin() + N/2, x_vars.begin() + N);
-	// 	std::vector<ADD> new_y_vec(y_vars.begin() + N/2, y_vars.begin() + N);
-	// 	ADD P = PermutationMatrix(mgr, new_x_vec, new_y_vec, N/2);
-	// 	F = F * P;
-	// 	std::cout << "F created" << std::endl;
-	// 	ADD permute_matrix = PermutationMatrix(mgr, z_vars, y_vars, N);
-	// 	permute_matrix = permute_matrix.SwapVariables(y_vars, z_vars);
-	// 	std::cout << "P created" << std::endl;
-	// 	F = F.MatrixMultiply(permute_matrix, y_vars);
-	// 	F = F.SwapVariables(y_vars, z_vars);
-	// 	F.print(3 * N, 2);
-	// 	return F;
-	// }
 
 	std::string s(N, '0');
 	for (unsigned int i = 0; i < N; i++){
@@ -698,6 +762,31 @@ unsigned int DJ(Cudd &mgr, int n){
   	return ans.nodeCount();
 }
 
+unsigned int identity(Cudd &mgr, int n){
+	unsigned int N = n;//(unsigned int)pow(2, n);
+  	std::vector<ADD> x_vars;
+	for (unsigned int i = 0; i < N; i++){
+	  x_vars.push_back(mgr.addVar(i));
+	}
+
+	ADD ans = mgr.addOne();
+	for (unsigned int i = 0; i < N; i++)
+    	ans = ans * ~x_vars[i];
+    ADD ans1 = mgr.addOne();
+	for (unsigned int i = 0; i < N; i++)
+    	ans1 = ans1 * x_vars[i];
+    ans = ans + ans1;
+    ans.print(N, 2);
+    ans = ans.UpdatePathInfo(1, N);
+    ans.PrintPathInfo();
+    std::string s;
+    for (unsigned int i = 0; i < 10; i++){
+	    s = ans.SamplePath(N, 1, "identity");
+	    std::cout << s << std::endl;
+	}
+    return 0;
+}
+
 
 int main (int argc, char** argv)
 {
@@ -708,7 +797,10 @@ int main (int argc, char** argv)
 		mgr.AutodynEnable();
 	unsigned int nodeCount = 0;
 
-	srand(time(NULL));
+	auto t = time(NULL);
+	t = 1644959891;
+	std::cout << "t: " << t << std::endl;
+	srand(t);
 
 	if (strcmp(argv[1], "xor") == 0)
       nodeCount = exclusive_or(mgr, atoi(argv[2])); 
@@ -724,6 +816,8 @@ int main (int argc, char** argv)
       nodeCount = BV(mgr, atoi(argv[2]));
   	else if (strcmp(argv[1], "DJ") == 0)
       nodeCount = DJ(mgr, atoi(argv[2]));
+  else if (strcmp(argv[1], "id") == 0)
+      nodeCount = identity(mgr, atoi(argv[2]));
 
 
 	return 0;

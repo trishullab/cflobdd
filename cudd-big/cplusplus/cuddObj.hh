@@ -376,6 +376,9 @@ public:
     ADD SimonsRemoveMinusOne() const;
     ADD SimonsRemoveOne() const;
     ADD SquareTerminalValues() const;
+    ADD UpdatePathInfo(int period, unsigned int N) const;
+    void PrintPathInfo() const;
+    std::string SamplePath(unsigned int N, unsigned int period, std::string fn_name) const;
 
 }; // ADD
 

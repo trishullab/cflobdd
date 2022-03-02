@@ -2,9 +2,11 @@
 DIR = /users/meghana/desktop/meghana/research/cudd/cudd-3.0.0
 C_DIR = /users/meghana/desktop/meghana/research/cudd/cudd-complex
 B_DIR = /users/meghana/desktop/meghana/research/cudd/cudd-big
+C_B_DIR = /users/meghana/desktop/meghana/research/cudd/cudd-complex-big
 REL_DIR = ../cudd-3.0.0
 REL_C_DIR = ../cudd-complex
 REL_B_DIR = ../cudd-big
+REL_C_B_DIR = ../cudd-complex-big
 
 
 tmp:
@@ -16,13 +18,18 @@ complex:
 	/bin/sh ./$(REL_C_DIR)/libtool  --tag=CXX   --mode=link gcc  -Wall -Wextra -g -O3   -o complex_test complex_test.o $(C_DIR)/cudd/libcudd.la 
 
 big:
-	g++ -DHAVE_CONFIG_H -I./$(B_DIR)  -I./$(B_DIR)/cudd -I./$(B_DIR)/mtr -I./$(B_DIR)/epd -I./$(B_DIR)/st   -Wall -Wextra -std=c++0x -g -O3 -MT big_test.o -MD -MP -MF big_test.Tpo -c -o big_test.o `test -f 'big_test.cc' || echo './'`big_test.cc
-	/bin/sh ./$(REL_B_DIR)/libtool  --tag=CXX   --mode=link g++  -Wall -Wextra -std=c++0x -g -O3   -o big_test big_test.o $(B_DIR)/cplusplus/libobj.la $(B_DIR)/cudd/libcudd.la 
+	g++ -g -DHAVE_CONFIG_H -I./$(B_DIR)  -I./$(B_DIR)/cudd -I./$(B_DIR)/mtr -I./$(B_DIR)/epd -I./$(B_DIR)/st -I./Solver2/assert -I./Solver2/bit_vector -I./Solver2/matrix -I./Solver2/parsing  -Wall -Wextra -std=c++20 -g -O3 -MT  big_test.o -MD -MP -MF big_test.Tpo -c -o big_test.o `test -f 'big_test.cc' || echo './'`big_test.cc
+	/bin/sh ./$(REL_B_DIR)/libtool  --tag=CXX   --mode=link g++  -Wall -Wextra -std=c++20 -g -O3   -o big_test big_test.o Solver2/bit_vector/value.o Solver2/bit_vector/bit_vector_1.o Solver2/parsing/parsing.o $(B_DIR)/cplusplus/libobj.la $(B_DIR)/cudd/libcudd.la 
+complex_big:
+	g++ -DHAVE_CONFIG_H -I./$(C_B_DIR)  -I./$(C_B_DIR)/cudd -I./$(C_B_DIR)/mtr -I./$(c_B_DIR)/epd -I./$(C_B_DIR)/st   -Wall -Wextra -std=c++0x -g -O3 -MT complex_big_test.o -MD -MP -MF complex_big_test.Tpo -c -o complex_big_test.o `test -f 'complex_big_test.cc' || echo './'`complex_big_test.cc
+	/bin/sh ./$(REL_C_B_DIR)/libtool  --tag=CXX   --mode=link g++  -Wall -Wextra -std=c++0x -g -O3   -o complex_big_test complex_big_test.o $(C_B_DIR)/cplusplus/libobj.la $(C_B_DIR)/cudd/libcudd.la 
+
 
 dep:
 	cd ../cudd-3.0.0/ && make all && cd ../examples
 	cd ../cudd-complex/ && make all && cd ../examples 
 	cd ../cudd-big/ && make all && cd ../examples 
-all:  dep tmp complex big
+	cd ../cudd-complex-big/ && make all && cd ../examples 
+all:  dep tmp complex big complex_big
 clean: 
-	rm *.o *.Tpo test complex_test big_test
+	rm *.o *.Tpo test complex_test big_test complex_big_test

@@ -1,4 +1,8 @@
 #include "../cudd-big/cplusplus/cuddObj.hh"
+#include "Solver2/matrix/HowellMatrix.h"
+#include "Solver2/matrix/ModularSquareMatrix.h"
+#include "Solver2/bit_vector/bit_vector_1.h"
+#include "Solver2/bit_vector/bit_vector_ops.h"
 #include <iostream>
 #include <mpfr.h>
 #include <cmath>
@@ -7,6 +11,8 @@
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
+#include <random>
 #include <unordered_map>
 #include <utility>
 #include <typeinfo>
@@ -23,6 +29,27 @@ void adjustPrecision(Cudd& mgr, int n, int num){
 		mgr.SetEpsilon(epsilon);
 	}
 }
+
+void addEquations(HowellMatrix::HowellMatrix<BitVector::BV1>*& h, std::string s)
+{
+	auto zero = BitVector::BV1::zero();
+	auto one = BitVector::BV1::one();
+	HowellMatrix::SparseTArray<BitVector::BV1>* array = new HowellMatrix::SparseTArray<BitVector::BV1>(s.length() + 1);
+	array->set(0, zero);
+	for (unsigned i = 0; i < s.length(); i++)
+	{
+		if (s[i] == '0')
+			array->set(i + 1, zero);
+		else if (s[i] == '1')
+			array->set(i + 1, one);
+		else
+			abort();
+	}
+	// std::cout << "big string: " << s << std::endl;
+	// std::cout << "big size: " << (array->Size()) << std::endl;
+	h->insertRow(array, true);
+}
+
 
 ADD identity_matrix(ADD x, ADD y){
   return (~x * ~y) + (x * y);
@@ -107,7 +134,9 @@ ADD PermutationMatrix(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_v
 		for (unsigned int i = 0; i < v.size(); i++){
 			v[i] = i;
 		}
-		std::random_shuffle(v.begin(), v.end());
+		std::random_device rd;
+		std::mt19937 g(rd());
+		std::shuffle(v.begin(), v.end(), g);
 		ADD ans = mgr.addZero();
 		for (unsigned int i = 0; i < pow(2, N); i++){
 			ADD tmp_ans = mgr.addOne();
@@ -388,16 +417,59 @@ unsigned int simons(Cudd &mgr, int n){
   ans = ans.SwapVariables(swap_array, mult_array);
   ans = ans.SquareTerminalValues();
   ans = ans.UpdatePathInfo(2, 2*N);
-  ans.PrintPathInfo();
+  // ans.PrintPathInfo();
   std::string out_s;
-  for (unsigned int i = 0; i < 10; i++){
-	    out_s = ans.SamplePath(2*N, 2, "simons").substr(0, N);
-	    std::cout << out_s << std::endl;
+  HowellMatrix::HowellMatrix<BitVector::BV1>* howellMatrix  = new HowellMatrix::HowellMatrix<BitVector::BV1>(N+1,false);
+  unsigned int iter = 1;
+  auto zero = BitVector::BV1::zero();
+  auto one = BitVector::BV1::one();
+  while (iter <= 2 * N)
+	{
+		std::string s = "";
+		s = ans.SamplePath(2*N, 2, "simons");
+		// std::cout << "iter: " << iter << std::endl;
+		s = s.substr(0, N);
+		addEquations(howellMatrix, s);
+
+		iter++;
+	}
+
+	HowellMatrix::ModularSquareMatrix<BitVector::BV1> modMatrix = howellMatrix->getSquareMatrix();
+	auto sqmatrix_s = HowellMatrix::ModularSquareMatrix<BitVector::BV1>::dualize(modMatrix);
+	HowellMatrix::HowellMatrix<BitVector::BV1> matrix_s = HowellMatrix::HowellMatrix<BitVector::BV1>(*(sqmatrix_s));
+	std::vector<std::string> answers;
+
+	if (matrix_s.size() == 1)
+	{
+		auto vector_s = matrix_s.getSparseRow(0);
+		std::string s;
+
+		for (unsigned int i = 1; i < vector_s->GetLength(); i++)
+		{
+			s += (((*vector_s)[i] == BitVector::BV1::zero()) ? "0" : "1");
+		}
+		answers.push_back(s);
+	}else{
+
+		for (unsigned int j = 1; j < matrix_s.num_rows(); j++)
+		{
+			auto vector_s = matrix_s.getSparseRow(j);
+			std::string s;
+
+			for (unsigned int i = 1; i < vector_s->GetLength(); i++)
+			{
+				s += (((*vector_s)[i] == BitVector::BV1::zero()) ? "0" : "1");
+			}
+
+			answers.push_back(s);
+		}
 	}
   high_resolution_clock::time_point end = high_resolution_clock::now();
   // ans.print(4*N,2);
   // ans.PrintPathInfo();
   duration<double> time_taken = duration_cast<duration<double>>(end - start);
+  for (auto a : answers)
+  	std::cout << a << std::endl;
   std::cout << "string s: " << s << " U nodeCount: " << U.nodeCount() << std::endl;
   std::cout << "nodeCount: " << ans.nodeCount() << " time: " << time_taken.count() << std::endl;
   return ans.nodeCount();
@@ -798,7 +870,6 @@ int main (int argc, char** argv)
 	unsigned int nodeCount = 0;
 
 	auto t = time(NULL);
-	t = 1644959891;
 	std::cout << "t: " << t << std::endl;
 	srand(t);
 

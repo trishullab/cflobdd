@@ -412,12 +412,13 @@ unsigned int simons(Cudd &mgr, int n){
   mpfr_clear(val.t_val);
   ADD tmp = identity_n(mgr, 0, N, x_vars, y_vars) * U;
   ADD HU = H * U;
-  std::cout << ans.nodeCount() << " " << HU.nodeCount() << std::endl;
+  // std::cout << ans.nodeCount() << " " << HU.nodeCount() << std::endl;
   ans = HU.MatrixMultiply(ans, swap_array);
   ans = ans.SwapVariables(swap_array, mult_array);
   ans = ans.SquareTerminalValues();
   ans = ans.UpdatePathInfo(2, 2*N);
   // ans.PrintPathInfo();
+  high_resolution_clock::time_point mid = high_resolution_clock::now();
   std::string out_s;
   HowellMatrix::HowellMatrix<BitVector::BV1>* howellMatrix  = new HowellMatrix::HowellMatrix<BitVector::BV1>(N+1,false);
   unsigned int iter = 1;
@@ -468,9 +469,11 @@ unsigned int simons(Cudd &mgr, int n){
   // ans.print(4*N,2);
   // ans.PrintPathInfo();
   duration<double> time_taken = duration_cast<duration<double>>(end - start);
+  duration<double> time_taken_2 = duration_cast<duration<double>>(mid - start);
   for (auto a : answers)
   	std::cout << a << std::endl;
   std::cout << "string s: " << s << " U nodeCount: " << U.nodeCount() << std::endl;
+  std::cout << "mid_t: " << time_taken_2.count() << std::endl;
   std::cout << "nodeCount: " << ans.nodeCount() << " time: " << time_taken.count() << std::endl;
   return ans.nodeCount();
 }

@@ -174,17 +174,17 @@ ADD MkCyclicKMatrix(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_var
 			}else{
 				tmp_ans = tmp_ans * (~y_vars[N-1-count + start]);
 			}
-
 			count++;
 
 		}
+
 		ans = ans + tmp_ans;
 	}
 
 	for (unsigned int i = 0; i < pow(2, N)/2; i++){
 		ADD tmp_ans = mgr.addOne();
 
-		unsigned int tmp_i = i;
+		unsigned int tmp_i = i + pow(2, N)/2;
 		unsigned int val_i = 2*i + 1;
 		unsigned int count = 0;
 		while (count < N){
@@ -231,18 +231,21 @@ ADD Fourier(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars,
 	F = F.SwapVariables(x_vars, w_vars);
 	F = F.SwapVariables(y_vars, z_vars);
 
-	ADD Id = identity_n(mgr, start + 1, N, x_vars, y_vars);
-	ADD D = D_n(mgr, start + 1, N, N, x_vars, y_vars);
-	ADD ID = (~y_vars[start]*Id) + y_vars[start] * (~x_vars[start] - x_vars[start]) * D;
+	ADD Id = identity_n(mgr, start + 1, x_vars.size(), x_vars, y_vars);
+	ADD D = D_n(mgr, start + 1, x_vars.size(), N, x_vars, y_vars);
+	// if (N == 3){
+	// 	D.print(4*N,2);
+	// }
+	ADD ID = (~y_vars[start]*Id) + (y_vars[start] * (~x_vars[start] - x_vars[start]) * D);
 	ID = ID.SwapVariables(y_vars, w_vars);
 	ADD IDF = ID.MatrixMultiply(F, w_vars);
 	ADD ans = IDF.MatrixMultiply(K, z_vars);
 	CUDD_VALUE_TYPE val;
 	mpfr_init_set_d(val.real, 1.0/sqrt(2), RND_TYPE);
-	mpfr_init_set_d(val.imag, 1.0/sqrt(2), RND_TYPE);
+	mpfr_init_set_d(val.imag, 0.0, RND_TYPE);
 	ADD constant = mgr.constant(val);
-	mpfr_clear(val.real); mpfr_clear(val.imag);
 	ans = ans * constant;
+	mpfr_clear(val.real); mpfr_clear(val.imag);
 	return ans;
 }
 
@@ -250,20 +253,20 @@ ADD Fourier(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars,
 
 unsigned int Fourier(Cudd& mgr, int n){
 	std::vector<ADD> x_vars, w_vars, z_vars, y_vars;
-  for (unsigned int i = 0; i < pow(2, n); i++){
+	unsigned int N = pow(2, n);
+  for (unsigned int i = 0; i < N; i++){
     x_vars.push_back(mgr.addVar(4*i));
-    w_vars.push_back(mgr.addVar(4*i+1));
-    z_vars.push_back(mgr.addVar(4*i+2));
-    y_vars.push_back(mgr.addVar(4*i+3));
+    y_vars.push_back(mgr.addVar(4*i+1));
+    w_vars.push_back(mgr.addVar(4*i+2));
+    z_vars.push_back(mgr.addVar(4*i+3));
   }
 
-  unsigned int N = (unsigned int)pow(2,n);
   high_resolution_clock::time_point start = high_resolution_clock::now();
   ADD ans = Fourier(mgr, x_vars, y_vars, w_vars, z_vars, N, 0);
   high_resolution_clock::time_point end = high_resolution_clock::now();
   duration<double> time_taken = duration_cast<duration<double>>(end - start);
   std::cout << "nodeCount: " <<  ans.nodeCount() << " time_taken: " << time_taken.count() << std::endl;
-  ans.print(4*N,2);
+  // ans.print(4*N,2);
   return ans.nodeCount();
 }
 

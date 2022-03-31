@@ -4688,7 +4688,7 @@ Cudd::Xeqy(
 	X[i] = x[i].getNode();
 	Y[i] = y[i].getNode();
     }
-    DdNode *result = Cudd_addXeqy(mgr, (int) N, X, X);
+    DdNode *result = Cudd_addXeqy(mgr, (int) N, X, Y);
     delete [] X;
     delete [] Y;
     checkReturnValue(result);

@@ -4,11 +4,13 @@ C_DIR = /users/meghana/desktop/meghana/research/cudd/cudd-complex
 B_DIR = /users/meghana/desktop/meghana/research/cudd/cudd-big
 C_B_DIR = /users/meghana/desktop/meghana/research/cudd/cudd-complex-big
 F_DIR = /users/meghana/desktop/meghana/research/cudd/cudd-fourier
+S_DIR = /users/meghana/desktop/meghana/research/cudd/cudd-addmin
 REL_DIR = ../cudd-3.0.0
 REL_C_DIR = ../cudd-complex
 REL_B_DIR = ../cudd-big
 REL_C_B_DIR = ../cudd-complex-big
 REL_F_DIR = ../cudd-fourier
+REL_S_DIR = ../cudd-addmin
 
 
 tmp:
@@ -29,6 +31,9 @@ complex_big:
 fourier:
 	g++ -g -DHAVE_CONFIG_H -I./$(F_DIR)  -I./$(F_DIR)/cudd -I./$(F_DIR)/mtr -I./$(F_DIR)/epd -I./$(F_DIR)/st   -Wall -Wextra -std=c++0x -g -O3 -MT fourier_test.o -MD -MP -MF fourier_test.Tpo -c -o fourier_test.o `test -f 'fourier_test.cc' || echo './'`fourier_test.cc
 	/bin/sh ./$(REL_F_DIR)/libtool  --tag=CXX   --mode=link g++  -Wall -Wextra -std=c++0x -g -O3   -o fourier_test fourier_test.o $(F_DIR)/cplusplus/libobj.la $(F_DIR)/cudd/libcudd.la 
+shortest_path:
+	g++ -g -DHAVE_CONFIG_H -I./$(S_DIR)  -I./$(S_DIR)/cudd -I./$(S_DIR)/mtr -I./$(S_DIR)/epd -I./$(S_DIR)/st   -Wall -Wextra -std=c++0x -g -O3 -MT shortest_path.o -MD -MP -MF shortest_path_test.Tpo -c -o shortest_path_test.o `test -f 'shortest_path_test.cc' || echo './'`shortest_path_test.cc
+	/bin/sh ./$(REL_S_DIR)/libtool  --tag=CXX   --mode=link g++  -Wall -Wextra -std=c++0x -g -O3   -o shortest_path_test shortest_path_test.o $(S_DIR)/cplusplus/libobj.la $(S_DIR)/cudd/libcudd.la 
 
 
 dep:
@@ -37,6 +42,7 @@ dep:
 	cd ../cudd-big/ && make all && cd ../examples 
 	cd ../cudd-complex-big/ && make all && cd ../examples 
 	cd ../cudd-fourier/ && make all && cd ../examples 
-all:  dep tmp complex big complex_big fourier
+	cd ../cudd-addMin/ && make all && cd ../examples 
+all:  dep tmp complex big complex_big fourier shortest_path
 clean: 
-	rm *.o *.Tpo test complex_test big_test complex_big_test fourier_test
+	rm *.o *.Tpo test complex_test big_test complex_big_test fourier_test shortest_path

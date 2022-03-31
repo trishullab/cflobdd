@@ -34,6 +34,9 @@ ADD hadamard_matrix(ADD x, ADD y){
 ADD CNOT_matrix(ADD x, ADD y, ADD w, ADD z){
   return (~x * ~y * ~z * ~w) + (~x * w * ~y * z) + (x * ~w * y * z) + (x * w * y * ~z);
 }
+ADD addition_relation(ADD x, ADD y, ADD z){
+  return (~z * ~(x + y)) + (z * (x + y));
+}
 ADD identity_n(Cudd &mgr, unsigned int start, unsigned int end, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars) {
   if (start == end - 1)
     return identity_matrix(x_vars[start], y_vars[start]);
@@ -52,6 +55,29 @@ ADD C_n(Cudd &mgr,unsigned int start, unsigned int end, std::vector<ADD>& x_vars
     return CNOT_matrix(x_vars[start], y_vars[start], w_vars[start], z_vars[start]);
   unsigned int mid = (end - start)/2 + start;
   return C_n(mgr, start, mid, x_vars, y_vars, w_vars, z_vars) * C_n(mgr, mid, end, x_vars, y_vars, w_vars, z_vars);
+}
+
+ADD addition_n(Cudd &mgr,unsigned int start, unsigned int end, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars, std::vector<ADD>& z_vars) {
+  if (start == end - 1)
+    return addition_relation(x_vars[start], y_vars[start], z_vars[start]);
+  unsigned int mid = (end - start)/2 + start;
+  return addition_n(mgr, start, mid, x_vars, y_vars, z_vars) * 
+  addition_n(mgr, mid, end, x_vars, y_vars, z_vars);
+}
+
+unsigned int addition(Cudd &mgr, int n){
+  high_resolution_clock::time_point start = high_resolution_clock::now();
+  std::vector<ADD> x_vars, y_vars, z_vars;
+  for (unsigned int i = 0; i < pow(2, n); i++){
+    x_vars.push_back(mgr.addVar(3*i));
+    y_vars.push_back(mgr.addVar(3*i + 1));
+    z_vars.push_back(mgr.addVar(3*i + 2));
+  }
+  ADD A = addition_n(mgr, 0, pow(2, n), x_vars, y_vars, z_vars);
+  high_resolution_clock::time_point end = high_resolution_clock::now();
+  duration<double> time_taken = duration_cast<duration<double>>(end - start);
+  std::cout << "nodeCount: " << A.nodeCount() << " time: " << time_taken.count() << std::endl;
+  return A.nodeCount();
 }
 
 
@@ -76,17 +102,18 @@ unsigned int hi_sum(Cudd &mgr, int n){
     x_vars.push_back(mgr.addVar(2*i));
     y_vars.push_back(mgr.addVar(2*i + 1));
   }
-  ADD H = hadamard_n(mgr, 0, pow(2, n), x_vars, y_vars);
-  ADD I = identity_n(mgr, 0, pow(2, n), x_vars, y_vars);
+  unsigned int N = (unsigned int)pow(2, n);
+  high_resolution_clock::time_point start = high_resolution_clock::now();
+  ADD H = mgr.Walsh(x_vars, y_vars);
+  ADD I = mgr.Xeqy(x_vars, y_vars);
   std::cout << "Matrices created .. " << std::endl;
-    high_resolution_clock::time_point start = high_resolution_clock::now();
   ADD ans = H + I;
   for (unsigned int i = 1; i < 1024; i++){
     ans += H + I;
   }
-    high_resolution_clock::time_point end = high_resolution_clock::now();
-    duration<double> time_taken = duration_cast<duration<double>>(end - start);
-    std::cout << time_taken.count() << " " << H.nodeCount() << " " <<  ans.nodeCount() << std::endl;
+  high_resolution_clock::time_point end = high_resolution_clock::now();
+  duration<double> time_taken = duration_cast<duration<double>>(end - start);
+  std::cout << "time_taken: " << time_taken.count() << " H nodeCount: " << H.nodeCount() << " ans nodeCount: " <<  ans.nodeCount() << std::endl;
   return ans.nodeCount();
 }
 
@@ -456,6 +483,44 @@ ADD MkU_s(Cudd &mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars){//, std
   return (mgr.constant(2.0/pow(2,n)) - I);// * mgr.constant(1.0/pow(2,n));
 }
 
+std::pair<ADD, ADD> MultiplyRec(Cudd& mgr, ADD M, unsigned long long int iters, std::vector<ADD>& x_vars, 
+  std::vector<ADD>& y_vars, std::vector<ADD>& z_vars, 
+  std::unordered_map<unsigned long long int, ADD>& memo,
+  unsigned int n,
+  unsigned int* level){
+  auto it = memo.find(iters);
+  if (it != memo.end())
+    return std::make_pair(it->second, it->second);
+  if (iters == 1){
+    if ((*level) >= n)
+      memo[iters] = M;
+    if ((*level) < n){
+      *level = *level + 1;
+      return std::make_pair(mgr.constant(1.0/sqrt(2)) * M, M);
+    }
+    return std::make_pair(M, M);
+  }
+  unsigned long long int half_iters = iters/2;
+  auto X = MultiplyRec(mgr, M, half_iters, x_vars, y_vars, z_vars, memo, n, level);
+  auto Y = MultiplyRec(mgr, M, iters - half_iters, x_vars, y_vars, z_vars, memo, n, level);
+  ADD M1 = X.first;
+  ADD M2 = Y.first;
+  M1 = M1.SwapVariables(y_vars, z_vars);
+  M2 = M2.SwapVariables(z_vars, x_vars);
+  ADD ans = M1.MatrixMultiply(M2, z_vars);
+
+  ADD M1P = X.second;
+  ADD M2P = Y.second;
+  M1P = M1P.SwapVariables(y_vars, z_vars);
+  M2P = M2P.SwapVariables(z_vars, x_vars);
+  ADD ansP = M1P.MatrixMultiply(M2P, z_vars);
+
+  if ((*level) >= n)
+    memo[iters] = ansP;
+  return std::make_pair(ans, ansP);
+
+}
+
 unsigned int grover(Cudd &mgr, int n){
   std::string s;
   for (int i = 0; i < pow(2, n); i++){
@@ -473,28 +538,39 @@ unsigned int grover(Cudd &mgr, int n){
   ADD U_w = MkU_w(mgr,s, w_vars, z_vars);
   ADD U_s = MkU_s(mgr, x_vars, w_vars);//, z_vars, y_vars);//* mgr.constant(1.0/pow(2,n));
   ADD M = U_s.MatrixMultiply(U_w, w_vars); 
-  // M.print(4*n,2);
+  M.print(4*n,2);
   std::cout << "M leaf counts: " << M.CountLeaves() << std::endl;
   M = M.SwapVariables(w_vars, z_vars);
   double const pi = 4 * std::atan(1);
   unsigned long long int iters = (unsigned long long int)floor(pi * 0.25 * pow(2, N/2)); 
-  ADD ans = mgr.constant(1.0/pow(2,N/2));
+  ADD ans = mgr.constant(1.0);
   std::cout << "M count: " << M.nodeCount() << std::endl;
   std::cout << "iters count: " << iters << std::endl;
-  for (unsigned long long int i = 0; i < iters; i++){
-    ans = M.MatrixMultiply(ans, w_vars);// * mgr.constant(1.0/pow(2,n));
-    // ans.print(4*n, 2);
-    std::cout << "i : " << i << " ans count: " << ans.nodeCount() << " M leaves: " << M.CountLeaves() << " ans leaves: " << ans.CountLeaves() << std::endl;
-    //std::cout << "i : " << i << std::endl;
-    ans = ans.SwapVariables(x_vars, w_vars);
+  std::unordered_map<unsigned long long int, ADD> memo;
+  unsigned int ulevel = 0;
+  if (N > iters){
+    ans = ans * mgr.constant(1.0/pow(2,(N-iters)/2));
   }
-  // ans.print(4*n, 2);
-  ans = ans.SwapVariables(x_vars, w_vars);
+  auto M_rec = MultiplyRec(mgr, M, iters, x_vars, w_vars, y_vars, memo, N, &ulevel);
+  ADD M_actual = M_rec.first;
+  // M_actual.print(4*N, 2);
+  // M_rec.second.print(4*N, 2);
+  // ans.print(4*N, 2);
+  ans = M_actual.MatrixMultiply(ans, w_vars);
+  // for (unsigned long long int i = 0; i < iters; i++){
+  //   ans = M.MatrixMultiply(ans, w_vars);// * mgr.constant(1.0/pow(2,n));
+  //   // ans.print(4*n, 2);
+  //   std::cout << "i : " << i << " ans count: " << ans.nodeCount() << " M leaves: " << M.CountLeaves() << " ans leaves: " << ans.CountLeaves() << std::endl;
+  //   //std::cout << "i : " << i << std::endl;
+  //   ans = ans.SwapVariables(x_vars, w_vars);
+  // }
+  // // ans.print(4*n, 2);
+  // ans = ans.SwapVariables(x_vars, w_vars);
   high_resolution_clock::time_point end = high_resolution_clock::now();
   duration<double> time_taken = duration_cast<duration<double>>(end - start);
   std::cout << "string: " << s << std::endl;
   std::cout << "nodeCount: " <<  ans.nodeCount() << " leaf count: " << ans.CountLeaves() << " time_taken: " << time_taken.count() << std::endl;
-  // ans.print(4*n,2);
+  ans.print(4*n,2);
   return ans.nodeCount();
 }
 
@@ -687,5 +763,7 @@ int main (int argc, char** argv)
       nodeCount = GHZ(mgr, atoi(argv[2]));
     else if (strcmp(argv[1], "DJ") == 0)
       nodeCount = DJ(mgr, atoi(argv[2]));
+    else if (strcmp(argv[1], "add") == 0)
+      nodeCount = addition(mgr, atoi(argv[2]));
     return 0;
 }

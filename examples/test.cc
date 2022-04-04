@@ -66,14 +66,15 @@ ADD addition_n(Cudd &mgr,unsigned int start, unsigned int end, std::vector<ADD>&
 }
 
 unsigned int addition(Cudd &mgr, int n){
-  high_resolution_clock::time_point start = high_resolution_clock::now();
-  std::vector<ADD> x_vars, y_vars, z_vars;
+  std::vector<BDD> x_vars, y_vars, z_vars;
   for (unsigned int i = 0; i < pow(2, n); i++){
-    x_vars.push_back(mgr.addVar(3*i));
-    y_vars.push_back(mgr.addVar(3*i + 1));
-    z_vars.push_back(mgr.addVar(3*i + 2));
+    x_vars.push_back(mgr.bddVar(3*i));
+    y_vars.push_back(mgr.bddVar(3*i + 1));
+    z_vars.push_back(mgr.bddVar(3*i + 2));
   }
-  ADD A = addition_n(mgr, 0, pow(2, n), x_vars, y_vars, z_vars);
+  high_resolution_clock::time_point start = high_resolution_clock::now();
+  //ADD A = addition_n(mgr, 0, pow(2, n), x_vars, y_vars, z_vars);
+  BDD A = mgr.Dxyeqz(x_vars, y_vars, z_vars);
   high_resolution_clock::time_point end = high_resolution_clock::now();
   duration<double> time_taken = duration_cast<duration<double>>(end - start);
   std::cout << "nodeCount: " << A.nodeCount() << " time: " << time_taken.count() << std::endl;

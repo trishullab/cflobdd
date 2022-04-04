@@ -4748,6 +4748,31 @@ Cudd::Dxygtdyz(
 
 } // Cudd::Dxygtdyz
 
+BDD
+Cudd::Dxyeqz(
+  std::vector<BDD> x,
+  std::vector<BDD> y,
+  std::vector<BDD> z) const
+{
+    size_t N = x.size();
+    DdManager *mgr = p->manager;
+    DdNode **X = new DdNode *[N];
+    DdNode **Y = new DdNode *[N];
+    DdNode **Z = new DdNode *[N];
+    for (size_t i = 0; i < N; i++) {
+    X[i] = x[i].getNode();
+    Y[i] = y[i].getNode();
+    Z[i] = z[i].getNode();
+    }
+    DdNode *result = Cudd_Dxyeqz(mgr, (int) N, X, Y, Z);
+    delete [] X;
+    delete [] Y;
+    delete [] Z;
+    checkReturnValue(result);
+    return BDD(p, result);
+
+} // Cudd::Dxygtdyz
+
 
 BDD
 Cudd::Inequality(

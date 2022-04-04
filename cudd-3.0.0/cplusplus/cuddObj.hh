@@ -658,6 +658,8 @@ public:
                  std::vector<BDD> z) const;
     BDD Dxygtdyz(std::vector<BDD> x, std::vector<BDD> y,
                  std::vector<BDD> z) const;
+    BDD Dxyeqz(std::vector<BDD> x, std::vector<BDD> y,
+                 std::vector<BDD> z) const;
     BDD Inequality(int c, std::vector<BDD> x, std::vector<BDD> y) const;
     BDD Disequality(int c, std::vector<BDD> x, std::vector<BDD> y) const;
     BDD Interval(std::vector<BDD> x, unsigned int lowerB,

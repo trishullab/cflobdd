@@ -678,6 +678,91 @@ Cudd_Dxygtdyz(
 } /* end of Cudd_Dxygtdyz */
 
 
+
+DdNode *
+Cudd_Dxyeqz(
+  DdManager * dd /**< %DD manager */,
+  int  N /**< number of x, y, and z variables */,
+  DdNode ** x /**< array of x variables */,
+  DdNode ** y /**< array of y variables */,
+  DdNode ** z /**< array of z variables */)
+{
+    DdNode *one, *zero;
+    DdNode *z1, *z2, *z3, *z4, *y1_, *y2, *x1;
+    int     i;
+
+    one = DD_ONE(dd);
+    zero = Cudd_Not(one);
+
+    /* Build bottom part of BDD outside loop. */
+    y1_ = Cudd_bddIte(dd, y[N-1], Cudd_Not(z[N-1]), zero);
+    if (y1_ == NULL) return(NULL);
+    cuddRef(y1_);
+    y2 = Cudd_bddIte(dd, y[N-1], zero, Cudd_Not(z[N-1]));
+    if (y2 == NULL) {
+  Cudd_RecursiveDeref(dd, y1_);
+  return(NULL);
+    }
+    cuddRef(y2);
+    x1 = Cudd_bddIte(dd, x[N-1], y1_, y2);
+    if (x1 == NULL) {
+  Cudd_RecursiveDeref(dd, y1_);
+  Cudd_RecursiveDeref(dd, y2);
+  return(NULL);
+    }
+    cuddRef(x1);
+    Cudd_RecursiveDeref(dd, y1_);
+    Cudd_RecursiveDeref(dd, y2);
+
+    /* Loop to build the rest of the BDD. */
+    for (i = N-2; i >= 0; i--) {
+  z1 = Cudd_bddIte(dd, z[i], zero, x1);
+  if (z1 == NULL) {
+      Cudd_RecursiveDeref(dd, x1);
+      return(NULL);
+  }
+  cuddRef(z1);
+  /*z2 = Cudd_bddIte(dd, z[i], zero, x1);
+  if (z2 == NULL) {
+      Cudd_RecursiveDeref(dd, x1);
+      Cudd_RecursiveDeref(dd, z1);
+      return(NULL);
+  }
+  cuddRef(z2);*/
+  Cudd_RecursiveDeref(dd, x1);
+  y1_ = Cudd_bddIte(dd, y[i], z1, zero);
+  if (y1_ == NULL) {
+      Cudd_RecursiveDeref(dd, z1);
+      Cudd_RecursiveDeref(dd, z2);
+      return(NULL);
+  }
+  cuddRef(y1_);
+  y2 = Cudd_bddIte(dd, y[i], zero, z1);
+  if (y2 == NULL) {
+      Cudd_RecursiveDeref(dd, z1);
+      //Cudd_RecursiveDeref(dd, z2);
+      Cudd_RecursiveDeref(dd, y1_);
+      return(NULL);
+  }
+  cuddRef(y2);
+  Cudd_RecursiveDeref(dd, z1);
+  //Cudd_RecursiveDeref(dd, z2);
+  x1 = Cudd_bddIte(dd, x[i], y1_, y2);
+  if (x1 == NULL) {
+      Cudd_RecursiveDeref(dd, y1_);
+      Cudd_RecursiveDeref(dd, y2);
+      return(NULL);
+  }
+  cuddRef(x1);
+  Cudd_RecursiveDeref(dd, y1_);
+  Cudd_RecursiveDeref(dd, y2);
+  }
+    cuddDeref(x1);
+    return(x1);
+
+} /* end of Cudd_Dxygtdyz */
+
+
 /**
   @brief Generates a %BDD for the function x - y &ge; c.
 

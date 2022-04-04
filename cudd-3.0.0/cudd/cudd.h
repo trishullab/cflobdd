@@ -823,6 +823,7 @@ extern DdNode * Cudd_Xeqy(DdManager *dd, int N, DdNode **x, DdNode **y);
 extern DdNode * Cudd_addXeqy(DdManager *dd, int N, DdNode **x, DdNode **y);
 extern DdNode * Cudd_Dxygtdxz(DdManager *dd, int N, DdNode **x, DdNode **y, DdNode **z);
 extern DdNode * Cudd_Dxygtdyz(DdManager *dd, int N, DdNode **x, DdNode **y, DdNode **z);
+extern DdNode * Cudd_Dxyeqz(DdManager *dd, int N, DdNode **x, DdNode **y, DdNode **z);
 extern DdNode * Cudd_Inequality(DdManager * dd, int  N, int c, DdNode ** x, DdNode ** y);
 extern DdNode * Cudd_Disequality(DdManager * dd, int  N, int c, DdNode ** x, DdNode ** y);
 extern DdNode * Cudd_bddInterval(DdManager * dd, int  N, DdNode ** x, unsigned int lowerB, unsigned int upperB);

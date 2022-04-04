@@ -604,12 +604,15 @@ unsigned int grover(Cudd &mgr, int n){
   //   ans = ans.SwapVariables(x_vars, w_vars);
   // }
   // ans = ans.SwapVariables(x_vars, w_vars);
+  ans = ans.SquareTerminalValues();
+  ans = ans.UpdatePathInfo(4, N);
+  std::string ans_s = ans.SamplePath(N, 4, "grover").substr(0, N);
   high_resolution_clock::time_point end = high_resolution_clock::now();
   duration<double> time_taken = duration_cast<duration<double>>(end - start);
-  std::cout << "string: " << s << std::endl;
+  std::cout << "is_correct: " << (ans_s == s) << std::endl;
   std::cout << "nodeCount: " <<  ans.nodeCount() << " leaf count: " << ans.CountLeaves() << " time_taken: " << time_taken.count() << std::endl;
   // ans.PrintMinterm();
-  ans.print(4*n,2);
+  //ans.print(4*n,2);
   return ans.nodeCount();
 }
 
@@ -653,13 +656,12 @@ unsigned int GHZ(Cudd &mgr, unsigned int n){
   ans = ans.UpdatePathInfo(3, N);
   // ans.PrintPathInfo();
   // ans.print(3*N,2);
-  std::string s;
-    for (unsigned int i = 0; i < 10; i++){
-	    s = ans.SamplePath(N, 3, "GHZ");
-	    std::cout << s << std::endl;
-	}
+  std::string s = ans.SamplePath(N, 3, "GHZ");
   high_resolution_clock::time_point end = high_resolution_clock::now();
+  std::string all_ones(N, '1');
+  std::string all_zeros(N, '0');
   duration<double> time_taken = duration_cast<duration<double>>(end - start);
+  std::cout << "is_correct: " << ((s == all_ones) || (s == all_zeros)) << std::endl;
   std::cout << "nodeCount: " <<  ans.nodeCount() << " time_taken: " << time_taken.count() << std::endl;
   return ans.nodeCount();
 }
@@ -724,9 +726,13 @@ unsigned int BV(Cudd &mgr, int n){
   //ans = ans * mgr.constant(1.0/pow(2,N/2));
 
   //ans.print(4*N,2);
+  ans = ans.SquareTerminalValues();
+  ans = ans.UpdatePathInfo(3, N+1);
+  std::string ans_s = ans.SamplePath(N+1, 3, "BV").substr(0, N);
   high_resolution_clock::time_point end = high_resolution_clock::now();
   duration<double> time_taken = duration_cast<duration<double>>(end - start);
-  std::cout << "string: " << s << std::endl;
+  std::string all_zeros(N, '0');
+  std::cout << "is_correct: " << ((ans_s == all_zeros) || (ans_s == s)) << std::endl;
   std::cout << "nodeCount: " <<  ans.nodeCount() << " time_taken: " << time_taken.count() << std::endl;
   // ans.print(3*n,2);
   return ans.nodeCount();
@@ -785,20 +791,16 @@ ADD CreateBalancedFn(Cudd& mgr, unsigned int N, std::vector<ADD>& x_vars, std::v
 
 }
 
-ADD CreateFMatrix_DJ(Cudd& mgr, unsigned int N, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars, std::vector<ADD>& z_vars){
+std::pair<ADD, bool> CreateFMatrix_DJ(Cudd& mgr, unsigned int N, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars, std::vector<ADD>& z_vars){
 	// srand(time(NULL));
 	srand(2);
 	bool isConstant_F = (rand() % 2);
 	if (isConstant_F){
-		int value = (rand() % 2);
-		CUDD_VALUE_TYPE val;
-		mpfr_init_set_si(val.t_val, value, RND_TYPE);
-		ADD F = mgr.constant(val);
-		mpfr_clear(val.t_val);
-		return F;
+		ADD F = identity_n(mgr, 0, N, x_vars, y_vars); 
+		return std::make_pair(F, false);
 	} else{
 		// srand(time(NULL));
-		return CreateBalancedFn(mgr, N, x_vars, y_vars, z_vars);
+		return std::make_pair(CreateBalancedFn(mgr, N, x_vars, y_vars, z_vars), true);
 	}
 }
 
@@ -814,8 +816,10 @@ unsigned int DJ(Cudd &mgr, int n){
 	  z_vars.push_back(mgr.addVar(3*i+2));
 	}
 
-	ADD F = CreateFMatrix_DJ(mgr, N, x_vars, y_vars, z_vars);
+	auto F_x = CreateFMatrix_DJ(mgr, N, x_vars, y_vars, z_vars);
+	ADD F = F_x.first;
 	std::cout << "F nodeCount: " <<  F.nodeCount() << std::endl;
+	std::cout << "is_balanced: " << F_x.second << std::endl;
 	high_resolution_clock::time_point start = high_resolution_clock::now();
 	ADD ans = ~y_vars[N] - y_vars[N];
 	ans = F.MatrixMultiply(ans, y_vars);
@@ -823,13 +827,17 @@ unsigned int DJ(Cudd &mgr, int n){
 	ADD H = hadamard_n(mgr, 0, N, x_vars, y_vars);
 	ADD HI = H * identity_matrix(x_vars[N], y_vars[N]);
 	ans = HI.MatrixMultiply(ans, y_vars);
+	ans = ans.SquareTerminalValues();
+	ans = ans.UpdatePathInfo(3, N+1);
+	std::string ans_s = ans.SamplePath(N+1, 3, "DJ").substr(0, N);
   	high_resolution_clock::time_point end = high_resolution_clock::now();
   	bool isOutCorrect = false;
-  	if (F.IsOne() || F.IsZero()){
-  		isOutCorrect = ans.IsZero();
+	std::string all_zeros(N, '0');
+  	if (F_x.second == false){
+  		isOutCorrect = (ans_s == all_zeros);
   	}
   	else{
-  		isOutCorrect = !ans.IsZero();
+  		isOutCorrect = (ans_s != all_zeros);
   	}
   	duration<double> time_taken = duration_cast<duration<double>>(end - start);
   	std::cout << "Is Output correct: " << isOutCorrect << std::endl;

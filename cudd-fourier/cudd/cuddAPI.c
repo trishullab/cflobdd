@@ -2673,6 +2673,7 @@ Cudd_SetEpsilon(
     // TODO: remove init ?
     mpfr_init_set(dd->epsilon.real,ep.real, RND_TYPE);
     mpfr_init_set(dd->epsilon.imag,ep.imag, RND_TYPE);
+    ep.is_complex_assigned = 1;
 
 } /* end of Cudd_SetEpsilon */
 

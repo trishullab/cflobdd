@@ -137,6 +137,7 @@ Cudd_Init(
     /* Initialize constants. */
     CUDD_VALUE_TYPE tmp_one;
     tmp_one.val = 1; tmp_one.base = 1;
+    tmp_one.is_complex_assigned = 1;
     mpfr_init_set_d(tmp_one.real, 1.0, RND_TYPE);
     mpfr_init_set_d(tmp_one.imag, 0.0, RND_TYPE);
     unique->one = cuddUniqueConst(unique,tmp_one);
@@ -145,6 +146,7 @@ Cudd_Init(
     cuddRef(unique->one);
     CUDD_VALUE_TYPE tmp_zero;
     tmp_zero.val = 0; tmp_zero.base = 1;
+    tmp_zero.is_complex_assigned = 1;
     mpfr_init_set_d(tmp_zero.real, 0.0, RND_TYPE);
     mpfr_init_set_d(tmp_zero.imag, 0.0, RND_TYPE);
     unique->zero = cuddUniqueConst(unique,tmp_zero);
@@ -159,6 +161,7 @@ Cudd_Init(
     }
 #endif
     CUDD_VALUE_TYPE tmp_plus_inf;
+    tmp_plus_inf.is_complex_assigned = 1;
     mpfr_init_set_d(tmp_plus_inf.real, DD_PLUS_INF_VAL, RND_TYPE);
     mpfr_init_set_d(tmp_plus_inf.imag, 0.0, RND_TYPE);
     unique->plusinfinity = cuddUniqueConst(unique,tmp_plus_inf);
@@ -166,6 +169,7 @@ Cudd_Init(
     if (unique->plusinfinity == NULL) return(0);
     cuddRef(unique->plusinfinity);
     CUDD_VALUE_TYPE tmp_minus_inf;
+    tmp_minus_inf.is_complex_assigned = 1;
     mpfr_init_set_d(tmp_minus_inf.real, DD_MINUS_INF_VAL, RND_TYPE);
     mpfr_init_set_d(tmp_minus_inf.imag, 0.0, RND_TYPE);
     unique->minusinfinity = cuddUniqueConst(unique,tmp_minus_inf);

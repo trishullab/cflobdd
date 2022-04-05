@@ -171,6 +171,7 @@ cuddAddNegateRecur(
     /* Check terminal cases. */
     if (cuddIsConstant(f)) {
       CUDD_VALUE_TYPE t_val;
+      t_val.is_complex_assigned = cuddV(f).is_complex_assigned;
       mpfr_init_set(t_val.real, cuddV(f).real, RND_TYPE);
       mpfr_init_set(t_val.imag, cuddV(f).imag, RND_TYPE);
       mpfr_mul_si(t_val.real,t_val.real,-1, RND_TYPE);
@@ -234,6 +235,7 @@ cuddAddRoundOffRecur(
 
     DdNode *res, *fv, *fvn, *T, *E;
     CUDD_VALUE_TYPE n;
+    n.is_complex_assigned = cuddV(f).is_complex_assigned;
     mpfr_init(n.real);
     mpfr_init(n.imag);
     DD_CTFP1 cacheOp;

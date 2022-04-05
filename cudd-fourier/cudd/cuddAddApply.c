@@ -295,6 +295,7 @@ Cudd_addConvertToBase(
       CUDD_VALUE_TYPE value;
       value.val = (cuddV(f).val * (base/cuddV(f).base)) % base;
       value.base = base;
+      value.is_complex_assigned = 0;
       DdNode *res = cuddUniqueConst(dd,value);
       return(res);
     }
@@ -340,6 +341,7 @@ Cudd_addSimonsRemoveMinusOne(
 
     if (cuddIsConstant(f)) {
       CUDD_VALUE_TYPE value;
+      value.is_complex_assigned = 0;
       mpfr_init(value.real);
       mpfr_init(value.imag);
       if (mpfr_cmp_si(cuddV(f).real, -1) == 0){
@@ -369,6 +371,7 @@ Cudd_addSimonsRemoveOne(
 {
     if (cuddIsConstant(f)) {
       CUDD_VALUE_TYPE value;
+      value.is_complex_assigned = 0;
       mpfr_init(value.real);
       mpfr_init(value.imag);
       if (mpfr_cmp_si(cuddV(f).real, -1) == 0){
@@ -402,6 +405,7 @@ Cudd_addSquareTerminalValues(
 {
     if (cuddIsConstant(f)) {
       CUDD_VALUE_TYPE value;
+      value.is_complex_assigned = 0;
       mpfr_init_set(value.real, cuddV(f).real, RND_TYPE);
       mpfr_init_set(value.imag, cuddV(f).imag, RND_TYPE);
       mpfr_mul(value.real, value.real, value.real, RND_TYPE);
@@ -517,6 +521,7 @@ Cudd_addDivide(
     DdNode *res;
     DdNode *F, *G;
     CUDD_VALUE_TYPE value;
+    value.is_complex_assigned = 1;
     mpfr_init(value.real);
     mpfr_init(value.imag);
 
@@ -562,6 +567,7 @@ Cudd_addMinus(
     CUDD_VALUE_TYPE value;
     mpfr_init(value.real);
     mpfr_init(value.imag);
+    value.is_complex_assigned = 1;
 
     F = *f; G = *g;
     if (F == G) {mpfr_clear(value.real);mpfr_clear(value.imag);return(DD_ZERO(dd));}
@@ -1144,6 +1150,7 @@ Cudd_addLog(
 {
     if (cuddIsConstant(f)) {
 	CUDD_VALUE_TYPE value;
+  value.is_complex_assigned = 1;
   mpfr_init(value.real); mpfr_init(value.imag);
   mpfr_log(value.real, cuddV(f).real, RND_TYPE);
   mpfr_log(value.imag, cuddV(f).imag, RND_TYPE);

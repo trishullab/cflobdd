@@ -143,6 +143,7 @@ cuddAddScalarInverseRecur(
 {
     DdNode *t, *e, *res;
     CUDD_VALUE_TYPE value;
+    value.is_complex_assigned = cuddV(f).is_complex_assigned;
     mpfr_init(value.real);
     mpfr_init(value.imag);
 

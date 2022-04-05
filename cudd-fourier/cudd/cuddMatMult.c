@@ -334,6 +334,7 @@ addMMRecur(
     double scale;	/* scaling factor */
     int index;		/* index of the top variable */
     CUDD_VALUE_TYPE value;
+    value.is_complex_assigned = 0;
     mpfr_init(value.real);
     mpfr_init(value.imag);
     int topA, topB, topV;
@@ -354,7 +355,7 @@ addMMRecur(
 	** Indeed, these constants represent blocks of 2^k identical
 	** constant values in both A and B.
 	*/
-    if (cuddV(A).is_complex_assigned == 1){
+    if (cuddV(A).is_complex_assigned == 1 && cuddV(B).is_complex_assigned == 1){
         mpfr_t tmp;
         mpfr_init(tmp);
         mpfr_mul(value.real, cuddV(A).real, cuddV(B).real, RND_TYPE);
@@ -379,7 +380,7 @@ addMMRecur(
       value.base = cuddV(A).base;
       res = cuddUniqueConst(dd, value);
     }
-    value.is_complex_assigned = cuddV(A).is_complex_assigned;
+    value.is_complex_assigned = (cuddV(A).is_complex_assigned && cuddV(B).is_complex_assigned);
 
 
     // mpfr_printf("%.128Rf %.128Rf %.128Rf\n", value.t_val, cuddV(A).t_val, cuddV(B).t_val);

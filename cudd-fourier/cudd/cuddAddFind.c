@@ -223,6 +223,7 @@ Cudd_addIthBit(
     ** global cache.
     */
     CUDD_VALUE_TYPE t;
+    t.is_complex_assigned = 1;
     mpfr_init_set_si(t.real, (long int)bit, RND_TYPE);
     mpfr_init_set_si(t.imag, 0, RND_TYPE);
     index = cuddUniqueConst(dd, t);

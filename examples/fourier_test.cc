@@ -45,6 +45,8 @@ ADD hadamard_matrix(Cudd& mgr, ADD x, ADD y){
 	val.val = 0; val.base = 2;
 	CUDD_VALUE_TYPE val2;
 	val2.val = 1; val2.base = 2;
+	val.is_complex_assigned = 0;
+	val2.is_complex_assigned = 0;
 	ADD ret = (~x + x * ~y) * mgr.constant(val);
 	ret = ret + (x * y) * mgr.constant(val2);
   	return ret;
@@ -145,6 +147,7 @@ ADD D_n(Cudd& mgr, unsigned int start, unsigned int end, unsigned int size, std:
 		// mpfr_sin(val.imag, val.imag, RND_TYPE);
 		val.val = (i) % ((unsigned int)pow(2, size));
 		val.base = ((unsigned int)pow(2, size));
+		val.is_complex_assigned = 0;
 		ans = ans + tmp_ans * mgr.constant(val);
 		// mpfr_clear(val.real); mpfr_clear(val.imag);
 	}
@@ -240,14 +243,13 @@ ADD Fourier(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars,
 	ADD F = (~x_vars[start]*~y_vars[start] + x_vars[start]*y_vars[start]) * F_recurse;
 	F = F.SwapVariables(x_vars, w_vars);
 	F = F.SwapVariables(y_vars, z_vars);
-
 	ADD Id = identity_n(mgr, start + 1, x_vars.size(), x_vars, y_vars);
 	ADD D = D_n(mgr, start + 1, x_vars.size(), N, x_vars, y_vars);
 	// if (N == 3){
 	// 	D.print(4*N,2);
 	// }
 	CUDD_VALUE_TYPE val;
-	val.val = pow(2, N)/2; val.base = pow(2, N);
+	val.val = pow(2, N)/2; val.base = pow(2, N);val.is_complex_assigned = 0;
 	ADD ID = (~y_vars[start]*Id) + (y_vars[start] * (~x_vars[start] + mgr.constant(val) * x_vars[start]) * D);
 	ID = ID.SwapVariables(y_vars, w_vars);
 	ADD IDF = ID.MatrixMultiply(F, w_vars);

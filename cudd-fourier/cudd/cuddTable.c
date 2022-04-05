@@ -1567,6 +1567,7 @@ cuddUniqueConst(
     cuddAdjust(value); /* for the case of crippled infinities */
 
     // if (ddAbs(value) < unique->epsilon) {
+    	// printf("%d\n", value.is_complex_assigned);
     if (value.is_complex_assigned == 1){
       mpfr_t t_val1, t_val2;
       mpfr_init_set(t_val1, value.real, RND_TYPE);

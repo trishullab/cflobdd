@@ -1288,12 +1288,14 @@ Cudd_MinHammingDist(
     mpfr_init(tmp_zero.imag);
     mpfr_set_zero(tmp_zero.real, 0);
     mpfr_set_zero(tmp_zero.imag, 0);
+    tmp_zero.is_complex_assigned = 1;
     Cudd_SetEpsilon(dd,(CUDD_VALUE_TYPE)tmp_zero);
     mpfr_clear(tmp_zero.real);
     mpfr_clear(tmp_zero.imag);
     res = cuddMinHammingDistRecur(f,minterm,table,upperBound);
     cuddHashTableQuit(table);
     Cudd_SetEpsilon(dd,epsilon);
+    epsilon.is_complex_assigned = 1;
     mpfr_clear(epsilon.real);
     mpfr_clear(epsilon.imag);
     return(res);

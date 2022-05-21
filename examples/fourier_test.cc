@@ -1,7 +1,6 @@
 #include "../cudd-fourier/cplusplus/cuddObj.hh"
 #include <iostream>
 #include <algorithm>
-#include <numbers>
 #include <mpfr.h>
 #include <cmath>
 #include <ctime>

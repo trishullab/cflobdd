@@ -3,6 +3,7 @@
 #include <cmath>
 #include <ctime>
 #include <ratio>
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <cstring>

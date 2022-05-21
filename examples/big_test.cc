@@ -126,7 +126,7 @@ std::string getBits(unsigned int n, int len){
 
 
 
-ADD PermutationMatrix(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars, unsigned int N){
+ADD PermutationMatrix(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars, unsigned int N, std::mt19937 mt){
 	if (N <= 8){
 
 		unsigned vals_size = pow(2, N);
@@ -134,9 +134,9 @@ ADD PermutationMatrix(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_v
 		for (unsigned int i = 0; i < v.size(); i++){
 			v[i] = i;
 		}
-		std::random_device rd;
-		std::mt19937 g(rd());
-		std::shuffle(v.begin(), v.end(), g);
+		//std::random_device rd;
+		//std::mt19937 g(rd());
+		std::shuffle(v.begin(), v.end(), mt);
 		ADD ans = mgr.addZero();
 		for (unsigned int i = 0; i < pow(2, N); i++){
 			ADD tmp_ans = mgr.addOne();
@@ -168,7 +168,7 @@ ADD PermutationMatrix(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_v
 		return ans;
 
 	}
-	int rand_val = rand() % 3;
+	int rand_val = mt() % 3;
 	if (rand_val == 0){
 		return Voc14And23_n(mgr, 0, N, x_vars, y_vars);
 	}else if (rand_val == 1){
@@ -240,7 +240,7 @@ ADD SMatrix(Cudd& mgr, std::string s, std::vector<ADD>& w_vars){
 	return ans;
 }
 
-ADD Create2To1Func(Cudd& mgr, ADD F1, ADD F2, std::string s1, std::string s2, unsigned int n, std::vector<ADD>& w_vars, std::vector<ADD>& z_vars, std::vector<ADD>& x_vars){
+ADD Create2To1Func(Cudd& mgr, ADD F1, ADD F2, std::string s1, std::string s2, unsigned int n, std::vector<ADD>& w_vars, std::vector<ADD>& z_vars, std::vector<ADD>& x_vars, std::mt19937 mt){
 	ADD S1 = SMatrix(mgr, s1, w_vars);
 	std::vector<ADD> new_w, new_z, new_x;
 	new_w.insert(new_w.end(), w_vars.begin() + n/2, w_vars.begin() + n);
@@ -256,8 +256,8 @@ ADD Create2To1Func(Cudd& mgr, ADD F1, ADD F2, std::string s1, std::string s2, un
 		std::vector<ADD> first_half_z, first_half_x;
 		first_half_z.insert(first_half_z.end(), z_vars.begin(), z_vars.begin() + n/2);
 		first_half_x.insert(first_half_x.end(), x_vars.begin(), x_vars.begin() + n/2);
-		ADD P1 = PermutationMatrix(mgr, z_vars, x_vars, n/2);
-		ADD P2 = PermutationMatrix(mgr, new_z, new_x, n/2); // z , x
+		ADD P1 = PermutationMatrix(mgr, z_vars, x_vars, n/2, mt);
+		ADD P2 = PermutationMatrix(mgr, new_z, new_x, n/2, mt); // z , x
 
 		F1Permute = F1Permute.MatrixMultiply(P1, first_half_z); // w,z ; z,x
 		F2Permute = F2Permute.MatrixMultiply(P2, new_z);
@@ -274,14 +274,14 @@ ADD Create2To1Func(Cudd& mgr, ADD F1, ADD F2, std::string s1, std::string s2, un
 	return ans;
 }
 
-ADD CreateFnMatrix(Cudd &mgr, std::string s, unsigned int n, std::vector<ADD>& w_vars, std::vector<ADD>& z_vars, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars){
+ADD CreateFnMatrix(Cudd &mgr, std::string s, unsigned int n, std::vector<ADD>& w_vars, std::vector<ADD>& z_vars, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars, std::mt19937 mt){
 
 	if (n <= 2){
 	  unsigned long long int numVals = pow(2,n);
 	  ADD ans = mgr.addZero();
 	  std::unordered_map<std::string, std::string> map_values;
 	  for (unsigned long long int i = 0; i < pow(2,n); i++){
-	  	unsigned long long int val = rand() % numVals; 
+	  	unsigned long long int val = mt() % numVals; 
 	    std::string inp_string = getBits(i, n); 
 	    std::string xor_string = compute_xor(inp_string, s);
 	    std::string val_string;
@@ -310,14 +310,14 @@ ADD CreateFnMatrix(Cudd &mgr, std::string s, unsigned int n, std::vector<ADD>& w
 	}
 	else
 	{
-		ADD F1 = CreateFnMatrix(mgr, s.substr(0, s.length()/2), n/2, w_vars, z_vars, x_vars, y_vars);
+		ADD F1 = CreateFnMatrix(mgr, s.substr(0, s.length()/2), n/2, w_vars, z_vars, x_vars, y_vars, mt);
 		std::vector<ADD> new_x, new_y, new_w, new_z;
 		new_x.insert(new_x.end(), x_vars.begin() + n/2, x_vars.begin() + n);
 		new_y.insert(new_y.end(), y_vars.begin() + n/2, y_vars.begin() + n);
 		new_w.insert(new_w.end(), w_vars.begin() + n/2, w_vars.begin() + n);
 		new_z.insert(new_z.end(), z_vars.begin() + n/2, z_vars.begin() + n);
-		ADD F2 = CreateFnMatrix(mgr, s.substr(s.length()/2), n/2, new_w, new_z, new_x, new_y);
-		ADD ans = Create2To1Func(mgr, F1, F2, s.substr(0, s.length()/2), s.substr(s.length()/2), n, w_vars, z_vars, x_vars);
+		ADD F2 = CreateFnMatrix(mgr, s.substr(s.length()/2), n/2, new_w, new_z, new_x, new_y, mt);
+		ADD ans = Create2To1Func(mgr, F1, F2, s.substr(0, s.length()/2), s.substr(s.length()/2), n, w_vars, z_vars, x_vars, mt);
 		return ans;
 	}
 }
@@ -355,7 +355,7 @@ std::pair<std::string, ADD> ReadFromFile(Cudd& mgr, std::vector<ADD>& x_vars, st
 	return std::make_pair(s,ans);
 }
 
-unsigned int simons(Cudd &mgr, int n){
+unsigned int simons(Cudd &mgr, int n, std::mt19937 mt){
 
 	adjustPrecision(mgr, n, 6);
 	unsigned int N = pow(2, n);
@@ -369,10 +369,10 @@ unsigned int simons(Cudd &mgr, int n){
   // srand(2);
   std::string s(N, '0');
   for (unsigned int i = 0; i < N; i++){
-  	s[i] = (rand() % 2) ? '1' : '0';
+  	s[i] = (mt() % 2 == 0) ? '1' : '0';
   }
   // s = "10";
-  ADD U = CreateFnMatrix(mgr, s, N, w_vars, z_vars, x_vars, y_vars);
+  ADD U = CreateFnMatrix(mgr, s, N, w_vars, z_vars, x_vars, y_vars, mt);
   // std::pair<std::string, ADD> f = ReadFromFile(mgr, w_vars, z_vars);
   // s = f.first;
   // ADD U = f.second;
@@ -402,6 +402,7 @@ unsigned int simons(Cudd &mgr, int n){
   	swap_array.push_back(x_vars[i]);
   	swap_array.push_back(w_vars[i]);
   }
+  std::cout << "Step 1 : " << ans.nodeCount() << std::endl;
   ans = C.MatrixMultiply(ans, mult_array);
   // ans = ans.SwapVariables(swap_array, mult_array);
   CUDD_VALUE_TYPE val;
@@ -413,9 +414,12 @@ unsigned int simons(Cudd &mgr, int n){
   ADD tmp = identity_n(mgr, 0, N, x_vars, y_vars) * U;
   ADD HU = H * U;
   // std::cout << ans.nodeCount() << " " << HU.nodeCount() << std::endl;
+  std::cout << "Step 2 : " << ans.nodeCount() << std::endl;
   ans = HU.MatrixMultiply(ans, swap_array);
   ans = ans.SwapVariables(swap_array, mult_array);
+  std::cout << "Step 3 : " << ans.nodeCount() << std::endl;
   ans = ans.SquareTerminalValues();
+  std::cout << "Step 4 : " << ans.nodeCount() << std::endl;
   ans = ans.UpdatePathInfo(2, 2*N);
   // ans.PrintPathInfo();
   high_resolution_clock::time_point mid = high_resolution_clock::now();
@@ -520,8 +524,10 @@ std::pair<ADD, ADD> MultiplyRec(Cudd& mgr, ADD M, unsigned long long int iters, 
   if (it != memo.end())
     return std::make_pair(it->second, it->second);
   if (iters == 1){
-    if ((*level) >= n)
+    if ((*level) >= n){
       memo[iters] = M;
+      std::cout << "Step 1 : " << M.nodeCount() << std::endl;
+    }
     if ((*level) < n){
       *level = *level + 1;
       CUDD_VALUE_TYPE val;
@@ -549,19 +555,21 @@ std::pair<ADD, ADD> MultiplyRec(Cudd& mgr, ADD M, unsigned long long int iters, 
   M2P = M2P.SwapVariables(z_vars, x_vars);
   ADD ansP = M1P.MatrixMultiply(M2P, z_vars);
 
-  if ((*level) >= n)
+  if ((*level) >= n){
     memo[iters] = ansP;
+    std::cout << "Step 1 : " << ansP.nodeCount() << std::endl;
+  }
   return std::make_pair(ans, ansP);
 
 }
 
-unsigned int grover(Cudd &mgr, int n){
+unsigned int grover(Cudd &mgr, int n, std::mt19937 mt){
 
 	adjustPrecision(mgr, n, 8);
 	
   std::string s;
   for (int i = 0; i < pow(2, n); i++){
-    s += (rand()%2 == 0) ? '0' :'1';
+    s += (mt()%2 == 0) ? '0' :'1';
   }
   std::vector<ADD> x_vars, w_vars, z_vars, y_vars;
   for (unsigned int i = 0; i < pow(2, n); i++){
@@ -580,6 +588,7 @@ unsigned int grover(Cudd &mgr, int n){
   double const pi = 4 * std::atan(1);
   unsigned long long int iters = (unsigned long long int)floor(pi * 0.25 * pow(2, N/2)); 
   ADD ans = mgr.addOne();
+  std::cout << "Step 1 : " << ans.nodeCount() << std::endl;
   std::cout << "M count: " << M.nodeCount() << " ans count: " << ans.nodeCount() << std::endl;
   std::cout << "iters count: " << iters << std::endl;
   std::unordered_map<unsigned long long int, ADD> memo;
@@ -598,6 +607,7 @@ unsigned int grover(Cudd &mgr, int n){
   // M_rec.second.print(4*N, 2);
   // ans.print(4*N, 2);
   ans = M_actual.MatrixMultiply(ans, w_vars);
+  std::cout << "Step 1 : " << ans.nodeCount() << std::endl;
   // for (unsigned long long int i = 0; i < iters; i++){
   //   ans = M.MatrixMultiply(ans, w_vars);
   //   std::cout << "i : " << i << " ans count: " << ans.nodeCount() << " M leaves: " << M.CountLeaves() << " ans leaves: " << ans.CountLeaves() << std::endl;
@@ -605,6 +615,7 @@ unsigned int grover(Cudd &mgr, int n){
   // }
   // ans = ans.SwapVariables(x_vars, w_vars);
   ans = ans.SquareTerminalValues();
+  std::cout << "Step 1 : " << ans.nodeCount() << std::endl;
   ans = ans.UpdatePathInfo(4, N);
   std::string ans_s = ans.SamplePath(N, 4, "grover").substr(0, N);
   high_resolution_clock::time_point end = high_resolution_clock::now();
@@ -646,13 +657,17 @@ unsigned int GHZ(Cudd &mgr, unsigned int n){
   H = H * I_0; //* mgr.constant(1.0/pow(2,N-1));
   ans = H.MatrixMultiply(ans, y_vars);
   ans = ans.SwapVariables(x_vars, y_vars);
+  std::cout << "Step 1 : " << ans.nodeCount() << std::endl;
   ans = U.MatrixMultiply(ans, y_vars);
   ans = ans.SwapVariables(x_vars, y_vars);
+  std::cout << "Step 2 : " << ans.nodeCount() << std::endl;
   H = hadamard_n(mgr, 0, N-1, x_vars, y_vars);
   ADD H_0 = hadamard_matrix(mgr, x_vars[N-1], y_vars[N-1]);
   H = H * H_0;
   ans = H.MatrixMultiply(ans, y_vars);
+  std::cout << "Step 3 : " << ans.nodeCount() << std::endl;
   ans = ans.SquareTerminalValues();
+  std::cout << "Step 4 : " << ans.nodeCount() << std::endl;
   ans = ans.UpdatePathInfo(3, N);
   // ans.PrintPathInfo();
   // ans.print(3*N,2);
@@ -666,7 +681,7 @@ unsigned int GHZ(Cudd &mgr, unsigned int n){
   return ans.nodeCount();
 }
 
-unsigned int BV(Cudd &mgr, int n){
+unsigned int BV(Cudd &mgr, int n, std::mt19937 mt){
 
 	adjustPrecision(mgr, n, 8);
   unsigned int N = (unsigned int)pow(2, n);
@@ -678,7 +693,7 @@ unsigned int BV(Cudd &mgr, int n){
   }
   std::string s;
   for (int i = 0; i < pow(2, n); i++){
-    s += (rand()%2 == 0) ? '0' :'1';
+    s += (mt()%2 == 0) ? '0' :'1';
   }
   long long int index = -1;
   for (unsigned int i = 0; i < s.length(); i++){
@@ -720,13 +735,17 @@ unsigned int BV(Cudd &mgr, int n){
   ans = H.MatrixMultiply(ans, y_vars);
   //ans = ans * mgr.constant(1.0/pow(2,N/2));
   ans = ans.SwapVariables(x_vars, y_vars);
+  std::cout << "Step 0 : " << ans.nodeCount() << std::endl;
   ans = U.MatrixMultiply(ans, y_vars);
   ans = ans.SwapVariables(x_vars, y_vars);
+  std::cout << "Step 1 : " << ans.nodeCount() << std::endl;
   ans = H.MatrixMultiply(ans, y_vars);
   //ans = ans * mgr.constant(1.0/pow(2,N/2));
 
   //ans.print(4*N,2);
+  std::cout << "Step 2 : " << ans.nodeCount() << std::endl;
   ans = ans.SquareTerminalValues();
+  std::cout << "Step 3 : " << ans.nodeCount() << std::endl;
   ans = ans.UpdatePathInfo(3, N+1);
   std::string ans_s = ans.SamplePath(N+1, 3, "BV").substr(0, N);
   high_resolution_clock::time_point end = high_resolution_clock::now();
@@ -738,11 +757,11 @@ unsigned int BV(Cudd &mgr, int n){
   return ans.nodeCount();
 }
 
-ADD CreateBalancedFn(Cudd& mgr, unsigned int N, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars, std::vector<ADD>& z_vars){
+ADD CreateBalancedFn(Cudd& mgr, unsigned int N, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars, std::vector<ADD>& z_vars, std::mt19937 mt){
 
 	std::string s(N, '0');
 	for (unsigned int i = 0; i < N; i++){
-		s[i] = rand() % 2 ? '1' : '0';
+		s[i] = mt() % 2 ? '1' : '0';
 	}
 
 
@@ -791,20 +810,20 @@ ADD CreateBalancedFn(Cudd& mgr, unsigned int N, std::vector<ADD>& x_vars, std::v
 
 }
 
-std::pair<ADD, bool> CreateFMatrix_DJ(Cudd& mgr, unsigned int N, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars, std::vector<ADD>& z_vars){
+std::pair<ADD, bool> CreateFMatrix_DJ(Cudd& mgr, unsigned int N, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars, std::vector<ADD>& z_vars, std::mt19937 mt){
 	// srand(time(NULL));
-	srand(2);
-	bool isConstant_F = (rand() % 2);
+	//srand(2);
+	bool isConstant_F = (mt() % 2);
 	if (isConstant_F){
 		ADD F = identity_n(mgr, 0, N, x_vars, y_vars); 
 		return std::make_pair(F, false);
 	} else{
 		// srand(time(NULL));
-		return std::make_pair(CreateBalancedFn(mgr, N, x_vars, y_vars, z_vars), true);
+		return std::make_pair(CreateBalancedFn(mgr, N, x_vars, y_vars, z_vars, mt), true);
 	}
 }
 
-unsigned int DJ(Cudd &mgr, int n){
+unsigned int DJ(Cudd &mgr, int n, std::mt19937 mt){
 
 	adjustPrecision(mgr, n, 6);
 
@@ -816,18 +835,22 @@ unsigned int DJ(Cudd &mgr, int n){
 	  z_vars.push_back(mgr.addVar(3*i+2));
 	}
 
-	auto F_x = CreateFMatrix_DJ(mgr, N, x_vars, y_vars, z_vars);
+	auto F_x = CreateFMatrix_DJ(mgr, N, x_vars, y_vars, z_vars, mt);
 	ADD F = F_x.first;
 	std::cout << "F nodeCount: " <<  F.nodeCount() << std::endl;
 	std::cout << "is_balanced: " << F_x.second << std::endl;
 	high_resolution_clock::time_point start = high_resolution_clock::now();
 	ADD ans = ~y_vars[N] - y_vars[N];
+	std::cout << "Step 1 : " << ans.nodeCount() << std::endl;
 	ans = F.MatrixMultiply(ans, y_vars);
 	ans = ans.SwapVariables(x_vars, y_vars);
+	std::cout << "Step 2 : " << ans.nodeCount() << std::endl;
 	ADD H = hadamard_n(mgr, 0, N, x_vars, y_vars);
 	ADD HI = H * identity_matrix(x_vars[N], y_vars[N]);
 	ans = HI.MatrixMultiply(ans, y_vars);
+	std::cout << "Step 3 : " << ans.nodeCount() << std::endl;
 	ans = ans.SquareTerminalValues();
+	std::cout << "Step 4 : " << ans.nodeCount() << std::endl;
 	ans = ans.UpdatePathInfo(3, N+1);
 	std::string ans_s = ans.SamplePath(N+1, 3, "DJ").substr(0, N);
   	high_resolution_clock::time_point end = high_resolution_clock::now();
@@ -881,23 +904,26 @@ int main (int argc, char** argv)
 	unsigned int nodeCount = 0;
 
 	auto t = time(NULL);
+	if (argc == 5)
+		t = atoi(argv[4]);
 	std::cout << "t: " << t << std::endl;
-	srand(t);
 
+	std::mt19937 mt(t);
 	if (strcmp(argv[1], "xor") == 0)
       nodeCount = exclusive_or(mgr, atoi(argv[2])); 
     else if (strcmp(argv[1], "hi_sum") == 0)
       nodeCount = hi_sum(mgr, atoi(argv[2]));
-  	else if (strcmp(argv[1], "simons") == 0)
-      nodeCount = simons(mgr, atoi(argv[2]));
+  	else if (strcmp(argv[1], "simons") == 0){
+		nodeCount = simons(mgr, atoi(argv[2]), mt);
+	}
 	else if (strcmp(argv[1], "grover") == 0)
-      nodeCount = grover(mgr, atoi(argv[2]));
+      nodeCount = grover(mgr, atoi(argv[2]), mt);
   	else if (strcmp(argv[1], "GHZ") == 0)
       nodeCount = GHZ(mgr, atoi(argv[2]));
   	else if (strcmp(argv[1], "BV") == 0)
-      nodeCount = BV(mgr, atoi(argv[2]));
+      nodeCount = BV(mgr, atoi(argv[2]), mt);
   	else if (strcmp(argv[1], "DJ") == 0)
-      nodeCount = DJ(mgr, atoi(argv[2]));
+      nodeCount = DJ(mgr, atoi(argv[2]), mt);
   else if (strcmp(argv[1], "id") == 0)
       nodeCount = identity(mgr, atoi(argv[2]));
 

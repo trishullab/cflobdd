@@ -12,6 +12,7 @@
 #include <utility>
 #include <typeinfo>
 #include <fstream>
+#include <random>
 using namespace std::chrono;
 #define RND_TYPE MPFR_RNDN
 
@@ -286,10 +287,164 @@ unsigned int Fourier(Cudd& mgr, int n){
   return ans.nodeCount();
 }
 
+std::string getBitString(unsigned int i, int n){
+	std::string s(n, '0');
+	int count = n - 1;
+	while (i > 0){
+		int k = i % 2;
+		i = i / 2;
+		s[count] = (k == 0) ? '0' : '1';
+		count--;
+	}
+	return s;
+}
+
+ADD getVector(Cudd&mgr, std::string index_s, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars){
+	ADD F = mgr.addOne();
+	F = F.SetToComplex();
+  for (int i = 0; i < index_s.length(); i++){
+  	if (i % 2 == 0)
+  	{
+  		if (index_s[i] == '0')
+  		{
+  			F *= ~x_vars[i/2];
+  		}else{
+  			F *= x_vars[i/2];
+  		}
+  	}else{
+  		if (index_s[i] == '0')
+  		{
+  			F *= ~y_vars[i/2];
+  		}else{
+  			F *= y_vars[i/2];
+  		}
+  	}
+  }
+  return F;
+}
+
+ADD ShorsMainAlgo(Cudd&mgr, int l, ADD U, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars,
+	std::vector<ADD>& w_vars, std::vector<ADD>& z_vars){
+	std::cout << "Algo start.." << std::endl;
+  high_resolution_clock::time_point start = high_resolution_clock::now();
+  ADD C = mgr.addZero();
+  C = C.SetToComplex();
+  C = C + CNOT_matrix(x_vars[0], y_vars[0], w_vars[0], z_vars[0]);
+  unsigned int N = l;
+  for (unsigned int i = 1; i < N; i++){
+    C *= CNOT_matrix(x_vars[i], y_vars[i], w_vars[i], z_vars[i]);
+  }
+  
+  ADD ans = ~z_vars[0];
+  for (unsigned int i = 1; i < N; i++){
+    ans *= ~z_vars[i];
+  }
+  std::vector<ADD> mult_array;
+  for (unsigned int i = 0; i < N; i++){
+  	mult_array.push_back(y_vars[i]);
+  	mult_array.push_back(z_vars[i]);
+  }
+  std::vector<ADD> swap_array;
+  for (unsigned int i = 0; i < N; i++){
+  	swap_array.push_back(x_vars[i]);
+  	swap_array.push_back(w_vars[i]);
+  }
+  // std::cout << "Step 1 : " << ans.nodeCount() << std::endl;
+  ans = C.MatrixMultiply(ans, mult_array);
+  ans = ans.SwapVariables(swap_array, mult_array);
+  CUDD_VALUE_TYPE val;
+  mpfr_init_set_si(val.real, N, RND_TYPE);
+  mpfr_exp2(val.real, val.real, RND_TYPE);
+  mpfr_d_div(val.real, 1.0, val.real, RND_TYPE);
+  ADD Q = Fourier(mgr, x_vars, y_vars, w_vars, z_vars, N, 0);
+  mpfr_clear(val.real);
+  Q = Q.ConvertToComplex();
+  // ADD V = mgr.addOne();
+  // V = V.ConvertToComplex();
+  // V = V * mgr.constant(val);
+  // Q = Q * V;
+  ADD QU = Q * U;
+  // std::cout << "Step 2 : " << ans.nodeCount() << std::endl;
+  ans = QU.MatrixMultiply(ans, swap_array);
+  ans = ans.SwapVariables(swap_array, mult_array);
+  std::cout << "QU done" << std::endl; 
+  // std::cout << "Step 3 : " << ans.nodeCount() << std::endl;
+  ans = ans.SquareTerminalValues();
+  // std::cout << "Step 4 : " << ans.nodeCount() << std::endl;
+  ans = ans.UpdatePathInfo(2, 2*N);
+  // ans.PrintPathInfo();
+  std::cout << "Path updated" << std::endl;
+  high_resolution_clock::time_point mid = high_resolution_clock::now();
+  unsigned int iter = 1;
+  while (iter <= 2 * N)
+	{
+		std::string s = "";
+		s = ans.SamplePath(2*N, 2, "simons");
+		// std::cout << "iter: " << iter << std::endl;
+		s = s.substr(0, N);
+
+		iter++;
+	}
+
+  high_resolution_clock::time_point end = high_resolution_clock::now();
+  return ans;
+  return Q;
+}
+
+unsigned int ShorsAlgo(Cudd& mgr){
+	int n = 4;
+	int M = 15;
+	
+	std::random_device dev;
+	std::mt19937 rng(dev());
+	std::uniform_int_distribution<std::mt19937::result_type> dist(1, M - 1);
+	auto start = high_resolution_clock::now();
+	unsigned int a = 1;
+	while (a == 1 || a % 2 == 0){
+		a = dist(rng);
+	}
+	a = 7;
+	std::cout << "a: " << a << std::endl;
+	int l = 2 * n; // M^2 <= Q < 2M^2 and Q = 2^l
+	int level = ceil(log2(l));
+	unsigned int N = l;
+  std::vector<ADD> x_vars, y_vars, w_vars, z_vars; // x & y belong to input and w & z belong to output
+  for (unsigned int i = 0; i < N; i++){
+    x_vars.push_back(mgr.addVar(4*i));
+    y_vars.push_back(mgr.addVar(4*i+1));
+    w_vars.push_back(mgr.addVar(4*i+2));
+    z_vars.push_back(mgr.addVar(4*i+3));
+  }
+
+	// use w and z vars for creating F
+	std::string s = getBitString(1, 2*l);
+	ADD F = mgr.addZero();
+	F = F.SetToComplex();
+	F = F + getVector(mgr, s, w_vars, z_vars);
+	unsigned int f_i = 1;
+	for (unsigned int i = 1; i < pow(2, l); i++){
+		std::string index_s(2 * l, '0');
+		f_i = (f_i * a) % M;
+		std::string i_s = getBitString(i, l);
+		std::string f_i_s = getBitString(f_i, l);
+		int k = 0;
+		for (unsigned int j = 0; j < index_s.length(); j+=2){
+			index_s[j] = i_s[k];
+			index_s[j + 1] = f_i_s[k];
+			k++;
+		}
+		F = F + getVector(mgr, index_s, w_vars, z_vars);
+	}
+	std::cout << "l: " << l << std::endl;
+	auto ans = ShorsMainAlgo(mgr, l, F, x_vars, y_vars, w_vars, z_vars);
+	auto end = high_resolution_clock::now();
+	return 0;
+}
+
 int main (int argc, char** argv)
 {
 	if (argc < 4)
-      return 0;
+		return 0;
 	Cudd mgr(0,0);
 	if (strcmp(argv[3], "enable") == 0)
 		mgr.AutodynEnable();
@@ -299,6 +454,8 @@ int main (int argc, char** argv)
 
 	if (strcmp(argv[1], "fourier") == 0)
       nodeCount = Fourier(mgr, atoi(argv[2])); 
+  if (strcmp(argv[1], "shors") == 0)
+      nodeCount = ShorsAlgo(mgr); 
 
 	return 0;
 }

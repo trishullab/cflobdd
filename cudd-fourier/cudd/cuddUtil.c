@@ -156,6 +156,216 @@ Cudd_PrintMinterm(
 
 } /* end of Cudd_PrintMinterm */
 
+    int
+Cudd_addPrintPathInfo(
+    DdManager* manager,
+     DdNode* f)
+{
+    total_path_info* tpi = f->numPaths;
+    path_info* info = tpi->info;
+    for (unsigned int i = 0; i < tpi->size; i++)
+    {
+        mpfr_printf("weight: %.16Rf, path_count: %.16Rf, index: %d, l_index: %d, l_path_count: %.16Rf, r_index: %d, r_path_count: %.16Rf\n",
+            info[i].weight.real, info[i].path_count, info[i].index, info[i].l_index, info[i].l_path_count, info[i].r_index, info[i].r_path_count);
+    }
+    return 1;
+
+} /* end of Cudd_PrintMinterm */
+
+
+
+typedef struct path_pair{
+    mpfr_t weight;
+    unsigned int index;
+} path_pair;
+
+int comparator(const void *p, const void *q)
+{
+    int b = mpfr_cmp(((path_pair *)p)->weight, ((path_pair *)q)->weight);
+    if (b != 0)
+        return b;
+    return -1;
+}
+
+void
+Cudd_addSamplePathRecur(
+    DdNode* f,
+    unsigned int period,
+    unsigned int sp_index,
+    int** sampled_path,
+    unsigned int index,
+    unsigned int N)
+    {
+
+        // printf("sp_index: %d index: %d N: %d\n", sp_index, index, N);
+        if (sp_index >= N)
+            return ;
+
+        if ((f->index)/period != sp_index){
+            (*sampled_path)[sp_index] = rand() % 2;
+            Cudd_addSamplePathRecur(f, period, sp_index+1, sampled_path, index, N);
+            return;
+        }
+
+
+        if (cuddIsConstant(f)) return;
+
+
+        long int l_index = f->numPaths->info[index].l_index;
+        long int r_index = f->numPaths->info[index].r_index;
+
+        // printf(" %d %d\n", l_index, r_index);
+
+        if (l_index == -1){
+            (*sampled_path)[sp_index] = 0;
+            // printf("hey %d\n", sp_index);
+            Cudd_addSamplePathRecur(cuddE(f), period, sp_index+1, sampled_path, r_index, N);
+            // printf("sp_index: %d index: %d N: %d\n", sp_index, index, N);
+            return;
+        }else if (r_index == -1){
+            (*sampled_path)[sp_index] = 1;
+            Cudd_addSamplePathRecur(cuddT(f), period, sp_index+1, sampled_path, l_index, N);
+            return;
+        }
+
+        mpfr_t rand_val;
+        mpfr_init(rand_val);
+        gmp_randstate_t rand_state;
+        gmp_randinit_default(rand_state);
+        gmp_randseed_ui(rand_state, rand());
+        mpfr_urandom(rand_val, rand_state, RND_TYPE);
+
+        if (mpfr_cmp(f->numPaths->info[index].l_path_count, f->numPaths->info[index].r_path_count) < 0){
+            mpfr_mul(rand_val, rand_val, f->numPaths->info[index].r_path_count, RND_TYPE);
+            mpfr_add(rand_val, rand_val, f->numPaths->info[index].l_path_count, RND_TYPE);
+
+            if (mpfr_cmp(rand_val, f->numPaths->info[index].r_path_count) < 0){
+                (*sampled_path)[sp_index] = 1;
+                Cudd_addSamplePathRecur(cuddT(f), period, sp_index+1, sampled_path, l_index, N);
+                mpfr_clear(rand_val);
+                gmp_randclear(rand_state);
+                return;
+            }else{
+                (*sampled_path)[sp_index] = 0;
+                Cudd_addSamplePathRecur(cuddE(f), period, sp_index+1, sampled_path, r_index, N);
+                mpfr_clear(rand_val);
+                gmp_randclear(rand_state);
+                return;
+            }
+
+        }else if (mpfr_cmp(f->numPaths->info[index].l_path_count, f->numPaths->info[index].r_path_count) > 0){
+            mpfr_mul(rand_val, rand_val, f->numPaths->info[index].l_path_count, RND_TYPE);
+            mpfr_add(rand_val, rand_val, f->numPaths->info[index].r_path_count, RND_TYPE);
+
+            if (mpfr_cmp(rand_val, f->numPaths->info[index].l_path_count) < 0){
+                (*sampled_path)[sp_index] = 0;
+                Cudd_addSamplePathRecur(cuddE(f), period, sp_index+1, sampled_path, r_index, N);
+                mpfr_clear(rand_val);
+                gmp_randclear(rand_state);
+                return;
+            }else{
+                (*sampled_path)[sp_index] = 1;
+                Cudd_addSamplePathRecur(cuddT(f), period, sp_index+1, sampled_path, l_index, N);
+                mpfr_clear(rand_val);
+                gmp_randclear(rand_state);
+                return;
+            }
+        } else{
+            if (mpfr_cmp_d(rand_val, 0.5) < 0){
+                (*sampled_path)[sp_index] = 0;
+                Cudd_addSamplePathRecur(cuddE(f), period, sp_index+1, sampled_path, r_index, N);
+                mpfr_clear(rand_val);
+                gmp_randclear(rand_state);
+                return;
+            }else{
+                (*sampled_path)[sp_index] = 1;
+                Cudd_addSamplePathRecur(cuddT(f), period, sp_index+1, sampled_path, l_index, N);
+                mpfr_clear(rand_val);
+                gmp_randclear(rand_state);
+                return;
+            }
+        }
+
+        mpfr_clear(rand_val);
+        gmp_randclear(rand_state);
+
+    }
+
+
+int* 
+Cudd_addSamplePath(
+    DdManager* dd,
+    DdNode* f, 
+    unsigned int N,
+    unsigned int period)
+{
+    int* sampled_path = (int *)malloc(sizeof(int)*N);
+    path_pair* adjusted_paths = (path_pair *)malloc(sizeof(path_pair)*f->numPaths->size);
+
+    mpfr_t tmp;
+    mpfr_init_set_si(tmp, (f->index)/period, RND_TYPE);
+    mpfr_exp2(tmp, tmp, RND_TYPE);
+    mpfr_t sum; mpfr_init_set_si(sum, 1, RND_TYPE);
+    for (unsigned int i = 0; i < f->numPaths->size; i++){
+        mpfr_init_set(adjusted_paths[i].weight, f->numPaths->info[i].weight.real, RND_TYPE);
+        mpfr_mul(adjusted_paths[i].weight, adjusted_paths[i].weight, f->numPaths->info[i].path_count, RND_TYPE);
+        mpfr_mul(adjusted_paths[i].weight, adjusted_paths[i].weight, tmp, RND_TYPE);
+        adjusted_paths[i].index = i;
+        mpfr_add(sum, sum, adjusted_paths[i].weight, RND_TYPE);
+    }
+
+    // for (unsigned int i = 0; i < f->numPaths->size; i++){
+    //     mpfr_printf("i: %d weight: %.4Rf index: %d\n", i, adjusted_paths[i].weight, adjusted_paths[i].index);
+    // }
+
+    mpfr_clear(tmp);
+
+    qsort((void *)adjusted_paths, f->numPaths->size, sizeof(path_pair), comparator);
+    // for (unsigned int i = 0; i < f->numPaths->size; i++){
+    //     mpfr_printf("i: %d weight: %.4Rf index: %d\n", i, adjusted_paths[i].weight, adjusted_paths[i].index);
+    // }
+    mpfr_t rand_val;
+    mpfr_init(rand_val);
+    gmp_randstate_t rand_state;
+    gmp_randinit_default(rand_state);
+    gmp_randseed_ui(rand_state, rand());
+    mpfr_urandom(rand_val, rand_state, RND_TYPE);
+
+    // if (mpfr_cmp_si(sum, 2) != 0){
+    //     mpfr_mul(rand_val, rand_val, sum, RND_TYPE);
+    // }
+
+    // mpfr_printf("rand: %.16Rf\n", rand_val);
+
+    mpfr_init_set_si(tmp, 0, RND_TYPE);
+    unsigned int k = 0;
+    for (unsigned int i = 0; i < f->numPaths->size; i++){
+        mpfr_add(tmp, tmp, adjusted_paths[i].weight, RND_TYPE);
+        if (mpfr_cmp(tmp, rand_val) >= 0){
+            k = adjusted_paths[i].index;
+            break;
+        }
+    }
+
+    // printf("%d\n", k);
+
+    for (unsigned int i = 0; i < (f->index)/period; i++){
+        sampled_path[i] = (rand() % 2);
+    }
+
+    Cudd_addSamplePathRecur(f, period, (f->index)/period, &sampled_path, k, N);
+
+
+    for (unsigned int i = 0; i < f->numPaths->size; i++)
+        mpfr_clear(adjusted_paths[i].weight);
+    free(adjusted_paths);
+    gmp_randclear(rand_state);
+    mpfr_clear(rand_val);
+
+    return sampled_path;
+
+}
+
 
 /**
   @brief Prints a sum of prime implicants of a %BDD.

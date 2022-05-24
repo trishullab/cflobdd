@@ -109,7 +109,7 @@ Cudd_addApply(
     do {
     	dd->reordered = 0;
       // printf("apply %g %g\n", Cudd_V(f), Cudd_V(g));
-      // mpfr_printf("%.16Rf\n", Cudd_V(f).t_val);
+      // mpfr_printf("%.16Rf\n", Cudd_V(f).real);
         res = cuddAddApplyRecur(dd,op,f,g);
   } while (dd->reordered == 1);
     if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
@@ -254,6 +254,7 @@ Cudd_addTimes(
         mpfr_clear(value.imag);
       }else{
         if (cuddV(F).base > cuddV(G).base){
+          //printf("%d %d %d %d %d\n", cuddV(F).val, cuddV(F).base, cuddV(G).val, cuddV(G).base, (cuddV(F).val * (cuddV(G).base/cuddV(F).base) + cuddV(G).val));
           value.val = (cuddV(F).val * (cuddV(G).base/cuddV(F).base) + cuddV(G).val) % cuddV(G).base;
           value.base = cuddV(G).base;
           res = cuddUniqueConst(dd, value);
@@ -322,6 +323,27 @@ Cudd_addConvertToComplex(
       mpfr_cos(value.real, value.real, RND_TYPE);
       mpfr_sin(value.imag, value.imag, RND_TYPE);
 
+      DdNode *res = cuddUniqueConst(dd,value);
+      mpfr_clear(value.real); mpfr_clear(value.imag);
+      return(res);
+    }
+    return(NULL);
+
+} /* end of Cudd_addSimonsRemoveMinusOne */
+
+    DdNode *
+Cudd_addSetToComplex(
+  DdManager * dd,
+  DdNode * f)
+{
+
+    if (cuddIsConstant(f)) {
+      CUDD_VALUE_TYPE value;
+      value.is_complex_assigned = 1;
+
+      mpfr_init(value.real); mpfr_init(value.imag);
+      mpfr_set_si(value.real, value.val, RND_TYPE);
+      mpfr_set_si(value.imag, 0, RND_TYPE);
       DdNode *res = cuddUniqueConst(dd,value);
       mpfr_clear(value.real); mpfr_clear(value.imag);
       return(res);
@@ -576,7 +598,7 @@ Cudd_addMinus(
     if (cuddIsConstant(F) && cuddIsConstant(G)) {
       mpfr_sub(value.real, cuddV(F).real, cuddV(G).real, RND_TYPE);
       mpfr_sub(value.imag, cuddV(F).imag, cuddV(G).imag, RND_TYPE);
-      // mpfr_printf("minus: %.128Rf %.128Rf %.128Rf\n", value.t_val, cuddV(F).t_val, cuddV(G).t_val);
+      // mpfr_printf("minus: %.128Rf %.128Rf %.128Rf\n", value.real, cuddV(F).real, cuddV(G).real);
 	// value = cuddV(F)-cuddV(G);
 	res = cuddUniqueConst(dd,value);
   mpfr_clear(value.real);
@@ -1226,14 +1248,14 @@ cuddAddApplyRecur(
 	gv = gvn = g;
     }
     // printf("T\n");
-    // mpfr_printf("%.16Rf %.16Rf\n", Cudd_V(fv).t_val, Cudd_V(gv).t_val);
+    // mpfr_printf("%.16Rf %.16Rf\n", Cudd_V(fv).real, Cudd_V(gv).real);
     // mpfr_printf("%g %g\n", Cudd_V(f), Cudd_V(g));
     T = cuddAddApplyRecur(dd,op,fv,gv);
     if (T == NULL) return(NULL);
     cuddRef(T);
 
     // printf("E\n");
-    // mpfr_printf("%.16Rf %.16Rf\n", Cudd_V(fvn).t_val, Cudd_V(gvn).t_val);
+    // mpfr_printf("%.16Rf %.16Rf\n", Cudd_V(fvn).real, Cudd_V(gvn).real);
     // mpfr_printf("%g %g\n", Cudd_V(f), Cudd_V(g));
     E = cuddAddApplyRecur(dd,op,fvn,gvn);
     if (E == NULL) {
@@ -1322,6 +1344,278 @@ cuddAddMonadicApplyRecur(
 } /* end of cuddAddMonadicApplyRecur */
 
 
+/**
+  @brief Performs the recursive step of Cudd_addPathCounts.
+
+  @return NULL.
+
+  @sideeffect None
+
+  @see cuddAddApplyRecur
+
+  typedef struct path_info {
+    CUDD_VALUE_TYPE weight;
+    mpfr_t path_count;
+    long int index;
+    long int l_index;
+    unsigned int l_path_count;
+    long int r_index;
+    unsigned int r_path_count;
+} path_info;
+
+*/
+DdNode*
+cuddAddPathCountsRecur(
+  DdManager * dd,
+  DdNode * f,
+  int period,
+  unsigned int N)
+{
+    DdNode *ft, *fe, *T, *E, *res;
+    unsigned int index;
+
+
+    /* Check terminal cases. */
+    statLine(dd);
+
+    /* Check cache. */
+    res = cuddCacheLookup1(dd,Cudd_addPathCounts_dup,f);
+    if (res != NULL) return(res);
+
+    if (cuddIsConstant(f)){
+      path_info* p = (path_info *)malloc(sizeof(path_info));
+      mpfr_init_set(p->weight.real, cuddV(f).real, RND_TYPE);
+      mpfr_init_set_si(p->path_count, 1, RND_TYPE);
+      p->index = 0;
+      p->l_index = -1;
+      p->r_index = -1;
+      mpfr_init_set_si(p->l_path_count, 0, RND_TYPE);
+      mpfr_init_set_si(p->r_path_count, 0, RND_TYPE);
+
+      total_path_info* ps = (total_path_info *)malloc(sizeof(total_path_info));
+      ps->info = p;
+      ps->size = 1;
+
+      CUDD_VALUE_TYPE value;
+      mpfr_init_set(value.real, cuddV(f).real, RND_TYPE);
+      DdNode *res = cuddUniqueConst(dd,value);
+      res->numPaths = ps;
+      mpfr_clear(value.real);
+
+      cuddCacheInsert1(dd,Cudd_addPathCounts_dup,f,res);
+
+      return(res);
+
+    }
+
+    checkWhetherToGiveUp(dd);
+
+    /* Recursive step. */
+    index = f->index;
+    ft = cuddT(f);
+    fe = cuddE(f);
+
+    T = cuddAddPathCountsRecur(dd,ft, period, N);
+    if (T == NULL) return(NULL);
+    cuddRef(T);
+
+    E = cuddAddPathCountsRecur(dd,fe, period, N);
+    if (E == NULL) {
+  Cudd_RecursiveDeref(dd,T);
+  return(NULL);
+    }
+    cuddRef(E);
+
+    res = (T == E) ? T : cuddUniqueInter(dd,(int)index,T,E);
+    if (res == NULL) {
+  Cudd_RecursiveDeref(dd, T);
+  Cudd_RecursiveDeref(dd, E);
+  return(NULL);
+    }
+
+    total_path_info* t_ps = T->numPaths;
+    total_path_info* e_ps = E->numPaths;
+
+    path_info* t_p = t_ps->info;
+    path_info* e_p = e_ps->info;
+
+    path_info* curr_node_path_info = (path_info *)malloc(sizeof(path_info)*(t_ps->size + e_ps->size));
+    unsigned int size = 0, t_i = 0, e_i = 0;
+    mpfr_t left_mul, right_mul;
+
+    if (!cuddIsConstant(T)){
+      mpfr_init_set_si(left_mul, ((T->index) - index)/period - 1, RND_TYPE);
+      mpfr_exp2(left_mul, left_mul, RND_TYPE);
+    } else{
+      mpfr_init_set_si(left_mul, ((period * N) - index)/period - 1, RND_TYPE);
+      mpfr_exp2(left_mul, left_mul, RND_TYPE);
+    }
+
+    if (!cuddIsConstant(E)){
+      mpfr_init_set_si(right_mul, ((E->index) - index)/period - 1, RND_TYPE);
+      mpfr_exp2(right_mul, right_mul, RND_TYPE);
+    }else{
+      mpfr_init_set_si(right_mul, ((period * N) - index)/period - 1, RND_TYPE);
+      mpfr_exp2(right_mul, right_mul, RND_TYPE);
+    }
+
+    while (t_i < t_ps->size && e_i < e_ps->size){
+      int cmp = mpfr_cmp(t_p[t_i].weight.real, e_p[e_i].weight.real);
+      if (cmp == 0){
+
+        path_info p;
+        mpfr_init_set(p.weight.real, t_p[t_i].weight.real, RND_TYPE);
+        mpfr_init_set(p.path_count, t_p[t_i].path_count, RND_TYPE);
+        mpfr_mul(p.path_count, p.path_count, left_mul, RND_TYPE);
+        mpfr_t tmp;
+        mpfr_init_set(tmp, e_p[e_i].path_count, RND_TYPE);
+        mpfr_mul(tmp, tmp, right_mul, RND_TYPE);
+        mpfr_add(p.path_count, p.path_count, tmp , RND_TYPE);
+        mpfr_clear(tmp);
+        p.index = size;
+        p.l_index = t_p[t_i].index;
+        p.r_index = e_p[e_i].index;
+        mpfr_init_set(p.l_path_count, t_p[t_i].path_count, RND_TYPE);
+        mpfr_mul(p.l_path_count, p.l_path_count, left_mul, RND_TYPE);
+        mpfr_init_set(p.r_path_count, e_p[e_i].path_count, RND_TYPE);
+        mpfr_mul(p.r_path_count, p.r_path_count, right_mul, RND_TYPE);
+
+        curr_node_path_info[size] = p;
+
+        t_i++; e_i++;
+      } else if (cmp < 0){
+        path_info p;
+        mpfr_init_set(p.weight.real, t_p[t_i].weight.real, RND_TYPE);
+        mpfr_init_set(p.path_count, t_p[t_i].path_count, RND_TYPE);
+        mpfr_mul(p.path_count, p.path_count, left_mul, RND_TYPE);
+        p.index = size;
+        p.l_index = t_p[t_i].index;
+        p.r_index = -1;
+        mpfr_init_set(p.l_path_count, t_p[t_i].path_count, RND_TYPE);
+        mpfr_mul(p.l_path_count, p.l_path_count, left_mul, RND_TYPE);
+        mpfr_init_set_si(p.r_path_count, 0, RND_TYPE);
+
+        curr_node_path_info[size] = p;        
+        t_i++;
+      } else{
+        path_info p;
+        mpfr_init_set(p.weight.real, e_p[e_i].weight.real, RND_TYPE);
+        mpfr_init_set(p.path_count, e_p[e_i].path_count, RND_TYPE);
+        mpfr_mul(p.path_count, p.path_count, right_mul, RND_TYPE);
+        p.index = size;
+        p.l_index = -1;
+        p.r_index = e_p[e_i].index;
+        mpfr_init_set_si(p.l_path_count, 0, RND_TYPE);
+        mpfr_init_set(p.r_path_count, e_p[e_i].path_count, RND_TYPE);
+        mpfr_mul(p.r_path_count, p.r_path_count, right_mul, RND_TYPE);
+
+        curr_node_path_info[size] = p;
+        e_i++;
+      }
+      size++;
+    }
+
+    while (t_i < t_ps->size){
+      path_info p;
+        mpfr_init_set(p.weight.real, t_p[t_i].weight.real, RND_TYPE);
+        mpfr_init_set(p.path_count, t_p[t_i].path_count, RND_TYPE);
+        mpfr_mul(p.path_count, p.path_count, left_mul, RND_TYPE);
+        p.index = size;
+        p.l_index = t_p[t_i].index;
+        p.r_index = -1;
+        mpfr_init_set(p.l_path_count, t_p[t_i].path_count, RND_TYPE);
+        mpfr_mul(p.l_path_count, p.l_path_count, left_mul, RND_TYPE);
+        mpfr_init_set_si(p.r_path_count, 0, RND_TYPE);
+
+        curr_node_path_info[size] = p;             
+        t_i++;
+        size++;
+    }
+
+    while (e_i < e_ps->size){
+      path_info p;
+        mpfr_init_set(p.weight.real, e_p[e_i].weight.real, RND_TYPE);
+        mpfr_init_set(p.path_count, e_p[e_i].path_count, RND_TYPE);
+        mpfr_mul(p.path_count, p.path_count, right_mul, RND_TYPE);
+        p.index = size;
+        p.l_index = -1;
+        p.r_index = e_p[e_i].index;
+        mpfr_init_set_si(p.l_path_count, 0, RND_TYPE);
+        mpfr_init_set(p.r_path_count, e_p[e_i].path_count, RND_TYPE);
+        mpfr_mul(p.r_path_count, p.r_path_count, right_mul, RND_TYPE);
+
+        curr_node_path_info[size] = p;
+        e_i++;
+        size++;
+    }
+
+    mpfr_clear(left_mul);
+    mpfr_clear(right_mul);
+
+    total_path_info* curr_node_total_path_info = (total_path_info *)malloc(sizeof(total_path_info));
+    // if (t_ps->size + e_ps->size > size){
+    //   for (unsigned int k = size; k < t_ps->size + e_ps->size; k++){
+    //     free (curr_node_path_info + k);
+    //   }
+    // }
+    curr_node_total_path_info->info = curr_node_path_info;
+    curr_node_total_path_info->size = size;
+
+    res->numPaths = curr_node_total_path_info;
+
+    cuddDeref(T);
+    cuddDeref(E);
+
+    // printf("size: %d index: %d\n", size, index);
+
+    /* Store result. */
+    cuddCacheInsert1(dd,Cudd_addPathCounts_dup,f,res);
+
+    return(res);
+
+} /* end of cuddAddMonadicApplyRecur */
+
+
+/**
+  @brief Path Counting and caching of f.
+
+  @return void.
+
+  @sideeffect None
+
+  @see Cudd_addApply Cudd_addLog
+
+*/
+DdNode* 
+Cudd_addPathCounts(
+  DdManager * dd,
+  DdNode * f,
+  int period,
+  unsigned int N)
+{
+    DdNode *res;
+
+    do {
+  dd->reordered = 0;
+  res =     cuddAddPathCountsRecur(dd,f, period, N);
+    } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
+
+    return(res);
+
+} /* end of Cudd_addPathCounts */
+
+
+DdNode* 
+Cudd_addPathCounts_dup(
+  DdManager * dd,
+  DdNode * f)
+{
+    return f;
+
+} /* end of Cudd_addPathCounts */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of static functions                                            */

@@ -353,41 +353,42 @@ ADD ShorsMainAlgo(Cudd&mgr, int l, ADD U, std::vector<ADD>& x_vars, std::vector<
   ans = C.MatrixMultiply(ans, mult_array);
   ans = ans.SwapVariables(swap_array, mult_array);
   CUDD_VALUE_TYPE val;
+  val.is_complex_assigned = 1;
   mpfr_init_set_si(val.real, N, RND_TYPE);
   mpfr_exp2(val.real, val.real, RND_TYPE);
   mpfr_d_div(val.real, 1.0, val.real, RND_TYPE);
+  mpfr_init_set_si(val.imag, 1, RND_TYPE);
   ADD Q = Fourier(mgr, x_vars, y_vars, w_vars, z_vars, N, 0);
-  mpfr_clear(val.real);
   Q = Q.ConvertToComplex();
-  // ADD V = mgr.addOne();
-  // V = V.ConvertToComplex();
-  // V = V * mgr.constant(val);
+  ADD V = mgr.constant(val);
+  V = V.ConvertToComplex();
   // Q = Q * V;
   ADD QU = Q * U;
+  // U.print(4*N,2);
   // std::cout << "Step 2 : " << ans.nodeCount() << std::endl;
-  ans = QU.MatrixMultiply(ans, swap_array);
-  ans = ans.SwapVariables(swap_array, mult_array);
-  std::cout << "QU done" << std::endl; 
-  // std::cout << "Step 3 : " << ans.nodeCount() << std::endl;
-  ans = ans.SquareTerminalValues();
-  // std::cout << "Step 4 : " << ans.nodeCount() << std::endl;
-  ans = ans.UpdatePathInfo(2, 2*N);
-  // ans.PrintPathInfo();
-  std::cout << "Path updated" << std::endl;
-  high_resolution_clock::time_point mid = high_resolution_clock::now();
-  unsigned int iter = 1;
-  while (iter <= 2 * N)
-	{
-		std::string s = "";
-		s = ans.SamplePath(2*N, 2, "simons");
-		// std::cout << "iter: " << iter << std::endl;
-		s = s.substr(0, N);
+ //  ans = QU.MatrixMultiply(ans, swap_array);
+ //  ans = ans.SwapVariables(swap_array, mult_array);
+ //  std::cout << "QU done" << std::endl; 
+ //  // std::cout << "Step 3 : " << ans.nodeCount() << std::endl;
+ //  ans = ans.SquareTerminalValues();
+ //  // std::cout << "Step 4 : " << ans.nodeCount() << std::endl;
+ //  ans = ans.UpdatePathInfo(2, 2*N);
+ //  // ans.PrintPathInfo();
+ //  std::cout << "Path updated" << std::endl;
+ //  high_resolution_clock::time_point mid = high_resolution_clock::now();
+ //  unsigned int iter = 1;
+ //  while (iter <= 2 * N)
+	// {
+	// 	std::string s = "";
+	// 	s = ans.SamplePath(2*N, 2, "simons");
+	// 	// std::cout << "iter: " << iter << std::endl;
+	// 	s = s.substr(0, N);
 
-		iter++;
-	}
+	// 	iter++;
+	// }
 
-  high_resolution_clock::time_point end = high_resolution_clock::now();
-  return ans;
+ //  high_resolution_clock::time_point end = high_resolution_clock::now();
+ //  return ans;
   return Q;
 }
 
@@ -420,6 +421,7 @@ unsigned int ShorsAlgo(Cudd& mgr){
 	std::string s = getBitString(1, 2*l);
 	ADD F = mgr.addZero();
 	F = F.SetToComplex();
+	// F.print(4*N,2);
 	F = F + getVector(mgr, s, w_vars, z_vars);
 	unsigned int f_i = 1;
 	for (unsigned int i = 1; i < pow(2, l); i++){
@@ -436,6 +438,7 @@ unsigned int ShorsAlgo(Cudd& mgr){
 		F = F + getVector(mgr, index_s, w_vars, z_vars);
 	}
 	std::cout << "l: " << l << std::endl;
+	// F.print(4*N,2);
 	auto ans = ShorsMainAlgo(mgr, l, F, x_vars, y_vars, w_vars, z_vars);
 	auto end = high_resolution_clock::now();
 	return 0;

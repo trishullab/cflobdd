@@ -342,7 +342,7 @@ Cudd_addSetToComplex(
       value.is_complex_assigned = 1;
 
       mpfr_init(value.real); mpfr_init(value.imag);
-      mpfr_set_si(value.real, value.val, RND_TYPE);
+      mpfr_set_si(value.real, cuddV(f).val, RND_TYPE);
       mpfr_set_si(value.imag, 0, RND_TYPE);
       DdNode *res = cuddUniqueConst(dd,value);
       mpfr_clear(value.real); mpfr_clear(value.imag);

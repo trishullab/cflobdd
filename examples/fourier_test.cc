@@ -327,18 +327,24 @@ ADD ShorsMainAlgo(Cudd&mgr, int l, ADD U, std::vector<ADD>& x_vars, std::vector<
 	std::vector<ADD>& w_vars, std::vector<ADD>& z_vars){
 	std::cout << "Algo start.." << std::endl;
   high_resolution_clock::time_point start = high_resolution_clock::now();
-  ADD C = mgr.addZero();
+  ADD C = CNOT_matrix(x_vars[0], y_vars[0], w_vars[0], z_vars[0]);
   C = C.SetToComplex();
-  C = C + CNOT_matrix(x_vars[0], y_vars[0], w_vars[0], z_vars[0]);
   unsigned int N = l;
   for (unsigned int i = 1; i < N; i++){
-    C *= CNOT_matrix(x_vars[i], y_vars[i], w_vars[i], z_vars[i]);
+  	ADD tmp = CNOT_matrix(x_vars[i], y_vars[i], w_vars[i], z_vars[i]);
+  	tmp = tmp.SetToComplex();
+    C *= tmp;
   }
+  C = C.SetToComplex();
   
   ADD ans = ~z_vars[0];
+  ans = ans.SetToComplex();
   for (unsigned int i = 1; i < N; i++){
-    ans *= ~z_vars[i];
+  	ADD tmp = ~z_vars[i];
+  	tmp = tmp.SetToComplex();
+    ans *= tmp;
   }
+  ans = ans.SetToComplex();
   std::vector<ADD> mult_array;
   for (unsigned int i = 0; i < N; i++){
   	mult_array.push_back(y_vars[i]);
@@ -350,8 +356,11 @@ ADD ShorsMainAlgo(Cudd&mgr, int l, ADD U, std::vector<ADD>& x_vars, std::vector<
   	swap_array.push_back(w_vars[i]);
   }
   // std::cout << "Step 1 : " << ans.nodeCount() << std::endl;
+  printf("%d\n", C.IsSetToComplex());
+  printf("%d\n", ans.IsSetToComplex());
   ans = C.MatrixMultiply(ans, mult_array);
   ans = ans.SwapVariables(swap_array, mult_array);
+  ans.SetToComplex();
   CUDD_VALUE_TYPE val;
   val.is_complex_assigned = 1;
   mpfr_init_set_si(val.real, N, RND_TYPE);
@@ -361,34 +370,35 @@ ADD ShorsMainAlgo(Cudd&mgr, int l, ADD U, std::vector<ADD>& x_vars, std::vector<
   ADD Q = Fourier(mgr, x_vars, y_vars, w_vars, z_vars, N, 0);
   Q = Q.ConvertToComplex();
   ADD V = mgr.constant(val);
-  V = V.ConvertToComplex();
+  V = V.SetToComplex();
   // Q = Q * V;
   ADD QU = Q * U;
   // U.print(4*N,2);
   // std::cout << "Step 2 : " << ans.nodeCount() << std::endl;
- //  ans = QU.MatrixMultiply(ans, swap_array);
- //  ans = ans.SwapVariables(swap_array, mult_array);
- //  std::cout << "QU done" << std::endl; 
- //  // std::cout << "Step 3 : " << ans.nodeCount() << std::endl;
- //  ans = ans.SquareTerminalValues();
- //  // std::cout << "Step 4 : " << ans.nodeCount() << std::endl;
- //  ans = ans.UpdatePathInfo(2, 2*N);
- //  // ans.PrintPathInfo();
- //  std::cout << "Path updated" << std::endl;
- //  high_resolution_clock::time_point mid = high_resolution_clock::now();
- //  unsigned int iter = 1;
- //  while (iter <= 2 * N)
-	// {
-	// 	std::string s = "";
-	// 	s = ans.SamplePath(2*N, 2, "simons");
-	// 	// std::cout << "iter: " << iter << std::endl;
-	// 	s = s.substr(0, N);
+  ans = QU.MatrixMultiply(ans, swap_array);
+  ans.print(4*N, 2);
+  ans = ans.SwapVariables(swap_array, mult_array);
+  std::cout << "QU done" << std::endl; 
+  // std::cout << "Step 3 : " << ans.nodeCount() << std::endl;
+  ans = ans.SquareTerminalValues();
+  // std::cout << "Step 4 : " << ans.nodeCount() << std::endl;
+  ans = ans.UpdatePathInfo(2, 2*N);
+  // ans.PrintPathInfo();
+  std::cout << "Path updated" << std::endl;
+  high_resolution_clock::time_point mid = high_resolution_clock::now();
+  unsigned int iter = 1;
+  while (iter <= 2 * N)
+	{
+		std::string s = "";
+		s = ans.SamplePath(2*N, 2, "simons");
+		// std::cout << "iter: " << iter << std::endl;
+		s = s.substr(0, N);
 
-	// 	iter++;
-	// }
+		iter++;
+	}
 
- //  high_resolution_clock::time_point end = high_resolution_clock::now();
- //  return ans;
+  high_resolution_clock::time_point end = high_resolution_clock::now();
+  return ans;
   return Q;
 }
 
@@ -437,6 +447,7 @@ unsigned int ShorsAlgo(Cudd& mgr){
 		}
 		F = F + getVector(mgr, index_s, w_vars, z_vars);
 	}
+	F = F.SetToComplex();
 	std::cout << "l: " << l << std::endl;
 	// F.print(4*N,2);
 	auto ans = ShorsMainAlgo(mgr, l, F, x_vars, y_vars, w_vars, z_vars);

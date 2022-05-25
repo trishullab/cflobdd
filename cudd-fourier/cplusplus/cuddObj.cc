@@ -941,6 +941,13 @@ ADD::SetToComplex() const
     return ADD(p, result);
 }
 
+int
+ADD::IsSetToComplex() const
+{
+    int result = Cudd_IsSetToComplex(p->manager, node);
+    return result;
+}
+
 ADD
 ADD::SimonsRemoveMinusOne() const
 {

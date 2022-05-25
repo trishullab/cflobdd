@@ -335,7 +335,9 @@ ADD ShorsMainAlgo(Cudd&mgr, int l, ADD U, std::vector<ADD>& x_vars, std::vector<
     C *= CNOT_matrix(x_vars[i], y_vars[i], w_vars[i], z_vars[i]);
   }
   
-  ADD ans = ~z_vars[0];
+  ADD ans = mgr.addZero();
+  ans = ans.SetToComplex();
+  ans = ans + ~z_vars[0];
   for (unsigned int i = 1; i < N; i++){
     ans *= ~z_vars[i];
   }

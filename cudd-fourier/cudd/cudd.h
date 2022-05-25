@@ -706,6 +706,7 @@ extern DdNode * Cudd_addTimes(DdManager *dd, DdNode **f, DdNode **g);
 extern DdNode * Cudd_addConvertToBase(DdManager *dd, DdNode *f, unsigned int base);
 extern DdNode * Cudd_addConvertToComplex(DdManager *dd, DdNode *f);
 extern DdNode * Cudd_addSetToComplex(DdManager *dd, DdNode *f);
+extern int Cudd_IsSetToComplex(DdManager *dd, DdNode *f);
 extern DdNode * Cudd_addSimonsRemoveMinusOne(DdManager *dd, DdNode *f);
 extern DdNode * Cudd_addSimonsRemoveOne(DdManager *dd, DdNode *f);
 extern DdNode * Cudd_addSquareTerminalValues(DdManager *dd, DdNode *f);

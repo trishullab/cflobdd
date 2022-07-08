@@ -356,8 +356,6 @@ ADD ShorsMainAlgo(Cudd&mgr, int l, ADD U, std::vector<ADD>& x_vars, std::vector<
   	swap_array.push_back(w_vars[i]);
   }
   // std::cout << "Step 1 : " << ans.nodeCount() << std::endl;
-  printf("%d\n", C.IsSetToComplex());
-  printf("%d\n", ans.IsSetToComplex());
   ans = C.MatrixMultiply(ans, mult_array);
   ans = ans.SwapVariables(swap_array, mult_array);
   ans.SetToComplex();

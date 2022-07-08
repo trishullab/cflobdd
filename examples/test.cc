@@ -746,6 +746,7 @@ int main (int argc, char** argv)
     if (argc < 2)
       return 0;
     Cudd mgr(0,0);
+    mgr.AutodynEnable();
     unsigned int nodeCount = 0;
     if (strcmp(argv[1], "xor") == 0)
       nodeCount = exclusive_or(mgr, atoi(argv[2])); 

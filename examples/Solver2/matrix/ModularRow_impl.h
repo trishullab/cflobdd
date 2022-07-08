@@ -1,6 +1,7 @@
 #include "../assert/uw_assert.h"
 #include <algorithm> 
 #include <iomanip>
+#include <cstring>
 #include "../bit_vector/bit_vector_1.h"
 #include "../bit_vector/bit_vector_ops.h"
 #include "ModularRow.h"
@@ -235,7 +236,7 @@ namespace HowellMatrix
 		}
 		if (i == n) {
 			leading_index = n;
-			leading_rank = highest_power<T>();
+			leading_rank = T::highest_power();
 		}
 		else {
 			leading_index = i;
@@ -348,7 +349,7 @@ namespace HowellMatrix
 		}
 		if (i == n) {
 			leading_index = n;
-			leading_rank = highest_power<T>();
+			leading_rank = T::highest_power();
 		}
 		else {
 			leading_index = i;

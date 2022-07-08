@@ -1,7 +1,7 @@
 from pysdd.sdd import SddManager, Vtree
 import time
 
-n = pow(2, 20)
+n = pow(2, 16)
 var_count = n
 var_order = []
 for i in range(1, n+1):

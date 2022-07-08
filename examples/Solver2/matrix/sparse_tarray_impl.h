@@ -179,7 +179,7 @@ namespace HowellMatrix
 		T abs_sum = T(0);
 		for (typename std::vector<std::pair<size_t, T> >::const_iterator it = arr_.begin(); it != arr_.end(); it++)
 		{
-			T max_signed_int = (T(1) << (highest_power<T>() - 1)) - 1;
+			T max_signed_int = (T(1) << (T::highest_power() - 1)) - 1;
 			T abs_val_it = (it->second <= max_signed_int) ? it->second : (T(0) - (it->second));
 
 			// Check for overflow

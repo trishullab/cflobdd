@@ -820,6 +820,7 @@ extern DdNode * Cudd_addOuterSum(DdManager *dd, DdNode *M, DdNode *r, DdNode *c)
 extern DdNode * Cudd_PrioritySelect(DdManager *dd, DdNode *R, DdNode **x, DdNode **y, DdNode **z, DdNode *Pi, int n, DD_PRFP PiFunc);
 extern DdNode * Cudd_Xgty(DdManager *dd, int N, DdNode **z, DdNode **x, DdNode **y);
 extern DdNode * Cudd_Xeqy(DdManager *dd, int N, DdNode **x, DdNode **y);
+extern DdNode * Cudd_ghz(DdManager *dd, int N, DdNode **x, int i, int j);
 extern DdNode * Cudd_addXeqy(DdManager *dd, int N, DdNode **x, DdNode **y);
 extern DdNode * Cudd_Dxygtdxz(DdManager *dd, int N, DdNode **x, DdNode **y, DdNode **z);
 extern DdNode * Cudd_Dxygtdyz(DdManager *dd, int N, DdNode **x, DdNode **y, DdNode **z);

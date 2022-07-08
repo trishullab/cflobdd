@@ -54,7 +54,7 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-#include "cudd.h"
+#include "../cudd/cudd.h"
 
 /*---------------------------------------------------------------------------*/
 /* Type definitions                                                          */
@@ -653,6 +653,7 @@ public:
     int ReadLinear(int x, int y) const;
     BDD Xgty(std::vector<BDD> z, std::vector<BDD> x, std::vector<BDD> y) const;
     BDD Xeqy(std::vector<BDD> x, std::vector<BDD> y) const;
+    BDD GHZ(std::vector<BDD> x, int i, int j) const;
     ADD Xeqy(std::vector<ADD> x, std::vector<ADD> y) const;
     BDD Dxygtdxz(std::vector<BDD> x, std::vector<BDD> y,
                  std::vector<BDD> z) const;

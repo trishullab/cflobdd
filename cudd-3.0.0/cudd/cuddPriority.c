@@ -345,6 +345,92 @@ Cudd_Xeqy(
 
 } /* end of Cudd_Xeqy */
 
+DdNode *
+Cudd_ghz(
+  DdManager * dd /**< %DD manager */,
+  int  N /**< number of x and y variables */,
+  DdNode ** x /**< array of x variables */,
+  int index1,
+  int index2)
+{
+    DdNode *u, *v, *w;
+    int     i;
+    int mid = N/2;
+
+    if (index1 < mid && index2 < mid){
+	v = Cudd_ghz(dd, N-1, x, index1, index2);
+	if (v == NULL) return (NULL);
+	cuddRef(v);
+	u = Cudd_bddIte(dd, x[N-1], v, DD_ZERO);
+	if (u == NULL){
+		Cudd_RecursiveDeref(v);
+		return NULL;
+	}
+    }
+
+    else if (index1 >= mid && index2 >= mid){
+	    v = Cudd_ghz(dd, N-1, index1 - mid, index2 - mid);
+	    if (v == NULL) return NULL;
+	    cuddRef(v);
+	    u = Cudd_bddIte(dd, x[N-1], DD_ZERO, v);
+	    if (u == NULL){
+		    Cudd_RecursiveDeref(v);
+		    return NULL;
+	    }
+    }
+
+    else{
+	    v = Cudd_ghz(dd, N-1, index1, -1);
+	    if (v == NULL) return (NULL);
+	    w = Cudd_ghz(dd, x[N-1], index2 - mid, -1);
+	    if (w == NULL) return (NULL);
+	    cuddRef(v);
+	    cuddRef(w);
+	    u = Cudd_bddIte(dd, x[N-1], v, w);
+	    if (u == NULL){
+		    Cudd_RecursiveDeref(v);
+		    Cudd_RecursiveDeref(w);
+		    return NULL;
+	    }
+    }
+
+    /* Build bottom part of BDD outside loop. */
+    u = Cudd_bddIte(dd, x[N-1], y[N-1], Cudd_Not(y[N-1]));
+    if (u == NULL) return(NULL);
+    cuddRef(u);
+
+    /* Loop to build the rest of the BDD. */
+    for (i = N-2; i >= 0; i--) {
+	v = Cudd_bddAnd(dd, y[i], u);
+	if (v == NULL) {
+	    Cudd_RecursiveDeref(dd, u);
+	    return(NULL);
+	}
+	cuddRef(v);
+	w = Cudd_bddAnd(dd, Cudd_Not(y[i]), u);
+	if (w == NULL) {
+	    Cudd_RecursiveDeref(dd, u);
+	    Cudd_RecursiveDeref(dd, v);
+	    return(NULL);
+	}
+	cuddRef(w);
+	Cudd_RecursiveDeref(dd, u);
+	u = Cudd_bddIte(dd, x[i], v, w);
+	if (u == NULL) {
+	    Cudd_RecursiveDeref(dd, v);
+	    Cudd_RecursiveDeref(dd, w);
+	    return(NULL);
+	}
+	cuddRef(u);
+	Cudd_RecursiveDeref(dd, v);
+	Cudd_RecursiveDeref(dd, w);
+    }
+    cuddDeref(u);
+    return(u);
+
+} /* end of Cudd_Xeqy */
+
+
 
 /**
   @brief Generates an %ADD for the function x==y.

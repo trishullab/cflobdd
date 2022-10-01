@@ -94,6 +94,8 @@ extern CFLOBDDTopNodeIntRefPtr MkExists(CFLOBDDTopNodeIntRefPtr f, unsigned int 
 extern CFLOBDDTopNodeIntRefPtr MkForall(CFLOBDDTopNodeIntRefPtr f, unsigned int i);              // \f. forall x_i : f
 extern CFLOBDDTopNodeIntRefPtr MkComposeTop(CFLOBDDTopNodeIntRefPtr f, int i, CFLOBDDTopNodeIntRefPtr g);              // \f. f | x_i = g
 
+extern double ComputeProbability(CFLOBDDTopNodeIntRefPtr f, std::vector<double>& probs);
+
 } // namespace CFL_OBDD
 
 #endif

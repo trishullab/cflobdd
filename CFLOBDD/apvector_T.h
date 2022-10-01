@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include <cstring>
 
 // *******************************************************************
 // APCS vector class template
@@ -238,7 +239,7 @@ bool apvector<itemType>::operator==(const apvector<itemType> &o) const
 {
   if (this == &o) return true;
   if (length() != o.length()) return false;
-  return !memcmp(myList, o.myList, sizeof(itemType) * length());
+  return !std::memcmp(myList, o.myList, sizeof(itemType) * length());
 }
 
 template <class itemType>

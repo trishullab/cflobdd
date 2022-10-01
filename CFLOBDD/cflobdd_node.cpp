@@ -655,6 +655,7 @@ CFLOBDDNodeHandle MkStepOneFourth(unsigned int level)
   assert(level >= 1);
 
   CFLOBDDInternalNode *n = new CFLOBDDInternalNode(level);
+  
   if (level == 1) {
     CFLOBDDReturnMapHandle m1, m2;
     m1.AddToEnd(0);
@@ -692,6 +693,32 @@ CFLOBDDNodeHandle MkStepOneFourth(unsigned int level)
 #endif
   return CFLOBDDNodeHandle(n);
 } // MkStepOneFourth
+
+double ComputeProbability(CFLOBDDNodeHandle g, std::vector<double>& var_probs, std::vector<double>& path_probs, int start, int end){
+	if (g.handleContents->level == 0){
+		if (g == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle){
+			return (1 - var_probs[start]) * path_probs[0] + var_probs[start] * path_probs[1];
+		} else {
+			return path_probs[0];
+		}
+	} else if (g == CFLOBDDNodeHandle::NoDistinctionNode[g.handleContents->level]){
+		return path_probs[0];
+	} else {
+		CFLOBDDInternalNode* gh = (CFLOBDDInternalNode *) g.handleContents;
+		std::vector<double> AConnection_PathProbs;
+		for (int i = 0; i < gh->numBConnections; i++){
+			std::vector<double> BConnection_PathProbs;
+			for (int j = 0; j < gh->BConnection[i].returnMapHandle.Size(); j++){
+				BConnection_PathProbs.push_back(path_probs[gh->BConnection[i].returnMapHandle[j]]);
+			}
+			double prob = ComputeProbability(*(gh->BConnection[i].entryPointHandle), var_probs, BConnection_PathProbs, (end - start)/2 + 1, end);
+			AConnection_PathProbs.push_back(prob);
+		}
+
+		double AProb = ComputeProbability(*(gh->AConnection.entryPointHandle), var_probs, AConnection_PathProbs, start, (end - start)/2);
+		return AProb;
+	}
+}
 
 }
 

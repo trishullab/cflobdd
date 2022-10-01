@@ -57,7 +57,8 @@ Hashtable<KeyT, ItemT>::Hashtable(const Hashtable<KeyT, ItemT> & H):
 template<class KeyT, class ItemT>
 void Hashtable<KeyT, ItemT>::DeallocateMemory()
 {
-	Hashtable<KeyT, ItemT>::~Hashtable();
+	// Hashtable<KeyT, ItemT>::~Hashtable();
+  delete myItems;
 }
 
 // **********************************************************************
@@ -174,6 +175,7 @@ std::ostream& Hashtable<KeyT, ItemT>::print(std::ostream & out)
   while ((p = Iter.Next()) != NULL) {
     out << p->key << ": " << p->item << std::endl;
   }
+  return out;
 }
 
 // Implementation of HashtableIterator class

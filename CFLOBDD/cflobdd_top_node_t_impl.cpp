@@ -42,6 +42,7 @@ namespace CFL_OBDD {
     //     CFLOBDDTopNodeT<int>::CFLOBDDTopNodeTRefPtr f,
     //     CFLOBDDTopNodeT<int>::CFLOBDDTopNodeTRefPtr g);
 
+    template class CFLOBDDTopNodeT<MatMultMapHandle>;
     template CFLOBDDTopNodeT<MatMultMapHandle>::CFLOBDDTopNodeTRefPtr operator*<MatMultMapHandle, VAL_TYPE>(
         VAL_TYPE c, CFLOBDDTopNodeT<MatMultMapHandle>::CFLOBDDTopNodeTRefPtr g);
     template CFLOBDDTopNodeT<MatMultMapHandle>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<MatMultMapHandle, VAL_TYPE>(

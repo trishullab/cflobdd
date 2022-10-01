@@ -28,6 +28,7 @@ class CFLTests
 		static void testMkCFLOBDDMatrixEqVoc14();
 		static void testMkFourierMatrix(int p);
         static void testMkIdRelationInterleaved();
+        static void testProbability();
         static void testParity();
         static void test1();
         static void test2();

@@ -779,6 +779,20 @@ void CFLTests::testMkAdditionInterleaved()
 	return;
 }
 
+void CFLTests::testProbability(){
+	CFLOBDD A = MkProjection(0, 2);
+	CFLOBDD B = MkProjection(1, 2);
+	CFLOBDD C = MkProjection(2, 2);
+
+	CFLOBDD F = MkImplies(MkAnd(A, B), C);
+	// F.print(std::cout);
+	std::vector<double> probs;
+	probs.push_back(0.3);
+	probs.push_back(0.5);
+	probs.push_back(0.2);
+	std::cout << ComputeProbability(F, probs) << std::endl;
+}
+
 
 bool CFLTests::runTests(const char *arg, int size, int seed){
 	CFLOBDDNodeHandle::InitNoDistinctionTable();
@@ -833,6 +847,8 @@ bool CFLTests::runTests(const char *arg, int size, int seed){
 		CFLTests::testWalsh();
 	} else if (curTest == "AdditionInterleaved") {
 		CFLTests::testMkAdditionInterleaved();
+	} else if (curTest == "ComputeProbability"){
+		CFLTests::testProbability();
 	// } else if (curTest == "Permute") {
 	// 	CFLTests::testPermute();
 	// } else if (curTest == "BasisVector") {

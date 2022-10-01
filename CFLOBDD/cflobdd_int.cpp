@@ -792,6 +792,10 @@ apvector<int> *GetSupportSet(CFLOBDD f)
 	*/
 }
 
+double ComputeProbability(CFLOBDD f, std::vector<double>& probs)
+{
+  return ComputeProbability(f.root, probs);
+}
 
 
 } // namespace CFL_OBDD

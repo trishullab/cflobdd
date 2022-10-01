@@ -117,6 +117,9 @@ extern bool IsPositiveCubeInt(CFLOBDD f, int least);
 extern bool SupportSetIs(CFLOBDD f, const apvector<int> &ss);
 extern apvector<int> *GetSupportSet(CFLOBDD f);
 
+extern double ComputeProbability(CFLOBDD f, std::vector<double>& probs); // probs is a list of probs of vars in the same order.
+
 } // namespace CFL_OBDD
+
 
 #endif

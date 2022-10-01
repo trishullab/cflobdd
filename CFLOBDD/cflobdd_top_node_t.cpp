@@ -279,7 +279,7 @@ namespace CFL_OBDD{
     template <typename T>
     void CFLOBDDTopNodeT<T>::DeallocateMemory()
     {
-        CFLOBDDTopNodeT<T>::~CFLOBDDTopNodeT();
+        // CFLOBDDTopNodeT<T>::~CFLOBDDTopNodeT();
     }
 
     // Hash

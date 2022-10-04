@@ -227,6 +227,54 @@ def simons(N):
 	print("s:",s)
 	print('is_correct', is_correct, 'time_taken(s):', (end - start))
 
+
+def grover(N):
+	s = ""
+	for i in range(0, N):
+		r = random.randint(0, 1)
+		if r == 0:
+			s = s + '0'
+		else:
+			s = s + '1'
+
+	allZeros = '0' * (N + 1)
+	start = time.time()
+	H = np.matrix([[1,1],[1,-1]], dtype=complex)/np.sqrt(2)
+	X = np.matrix([[0,1],[1,0]], dtype=complex)
+	I = np.matrix([[1,0],[0,1]], dtype=complex)
+
+	TX = np.identity(2**(N+1), dtype=complex)
+	TX[2**(N+1)-2,2**(N+1)-2] = 0
+	TX[2**(N+1)-2,2**(N+1)-1] = 1
+	TX[2**(N+1)-1,2**(N+1)-2] = 1
+	TX[2**(N+1)-1,2**(N+1)-1] = 0
+
+	all_bits = [i for i in range(N+1)]
+	all_nodes = []
+	is_correct = True
+	with tn.NodeCollection(all_nodes):
+		state_nodes = [
+			tn.Node(np.array([1.0+0.0j, 0.0+0.0j],)) for _ in range(N+1)
+		]
+		
+		qubits = [node[0] for node in state_nodes]
+		apply_gate(qubits, TX, all_bits)
+
+		result = tn.contractors.greedy(all_nodes, output_edge_order=qubits)
+		t = result.tensor
+		#print(t)
+		arr = np.square(np.abs(t)).flatten()
+		for i in range(0,10):
+			index = np.random.choice(len(arr), p=arr)
+			index_s = bin(index)[2:].zfill(N+1)[:-1]
+			if index_s == allZeros:
+				is_correct = False
+				break
+	end = time.time()
+	#print(s)
+	print('is_correct', is_correct, 'time_taken(s):', (end - start))
+
+
 if __name__ == '__main__':
 	if len(sys.argv) < 3:
 		print('3 args required: python3 gtn_test.py <fn_name> <num_bits>')
@@ -240,3 +288,5 @@ if __name__ == '__main__':
 		DJ(int(sys.argv[2]))
 	elif sys.argv[1] == 'simons':
 		simons(int(sys.argv[2]))
+	elif sys.argv[1] == 'grover':
+		grover(int(sys.argv[2]))

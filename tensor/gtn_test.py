@@ -3,6 +3,7 @@ import numpy as np
 import sys
 import time
 import random
+import math
 
 def apply_gate(qubit_edges, gate, operating_qubits):
     op = tn.Node(gate)
@@ -256,8 +257,11 @@ def grover(N):
     TZ = TZ.reshape(dims)
 
     all_bits = [i for i in range(N+1)]
+    bits = [i for i in range(N)]
     all_nodes = []
     is_correct = True
+    iters = (math.pi * (2 ** (N/2)))
+    iters = int(iters/4)
     start = time.time()
     with tn.NodeCollection(all_nodes):
         state_nodes = [
@@ -265,7 +269,33 @@ def grover(N):
         ]
         
         qubits = [node[0] for node in state_nodes]
-        apply_gate(qubits, TX, all_bits)
+        apply_gate(qubits, X, N)
+        for i in range(0, N+1):
+        	apply_gate(qubits, H, [i])
+
+        for i in range(0, iters):
+	        for i in range(0, N):
+	        	if s[i] == '0':
+	        		apply_gate(qubits, X, [i])
+	        
+	        apply_gate(qubits, TX, all_bits)
+
+	        for i in range(0, N):
+	        	if s[i] == '0':
+	        		apply_gate(qubits, X, [i])
+
+	        for i in range(0, N):
+	        	apply_gate(qubits, H, [i])
+	        for i in range(0, N):
+	        	apply_gate(qubits, X, [i])
+
+	        apply_gate(qubits, TZ, bits)
+
+	        for i in range(0, N):
+	        	apply_gate(qubits, X, [i])
+	        for i in range(0, N):
+	        	apply_gate(qubits, H, [i])
+
 
         result = tn.contractors.greedy(all_nodes, output_edge_order=qubits)
         t = result.tensor

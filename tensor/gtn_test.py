@@ -238,6 +238,7 @@ def grover(N):
         else:
             s = s + '1'
 
+    start = time.time()
     allZeros = '0' * (N + 1)
     H = np.matrix([[1,1],[1,-1]], dtype=complex)/np.sqrt(2)
     X = np.matrix([[0,1],[1,0]], dtype=complex)
@@ -262,14 +263,13 @@ def grover(N):
     is_correct = True
     iters = (math.pi * (2 ** (N/2)))
     iters = int(iters/4)
-    start = time.time()
     with tn.NodeCollection(all_nodes):
         state_nodes = [
             tn.Node(np.array([1.0+0.0j, 0.0+0.0j],)) for _ in range(N+1)
         ]
         
         qubits = [node[0] for node in state_nodes]
-        apply_gate(qubits, X, N)
+        apply_gate(qubits, X, [N])
         for i in range(0, N+1):
         	apply_gate(qubits, H, [i])
 
@@ -304,11 +304,12 @@ def grover(N):
         for i in range(0,10):
             index = np.random.choice(len(arr), p=arr)
             index_s = bin(index)[2:].zfill(N+1)[:-1]
-            if index_s == allZeros:
-                is_correct = False
+            print(index_s)
+            if index_s == s:
+                is_correct = True 
                 break
     end = time.time()
-    #print(s)
+    print(s)
     print('is_correct', is_correct, 'time_taken(s):', (end - start))
 
 

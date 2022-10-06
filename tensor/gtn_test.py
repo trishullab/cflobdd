@@ -335,7 +335,7 @@ def qft(N):
     states = [ np.array([1.0+0.0j, 0.0+0.0j],), np.array([0.0+0.0j, 1.0+0.0j],)]
     with tn.NodeCollection(all_nodes):
         state_nodes = [
-                tn.Node(states[np.random.randint(0, 1)]) for _ in range(N+1)
+            tn.Node(states[np.random.randint(0, 1)]) for _ in range(N+1)
         ]
         
         qubits = [node[0] for node in state_nodes]

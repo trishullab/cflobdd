@@ -58,8 +58,7 @@ def qft(N):
     for i in range(N//2):
         circ.apply_gate('SWAP', i, N-i-1)
 
-    for b in circ.sample(10):
-        print(b)
+    print(circ.to_dense())
     end = time.time()
     print('is_output_correct:', True, 'time_taken(s):', (end-start))
 

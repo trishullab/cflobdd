@@ -50,6 +50,11 @@ def qft(N):
     start = time.time()
     circ = qtn.Circuit(N)
 
+    for i in range(0, N):
+        rand = np.random.randint(0,1)
+        if rand == 1:
+            circ.apply_gate('X', i)
+
     for i in range(N-1, -1, -1):
         circ.apply_gate('H', i)
         for j in range(i):
@@ -58,7 +63,7 @@ def qft(N):
     for i in range(N//2):
         circ.apply_gate('SWAP', i, N-i-1)
 
-    print(circ.to_dense())
+    #print(circ.to_dense())
     end = time.time()
     print('is_output_correct:', True, 'time_taken(s):', (end-start))
 

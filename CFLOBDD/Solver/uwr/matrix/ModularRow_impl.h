@@ -230,7 +230,7 @@ namespace CFL_OBDD
 			}
 			if (i == n) {
 				leading_index = n;
-				leading_rank = highest_power<T>();
+				leading_rank = CFL_OBDD::BitVector::highest_power<T>();
 			}
 			else {
 				leading_index = i;
@@ -344,7 +344,7 @@ namespace CFL_OBDD
 			}
 			if (i == n) {
 				leading_index = n;
-				leading_rank = highest_power<T>();
+				leading_rank = CFL_OBDD::BitVector::highest_power<T>();
 			}
 			else {
 				leading_index = i;

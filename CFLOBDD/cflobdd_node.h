@@ -168,7 +168,7 @@ namespace CFL_OBDD {
 
 	// Note: If CFLOBDDMaxLevel >= 27, allocating an Assignment may cause
 	//       virtual memory to be exceeded.
-#define CFLOBDD_MAX_LEVEL 10
+#define CFLOBDD_MAX_LEVEL 30
 	unsigned int const CFLOBDDMaxLevel = CFLOBDD_MAX_LEVEL;
 
 	//********************************************************************

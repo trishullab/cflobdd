@@ -135,7 +135,11 @@ namespace CFL_OBDD {
 		if (level == 1)
 		{
 			assert(s.length() == 2);
-			n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, commonly_used_return_maps_vector[2]);//m01
+			CFLOBDDReturnMapHandle m01;
+			m01.AddToEnd(0);
+			m01.AddToEnd(1);
+			m01.Canonicalize();
+			n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);//m01
 
 			n->numBConnections = 2;
 			n->BConnection = new Connection[n->numBConnections];

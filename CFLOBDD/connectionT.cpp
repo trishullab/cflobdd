@@ -14,9 +14,8 @@ ConnectionT<Handle>::ConnectionT()
 // Constructor
 template <typename Handle>
 ConnectionT<Handle>::ConnectionT(CFLOBDDNodeHandle &entryPointHandle, Handle &returnMapHandle)
-	: entryPointHandle(&entryPointHandle), returnMapHandle(returnMapHandle)
+	: entryPointHandle(new CFLOBDDNodeHandle(entryPointHandle.handleContents)), returnMapHandle(returnMapHandle)
 {
-	this->entryPointHandle = new CFLOBDDNodeHandle(entryPointHandle.handleContents);
 }
 
 // Constructor

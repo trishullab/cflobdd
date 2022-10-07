@@ -1,6 +1,8 @@
 #include "cflobdd_top_node_t.cpp"
 #include "matmult_map.h"
 #include "matrix1234_float_boost.h"
+#include "fourier_semiring.h"
+#include "matrix1234_complex_float_boost.h"
 
 namespace CFL_OBDD {
     template class CFLOBDDTopNodeT<int>;
@@ -64,6 +66,10 @@ namespace CFL_OBDD {
         CFLOBDDTopNodeT<BIG_FLOAT>::CFLOBDDTopNodeTRefPtr g);
     template CFLOBDDTopNodeT<BIG_FLOAT>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<BIG_FLOAT, int>(
         int c, CFLOBDDTopNodeT<BIG_FLOAT>::CFLOBDDTopNodeTRefPtr g);
+    template CFLOBDDTopNodeT<BIG_FLOAT>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<BIG_FLOAT, BIG_FLOAT>(
+        BIG_FLOAT c, CFLOBDDTopNodeT<BIG_FLOAT>::CFLOBDDTopNodeTRefPtr g);
+    template CFLOBDDTopNodeT<BIG_FLOAT>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<BIG_FLOAT, double>(
+        double c, CFLOBDDTopNodeT<BIG_FLOAT>::CFLOBDDTopNodeTRefPtr g);
 
     template class CFLOBDDTopNodeT<double>;
     template CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr MkPlusTopNode<double>(
@@ -72,4 +78,35 @@ namespace CFL_OBDD {
     template CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr MkTimesTopNode<double>(
         CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr f,
         CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr g);
+    template CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<double, int>(
+        int c, CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr g);
+    template CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<double, double>(
+        double c, CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr g);    
+
+    template class CFLOBDDTopNodeT<fourierSemiring>;
+    template CFLOBDDTopNodeT<fourierSemiring>::CFLOBDDTopNodeTRefPtr MkTimesTopNode<fourierSemiring>(
+        CFLOBDDTopNodeT<fourierSemiring>::CFLOBDDTopNodeTRefPtr f,
+        CFLOBDDTopNodeT<fourierSemiring>::CFLOBDDTopNodeTRefPtr g);
+
+    // template class CFLOBDDTopNodeT<std::complex<double>>;
+    // template CFLOBDDTopNodeT<std::complex<double>>::CFLOBDDTopNodeTRefPtr MkTimesTopNode<std::complex<double>>(
+    //     CFLOBDDTopNodeT<std::complex<double>>::CFLOBDDTopNodeTRefPtr f,
+    //     CFLOBDDTopNodeT<std::complex<double>>::CFLOBDDTopNodeTRefPtr g);
+    // template CFLOBDDTopNodeT<std::complex<double>>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<std::complex<double>, int>(
+    //     int c, CFLOBDDTopNodeT<std::complex<double>>::CFLOBDDTopNodeTRefPtr g);
+    // template CFLOBDDTopNodeT<std::complex<double>>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<std::complex<double>, double>(
+    //     double c, CFLOBDDTopNodeT<std::complex<double>>::CFLOBDDTopNodeTRefPtr g);
+    // template CFLOBDDTopNodeT<std::complex<double>>::CFLOBDDTopNodeTRefPtr operator*<std::complex<double>, int>(
+    //     int c, CFLOBDDTopNodeT<std::complex<double>>::CFLOBDDTopNodeTRefPtr f);
+    
+    template class CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>;
+    template CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr MkTimesTopNode<BIG_COMPLEX_FLOAT>(
+        CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr f,
+        CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr g);
+    template CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<BIG_COMPLEX_FLOAT, int>(
+        int c, CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr g);
+    template CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<BIG_COMPLEX_FLOAT, double>(
+        double c, CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr g);
+    template CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<BIG_COMPLEX_FLOAT, BIG_COMPLEX_FLOAT>(
+        BIG_COMPLEX_FLOAT c, CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr g);
 }

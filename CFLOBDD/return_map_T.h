@@ -35,6 +35,7 @@
 #include "hashset.h"
 #include "reduction_map.h"
 #include "intpair.h"
+#include <complex>
 //#include <boost/multiprecision/cpp_int.hpp>
 //#include "hash_functions.h"
 
@@ -449,7 +450,8 @@ ReturnMapHandle<T> operator*(T1 c, ReturnMapHandle<T> rmh)
 	for (int i = 0; i < size; i++)
 	{
 		v = rmh.mapContents->mapArray[i];
-		answer.AddToEnd(c * v);
+		T val = c * v;
+		answer.AddToEnd(val);
 		// Formerly, answer.mapContents->mapArray.push_back();  // When written as c * v, the compiler gave the message "'operator *' is ambiguous"
 	}
 	answer.Canonicalize();

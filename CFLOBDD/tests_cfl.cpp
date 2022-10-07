@@ -19,9 +19,9 @@
 // #include "matrix1234_complex_double.h"
 // #include "matrix1234_double.h"
 // #include "vector_double.h"
-// #include "vector_float_boost.h"
+#include "vector_float_boost.h"
 // #include "vector_complex_float_boost.h"
-// #include "quantum_algos.h"
+#include "quantum_algos.h"
 // #include "matrix1234_fourier.h"
 // #include "Solver/uwr/matrix/HowellMatrix.h"
 // #include "Solver/uwr/matrix/ModularSquareMatrix.h"
@@ -793,6 +793,189 @@ void CFLTests::testProbability(){
 	std::cout << ComputeProbability(F, probs) << std::endl;
 }
 
+void CFLTests::testGHZAlgo(int p){
+	unsigned long long int n = pow(2, p);
+	std::cout << "GHZ start..." << std::endl;
+	auto start = high_resolution_clock::now();
+	auto out = QuantumAlgos::GHZ(n);
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	std::string all_ones(n + 1, '1');
+	std::string all_zeros(n + 1, '0');
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	out.second.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "is same: " << ((out.first == all_ones) || (out.first == all_zeros)) << std::endl;
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount 
+		<< " egdeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
+		<< " returnEdgesObjCount " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+}
+
+void CFLTests::testGroversAlgo(int p, int seed){
+	int n = pow(2, p);
+	time_t t = time(NULL);
+	std::cout << "seed: " << seed << std::endl;
+	//srand(seed);
+	std::mt19937 mt(seed);
+	std::string s = "";
+	for (int i = 0; i < n; i++)
+	s += (mt() % 2 == 0) ? "0" : "1";
+	//std::cout << "string: " << s << std::endl;
+	auto start = high_resolution_clock::now();
+	auto ans = QuantumAlgos::GroversAlgoWithV4(n, s);
+	auto end = high_resolution_clock::now();
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	ans.second.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	auto duration = duration_cast<milliseconds>(end - start);
+	//std::cout << "s: " << s << " ans_s: " << ans.first << std::endl;
+	std::cout << "equal: " << (s == ans.first) << std::endl;
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount <<
+		" edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
+		<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+}
+
+
+void CFLTests::testBVAlgo(int p, int seed){
+	long long int n = pow(2, p);
+	auto t = time(NULL);
+	std::cout << "n: " << n << " seed: " << seed << std::endl;
+	std::mt19937 mt(seed);
+	//srand(seed);
+	std::string s(n, '0');
+	for (long long int i = 0; i < n; i++)
+		s[i] = ((mt() % 2 == 0) ? '0' : '1');
+	//std::cout << s << std::endl;
+	int index = -1;
+	for (long long int i = 0; i < s.length(); i++)
+	{
+		if (s[i] == '1'){
+			index = i;
+			break;
+		}
+	}
+	int level = ceil(log2(n)) + 2;
+	CFLOBDD_FLOAT_BOOST F = Matrix1234FloatBoost::MkIdRelationInterleaved(level);
+	if (index != -1){
+		F = Matrix1234FloatBoost::MkCNOT(level, n, index, n);
+	}
+	std::cout << "Starting loop" << std::endl;
+	for (int i = index + 1; i < s.length() && index != -1; i++){
+		if (i % 10000 == 0)
+			std::cout << i << std::endl;
+		if (s[i] == '1'){
+			CFLOBDD_FLOAT_BOOST tmp = Matrix1234FloatBoost::MkCNOT(level, n, i, n);
+			F = Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(F, tmp);
+		}
+	}
+	//CFLOBDD_FLOAT_BOOST F = CreateBVInputMatrix(s, 0, level, n);
+	std::cout << "BV start..." << std::endl;
+	auto start = high_resolution_clock::now();
+	auto out_ans = QuantumAlgos::BV(n, F);
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	out_ans.second.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	//std::cout << out_ans.first << std::endl;
+	std::cout << out_ans.second.root->rootConnection.returnMapHandle << std::endl;
+	std::cout << "equal: " << (s == out_ans.first) << std::endl;
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount << 
+		" edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
+		<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+}
+
+void CFLTests::testDJAlgo(int p, int seed){
+	// DJ Algo
+	int n = pow(2, p);
+	std::cout << "seed: " << seed << std::endl;
+	//srand(seed);
+	std::mt19937 mt(seed);
+	std::cout << "n: " << n << std::endl;
+	int level = ceil(log2(n));
+	CFLOBDD_FLOAT_BOOST F = Matrix1234FloatBoost::MkIdRelationInterleaved(level + 2);
+	int rand_val = mt() % 2;
+	if (rand_val){
+		F = Matrix1234FloatBoost::CreateBalancedFn(n, mt);
+	}
+	std::cout << "DJ start..." << std::endl;
+	auto start = high_resolution_clock::now();
+	auto out_ans = QuantumAlgos::DeutschJozsaAlgo(n, F);
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	out_ans.second.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::string all_zeros(n, '0');
+	bool is_balanced = (out_ans.first != all_zeros);
+	std::cout << "is_correct: " << (is_balanced == rand_val) << std::endl;
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
+		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
+		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
+}
+
+void CFLTests::testSimonsAlgo(int p, int seed)
+{
+	const int n = pow(2, p);
+	std::string s(n, '0');
+	//time_t t = time(NULL);
+	std::mt19937 mt(seed);
+	std::cout << "seed: " << seed << std::endl;
+	for (int p = 0; p < n; p++)
+		s[p] = (mt() % 2 == 0) ? '1' : '0';
+	///D PATH_COUNTING_ENABLED
+	CFLOBDD_FLOAT_BOOST K = Matrix1234FloatBoost::Func2To1CFLOBDDMatrix_DivideAndConquer(s, mt);
+	CFLOBDD_FLOAT_BOOST F = Matrix1234FloatBoost::MatrixTranspose(K);
+	
+	std::cout << "string: " << s << " ";
+	unsigned int f_nodes = 0, f_edges = 0;
+	unsigned int f_returnEdges, f_returnEdgeObj = 0;
+	F.CountNodesAndEdges(f_nodes, f_edges, f_returnEdges, f_returnEdgeObj);
+	std::cout << "F node count: " << f_nodes << " edge count: " << f_edges << " total count: " << (f_nodes + f_edges) << std::endl;
+	auto start = high_resolution_clock::now();
+	auto out = QuantumAlgos::SimonsAlgoV4(n, F);
+	auto end = high_resolution_clock::now();
+	std::cout << out.first.root->rootConnection.returnMapHandle << std::endl;
+	auto s_vector = out.second;
+	std::string output = "";
+	int found = 0;
+	for (int i = 0; i < s_vector.size(); i++){
+		if (s_vector[i] == s){
+			std::cout << "Correct" << " ";
+			auto end = high_resolution_clock::now();
+			auto duration = duration_cast<seconds>(end - start);
+			std::cout << duration.count() << std::endl;
+			found = 1;
+			break;
+		}
+	}
+	for (int i = 0; i < n; i++)
+	{
+		bool isOne = false;
+		for (int j = 0; j < s_vector.size(); j++)
+		{
+			if (s_vector[j][i] == '1'){
+				isOne = true;
+				break;
+			}
+		}
+		output += (isOne == true) ? "1" : "0";
+	}
+
+	if (s == output)
+		std::cout << "Correct" << " ";
+	else
+		std::cout << "Wrong" << " ";
+	std::cout << std::endl;
+	auto duration = duration_cast<milliseconds>(end - start);
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	out.first.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount <<
+		" edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
+		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+}
+
 
 bool CFLTests::runTests(const char *arg, int size, int seed){
 	CFLOBDDNodeHandle::InitNoDistinctionTable();
@@ -801,6 +984,7 @@ bool CFLTests::runTests(const char *arg, int size, int seed){
 	InitPairProductCache();
 	InitTripleProductCache();
 	Matrix1234Int::Matrix1234Initializer();
+	VectorFloatBoost::VectorInitializer();
 	
 	std::string curTest = arg;  
 	if (curTest == "TopNode") {
@@ -859,16 +1043,16 @@ bool CFLTests::runTests(const char *arg, int size, int seed){
 	// 	CFLTests::testShorsAlgo();
 	// } else if (curTest == "testShortestPath") {
 	// 	CFLTests::testShortestPath();
-	// } else if (curTest == "testGHZAlgo") {
-	// 	CFLTests::testGHZAlgo(size);
-	// } else if (curTest == "testBVAlgo") {
-	// 	CFLTests::testBVAlgo(size, seed);
-	// } else if (curTest == "testDJAlgo") {
-	// 	CFLTests::testDJAlgo(size, seed);
-	// } else if (curTest == "testGroversAlgo") {
-	// 	CFLTests::testGroversAlgo(size, seed);
-	// } else if (curTest == "testSimonsAlgo") {
-	// 	CFLTests::testSimonsAlgo(size, seed);
+	} else if (curTest == "testGHZAlgo") {
+		CFLTests::testGHZAlgo(size);
+	} else if (curTest == "testBVAlgo") {
+		CFLTests::testBVAlgo(size, seed);
+	} else if (curTest == "testDJAlgo") {
+		CFLTests::testDJAlgo(size, seed);
+	} else if (curTest == "testGroversAlgo") {
+		CFLTests::testGroversAlgo(size, seed);
+	} else if (curTest == "testSimonsAlgo") {
+		CFLTests::testSimonsAlgo(size, seed);
 	// } else if (curTest == "testSimonsAlgoNew") {
 	// 	CFLTests::testSimonsAlgoNew(size);
 	// }

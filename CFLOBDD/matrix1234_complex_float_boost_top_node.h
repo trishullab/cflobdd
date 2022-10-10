@@ -79,6 +79,11 @@ namespace CFL_OBDD {
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr Demote12ToInterleavedTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr ConvertToComplexTop(CFLOBDDTopNodeFourierRefPtr c);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTInterleavedTop(unsigned int i);
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int level, long int i, long int j, double theta);
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkSwapGateTop(unsigned int level, long int i, long int j);
+
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixShiftToAConnectionTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixShiftToBConnectionTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);
 
 	}
 }

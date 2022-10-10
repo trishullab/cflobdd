@@ -887,7 +887,7 @@ void CFLTests::testBVAlgo(int p, int seed){
 
 void CFLTests::testDJAlgo(int p, int seed){
 	// DJ Algo
-	int n = pow(2, p);
+	long long int n = pow(2, p);
 	std::cout << "seed: " << seed << std::endl;
 	//srand(seed);
 	std::mt19937 mt(seed);
@@ -977,6 +977,33 @@ void CFLTests::testSimonsAlgo(int p, int seed)
 }
 
 
+void CFLTests::testQFT(int p, int seed)
+{
+	long long int n = pow(2, p);
+	std::mt19937 mt(seed);
+	std::string s = "";
+	for (unsigned int i = 0; i < n; i++){
+		if (mt() % 2 == 0)
+			s += "0";
+		else
+			s += "1";
+	}
+	std::cout << "seed: " << seed << std::endl;
+	std::cout << "s: " << s << std::endl;
+	std::cout << "QFT start..." << std::endl;
+	auto start = high_resolution_clock::now();
+	auto out_ans = QuantumAlgos::QFT(n, s);
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	out_ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
+		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
+		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
+}
+
+
 bool CFLTests::runTests(const char *arg, int size, int seed){
 	CFLOBDDNodeHandle::InitNoDistinctionTable();
 	CFLOBDDNodeHandle::InitAdditionInterleavedTable();
@@ -1055,6 +1082,9 @@ bool CFLTests::runTests(const char *arg, int size, int seed){
 		CFLTests::testSimonsAlgo(size, seed);
 	// } else if (curTest == "testSimonsAlgoNew") {
 	// 	CFLTests::testSimonsAlgoNew(size);
+	// }
+	} else if (curTest == "testQFT") {
+		CFLTests::testQFT(size, seed);
 	// }
 	// else {
 	// 	std::cout << "Unrecognized test name: " << curTest << std::endl;

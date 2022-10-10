@@ -430,6 +430,61 @@ namespace CFL_OBDD {
 			return v;
 		}
 
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int i, long int c1, long int c2, double theta)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m012;
+
+			double cos_v = boost::math::cos_pi(theta);
+			double sin_v = boost::math::sin_pi(theta);
+			BIG_COMPLEX_FLOAT val(cos_v, sin_v);
+
+			// std::unordered_map<std::string, CFLOBDDNodeHandle> cp_hashMap;
+
+			tempHandle = MkCPGateNode(i, c1, c2);
+			m012.AddToEnd(1);
+			m012.AddToEnd(0);
+			m012.AddToEnd(val);
+			m012.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m012);
+			return v;
+		}
+
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkSwapGateTop(unsigned int i, long int c1, long int c2)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+
+			tempHandle = MkSwapGateNode(i, c1, c2, -1);
+			m01.AddToEnd(1);
+			m01.AddToEnd(0);
+			m01.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			return v;
+		}
+
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixShiftToAConnectionTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+
+			tempHandle = MatrixShiftToAConnectionNode(*(c->rootConnection.entryPointHandle));
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, c->rootConnection.returnMapHandle);
+			return v;
+		}
+
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixShiftToBConnectionTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+
+			tempHandle = MatrixShiftToBConnectionNode(*(c->rootConnection.entryPointHandle));
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, c->rootConnection.returnMapHandle);
+			return v;
+		}
+
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MkFourierDiagonalComponentTop(unsigned int i)
 		{
 			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
@@ -532,8 +587,8 @@ namespace CFL_OBDD {
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixMultiplyV4TopNode(CFLOBDDTopNodeComplexFloatBoostRefPtr c1, CFLOBDDTopNodeComplexFloatBoostRefPtr c2)
 		{
 			std::unordered_map<MatMultPair, CFLOBDDTopNodeMatMultMapRefPtr, MatMultPair::MatMultPairHash> hashMap;
-			if (c1->level >= 5)
-				clearMultMap();
+			// if (c1->level >= 5)
+			// 	clearMultMap();
 			CFLOBDDTopNodeMatMultMapRefPtr c = MatrixMultiplyV4Node(hashMap, *(c1->rootConnection.entryPointHandle),*(c2->rootConnection.entryPointHandle));
 			ComplexFloatBoostReturnMapHandle v;
 			boost::unordered_map<std::complex<double>, unsigned int> reductionMap;

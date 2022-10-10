@@ -80,6 +80,12 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG Demote12ToInterleaved(CFLOBDD_COMPLEX_BIG c);
 		extern CFLOBDD_COMPLEX_BIG ConvertToComplex(CFLOBDD_FOURIER c);
 		extern CFLOBDD_COMPLEX_BIG MkCNOTInterleaved(unsigned int i);
+		extern CFLOBDD_COMPLEX_BIG MkCPGate(unsigned int i, long int c1, long int c2, double theta);
+		extern CFLOBDD_COMPLEX_BIG MkSwapGate(unsigned int i, long int c1, long int c2);
+
+		extern CFLOBDD_COMPLEX_BIG MatrixShiftToAConnection(CFLOBDD_COMPLEX_BIG c);
+		extern CFLOBDD_COMPLEX_BIG MatrixShiftToBConnection(CFLOBDD_COMPLEX_BIG c);
+		extern CFLOBDD_COMPLEX_BIG KroneckerProduct2Vocs(CFLOBDD_COMPLEX_BIG m1, CFLOBDD_COMPLEX_BIG m2);
 
 	}
 }

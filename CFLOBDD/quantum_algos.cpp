@@ -1612,6 +1612,71 @@ namespace CFL_OBDD {
 			return std::make_pair(vectorTensor, answers);
 
 		}
+
+		CFLOBDD_COMPLEX_BIG Hadamard(unsigned int n, unsigned int i)
+		{
+			if (n == 1)
+			{
+				return Matrix1234ComplexFloatBoost::MkWalshInterleaved(1);
+			}
+			else {
+				if (i < n/2)
+				{
+					CFLOBDD_COMPLEX_BIG T = KroneckerPower(Matrix1234ComplexFloatBoost::MkIdRelationInterleaved, n/2, 1);
+					CFLOBDD_COMPLEX_BIG H = Hadamard(n/2, i);
+					return Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(H, T);
+				}
+				else
+				{
+					CFLOBDD_COMPLEX_BIG T = KroneckerPower(Matrix1234ComplexFloatBoost::MkIdRelationInterleaved, n/2, 1);
+					return Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(T, Hadamard(n/2, i - n/2)); 
+				}
+			}
+		}
+
+		CFLOBDD_COMPLEX_BIG QFT(long long int n, std::string s)
+		{
+			unsigned int level = ceil(log2(n));
+			
+			// std::cout << "s: " << s << std::endl;
+			// std::reverse(s.begin(), s.end());
+			CFLOBDD_COMPLEX_BIG stateV = VectorComplexFloatBoost::MkBasisVector(level, s);
+			stateV = VectorComplexFloatBoost::VectorToMatrixInterleaved(stateV);
+			std::cout << "start" << std::endl;
+
+			for (long long int i = 0; i < n/2; i++)
+			{
+				CFLOBDD_COMPLEX_BIG SwapM = Matrix1234ComplexFloatBoost::MkSwapGate(level+1, i, n-i-1);
+				stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(SwapM, stateV);
+				// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(stateV, std::cout);
+			}
+
+			std::cout << "loop start" << std::endl;
+
+			for (long long int i = n-1; i >= 0; i--)
+			{
+				CFLOBDD_COMPLEX_BIG H = Hadamard(n, i);
+				// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(H, std::cout);	
+				stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(H, stateV);
+				// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(stateV, std::cout);
+				// std::cout << "hey" << std::endl;
+				for (long int j = 0; j < i; j++)
+				{
+					double theta = std::pow(2, j - i);
+					// std::cout << j << " " << i << std::endl;
+					CFLOBDD_COMPLEX_BIG CP = Matrix1234ComplexFloatBoost::MkCPGate(level+1, j, i, theta);
+					// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(CP, std::cout);
+					stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CP, stateV);
+					// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(stateV, std::cout);
+					// std::cout << "over " << theta << std::endl;
+				}
+			}
+			std::cout << "done" << std::endl;
+
+			// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(stateV, std::cout);
+
+			return stateV;
+		}
 	}
 }
 

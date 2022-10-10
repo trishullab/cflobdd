@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <chrono>
+#include <random>
 #include "cflobdd_int.h"
 #include "matrix1234_float_boost.h"
 #include "matrix1234_complex_float_boost.h"
@@ -30,6 +32,7 @@ namespace CFL_OBDD {
 		extern std::string GroversAlgoWithV4_double(int n, std::string s);
 		extern std::pair<std::string, CFLOBDD_FLOAT_BOOST> BV(long long int n, CFLOBDD_FLOAT_BOOST F);
 		extern std::pair<std::string, CFLOBDD_FLOAT_BOOST> GHZ(unsigned long long int n);
+		extern CFLOBDD_COMPLEX_BIG QFT(long long int n, std::string m);
 		std::pair<CFLOBDD_COMPLEX_BIG, std::vector<std::string>> ShorsAlgo(int n, CFLOBDD_COMPLEX_BIG F);
 	}
 }

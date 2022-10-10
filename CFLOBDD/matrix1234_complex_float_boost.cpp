@@ -381,6 +381,39 @@ namespace CFL_OBDD {
 			return CFLOBDD_COMPLEX_BIG(ConvertToComplexTop(c.root));
 		}
 
+
+		CFLOBDD_COMPLEX_BIG MkCPGate(unsigned int i, long c1, long c2, double theta)
+		{
+			return CFLOBDD_COMPLEX_BIG(MkCPGateTop(i, c1, c2, theta));
+		}
+
+		
+		CFLOBDD_COMPLEX_BIG MkSwapGate(unsigned int i, long c1, long c2)
+		{
+			return CFLOBDD_COMPLEX_BIG(MkSwapGateTop(i, c1, c2));
+		}
+
+
+		CFLOBDD_COMPLEX_BIG MatrixShiftToAConnection(CFLOBDD_COMPLEX_BIG c)
+		{
+			return CFLOBDD_COMPLEX_BIG(MatrixShiftToAConnectionTop(c.root));
+		}
+
+		CFLOBDD_COMPLEX_BIG MatrixShiftToBConnection(CFLOBDD_COMPLEX_BIG c)
+		{
+			return CFLOBDD_COMPLEX_BIG(MatrixShiftToBConnectionTop(c.root));
+		}
+
+		// Return the Kronecker product of two matrices
+		CFLOBDD_COMPLEX_BIG KroneckerProduct2Vocs(CFLOBDD_COMPLEX_BIG m1, CFLOBDD_COMPLEX_BIG m2)
+		{
+			assert(m1.root->level == m2.root->level);
+			CFLOBDD_COMPLEX_BIG m1_A = MatrixShiftToAConnection(m1);
+			CFLOBDD_COMPLEX_BIG m2_B = MatrixShiftToBConnection(m2);
+			CFLOBDD_COMPLEX_BIG c = m1_A * m2_B;
+			return c;
+		}
+
 		CFLOBDD_COMPLEX_BIG MkFourierMatrixInterleavedV4(unsigned int i)
 		{
 			if (i >= 5){

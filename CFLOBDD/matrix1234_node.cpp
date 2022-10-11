@@ -931,7 +931,11 @@ namespace CFL_OBDD {
 				// else
 				// {
 					g->BConnection[0] = Connection(btmp, m01234);
-					g->BConnection[1] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m4);	
+					if (controller == n - 1)
+						g->BConnection[1] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m4);
+					else
+						g->BConnection[1] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m1);
+
 				// }
 				g->numExits = 5;
 			} 

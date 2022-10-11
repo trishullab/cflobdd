@@ -431,7 +431,8 @@ long int MkFourierTransform(DdManager* manager, int n){
     }
     // Cudd_PrintDebug(manager, ans, 2*N, 2);
     long int nodeCount = Cudd_ReadNodeCount(manager);
-    printf("NodeCount: %ld time_taken: %f sec\n", nodeCount, time_taken);
+    long int leafCount = Cudd_CountLeaves(ans);
+    printf("NodeCount: %ld LeafCount: %ld time_taken: %f sec\n", nodeCount, leafCount, time_taken);
     return nodeCount;
 
 }

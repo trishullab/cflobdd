@@ -1647,11 +1647,21 @@ namespace CFL_OBDD {
 			for (long long int i = 0; i < n/2; i++)
 			{
 				CFLOBDD_COMPLEX_BIG SwapM = Matrix1234ComplexFloatBoost::MkSwapGate(level+1, i, n-i-1);
+				// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(SwapM, std::cout);
 				stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(SwapM, stateV);
 				// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(stateV, std::cout);
 			}
 
 			std::cout << "loop start" << std::endl;
+
+			// CFLOBDD_COMPLEX_BIG CP = Matrix1234ComplexFloatBoost::MkCPGate(level+1, 2, 3, 2);
+			// CFLOBDD_COMPLEX_BIG ID = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level+1);
+			// std::cout << (CP == ID) << std::endl;
+			// std::cout << *(CP.root->rootConnection.entryPointHandle) << std::endl;
+			// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(CP, std::cout);
+			// CP.CountPaths();
+			// std::cout << CP.root->rootConnection.entryPointHandle->handleContents->numPathsToExit[0] << std::endl;
+			// std::cout << CP.root->rootConnection.entryPointHandle->handleContents->numPathsToExit[1] << std::endl;
 
 			for (long long int i = n-1; i >= 0; i--)
 			{
@@ -1660,16 +1670,19 @@ namespace CFL_OBDD {
 				stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(H, stateV);
 				// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(stateV, std::cout);
 				// std::cout << "hey" << std::endl;
+				// CFLOBDD_COMPLEX_BIG tmp = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level+1);
 				for (long int j = 0; j < i; j++)
 				{
 					double theta = std::pow(2, j - i);
-					// std::cout << j << " " << i << std::endl;
+					std::cout << j << " " << i << std::endl;
 					CFLOBDD_COMPLEX_BIG CP = Matrix1234ComplexFloatBoost::MkCPGate(level+1, j, i, theta);
 					// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(CP, std::cout);
+					// tmp = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CP, tmp);
 					stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CP, stateV);
 					// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(stateV, std::cout);
 					// std::cout << "over " << theta << std::endl;
 				}
+				// stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(tmp, stateV);
 			}
 			std::cout << "done" << std::endl;
 

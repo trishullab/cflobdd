@@ -521,6 +521,7 @@ cuddCacheLookup1(
 } /* end of cuddCacheLookup1 */
 
 
+
 /**
   @brief Looks up in the cache for the result of op applied to f
   and g.

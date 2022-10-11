@@ -63,7 +63,7 @@ namespace CFL_OBDD {
 		void MatrixPrintRowMajorInterleavedTop(CFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out)
 		{
 			unsigned int level = n->rootConnection.entryPointHandle->handleContents->level;
-			if (level >= 1 && level <= 4) {
+			if (level >= 1 && level <= 5) {
 				unsigned int indexBits = 1 << (level - 1);
 				unsigned int totalBits = 2 * indexBits;
 				unsigned long int rows = 1UL << indexBits;
@@ -95,9 +95,9 @@ namespace CFL_OBDD {
 						std::complex<double> b;
 						b = n->EvaluateIteratively(a).convert_to<std::complex<double>>();
 						if (b != std::complex<double>(0))
-							out << i << " " << j << " " << b << " ";
+							out << i << " " << j << " " << b << " " << std::endl;
 					}
-					out << std::endl;
+					// out << std::endl;
 				}
 				out << std::endl;
 			}

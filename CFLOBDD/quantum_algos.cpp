@@ -1654,10 +1654,8 @@ namespace CFL_OBDD {
 
 			std::cout << "loop start" << std::endl;
 
-			// CFLOBDD_COMPLEX_BIG CP = Matrix1234ComplexFloatBoost::MkCPGate(level+1, 2, 3, 2);
-			// CFLOBDD_COMPLEX_BIG ID = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level+1);
-			// std::cout << (CP == ID) << std::endl;
-			// std::cout << *(CP.root->rootConnection.entryPointHandle) << std::endl;
+			// CFLOBDD_COMPLEX_BIG CP = Matrix1234ComplexFloatBoost::MkCPGate(level+1, 2, 3, 0.5);
+			// // std::cout << *(CP.root->rootConnection.entryPointHandle) << std::endl;
 			// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(CP, std::cout);
 			// CP.CountPaths();
 			// std::cout << CP.root->rootConnection.entryPointHandle->handleContents->numPathsToExit[0] << std::endl;

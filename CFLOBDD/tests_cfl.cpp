@@ -779,18 +779,229 @@ void CFLTests::testMkAdditionInterleaved()
 	return;
 }
 
-void CFLTests::testProbability(){
-	CFLOBDD A = MkProjection(0, 2);
-	CFLOBDD B = MkProjection(1, 2);
-	CFLOBDD C = MkProjection(2, 2);
+int get_idx(int i, int j, int dim, int dim2=-1){
+    if (dim2 == -1)
+        dim2 = dim;
+	if (i < dim2/2 && j < dim/2)
+		return dim2/2 * i + j + 1;
+	else if (i < dim2/2 && j >= dim/2)
+		return (dim/2 * dim2/2) + dim2/2 * i + (j - dim2/2) + 1;
+	else if (i >= dim2/2 && j < dim/2)
+		return dim/2 * dim2 + (i - dim/2)*dim2/2 + j + 1;
+	else
+		return (dim/2 * dim2) + (dim/2 * dim2/2) + dim2/2 * (i - dim/2) + (j - dim2/2) + 1;
+    // return dim2*i+j+1;
+}
 
-	CFLOBDD F = MkImplies(MkAnd(A, B), C);
-	// F.print(std::cout);
+
+std::vector<std::pair<int,int>> get_neighbors(int i, int j, int dim, int dim2=-1){
+    if (dim2 == -1){
+        dim2 = dim;
+	}
+    std::vector<std::pair<int,int>> ret;
+    std::vector<std::pair<int,int>> d;
+	d.push_back(std::make_pair(-1,-1));
+	d.push_back(std::make_pair(-1,0));
+	d.push_back(std::make_pair(-1,1));
+	d.push_back(std::make_pair(0,-1));
+	d.push_back(std::make_pair(0,1));
+	d.push_back(std::make_pair(1,-1));
+	d.push_back(std::make_pair(1,0));
+	d.push_back(std::make_pair(1,1));
+    for (auto k : d){
+		int x = k.first;
+		int y = k.second;
+        int ii = i+x;
+        int jj = j+y;
+        if (ii >= 0 && jj >= 0 && ii < dim && jj < dim2)
+            ret.push_back((std::make_pair(ii,jj)));
+	}
+    return ret;
+}
+
+CFLOBDD compute_alpha (std::vector<CFLOBDD>& betas, int start=0, int end = 0){
+    std::cout << "beg: " << betas.size() << " start: " << start << " end: " << end << std::endl;
+    if (end - start == 1)
+        return betas[start];
+    if (end - start == 2)
+        return MkAnd(betas[start], betas[end]);
+
+    int mid = (end - start)/2;
+    CFLOBDD a1 = compute_alpha(betas, start, start + mid);
+    CFLOBDD a2 = compute_alpha(betas, start + mid + 1, end);
+
+    CFLOBDD a3 = MkAnd(a1, a2);
+	std::cout << a1 << std::endl;
+	std::cout << a2 << std::endl;
+	std::cout << a3 << std::endl;
+	std::cout << "end: " << betas.size() << " start: " << start << " end: " << end << std::endl;
+	// a3.CountPaths();
+	// unsigned int nodeCount, edgeCount;
+	// unsigned int returnEdgeCount, returnEdgeObjCount;
+	// a3.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
+	// std::cout << "nodeCount: " << nodeCount << " edgeCount: " << edgeCount << std::endl;
+	return a3;
+}
+
+void CFLTests::testProbability(){
+	// CFLOBDD A = MkProjection(0, 2);
+	// CFLOBDD B = MkProjection(1, 2);
+	// CFLOBDD C = MkProjection(2, 2);
+	// CFLOBDD D = MkProjection(3, 2);
+
+	// CFLOBDD X1 = MkAnd(MkAnd(A, MkNot(B)), MkNot(D));
+	// CFLOBDD X2 = MkAnd(MkAnd(B, MkNot(D)), MkNot(A));
+	// CFLOBDD X3 = MkAnd(MkAnd(D, MkNot(A)), MkNot(B));
+	// CFLOBDD F = MkOr(MkOr(X1, X2), X3);
+	// std::vector<double> probs;
+	// probs.push_back(0.1);
+	// probs.push_back(0.2);
+	// probs.push_back(0.3);
+	// probs.push_back(0.4);
+	// std::cout << ComputeProbability(F, probs) << std::endl;
+	int dim = 2;
+	int var_count = dim * dim;
+    // final constraint variables
+    int level = std::ceil(std::log2(var_count));
+    CFLOBDD alpha1 = MkTrue(level);
+	CFLOBDD alpha2 = MkTrue(level);
+	CFLOBDD alpha3 = MkTrue(level);
+	CFLOBDD alpha4 = MkTrue(level);
+    std::vector<CFLOBDD> var_cflobdds;
+	for (int i = 0; i < var_count; i++)
+		var_cflobdds.push_back(MkProjection(i, level));
+    
+
+    for (int i = 0; i < dim/2; i++){
+        for (int j = 0; j < dim/2; j++){
+			std::cout << "(i,j): (" << i << "," << j << ")" << std::endl;
+            if (i == 0 && j == 0)
+                continue;
+            else{
+                std::vector<std::pair<int,int>> nbrs = get_neighbors(i, j, dim);
+                CFLOBDD beta = MkFalse(level);
+                for (int a = 0; a < nbrs.size(); a++){
+                    int a_idx = get_idx(nbrs[a].first, nbrs[a].second, dim);
+                    CFLOBDD gamma = MkTrue(level);
+                    for (int b = 0; b < nbrs.size(); b++){
+                        if (a != b){
+                            int id_b = get_idx(nbrs[b].first, nbrs[b].second, dim);
+							// std::cout << "a,b: " << a_idx << " " << id_b << std::endl;
+                            gamma = MkAnd(gamma, MkNot(var_cflobdds[id_b-1]));
+						}
+					}
+                    gamma = MkAnd(gamma, var_cflobdds[a_idx-1]);
+                    beta = MkOr(beta, gamma);
+				}
+                int idx = get_idx(i, j, dim)-1;
+				// std::cout << i << " " << j << " " << idx << std::endl;
+                // beta = pwc.CFLOBDD.MkAnd(beta, var_cflobdds[idx])
+                beta = MkOr(beta, MkNot(var_cflobdds[idx]));
+                // list_of_betas.push_back(beta);
+                alpha1 = MkAnd(alpha1, beta);
+			}
+		}
+	}
+
+	for (int i = dim/2; i < dim; i++){
+        for (int j = 0; j < dim/2; j++){
+			std::cout << "(i,j): (" << i << "," << j << ")" << std::endl;
+            if (i == 0 && j == 0)
+                continue;
+            else{
+                std::vector<std::pair<int,int>> nbrs = get_neighbors(i, j, dim);
+                CFLOBDD beta = MkFalse(level);
+                for (int a = 0; a < nbrs.size(); a++){
+                    int a_idx = get_idx(nbrs[a].first, nbrs[a].second, dim);
+                    CFLOBDD gamma = MkTrue(level);
+                    for (int b = 0; b < nbrs.size(); b++){
+                        if (a != b){
+                            int id_b = get_idx(nbrs[b].first, nbrs[b].second, dim);
+							// std::cout << "a,b: " << a_idx << " " << id_b << std::endl;
+                            gamma = MkAnd(gamma, MkNot(var_cflobdds[id_b-1]));
+						}
+					}
+                    gamma = MkAnd(gamma, var_cflobdds[a_idx-1]);
+                    beta = MkOr(beta, gamma);
+				}
+                int idx = get_idx(i, j, dim)-1;
+				// std::cout << i << " " << j << " " << idx << std::endl;
+                // beta = pwc.CFLOBDD.MkAnd(beta, var_cflobdds[idx])
+                beta = MkOr(beta, MkNot(var_cflobdds[idx]));
+                // list_of_betas.push_back(beta);
+                alpha2 = MkAnd(alpha2, beta);
+			}
+		}
+	}
+	
+	for (int i = 0; i < dim/2; i++){
+        for (int j = dim/2; j < dim; j++){
+			std::cout << "(i,j): (" << i << "," << j << ")" << std::endl;
+            if (i == 0 && j == 0)
+                continue;
+            else{
+                std::vector<std::pair<int,int>> nbrs = get_neighbors(i, j, dim);
+                CFLOBDD beta = MkFalse(level);
+                for (int a = 0; a < nbrs.size(); a++){
+                    int a_idx = get_idx(nbrs[a].first, nbrs[a].second, dim);
+                    CFLOBDD gamma = MkTrue(level);
+                    for (int b = 0; b < nbrs.size(); b++){
+                        if (a != b){
+                            int id_b = get_idx(nbrs[b].first, nbrs[b].second, dim);
+							// std::cout << "a,b: " << a_idx << " " << id_b << std::endl;
+                            gamma = MkAnd(gamma, MkNot(var_cflobdds[id_b-1]));
+						}
+					}
+                    gamma = MkAnd(gamma, var_cflobdds[a_idx-1]);
+                    beta = MkOr(beta, gamma);
+				}
+                int idx = get_idx(i, j, dim)-1;
+				// std::cout << i << " " << j << " " << idx << std::endl;
+                // beta = pwc.CFLOBDD.MkAnd(beta, var_cflobdds[idx])
+                beta = MkOr(beta, MkNot(var_cflobdds[idx]));
+                // list_of_betas.push_back(beta);
+                alpha3 = MkAnd(alpha3, beta);
+			}
+		}
+	}
+	
+	for (int i = dim/2; i < dim; i++){
+        for (int j = dim/2; j < dim; j++){
+			std::cout << "(i,j): (" << i << "," << j << ")" << std::endl;
+            if (i == 0 && j == 0)
+                continue;
+            else{
+                std::vector<std::pair<int,int>> nbrs = get_neighbors(i, j, dim);
+                CFLOBDD beta = MkFalse(level);
+                for (int a = 0; a < nbrs.size(); a++){
+                    int a_idx = get_idx(nbrs[a].first, nbrs[a].second, dim);
+                    CFLOBDD gamma = MkTrue(level);
+                    for (int b = 0; b < nbrs.size(); b++){
+                        if (a != b){
+                            int id_b = get_idx(nbrs[b].first, nbrs[b].second, dim);
+							// std::cout << "a,b: " << a_idx << " " << id_b << std::endl;
+                            gamma = MkAnd(gamma, MkNot(var_cflobdds[id_b-1]));
+						}
+					}
+                    gamma = MkAnd(gamma, var_cflobdds[a_idx-1]);
+                    beta = MkOr(beta, gamma);
+				}
+                int idx = get_idx(i, j, dim)-1;
+				// std::cout << i << " " << j << " " << idx << std::endl;
+                // beta = pwc.CFLOBDD.MkAnd(beta, var_cflobdds[idx])
+                beta = MkOr(beta, MkNot(var_cflobdds[idx]));
+                // list_of_betas.push_back(beta);
+                alpha4 = MkAnd(alpha4, beta);
+			}
+		}
+	}
+	
+    // alpha = compute_alpha(list_of_betas, 0, list_of_betas.size()-1);
+	CFLOBDD alpha = MkAnd(MkAnd(alpha1, alpha2), MkAnd(alpha3, alpha4));
 	std::vector<double> probs;
-	probs.push_back(0.3);
-	probs.push_back(0.5);
-	probs.push_back(0.2);
-	std::cout << ComputeProbability(F, probs) << std::endl;
+	for (int i = 0; i < var_count; i++)
+		probs.push_back(0.1 * (i + 1));
+	std::cout << ComputeProbability(alpha, probs)<< std::endl;
 }
 
 void CFLTests::testGHZAlgo(int p){

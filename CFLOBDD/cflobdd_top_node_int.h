@@ -38,8 +38,8 @@ typedef CFLOBDDTopNodeT<int> CFLOBDDTopNode;
 typedef CFLOBDDTopNodeT<int>::CFLOBDDTopNodeTRefPtr CFLOBDDTopNodeIntRefPtr;
 
 // CFLOBDDTopNode-creation operations --------------------------------------
-extern CFLOBDDTopNodeIntRefPtr MkTrueTop();                    // Representation of \x.true
-extern CFLOBDDTopNodeIntRefPtr MkFalseTop();                   // Representation of \x.false
+extern CFLOBDDTopNodeIntRefPtr MkTrueTop(int level=-1);                    // Representation of \x.true
+extern CFLOBDDTopNodeIntRefPtr MkFalseTop(int level=-1);                   // Representation of \x.false
 extern CFLOBDDTopNodeIntRefPtr MkDistinction(unsigned int i, int level = -1);  // Representation of \x.x_i
 extern CFLOBDDTopNodeIntRefPtr MkAdditionInterleavedRecursiveTop();     // Representation of addition relation, created recursively
 extern CFLOBDDTopNodeIntRefPtr MkAdditionInterleavedTop();     // Representation of addition relation

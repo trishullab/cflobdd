@@ -50,10 +50,13 @@ def compute_alpha(betas, start=0, end = 0):
 def build_constraints(dim, save_path=None):
     var_count = dim * dim
     # final constraint variables
-    alpha = pwc.CFLOBDD.MkTrue()
     level = math.ceil(math.log(var_count, 2))
+    alpha1 = pwc.CFLOBDD.MkTrue(level)
+    alpha2 = pwc.CFLOBDD.MkTrue(level)
+    alpha3 = pwc.CFLOBDD.MkTrue(level)
+    alpha4 = pwc.CFLOBDD.MkTrue(level)
     var_cflobdds = [pwc.CFLOBDD.MkProjection(i, level) for i in range(var_count)]
-    list_of_betas = []
+    # list_of_betas = []
 
     for i in range(dim//2):
         for j in range(dim//2):
@@ -61,10 +64,10 @@ def build_constraints(dim, save_path=None):
                 continue
             else:
                 nbrs = get_neighbors(i, j, dim)
-                beta = pwc.CFLOBDD.MkFalse()
+                beta = pwc.CFLOBDD.MkFalse(level)
                 for a in range(len(nbrs)):
                     a_idx = get_idx(nbrs[a][0], nbrs[a][1], dim)
-                    gamma = pwc.CFLOBDD.MkTrue()
+                    gamma = pwc.CFLOBDD.MkTrue(level)
                     for b in range(len(nbrs)):
                         if a != b:
                             id_b = get_idx(nbrs[b][0], nbrs[b][1], dim)
@@ -77,10 +80,7 @@ def build_constraints(dim, save_path=None):
                 #beta = pwc.CFLOBDD.MkAnd(beta, var_cflobdds[idx])
                 beta = pwc.CFLOBDD.MkOr(beta, pwc.CFLOBDD.MkNot(var_cflobdds[idx]))
                 #list_of_betas.append(beta)
-                alpha = pwc.CFLOBDD.MkAnd(alpha, beta)
-
-    list_of_betas.append(alpha)
-    alpha = pwc.CFLOBDD.MkTrue()
+                alpha1 = pwc.CFLOBDD.MkAnd(alpha1, beta)
 
     for i in range(dim//2, dim):
         for j in range(dim//2):
@@ -88,10 +88,10 @@ def build_constraints(dim, save_path=None):
                 continue
             else:
                 nbrs = get_neighbors(i, j, dim)
-                beta = pwc.CFLOBDD.MkFalse()
+                beta = pwc.CFLOBDD.MkFalse(level)
                 for a in range(len(nbrs)):
                     a_idx = get_idx(nbrs[a][0], nbrs[a][1], dim)
-                    gamma = pwc.CFLOBDD.MkTrue()
+                    gamma = pwc.CFLOBDD.MkTrue(level)
                     for b in range(len(nbrs)):
                         if a != b:
                             id_b = get_idx(nbrs[b][0], nbrs[b][1], dim)
@@ -104,10 +104,8 @@ def build_constraints(dim, save_path=None):
                 #beta = pwc.CFLOBDD.MkAnd(beta, var_cflobdds[idx])
                 beta = pwc.CFLOBDD.MkOr(beta, pwc.CFLOBDD.MkNot(var_cflobdds[idx]))
                 #list_of_betas.append(beta)
-                alpha = pwc.CFLOBDD.MkAnd(alpha, beta)
+                alpha2 = pwc.CFLOBDD.MkAnd(alpha2, beta)
     
-    list_of_betas.append(alpha)
-    alpha = pwc.CFLOBDD.MkTrue()
     
     for i in range(dim//2):
         for j in range(dim//2, dim):
@@ -115,10 +113,10 @@ def build_constraints(dim, save_path=None):
                 continue
             else:
                 nbrs = get_neighbors(i, j, dim)
-                beta = pwc.CFLOBDD.MkFalse()
+                beta = pwc.CFLOBDD.MkFalse(level)
                 for a in range(len(nbrs)):
                     a_idx = get_idx(nbrs[a][0], nbrs[a][1], dim)
-                    gamma = pwc.CFLOBDD.MkTrue()
+                    gamma = pwc.CFLOBDD.MkTrue(level)
                     for b in range(len(nbrs)):
                         if a != b:
                             id_b = get_idx(nbrs[b][0], nbrs[b][1], dim)
@@ -131,11 +129,7 @@ def build_constraints(dim, save_path=None):
                 #beta = pwc.CFLOBDD.MkAnd(beta, var_cflobdds[idx])
                 beta = pwc.CFLOBDD.MkOr(beta, pwc.CFLOBDD.MkNot(var_cflobdds[idx]))
                 #list_of_betas.append(beta)
-                alpha = pwc.CFLOBDD.MkAnd(alpha, beta)
-
-
-    list_of_betas.append(alpha)
-    alpha = pwc.CFLOBDD.MkTrue()
+                alpha3 = pwc.CFLOBDD.MkAnd(alpha3, beta)
 
 
     for i in range(dim//2,dim):
@@ -144,10 +138,10 @@ def build_constraints(dim, save_path=None):
                 continue
             else:
                 nbrs = get_neighbors(i, j, dim)
-                beta = pwc.CFLOBDD.MkFalse()
+                beta = pwc.CFLOBDD.MkFalse(level)
                 for a in range(len(nbrs)):
                     a_idx = get_idx(nbrs[a][0], nbrs[a][1], dim)
-                    gamma = pwc.CFLOBDD.MkTrue()
+                    gamma = pwc.CFLOBDD.MkTrue(level)
                     for b in range(len(nbrs)):
                         if a != b:
                             id_b = get_idx(nbrs[b][0], nbrs[b][1], dim)
@@ -160,13 +154,9 @@ def build_constraints(dim, save_path=None):
                 #beta = pwc.CFLOBDD.MkAnd(beta, var_cflobdds[idx])
                 beta = pwc.CFLOBDD.MkOr(beta, pwc.CFLOBDD.MkNot(var_cflobdds[idx]))
                 #list_of_betas.append(beta)
-                alpha = pwc.CFLOBDD.MkAnd(alpha, beta)
+                alpha4 = pwc.CFLOBDD.MkAnd(alpha4, beta)
 
-
-    list_of_betas.append(alpha)
-    alpha = pwc.CFLOBDD.MkTrue()
-
-    alpha = compute_alpha(list_of_betas, 0, len(list_of_betas))
+    alpha = pwc.CFLOBDD.MkAnd(pwc.CFLOBDD.MkAnd(alpha1, alpha2),pwc.CFLOBDD.MkAnd(alpha3, alpha4))
     return alpha
 
 

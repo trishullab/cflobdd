@@ -107,26 +107,32 @@ template class CFLOBDDTopNodeT<int>;
 // CFLOBDDTopNode-creation operations --------------------------------------
 
 // Create representation of \x.true
-CFLOBDDTopNodeIntRefPtr MkTrueTop()
+CFLOBDDTopNodeIntRefPtr MkTrueTop(int level)
 {
   CFLOBDDTopNodeIntRefPtr v;
   CFLOBDDReturnMapHandle m;
 
   m.AddToEnd(1);  // Map the only exit of the body to 1 (i.e., T)
   m.Canonicalize();
-  v = new CFLOBDDTopNode(CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDTopNode::maxLevel], m);
+  if (level == -1)
+    v = new CFLOBDDTopNode(CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDTopNode::maxLevel], m);
+  else
+    v = new CFLOBDDTopNode(CFLOBDDNodeHandle::NoDistinctionNode[level], m); 
   return v;
 }
 
 // Create representation of \x.false
-CFLOBDDTopNodeIntRefPtr MkFalseTop()
+CFLOBDDTopNodeIntRefPtr MkFalseTop(int level)
 {
   CFLOBDDTopNodeIntRefPtr v;
   CFLOBDDReturnMapHandle m;
 
   m.AddToEnd(0);  // Map the only exit of the body to 0 (i.e., F)
   m.Canonicalize();
-  v = new CFLOBDDTopNode(CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDTopNode::maxLevel], m);
+  if (level == -1)
+    v = new CFLOBDDTopNode(CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDTopNode::maxLevel], m);
+  else
+    v = new CFLOBDDTopNode(CFLOBDDNodeHandle::NoDistinctionNode[level], m);
   return v;
 }
 

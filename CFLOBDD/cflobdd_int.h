@@ -36,8 +36,8 @@ namespace CFL_OBDD {
 typedef CFLOBDD_T<int> CFLOBDD;
 
 // CFLOBDD-creation operations --------------------------------------
-extern CFLOBDD MkTrue();                             // Representation of \x.true
-extern CFLOBDD MkFalse();                            // Representation of \x.false
+extern CFLOBDD MkTrue(int level = -1);                             // Representation of \x.true
+extern CFLOBDD MkFalse(int level = -1);                            // Representation of \x.false
 extern CFLOBDD MkProjection(unsigned int i, int level = -1);         // Representation of \x.x_i
 extern CFLOBDD MkAdditionInterleavedRecursive();     // Representation of addition relation { (xi yi zi _)* | vec{x} + vec{y} = vec{z} }, created recursively (expensive)
 extern CFLOBDD MkAdditionInterleavedBruteForce();    // Representation of addition relation { (xi yi zi _)* | vec{x} + vec{y} = vec{z} }, created by brute force (expensive)

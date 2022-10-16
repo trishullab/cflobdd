@@ -61,15 +61,15 @@ template class CFLOBDD_T<int>;    // aka CFLOBDD
 // CFLOBDD-creation operations --------------------------------------
 
 // Create representation of \x.true
-CFLOBDD MkTrue()
+CFLOBDD MkTrue(int level)
 {
-  return CFLOBDD(MkTrueTop());
+  return CFLOBDD(MkTrueTop(level));
 }
 
 // Create representation of \x.false
-CFLOBDD MkFalse()
+CFLOBDD MkFalse(int level)
 {
-  return CFLOBDD(MkFalseTop());
+  return CFLOBDD(MkFalseTop(level));
 }
 
 // Create representation of \x.x_i

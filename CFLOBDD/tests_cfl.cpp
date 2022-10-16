@@ -1003,8 +1003,9 @@ void CFLTests::testQFT(int p, int seed)
 		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
 }
 
+void CFLTests::InitModules()
+{
 
-bool CFLTests::runTests(const char *arg, int size, int seed){
 	CFLOBDDNodeHandle::InitNoDistinctionTable();
 	CFLOBDDNodeHandle::InitAdditionInterleavedTable();
 	CFLOBDDNodeHandle::InitReduceCache();
@@ -1012,6 +1013,19 @@ bool CFLTests::runTests(const char *arg, int size, int seed){
 	InitTripleProductCache();
 	Matrix1234Int::Matrix1234Initializer();
 	VectorFloatBoost::VectorInitializer();
+}
+
+void CFLTests::ClearModules()
+{
+	DisposeOfTripleProductCache();
+	DisposeOfPairProductCache();
+	CFLOBDDNodeHandle::DisposeOfReduceCache();
+}
+
+
+bool CFLTests::runTests(const char *arg, int size, int seed){
+
+	CFLTests::InitModules();
 	
 	std::string curTest = arg;  
 	if (curTest == "TopNode") {
@@ -1090,9 +1104,8 @@ bool CFLTests::runTests(const char *arg, int size, int seed){
 	// 	std::cout << "Unrecognized test name: " << curTest << std::endl;
 	}
 
-	DisposeOfTripleProductCache();
-	DisposeOfPairProductCache();
-	CFLOBDDNodeHandle::DisposeOfReduceCache();
+
+	CFLTests::ClearModules();
 
 	return false;
 }

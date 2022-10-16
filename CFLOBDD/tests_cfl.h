@@ -51,6 +51,8 @@ class CFLTests
 		static void testSimonsAlgo(int size, int seed);
         static void testSimonsAlgoNew(int size);
         static void testQFT(int size, int seed);
+	static void InitModules();
+	static void ClearModules();
 		static bool runTests(const char *arg, int size = 0, int seed = 0);
 };
 }

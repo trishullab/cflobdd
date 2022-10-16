@@ -150,7 +150,7 @@ extern CFLOBDDNodeHandle shiftBtoAAtLevelOne(Hashset<CFLOBDDNode> *visitedNodes,
 extern CFLOBDDNodeHandle MkStepNode(unsigned int level, unsigned int left, unsigned int middle, unsigned int right);
 #endif
 
-extern double ComputeProbability(CFLOBDDNodeHandle g, std::vector<double>& var_probs, std::vector<double>& path_probs, int start, int end); 
+extern double ComputeProbabilityNode(CFLOBDDNodeHandle g, std::vector<double>& var_probs, std::vector<double>& path_probs, int start, int end); 
 
 
 }

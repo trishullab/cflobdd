@@ -491,7 +491,7 @@ CFLOBDDTopNodeIntRefPtr MkComposeTop(CFLOBDDTopNodeIntRefPtr f, int i, CFLOBDDTo
   return composition;
 }
 
-double ComputeProbability(CFLOBDDTopNodeIntRefPtr f, std::vector<double>& var_probs)
+double ComputeProbabilityTop(CFLOBDDTopNodeIntRefPtr f, std::vector<double>& var_probs)
 {
   // assumption that the output contains only 0 and 1 values.
   std::vector<double> path_probs (f->rootConnection.returnMapHandle.Size(), 1);
@@ -501,7 +501,7 @@ double ComputeProbability(CFLOBDDTopNodeIntRefPtr f, std::vector<double>& var_pr
   if (index == 0 && f->rootConnection.returnMapHandle.Size() == 1)
     return 0;
   path_probs[index] = 0;
-  return ComputeProbability(*(f->rootConnection.entryPointHandle), var_probs, path_probs, 0, pow(2, f->level)-1);
+  return ComputeProbabilityNode(*(f->rootConnection.entryPointHandle), var_probs, path_probs, 0, pow(2, f->level)-1);
 }
 
 

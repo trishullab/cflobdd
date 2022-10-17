@@ -1,8 +1,8 @@
-#include "../cudd-complex-big/cplusplus/cuddObj.hh"
+#include "../cudd-complex/cplusplus/cuddObj.hh"
 #include <iostream>
 #include <algorithm>
 #include <numbers>
-#include <mpfr.h>
+// #include <mpfr.h>
 #include <cmath>
 #include <ctime>
 #include <ratio>
@@ -13,17 +13,18 @@
 #include <utility>
 #include <typeinfo>
 #include <fstream>
+#include <random>
 using namespace std::chrono;
 #define RND_TYPE MPFR_RNDN
 
 void adjustPrecision(Cudd& mgr, int n, int num){
 	if (n >= num){
-		mpfr_set_default_prec(300 + (n - num)*100);
+		// mpfr_set_default_prec(300 + (n - num)*100);
 		CUDD_VALUE_TYPE epsilon;
-		mpfr_init_set_si(epsilon.real, -1 * (200 + (n-num)*100) , RND_TYPE);
-		mpfr_exp10(epsilon.real, epsilon.real, RND_TYPE);
-		mpfr_init_set_si(epsilon.imag, 0, RND_TYPE);
-		mgr.SetEpsilon(epsilon);
+		// mpfr_init_set_si(epsilon.real, -1 * (200 + (n-num)*100) , RND_TYPE);
+		// mpfr_exp10(epsilon.real, epsilon.real, RND_TYPE);
+		// mpfr_init_set_si(epsilon.imag, 0, RND_TYPE);
+		// mgr.SetEpsilon(epsilon);
 	}
 }
 
@@ -36,15 +37,24 @@ ADD exchange_matrix(ADD x, ADD y){
 }
 
 ADD hadamard_matrix(Cudd& mgr, ADD x, ADD y){
-	CUDD_VALUE_TYPE v;
-	mpfr_init_set_d(v.real, 1.0/sqrt(2), RND_TYPE);
-	mpfr_init_set_d(v.imag, 0.0, RND_TYPE);
+	CUDD_VALUE_TYPE v = 1.0/sqrt(2);
+	// mpfr_init_set_d(v.real, 1.0/sqrt(2), RND_TYPE);
+	// mpfr_init_set_d(v.imag, 0.0, RND_TYPE);
   	ADD ret = (~x + x * (~y - y)) * mgr.constant(v);
-  	mpfr_clear(v.real);mpfr_clear(v.imag);
+  	// mpfr_clear(v.real);mpfr_clear(v.imag);
   	return ret;
 }
 ADD CNOT_matrix(ADD x, ADD y, ADD w, ADD z){
   return (~x * ~y * ~z * ~w) + (~x * w * ~y * z) + (x * ~w * y * z) + (x * w * y * ~z);
+}
+
+ADD Swap_matrix(ADD x, ADD y, ADD w, ADD z){
+  return (~x * ~y * ~z * ~w) + (~x * w * y * ~z) + (x * ~w * ~y * z) + (x * w * y * z);
+}
+
+ADD CP_matrix(ADD x, ADD y, ADD w, ADD z, double theta, Cudd& mgr){
+	ADD cons = mgr.constant_theta(theta);
+  return (~x * ~y * ~z * ~w) + (~x * w * ~y * z) + (x * ~w * y * ~z) + cons * (x * w * y * z);
 }
 
 ADD Voc14And23_matrix(ADD x, ADD y, ADD w, ADD z){
@@ -105,12 +115,12 @@ std::string getBits(unsigned int n, int len){
 ADD D_n(Cudd& mgr, unsigned int start, unsigned int end, unsigned int size, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars){
 	unsigned int N = end - start;
 	CUDD_VALUE_TYPE w;
-	mpfr_init(w.real);
-	mpfr_init(w.imag);
-	mpfr_const_pi(w.real, RND_TYPE);
-	mpfr_const_pi(w.imag, RND_TYPE);
-	mpfr_mul_d(w.real, w.real, 2.0/pow(2, size), RND_TYPE);
-	mpfr_mul_d(w.imag, w.imag, 2.0/pow(2, size), RND_TYPE);
+	// mpfr_init(w.real);
+	// mpfr_init(w.imag);
+	// mpfr_const_pi(w.real, RND_TYPE);
+	// mpfr_const_pi(w.imag, RND_TYPE);
+	// mpfr_mul_d(w.real, w.real, 2.0/pow(2, size), RND_TYPE);
+	// mpfr_mul_d(w.imag, w.imag, 2.0/pow(2, size), RND_TYPE);
 
 	ADD ans = mgr.addZero();
 	unsigned int counter = pow(2, N);
@@ -131,17 +141,17 @@ ADD D_n(Cudd& mgr, unsigned int start, unsigned int end, unsigned int size, std:
 			count++;
 		}
 		CUDD_VALUE_TYPE val;
-		mpfr_init_set(val.real, w.real, RND_TYPE);
-		mpfr_init_set(val.imag, w.imag, RND_TYPE);
-		mpfr_mul_si(val.real, val.real, (i) % ((unsigned int)pow(2, size)), RND_TYPE);
-		mpfr_mul_si(val.imag, val.imag, (i) % ((unsigned int)pow(2, size)), RND_TYPE);
-		mpfr_cos(val.real, val.real, RND_TYPE);
-		mpfr_sin(val.imag, val.imag, RND_TYPE);
-		ans = ans + tmp_ans * mgr.constant(val);
-		mpfr_clear(val.real); mpfr_clear(val.imag);
+		// mpfr_init_set(val.real, w.real, RND_TYPE);
+		// mpfr_init_set(val.imag, w.imag, RND_TYPE);
+		// mpfr_mul_si(val.real, val.real, (i) % ((unsigned int)pow(2, size)), RND_TYPE);
+		// mpfr_mul_si(val.imag, val.imag, (i) % ((unsigned int)pow(2, size)), RND_TYPE);
+		// mpfr_cos(val.real, val.real, RND_TYPE);
+		// mpfr_sin(val.imag, val.imag, RND_TYPE);
+		// ans = ans + tmp_ans * mgr.constant(val);
+		// mpfr_clear(val.real); mpfr_clear(val.imag);
 	}
 
-	mpfr_clear(w.real); mpfr_clear(w.imag);
+	// mpfr_clear(w.real); mpfr_clear(w.imag);
 
 	return ans;
 }
@@ -241,11 +251,11 @@ ADD Fourier(Cudd& mgr, std::vector<ADD>& x_vars, std::vector<ADD>& y_vars,
 	ADD IDF = ID.MatrixMultiply(F, w_vars);
 	ADD ans = IDF.MatrixMultiply(K, z_vars);
 	CUDD_VALUE_TYPE val;
-	mpfr_init_set_d(val.real, 1.0/sqrt(2), RND_TYPE);
-	mpfr_init_set_d(val.imag, 0.0, RND_TYPE);
+	// mpfr_init_set_d(val.real, 1.0/sqrt(2), RND_TYPE);
+	// mpfr_init_set_d(val.imag, 0.0, RND_TYPE);
 	ADD constant = mgr.constant(val);
 	ans = ans * constant;
-	mpfr_clear(val.real); mpfr_clear(val.imag);
+	// mpfr_clear(val.real); mpfr_clear(val.imag);
 	return ans;
 }
 
@@ -270,6 +280,56 @@ unsigned int Fourier(Cudd& mgr, int n){
   return ans.nodeCount();
 }
 
+unsigned int QFT(Cudd& mgr, int n, std::mt19937 mt)
+{
+	std::vector<ADD> x_vars, w_vars, z_vars, y_vars;
+	unsigned int N = pow(2, n);
+	for (unsigned int i = 0; i < N; i++){
+ 	   	x_vars.push_back(mgr.addVar(2*i));
+  	  	y_vars.push_back(mgr.addVar(2*i+1));
+  	}
+
+  	high_resolution_clock::time_point start = high_resolution_clock::now();
+	ADD ans = mgr.addOne();
+	for (unsigned int i = 0; i < N; i++)
+	{
+		int rand = mt() % 2;
+		if (rand == 1)
+			ans = ans * ~x_vars[i];
+		else
+			ans = ans * x_vars[i];
+	}
+	// ans.print(2*N,2);
+	for (int i = 0; i < N/2; i++){
+		ADD Swap = Swap_matrix(y_vars[i], x_vars[i], y_vars[N-i-1], x_vars[N-1-i]);
+		std::vector<ADD> tmp_x = {x_vars[i], x_vars[N-i-1]};
+		std::vector<ADD> tmp_y = {y_vars[i], y_vars[N-i-1]};
+		ans = Swap.MatrixMultiply(ans, tmp_x);
+		ans = ans.SwapVariables(tmp_y, tmp_x);
+	}
+
+	for (int i = n-1; i >=0; i--)
+	{
+		ADD H = hadamard_matrix(mgr, y_vars[i], x_vars[i]);
+		std::vector<ADD> tmp_x = {x_vars[i]}, tmp_y = {y_vars[i]};
+		ans = H.MatrixMultiply(ans, tmp_x);
+		ans = ans.SwapVariables(tmp_x, tmp_y);
+		for (int j = 0; j < i; j++)
+		{
+			double theta = std::pow(2, j-i);
+			ADD CP = CP_matrix(y_vars[j], x_vars[j], y_vars[i], x_vars[i], theta, mgr);
+			std::vector<ADD> tmp_xj = {x_vars[j], x_vars[i]}, tmp_yj = {y_vars[j], y_vars[i]};
+			ans = CP.MatrixMultiply(ans, tmp_xj);
+			ans = ans.SwapVariables(tmp_xj, tmp_yj);
+		}
+	}
+  	high_resolution_clock::time_point end = high_resolution_clock::now();
+  	duration<double> time_taken = duration_cast<duration<double>>(end - start);
+  	std::cout << "nodeCount: " <<  ans.nodeCount() << " time_taken: " << time_taken.count() << std::endl;
+  	// ans.print(4*N,2);
+  	return ans.nodeCount();
+}
+
 int main (int argc, char** argv)
 {
 	if (argc < 4)
@@ -277,12 +337,19 @@ int main (int argc, char** argv)
 	Cudd mgr(0,0);
 	if (strcmp(argv[3], "enable") == 0)
 		mgr.AutodynEnable();
+	
+	auto t = time(NULL);
+	if (argc == 5)
+		t = atoi(argv[4]);
+	std::mt19937 mt(t);
 	unsigned int nodeCount = 0;
 
 	srand(time(NULL));
 
 	if (strcmp(argv[1], "fourier") == 0)
       nodeCount = Fourier(mgr, atoi(argv[2])); 
+	else if (strcmp(argv[1], "qft") == 0)
+		nodeCount = QFT(mgr, atoi(argv[2]), mt);
 
 	return 0;
 }

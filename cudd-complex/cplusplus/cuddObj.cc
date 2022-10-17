@@ -709,7 +709,6 @@ ADD::ADD(Capsule *cap, DdNode *bddNode) : ABDD(cap,bddNode) {}
 ADD::ADD(Cudd const & manager, DdNode *bddNode) : ABDD(manager,bddNode) {}
 ADD::ADD(const ADD &from) : ABDD(from) {}
 
-
 ADD
 ADD::operator=(
   const ADD& right)
@@ -1518,6 +1517,15 @@ Cudd::constant(
     return ADD(p, result);
 
 } // Cudd::constant
+
+ADD
+Cudd::constant_theta(
+    double theta) const
+    {
+        DdNode *result = Cudd_addConstTheta(p->manager, theta);
+        checkReturnValue(result);
+        return ADD(p, result);
+    }
 
 
 ADD

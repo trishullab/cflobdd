@@ -537,6 +537,17 @@ Cudd_addConst(
 
 } /* end of Cudd_addConst */
 
+DdNode *
+Cudd_addConstTheta(
+  DdManager *dd,
+  double c)
+{
+  double real = cos(M_PI * c);
+  double imag = sin(M_PI * c);
+  CUDD_VALUE_TYPE v = CMPLX(real, imag);
+  return (cuddUniqueConst(dd, v));
+}
+
 
 /**
   @brief Returns 1 if the node is a constant node.

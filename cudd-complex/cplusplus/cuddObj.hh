@@ -490,6 +490,7 @@ public:
     ADD addOne(void) const;
     ADD addZero(void) const;
     ADD constant(CUDD_VALUE_TYPE c) const;
+    ADD constant_theta(double theta) const;
     ADD plusInfinity(void) const;
     ADD minusInfinity(void) const;
     ZDD zddVar(int index) const;

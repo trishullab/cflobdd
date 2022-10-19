@@ -52,6 +52,17 @@ ADD Swap_matrix(ADD x, ADD y, ADD w, ADD z){
   return (~x * ~y * ~z * ~w) + (~x * w * y * ~z) + (x * ~w * ~y * z) + (x * w * y * z);
 }
 
+ADD CSwap_matrix(ADD x, ADD y, ADD w, ADD z, ADD a, ADD b){
+  return (~x * ~y * ~z * ~w * ~a * ~b) 
+	  + (~x * ~w * a * ~y * ~z * b) 
+	  + (~x * w * ~a * ~y * z * ~b) 
+	  + (~x * w * a * ~y * z * b)
+	  + (x * ~w * ~a * y * ~z * ~b)
+	  + (x * ~w * a * y * z * ~b)
+	  + (x * w * ~a * y * ~z * b)
+	  + (x * w * a * y * z * b);
+}
+
 ADD CP_matrix(ADD x, ADD y, ADD w, ADD z, double theta, Cudd& mgr){
 	ADD cons = mgr.constant_theta(theta);
   return (~x * ~y * ~z * ~w) + (~x * w * ~y * z) + (x * ~w * y * ~z) + cons * (x * w * y * z);
@@ -283,7 +294,7 @@ unsigned int Fourier(Cudd& mgr, int n){
 unsigned int QFT(Cudd& mgr, int n, std::mt19937 mt)
 {
 	std::vector<ADD> x_vars, w_vars, z_vars, y_vars;
-	unsigned int N = pow(2, n);
+	long int N = pow(2, n);
 	for (unsigned int i = 0; i < N; i++){
  	   	x_vars.push_back(mgr.addVar(2*i));
   	  	y_vars.push_back(mgr.addVar(2*i+1));
@@ -300,7 +311,7 @@ unsigned int QFT(Cudd& mgr, int n, std::mt19937 mt)
 			ans = ans * x_vars[i];
 	}
 	// ans.print(2*N,2);
-	for (int i = 0; i < N/2; i++){
+	for (long int i = 0; i < N/2; i++){
 		ADD Swap = Swap_matrix(y_vars[i], x_vars[i], y_vars[N-i-1], x_vars[N-1-i]);
 		std::vector<ADD> tmp_x = {x_vars[i], x_vars[N-i-1]};
 		std::vector<ADD> tmp_y = {y_vars[i], y_vars[N-i-1]};
@@ -308,13 +319,13 @@ unsigned int QFT(Cudd& mgr, int n, std::mt19937 mt)
 		ans = ans.SwapVariables(tmp_y, tmp_x);
 	}
 
-	for (int i = n-1; i >=0; i--)
+	for (long int i = N-1; i >=0; i--)
 	{
 		ADD H = hadamard_matrix(mgr, y_vars[i], x_vars[i]);
 		std::vector<ADD> tmp_x = {x_vars[i]}, tmp_y = {y_vars[i]};
 		ans = H.MatrixMultiply(ans, tmp_x);
 		ans = ans.SwapVariables(tmp_x, tmp_y);
-		for (int j = 0; j < i; j++)
+		for (long int j = 0; j < i; j++)
 		{
 			double theta = std::pow(2, j-i);
 			ADD CP = CP_matrix(y_vars[j], x_vars[j], y_vars[i], x_vars[i], theta, mgr);
@@ -328,6 +339,128 @@ unsigned int QFT(Cudd& mgr, int n, std::mt19937 mt)
   	std::cout << "nodeCount: " <<  ans.nodeCount() << " time_taken: " << time_taken.count() << std::endl;
   	// ans.print(4*N,2);
   	return ans.nodeCount();
+}
+
+unsigned int Shors(Cudd& mgr, unsigned int N)
+{
+	std::vector<ADD> x_vars, w_vars, z_vars, y_vars;
+	for (unsigned int i = 0; i < N+4; i++){
+ 	   	x_vars.push_back(mgr.addVar(2*i));
+  	  	y_vars.push_back(mgr.addVar(2*i+1));
+  	}
+
+	int a = 13;
+
+  	high_resolution_clock::time_point start = high_resolution_clock::now();
+	ADD ans = mgr.addOne();
+	ans = ans * ~x_vars[N] * ~x_vars[N+1] * ~x_vars[N+2] * x_vars[N+3];
+
+	for(int q = N-1; q >= 0; q--)
+	{
+		unsigned int power = std::pow(2, N-1-q);
+		for (unsigned int i = 0; i < power; i++){
+			if (a == 2 || a == 13){
+				ADD CSWAP = CSwap_matrix(y_vars[q], x_vars[q], y_vars[N], x_vars[N], y_vars[N+1], x_vars[N+1]);
+				std::vector<ADD> tmp_x = {x_vars[q], x_vars[N], x_vars[N+1]};
+				std::vector<ADD> tmp_y = {y_vars[q], y_vars[N], y_vars[N+1]};
+				ans = CSWAP.MatrixMultiply(ans,tmp_x);
+				ans = ans.SwapVariables(tmp_x, tmp_y);
+
+				CSWAP = CSwap_matrix(y_vars[q], x_vars[q], y_vars[N+2], x_vars[N+2], y_vars[N+1], x_vars[N+1]);
+				tmp_x = {x_vars[q], x_vars[N+2], x_vars[N+1]};
+				tmp_y = {y_vars[q], y_vars[N+2], y_vars[N+1]};
+				ans = CSWAP.MatrixMultiply(ans,tmp_x);
+				ans = ans.SwapVariables(tmp_x, tmp_y);
+
+				CSWAP = CSwap_matrix(y_vars[q], x_vars[q], y_vars[N+2], x_vars[N+2], y_vars[N+3], x_vars[N+3]);
+				tmp_x = {x_vars[q], x_vars[N+2], x_vars[N+3]};
+				tmp_y = {y_vars[q], y_vars[N+2], y_vars[N+3]};
+				ans = CSWAP.MatrixMultiply(ans,tmp_x);
+				ans = ans.SwapVariables(tmp_x, tmp_y);
+
+			}
+			if (a == 7 || a == 8){
+				ADD CSWAP = CSwap_matrix(y_vars[q], x_vars[q], y_vars[N+2], x_vars[N+2], y_vars[N+3], x_vars[N+3]);
+				std::vector<ADD> tmp_x = {x_vars[q], x_vars[N+2], x_vars[N+3]};
+				std::vector<ADD> tmp_y = {y_vars[q], y_vars[N+2], y_vars[N+3]};
+				ans = CSWAP.MatrixMultiply(ans,tmp_x);
+				ans = ans.SwapVariables(tmp_x, tmp_y);
+
+				CSWAP = CSwap_matrix(y_vars[q], x_vars[q], y_vars[N+2], x_vars[N+2], y_vars[N+1], x_vars[N+1]);
+				tmp_x = {x_vars[q], x_vars[N+2], x_vars[N+1]};
+				tmp_y = {y_vars[q], y_vars[N+2], y_vars[N+1]};
+				ans = CSWAP.MatrixMultiply(ans,tmp_x);
+				ans = ans.SwapVariables(tmp_x, tmp_y);
+
+				CSWAP = CSwap_matrix(y_vars[q], x_vars[q], y_vars[N+0], x_vars[N+0], y_vars[N+1], x_vars[N+1]);
+				tmp_x = {x_vars[q], x_vars[N+0], x_vars[N+1]};
+				tmp_y = {y_vars[q], y_vars[N+0], y_vars[N+1]};
+				ans = CSWAP.MatrixMultiply(ans,tmp_x);
+				ans = ans.SwapVariables(tmp_x, tmp_y);
+
+			}
+			if (a == 4 || a == 11){
+				ADD CSWAP = CSwap_matrix(y_vars[q], x_vars[q], y_vars[N+1], x_vars[N+1], y_vars[N+3], x_vars[N+3]);
+				std::vector<ADD> tmp_x = {x_vars[q], x_vars[N+1], x_vars[N+3]};
+				std::vector<ADD> tmp_y = {y_vars[q], y_vars[N+1], y_vars[N+3]};
+				ans = CSWAP.MatrixMultiply(ans,tmp_x);
+				ans = ans.SwapVariables(tmp_x, tmp_y);
+
+				CSWAP = CSwap_matrix(y_vars[q], x_vars[q], y_vars[N+2], x_vars[N+2], y_vars[N+0], x_vars[N+0]);
+				tmp_x = {x_vars[q], x_vars[N+2], x_vars[N+0]};
+				tmp_y = {y_vars[q], y_vars[N+2], y_vars[N+0]};
+				ans = CSWAP.MatrixMultiply(ans,tmp_x);
+				ans = ans.SwapVariables(tmp_x, tmp_y);
+
+			}
+			if (a == 7 || a == 11 || a == 13)
+			{
+			  for (int j = 0; j < 4; j++)
+			  {
+				ADD X = exchange_matrix(y_vars[N + j], x_vars[N + j]);
+				std::vector<ADD> tmp_x = {x_vars[N+j]};
+				std::vector<ADD> tmp_y = {y_vars[N+j]};
+				ans = X.MatrixMultiply(ans, tmp_x);
+				ans = ans.SwapVariables(tmp_x, tmp_y);
+			  }
+			}
+			
+
+		}
+	}
+
+	
+
+	for (long int i = 0; i < N; i++)
+	{
+		for (long int j = 0; j < i; j++)
+		{
+			double theta = -1 * std::pow(2, j-i);
+			ADD CP = CP_matrix(y_vars[j], x_vars[j], y_vars[i], x_vars[i], theta, mgr);
+			std::vector<ADD> tmp_xj = {x_vars[j], x_vars[i]}, tmp_yj = {y_vars[j], y_vars[i]};
+			ans = CP.MatrixMultiply(ans, tmp_xj);
+			ans = ans.SwapVariables(tmp_xj, tmp_yj);
+		}
+		ADD H = hadamard_matrix(mgr, y_vars[i], x_vars[i]);
+		std::vector<ADD> tmp_x = {x_vars[i]}, tmp_y = {y_vars[i]};
+		ans = H.MatrixMultiply(ans, tmp_x);
+		ans = ans.SwapVariables(tmp_x, tmp_y);
+	}
+
+	for (long int i = 0; i < N/2; i++){
+		ADD Swap = Swap_matrix(y_vars[i], x_vars[i], y_vars[N-i-1], x_vars[N-1-i]);
+		std::vector<ADD> tmp_x = {x_vars[i], x_vars[N-i-1]};
+		std::vector<ADD> tmp_y = {y_vars[i], y_vars[N-i-1]};
+		ans = Swap.MatrixMultiply(ans, tmp_x);
+		ans = ans.SwapVariables(tmp_y, tmp_x);
+	}
+
+  	high_resolution_clock::time_point end = high_resolution_clock::now();
+  	duration<double> time_taken = duration_cast<duration<double>>(end - start);
+  	std::cout << "nodeCount: " <<  ans.nodeCount() << " time_taken: " << time_taken.count() << std::endl;
+
+	return ans.nodeCount();
+
 }
 
 int main (int argc, char** argv)
@@ -350,6 +483,8 @@ int main (int argc, char** argv)
       nodeCount = Fourier(mgr, atoi(argv[2])); 
 	else if (strcmp(argv[1], "qft") == 0)
 		nodeCount = QFT(mgr, atoi(argv[2]), mt);
+	else if (strcmp(argv[1], "shors") == 0)
+		nodeCount = Shors(mgr, atoi(argv[2]));
 
 	return 0;
 }

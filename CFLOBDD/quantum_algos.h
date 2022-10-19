@@ -33,6 +33,7 @@ namespace CFL_OBDD {
 		extern std::pair<std::string, CFLOBDD_FLOAT_BOOST> BV(long long int n, CFLOBDD_FLOAT_BOOST F);
 		extern std::pair<std::string, CFLOBDD_FLOAT_BOOST> GHZ(unsigned long long int n);
 		extern CFLOBDD_COMPLEX_BIG QFT(long long int n, std::string m);
+		extern CFLOBDD_COMPLEX_BIG ShorsAlgoNew(int a, int n);
 		std::pair<CFLOBDD_COMPLEX_BIG, std::vector<std::string>> ShorsAlgo(int n, CFLOBDD_COMPLEX_BIG F);
 	}
 }

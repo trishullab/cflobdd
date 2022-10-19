@@ -1688,6 +1688,82 @@ namespace CFL_OBDD {
 
 			return stateV;
 		}
+
+		CFLOBDD_COMPLEX_BIG ShorsAlgoNew(int a, int N)
+		{
+			unsigned int level = ceil(log2(N));
+			CFLOBDD_COMPLEX_BIG allOnes = VectorComplexFloatBoost::NoDistinctionNode(level+1,1);
+			std::string s(N, '0');
+			s[3] = '1';
+			CFLOBDD_COMPLEX_BIG e = VectorComplexFloatBoost::MkBasisVector(level, s);
+			e = VectorComplexFloatBoost::VectorToMatrixInterleaved(e);
+			CFLOBDD_COMPLEX_BIG stateV = Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(allOnes, e);
+
+			for (int q = N-1; q >= 0; q--)
+			{
+				// std::cout << "q: " << q << std::endl;
+				unsigned int power = std::pow(2, N-1-q);
+				for (unsigned int i = 0; i < power; i++)
+				{
+					if (a == 2 || a == 13)
+					{
+						CFLOBDD_COMPLEX_BIG CSWAP = Matrix1234ComplexFloatBoost::MkCSwapGate(level+2, q, N, N+1);
+						stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CSWAP, stateV);
+						CSWAP = Matrix1234ComplexFloatBoost::MkCSwapGate(level+2, q, N+1, N+2);
+						stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CSWAP, stateV);
+						CSWAP = Matrix1234ComplexFloatBoost::MkCSwapGate(level+2, q, N+2, N+3);
+						stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CSWAP, stateV);
+					}
+					if (a == 7 || a == 8)
+					{
+						CFLOBDD_COMPLEX_BIG CSWAP = Matrix1234ComplexFloatBoost::MkCSwapGate(level+2, q, N+2, N+3);
+						stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CSWAP, stateV);
+						CSWAP = Matrix1234ComplexFloatBoost::MkCSwapGate(level+2, q, N+1, N+2);
+						stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CSWAP, stateV);
+						CSWAP = Matrix1234ComplexFloatBoost::MkCSwapGate(level+2, q, N, N+1);
+						stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CSWAP, stateV);
+					}
+					if (a == 4 || a == 11)
+					{
+						CFLOBDD_COMPLEX_BIG CSWAP = Matrix1234ComplexFloatBoost::MkCSwapGate(level+2, q, N+1, N+3);
+						stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CSWAP, stateV);
+						CSWAP = Matrix1234ComplexFloatBoost::MkCSwapGate(level+2, q, N, N+2);
+						stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CSWAP, stateV);
+					}
+					if (a == 7 || a == 11 || a == 13)
+					{
+						CFLOBDD_COMPLEX_BIG X = Matrix1234ComplexFloatBoost::MkExchangeInterleaved(level);
+						CFLOBDD_COMPLEX_BIG Id = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
+						CFLOBDD_COMPLEX_BIG XI = Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(X, Id);
+						CFLOBDD_COMPLEX_BIG I = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level+1);
+						CFLOBDD_COMPLEX_BIG IXI = Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(I, XI);
+						stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(IXI, stateV);
+					}
+				}
+			}
+			CFLOBDD_COMPLEX_BIG I = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level+1);
+			for (long long int i = 0; i < N; i++)
+			{
+				for (long int j = 0; j < i; j++)
+				{
+					double theta = -1*std::pow(2, j - i);
+					// std::cout << j << " " << i << std::endl;
+					CFLOBDD_COMPLEX_BIG CP = Matrix1234ComplexFloatBoost::MkCPGate(level+1, j, i, theta);
+					CFLOBDD_COMPLEX_BIG CPI = Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(CP, I);
+					stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CPI, stateV);
+				}
+				CFLOBDD_COMPLEX_BIG H = Hadamard(2*N, i);
+				stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(H, stateV);
+			}
+			for (long long int i = 0; i < N/2; i++)
+			{
+				CFLOBDD_COMPLEX_BIG SwapM = Matrix1234ComplexFloatBoost::MkSwapGate(level+1, i, N-i-1);
+				CFLOBDD_COMPLEX_BIG SwapMI = Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(SwapM, I);
+				stateV = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(SwapMI, stateV);
+			}
+
+			return stateV;
+		}
 	}
 }
 

@@ -465,6 +465,18 @@ namespace CFL_OBDD {
 			return v;
 		}
 
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkCSwapGateTop(unsigned int level, long int c, long int i, long int j)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+			tempHandle = MkCSwapGateNode(level, c, i, j, 1);
+			m01.AddToEnd(1);
+			m01.AddToEnd(0);
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			return v;
+		}
+
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixShiftToAConnectionTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c)
 		{
 			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
@@ -583,6 +595,22 @@ namespace CFL_OBDD {
 			m.Canonicalize();
 			return (new CFLOBDDTopNodeComplexFloatBoost(*(c->rootConnection.entryPointHandle), m));
 		}
+
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkExchangeInterleavedTop(unsigned int i)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+
+			tempHandle = MkExchangeInterleavedNode(i);
+			m01.AddToEnd(0);
+			m01.AddToEnd(1);
+			m01.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			return v;
+		}
+
+
 
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixMultiplyV4TopNode(CFLOBDDTopNodeComplexFloatBoostRefPtr c1, CFLOBDDTopNodeComplexFloatBoostRefPtr c2)
 		{

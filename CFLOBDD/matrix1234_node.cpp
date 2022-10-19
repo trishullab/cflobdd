@@ -1002,6 +1002,91 @@ namespace CFL_OBDD {
 		return gHandle;
 	}
 
+	// i and j are always in the second half of the variables at top node
+	CFLOBDDNodeHandle MkCSwapGateNode(unsigned int level, long int controller, long int i, long int j, int flag)
+	{
+		// std::cout << level << " " << controller << " " << i << " " << j << " " << flag << std::endl;
+		// top level
+		CFLOBDDInternalNode *g = new CFLOBDDInternalNode(level);
+		if (flag == 1)
+		{
+			assert(level >= 3);
+			CFLOBDDNodeHandle atmp = MkCSwapGateNode(level-1, controller, i, j, 0);
+			CFLOBDDReturnMapHandle m012;
+			m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+			g->AConnection = Connection(atmp, m012);
+			g->numBConnections = 3;
+			g->BConnection = new Connection[3];
+			CFLOBDDNodeHandle Id = MkIdRelationInterleavedNode(level-1);
+			CFLOBDDReturnMapHandle m01;
+			m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+			g->BConnection[0] = Connection(Id, m01);
+			CFLOBDDReturnMapHandle m1;
+			m1.AddToEnd(1); m1.Canonicalize();
+			g->BConnection[1] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m1);
+			unsigned int n = pow(2, level - 1);
+			CFLOBDDNodeHandle btmp = MkSwapGateNode(level-1, i-n/2,j-n/2, -1);
+			g->BConnection[2] = Connection(btmp, m01);	
+			g->numExits = 2;
+
+		}
+		else
+		{
+			unsigned int n = pow(2, level - 1);
+			if (level == 1)
+			{
+				CFLOBDDReturnMapHandle m01, m12;
+				m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+				m12.AddToEnd(1); m12.AddToEnd(2); m12.Canonicalize();
+				g->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);
+				g->numBConnections = 2;
+				g->BConnection = new Connection[2];
+				g->BConnection[0] = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);
+				g->BConnection[1] = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m12);
+				g->numExits = 3;
+			}
+			else if (controller < n/2)
+			{
+				CFLOBDDNodeHandle atmp = MkCSwapGateNode(level-1,controller,i,j,flag);
+				CFLOBDDReturnMapHandle m012;
+				m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+				g->AConnection = Connection(atmp, m012);
+				g->numBConnections = 3;
+				g->BConnection = new Connection[3];
+				CFLOBDDNodeHandle Id = MkIdRelationInterleavedNode(level-1);
+				CFLOBDDReturnMapHandle m01,m1,m21;
+				m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+				m1.AddToEnd(1); m1.Canonicalize();
+				m21.AddToEnd(2); m21.AddToEnd(1); m21.Canonicalize();
+				g->BConnection[0] = Connection(Id, m01);
+				g->BConnection[1] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1],m1);
+				g->BConnection[2] = Connection(Id, m21);
+				g->numExits = 3;
+			}
+			else
+			{
+				CFLOBDDNodeHandle Id = MkIdRelationInterleavedNode(level-1);
+				CFLOBDDReturnMapHandle m01,m1;
+				m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+				g->AConnection = Connection(Id, m01);
+				g->numBConnections = 2;
+				g->BConnection = new Connection[2];
+				CFLOBDDNodeHandle btmp = MkCSwapGateNode(level-1, controller - n/2, i,j,flag);
+				CFLOBDDReturnMapHandle m012;
+				m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+				m1.AddToEnd(1); m1.Canonicalize();
+				g->BConnection[0] = Connection(btmp, m012);
+				g->BConnection[1] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m1);
+				g->numExits = 3;
+			}
+			
+		}
+#ifdef PATH_COUNTING_ENABLED
+		g->InstallPathCounts();
+#endif
+		CFLOBDDNodeHandle gHandle = CFLOBDDNodeHandle(g);
+		return gHandle;
+	}
 
 	CFLOBDDNodeHandle ReverseColumnsNode(CFLOBDDNodeHandle nh)
 	{

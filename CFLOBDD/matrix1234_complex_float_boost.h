@@ -54,6 +54,7 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG MkIdRelationInterleaved(unsigned int i); // Representation of identity relation
 		extern CFLOBDD_COMPLEX_BIG MkWalshInterleaved(unsigned int i);              // Representation of Walsh matrix
 		extern CFLOBDD_COMPLEX_BIG MkInverseReedMullerInterleaved(unsigned int i);  // Representation of Inverse Reed-Muller matrix
+		extern CFLOBDD_COMPLEX_BIG MkExchangeInterleaved(unsigned int i); // Representation of exchange matrix
 
 		// Matrix-related operations (on matrices with room for two extra vocabularies) ------------
 		extern CFLOBDD_COMPLEX_BIG MkWalshVoc13(unsigned int i);                    // Create representation of Walsh matrix with room for two extra vocabularies
@@ -82,6 +83,7 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG MkCNOTInterleaved(unsigned int i);
 		extern CFLOBDD_COMPLEX_BIG MkCPGate(unsigned int i, long int c1, long int c2, double theta);
 		extern CFLOBDD_COMPLEX_BIG MkSwapGate(unsigned int i, long int c1, long int c2);
+		extern CFLOBDD_COMPLEX_BIG MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2);
 
 		extern CFLOBDD_COMPLEX_BIG MatrixShiftToAConnection(CFLOBDD_COMPLEX_BIG c);
 		extern CFLOBDD_COMPLEX_BIG MatrixShiftToBConnection(CFLOBDD_COMPLEX_BIG c);

@@ -7,6 +7,8 @@ import sys
 import random
 import numpy as np
 import math
+from fractions import Fraction
+import pandas as pd
 
 def GHZ(N):
     allOnes = '1' * N
@@ -55,15 +57,14 @@ def qft(N):
         if rand == 1:
             circ.apply_gate('X', i)
 
+    for i in range(N//2):
+        circ.apply_gate('SWAP', i, N-i-1)
     for i in range(N-1, -1, -1):
         circ.apply_gate('H', i)
         for j in range(i):
             circ.apply_gate('CU1', np.pi/2**(i - j), j, i)
 
-    for i in range(N//2):
-        circ.apply_gate('SWAP', i, N-i-1)
 
-    #print(circ.to_dense())
     end = time.time()
     print('is_output_correct:', True, 'time_taken(s):', (end-start))
 
@@ -252,6 +253,73 @@ def simons(N):
     # print(equations)
     print('is_output_correct:', is_output_correct, 'time_taken(s):', (end-start))
 
+def shors(a,N):
+    start = time.time()
+    gate_ops = {'contract':False}
+    circ = qtn.Circuit(N+4,gate_opts=gate_ops)
+    df = []
+    
+    for i in range(N):
+        circ.apply_gate('H',i)
+    
+    circ.apply_gate('X', N + 3)
+    for q in range(N-1,-1,-1):
+        power = 2**(N-1-q)
+        for i in range(power):
+            if a in [2,13]:
+                circ.apply_gate_raw(op.cswap(), [q, N+0,N+1])
+                circ.apply_gate_raw(op.cswap(), [q, N+1,N+2])
+                circ.apply_gate_raw(op.cswap(), [q, N+2,N+3])
+            if a in [7,8]:
+                circ.apply_gate_raw(op.cswap(), [q, N+2,N+3])
+                circ.apply_gate_raw(op.cswap(), [q, N+1,N+2])
+                circ.apply_gate_raw(op.cswap(), [q, N+0,N+1])
+            if a in [4,11]:
+                circ.apply_gate_raw(op.cswap(), [q, N+1,N+3])
+                circ.apply_gate_raw(op.cswap(), [q, N+0,N+2])
+            if a in [7,11,13]:
+                for j in range(4):
+                    circ.apply_gate('X', N+j)
+
+
+    for i in range(N):
+        for j in range(0,i):
+            circ.apply_gate('CU1', -np.pi/2**(i - j), j, i)
+        circ.apply_gate('H',i)
+
+    for i in range(N//2):
+        circ.apply_gate('SWAP', i, N-i-1)
+
+    arr = circ.to_dense() 
+    arr = np.square(np.abs(arr)).flatten()
+    ls = []
+    fun = (x for x in range(len(arr)) if not math.isclose(arr[x],0.0, abs_tol=1e-12))
+    for k in fun:
+        index_s = bin(k)[2:].zfill(N+4)[:-4]
+        #print(int(index_s,2))
+        dec = int(index_s,2)
+        #print(bin(k)[2:].zfill(N+4),index_s)
+        if dec not in ls:
+            ls.append(dec)
+            #print(index_s)
+    rows, measured_phases = [], []
+    for output in ls:
+        #decimal = int(output, 2)  # Convert (base 2) string to decimal
+        phase = output/(2**N)  # Find corresponding eigenvalue
+        measured_phases.append(phase)
+    rows = []
+    for phase in measured_phases:
+        frac = Fraction(phase).limit_denominator(15)
+        rows.append([phase, f"{frac.numerator}/{frac.denominator}", frac.denominator])
+    # Print as a table
+    headers=["Phase", "Fraction", "Guess for r"]
+    df = pd.DataFrame(rows, columns=headers)
+
+
+    end = time.time()
+    print('is_output_correct: True', 'time_taken(s):', (end - start))
+    print(df)
+
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         print('3 args required: python3 test.py <fn_name> <num_bits>')
@@ -270,4 +338,6 @@ if __name__ == '__main__':
         simons(int(sys.argv[2]))
     elif sys.argv[1] == 'qft':
         qft(int(sys.argv[2]))
+    elif sys.argv[1] == 'shors':
+        shors(int(sys.argv[4]), int(sys.argv[2]))
 

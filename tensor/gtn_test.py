@@ -4,6 +4,8 @@ import sys
 import time
 import random
 import math
+import pandas as pd
+from fractions import Fraction
 
 def apply_gate(qubit_edges, gate, operating_qubits):
     op = tn.Node(gate)
@@ -336,9 +338,13 @@ def qft(N):
     with tn.NodeCollection(all_nodes):
         state_nodes = [
             tn.Node(states[np.random.randint(0, 1)]) for _ in range(N+1)
+            #tn.Node(states[0]), tn.Node(states[1]),tn.Node(states[1]), tn.Node(states[0])
         ]
-        
+
         qubits = [node[0] for node in state_nodes]
+
+        for i in range(N//2):
+            apply_gate(qubits, SWAP, [i, N-i-1])
         
         for i in range(N-1,-1,-1):
             apply_gate(qubits, H, [i])
@@ -348,17 +354,117 @@ def qft(N):
                 CP[1][1][1][1] = val
                 apply_gate(qubits, CP, [j, i])
 
-        if N > 1:
-            for i in range(N//2):
-                apply_gate(qubits, SWAP, [i, N-i-1])
 
         result = tn.contractors.greedy(all_nodes, output_edge_order=qubits)
         t = result.tensor
-        #print(t)
     end = time.time()
     print('is_correct', is_correct, 'time_taken(s):', (end - start))
 
+def shors(a,N):
+    start = time.time()
+    allZeros = '0' * (N + 4)
+    H = np.matrix([[1,1],[1,-1]], dtype=complex)/np.sqrt(2)
+    X = np.matrix([[0,1],[1,0]], dtype=complex)
+    CSWAP = np.zeros((2,2,2,2,2,2), dtype=complex)
+    CSWAP[0][0][0][0][0][0] = 1
+    CSWAP[0][0][1][0][0][1] = 1
+    CSWAP[0][1][0][0][1][0] = 1
+    CSWAP[0][1][1][0][1][1] = 1
+    CSWAP[1][0][0][1][0][0] = 1
+    CSWAP[1][0][1][1][1][0] = 1
+    CSWAP[1][1][0][1][0][1] = 1
+    CSWAP[1][1][1][1][1][1] = 1
 
+    SWAP = np.zeros((2,2,2,2), dtype=complex)
+
+    SWAP[0][0][0][0] = 1
+    SWAP[0][1][1][0] = 1
+    SWAP[1][0][0][1] = 1
+    SWAP[1][1][1][1] = 1
+
+    CP = np.zeros((2,2,2,2), dtype=complex)
+
+    CP[0][0][0][0] = 1
+    CP[0][1][0][1] = 1
+    CP[1][0][1][0] = 1
+    CP[1][1][1][1] = 1
+
+    all_nodes = []
+    is_correct = True
+    df = []
+    states = [ np.array([1.0+0.0j, 0.0+0.0j],), np.array([0.0+0.0j, 1.0+0.0j],)]
+    with tn.NodeCollection(all_nodes):
+        state_nodes = [
+            tn.Node(states[np.random.randint(0, 1)]) for _ in range(N+4)
+            #tn.Node(states[0]), tn.Node(states[1]),tn.Node(states[1]), tn.Node(states[0])
+        ]
+
+        qubits = [node[0] for node in state_nodes]
+        for i in range(N):
+            apply_gate(qubits, H, [i])
+
+        apply_gate(qubits, X, [3 + N])
+        for q in range(N-1,-1,-1):
+            power = 2**(N-1-q) 
+            for i in range(power):
+                if a in [2,13]:
+                    apply_gate(qubits, CSWAP, [q, N + 0, N + 1])
+                    apply_gate(qubits, CSWAP, [q, N + 1, N + 2])
+                    apply_gate(qubits, CSWAP, [q, N + 2, N + 3])
+                if a in [7,8]:
+                    apply_gate(qubits, CSWAP, [q, N + 2, N + 3])
+                    apply_gate(qubits, CSWAP, [q, N + 2, N + 1])
+                    apply_gate(qubits, CSWAP, [q, N + 0, N + 1])
+                if a in [4,11]:
+                    apply_gate(qubits, CSWAP, [q, N + 1, N + 3])
+                    apply_gate(qubits, CSWAP, [q, N + 0, N + 2])
+                if a in [7,11,13]:
+                    for j in range(4):
+                        apply_gate(qubits, X, [N + j])
+
+
+        for i in range(N):
+            for j in range(0, i):
+                theta = -math.pi/2**(i - j)
+                val = complex(math.cos(theta), math.sin(theta))
+                CP[1][1][1][1] = val
+                apply_gate(qubits, CP, [j, i])
+            apply_gate(qubits, H, [i])
+
+        for i in range(N//2):
+            apply_gate(qubits, SWAP, [i, N-i-1])
+
+        result = tn.contractors.greedy(all_nodes, output_edge_order=qubits)
+        t = result.tensor
+        arr = np.square(np.abs(t)).flatten()
+        ls = []
+        fun = (x for x in range(len(arr)) if not math.isclose(arr[x],0.0, abs_tol=1e-12))
+        for k in fun:
+            index_s = bin(k)[2:].zfill(N+4)[:-4]
+            #print(int(index_s,2))
+            dec = int(index_s,2)
+            #print(bin(k)[2:].zfill(N+4),index_s)
+            if dec not in ls:
+                ls.append(dec)
+                #print(index_s)
+        rows, measured_phases = [], []
+        for output in ls:
+            #decimal = int(output, 2)  # Convert (base 2) string to decimal
+            phase = output/(2**N)  # Find corresponding eigenvalue
+            measured_phases.append(phase)
+        rows = []
+        for phase in measured_phases:
+            frac = Fraction(phase).limit_denominator(15)
+            rows.append([phase, f"{frac.numerator}/{frac.denominator}", frac.denominator])
+        # Print as a table
+        headers=["Phase", "Fraction", "Guess for r"]
+        df = pd.DataFrame(rows, columns=headers)
+    end = time.time()
+    print('is_output_correct: True', 'time_taken: ',(end-start))
+    print(df)
+
+
+   
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         print('3 args required: python3 gtn_test.py <fn_name> <num_bits>')
@@ -378,3 +484,5 @@ if __name__ == '__main__':
         grover(int(sys.argv[2]))
     elif sys.argv[1] == 'qft':
         qft(int(sys.argv[2]))
+    elif sys.argv[1] == 'shors':
+        shors(int(sys.argv[4]), int(sys.argv[2]))

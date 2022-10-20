@@ -697,12 +697,12 @@ CFLOBDDNodeHandle MkStepOneFourth(unsigned int level)
 double ComputeProbabilityNode(CFLOBDDNodeHandle g, std::vector<double>& var_probs, std::vector<double>& path_probs, int start, int end){
 	if (g.handleContents->level == 0){
 		if (g == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle){
-			return (1 - var_probs[start]) * path_probs[0] + var_probs[start] * path_probs[1];
+				return (1 - var_probs[start]) * path_probs[0] + var_probs[start] * path_probs[1];
 		} else {
 			return path_probs[0];
 		}
 	} else if (g == CFLOBDDNodeHandle::NoDistinctionNode[g.handleContents->level]){
-		return path_probs[0];
+			return path_probs[0];
 	} else {
 		CFLOBDDInternalNode* gh = (CFLOBDDInternalNode *) g.handleContents;
 		std::vector<double> AConnection_PathProbs;
@@ -716,6 +716,41 @@ double ComputeProbabilityNode(CFLOBDDNodeHandle g, std::vector<double>& var_prob
 		}
 
 		double AProb = ComputeProbabilityNode(*(gh->AConnection.entryPointHandle), var_probs, AConnection_PathProbs, start, (end - start)/2 + start);
+		return AProb;
+	}
+}
+
+std::vector<double> ComputeProbabilityOfListNode(CFLOBDDNodeHandle g, std::vector<std::vector<double>>& var_probs, std::vector<std::vector<double>>& path_probs, int start, int end){
+	if (g.handleContents->level == 0){
+		if (g == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle){
+			std::vector<double> ans (var_probs.size(), 0);
+			for (int i = 0; i < var_probs.size(); i++)
+				ans[i] = (1 - var_probs[i][start]) * path_probs[i][0] + var_probs[i][start] * path_probs[i][1];
+			return ans;
+		} else {
+			std::vector<double> ans (var_probs.size(), 0);
+			for (int i = 0; i < var_probs.size(); i++)
+				ans[i] = path_probs[i][0];
+			return ans;
+		}
+	} else if (g == CFLOBDDNodeHandle::NoDistinctionNode[g.handleContents->level]){
+		std::vector<double> ans (var_probs.size(), 0);
+		for (int i = 0; i < var_probs.size(); i++)
+			ans[i] = path_probs[i][0];
+		return ans;
+	} else {
+		CFLOBDDInternalNode* gh = (CFLOBDDInternalNode *) g.handleContents;
+		std::vector<std::vector<double>> AConnection_PathProbs;
+		for (int i = 0; i < gh->numBConnections; i++){
+			std::vector<std::vector<double>> BConnection_PathProbs;
+			for (int j = 0; j < gh->BConnection[i].returnMapHandle.Size(); j++){
+				BConnection_PathProbs.push_back(path_probs[gh->BConnection[i].returnMapHandle[j]]);
+			}
+			std::vector<double> prob = ComputeProbabilityOfListNode(*(gh->BConnection[i].entryPointHandle), var_probs, BConnection_PathProbs, (end - start)/2 + 1 + start, end);
+			AConnection_PathProbs.push_back(prob);
+		}
+
+		std::vector<double> AProb = ComputeProbabilityOfListNode(*(gh->AConnection.entryPointHandle), var_probs, AConnection_PathProbs, start, (end - start)/2 + start);
 		return AProb;
 	}
 }

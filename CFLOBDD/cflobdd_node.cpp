@@ -723,20 +723,20 @@ double ComputeProbabilityNode(CFLOBDDNodeHandle g, std::vector<double>& var_prob
 std::vector<double> ComputeProbabilityOfListNode(CFLOBDDNodeHandle g, std::vector<std::vector<double>>& var_probs, std::vector<std::vector<double>>& path_probs, int start, int end){
 	if (g.handleContents->level == 0){
 		if (g == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle){
-			std::vector<double> ans (var_probs.size(), 0);
-			for (int i = 0; i < var_probs.size(); i++)
-				ans[i] = (1 - var_probs[i][start]) * path_probs[i][0] + var_probs[i][start] * path_probs[i][1];
+			std::vector<double> ans (path_probs[0].size(), 0);
+			for (int i = 0; i < path_probs[0].size(); i++)
+				ans[i] = (1 - var_probs[start][i]) * path_probs[0][i] + var_probs[start][i] * path_probs[1][i];
 			return ans;
 		} else {
-			std::vector<double> ans (var_probs.size(), 0);
-			for (int i = 0; i < var_probs.size(); i++)
-				ans[i] = path_probs[i][0];
+			std::vector<double> ans (path_probs[0].size(), 0);
+			for (int i = 0; i < path_probs[0].size(); i++)
+				ans[i] = path_probs[0][i];
 			return ans;
 		}
 	} else if (g == CFLOBDDNodeHandle::NoDistinctionNode[g.handleContents->level]){
-		std::vector<double> ans (var_probs.size(), 0);
-		for (int i = 0; i < var_probs.size(); i++)
-			ans[i] = path_probs[i][0];
+		std::vector<double> ans (path_probs.size(), 0);
+		for (int i = 0; i <  path_probs[0].size(); i++)
+			ans[i] = path_probs[0][i];
 		return ans;
 	} else {
 		CFLOBDDInternalNode* gh = (CFLOBDDInternalNode *) g.handleContents;

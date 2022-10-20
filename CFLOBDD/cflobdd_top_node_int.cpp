@@ -525,7 +525,7 @@ std::vector<double> ComputeProbabilityOfListTop(CFLOBDDTopNodeIntRefPtr f, std::
   if (index == 0 && f->rootConnection.returnMapHandle.Size() == 1)
     return std::vector<double>(var_probs.size(), 0);
   for (int i = 0; i < var_probs.size(); i++)
-  	path_probs[i][index] = 0;
+    path_probs[index][i] = 0;
   return ComputeProbabilityOfListNode(*(f->rootConnection.entryPointHandle), var_probs, path_probs, 0, pow(2, f->level)-1);
 }
 

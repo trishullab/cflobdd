@@ -310,7 +310,6 @@ unsigned int QFT(Cudd& mgr, int n, std::mt19937 mt)
 		else
 			ans = ans * x_vars[i];
 	}
-	// ans.print(2*N,2);
 	for (long int i = 0; i < N/2; i++){
 		ADD Swap = Swap_matrix(y_vars[i], x_vars[i], y_vars[N-i-1], x_vars[N-1-i]);
 		std::vector<ADD> tmp_x = {x_vars[i], x_vars[N-i-1]};
@@ -337,7 +336,7 @@ unsigned int QFT(Cudd& mgr, int n, std::mt19937 mt)
   	high_resolution_clock::time_point end = high_resolution_clock::now();
   	duration<double> time_taken = duration_cast<duration<double>>(end - start);
   	std::cout << "nodeCount: " <<  ans.nodeCount() << " time_taken: " << time_taken.count() << std::endl;
-  	// ans.print(4*N,2);
+  	ans.print(4*N,2);
   	return ans.nodeCount();
 }
 

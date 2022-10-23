@@ -95,6 +95,7 @@ extern CFLOBDDTopNodeIntRefPtr MkForall(CFLOBDDTopNodeIntRefPtr f, unsigned int 
 extern CFLOBDDTopNodeIntRefPtr MkComposeTop(CFLOBDDTopNodeIntRefPtr f, int i, CFLOBDDTopNodeIntRefPtr g);              // \f. f | x_i = g
 
 extern double ComputeProbabilityTop(CFLOBDDTopNodeIntRefPtr f, std::vector<double>& probs);
+extern std::vector<double> ComputeProbabilityOfListTop(CFLOBDDTopNodeIntRefPtr f, std::vector<std::vector<double>>& probs);
 
 } // namespace CFL_OBDD
 

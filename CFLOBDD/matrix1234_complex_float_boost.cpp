@@ -387,12 +387,21 @@ namespace CFL_OBDD {
 			return CFLOBDD_COMPLEX_BIG(MkCPGateTop(i, c1, c2, theta));
 		}
 
+		CFLOBDD_COMPLEX_BIG MkExchangeInterleaved(unsigned int i)
+		{
+			return CFLOBDD_COMPLEX_BIG(MkExchangeInterleavedTop(i));
+		}
+
 		
 		CFLOBDD_COMPLEX_BIG MkSwapGate(unsigned int i, long c1, long c2)
 		{
 			return CFLOBDD_COMPLEX_BIG(MkSwapGateTop(i, c1, c2));
 		}
 
+		CFLOBDD_COMPLEX_BIG MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2)
+		{
+			return CFLOBDD_COMPLEX_BIG(MkCSwapGateTop(i, c1, x1, x2));
+		}
 
 		CFLOBDD_COMPLEX_BIG MatrixShiftToAConnection(CFLOBDD_COMPLEX_BIG c)
 		{

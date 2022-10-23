@@ -797,6 +797,11 @@ double ComputeProbability(CFLOBDD f, std::vector<double>& probs)
   return ComputeProbabilityTop(f.root, probs);
 }
 
+std::vector<double> ComputeProbabilityOfList(CFLOBDD f, std::vector<std::vector<double>>& probs)
+{
+  return ComputeProbabilityOfListTop(f.root, probs);
+}
+
 void PrintCFLOBDD(CFLOBDD f)
 {
   std::cout << f << std::endl;

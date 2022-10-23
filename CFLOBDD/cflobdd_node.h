@@ -151,6 +151,7 @@ extern CFLOBDDNodeHandle MkStepNode(unsigned int level, unsigned int left, unsig
 #endif
 
 extern double ComputeProbabilityNode(CFLOBDDNodeHandle g, std::vector<double>& var_probs, std::vector<double>& path_probs, int start, int end); 
+extern std::vector<double> ComputeProbabilityOfListNode(CFLOBDDNodeHandle g, std::vector<std::vector<double>>& var_probs, std::vector<std::vector<double>>& path_probs, int start, int end); 
 
 
 }

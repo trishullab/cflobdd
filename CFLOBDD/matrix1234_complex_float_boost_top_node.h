@@ -59,6 +59,7 @@ namespace CFL_OBDD {
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkIdRelationInterleavedTop(unsigned int i); // Representation of identity relation
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkWalshInterleavedTop(unsigned int i); // Representation of Walsh matrix
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkInverseReedMullerInterleavedTop(unsigned int i); // Representation of Inverse Reed-Muller matrix
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkExchangeInterleavedTop(unsigned int i); // Representation of exchange matrix
 
 		// Matrix-related operations (on matrices with room for two extra vocabularies) ------------
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkWalshVoc13Top(unsigned int i); // Representation of Walsh matrix with room for two additional vocabularies
@@ -81,6 +82,7 @@ namespace CFL_OBDD {
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTInterleavedTop(unsigned int i);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int level, long int i, long int j, double theta);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkSwapGateTop(unsigned int level, long int i, long int j);
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkCSwapGateTop(unsigned int level, long int c, long int i, long int j);
 
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixShiftToAConnectionTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixShiftToBConnectionTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);

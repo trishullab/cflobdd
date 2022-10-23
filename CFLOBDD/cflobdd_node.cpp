@@ -734,7 +734,7 @@ std::vector<double> ComputeProbabilityOfListNode(CFLOBDDNodeHandle g, std::vecto
 			return ans;
 		}
 	} else if (g == CFLOBDDNodeHandle::NoDistinctionNode[g.handleContents->level]){
-		std::vector<double> ans (path_probs.size(), 0);
+		std::vector<double> ans (path_probs[0].size(), 0);
 		for (int i = 0; i <  path_probs[0].size(); i++)
 			ans[i] = path_probs[0][i];
 		return ans;

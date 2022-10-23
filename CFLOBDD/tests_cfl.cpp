@@ -844,65 +844,69 @@ CFLOBDD compute_alpha (std::vector<CFLOBDD>& betas, int start=0, int end = 0){
 }
 
 void CFLTests::testProbability(){
-	// CFLOBDD A = MkProjection(0, 2);
-	// CFLOBDD B = MkProjection(1, 2);
-	// CFLOBDD C = MkProjection(2, 2);
+	CFLOBDD A = MkProjection(0, 2);
+	CFLOBDD B = MkProjection(1, 2);
+	CFLOBDD C = MkProjection(2, 2);
 	// CFLOBDD D = MkProjection(3, 2);
 
 	// CFLOBDD X1 = MkAnd(MkAnd(A, MkNot(B)), MkNot(D));
 	// CFLOBDD X2 = MkAnd(MkAnd(B, MkNot(D)), MkNot(A));
 	// CFLOBDD X3 = MkAnd(MkAnd(D, MkNot(A)), MkNot(B));
-	// CFLOBDD F = MkOr(MkOr(X1, X2), X3);
-	// std::vector<double> probs;
-	// probs.push_back(0.1);
-	// probs.push_back(0.2);
+	CFLOBDD F = MkAnd(A, MkAnd(B, C));
+	std::vector<std::vector<double>> probs;
+	probs.push_back(std::vector<double>{0.5,0.3, 0.6, 0.2});
+	probs.push_back(std::vector<double>{0.4,0.4, 0.2, 0.3});
+	probs.push_back(std::vector<double>{0.1,0.3, 0.2, 0.5});
 	// probs.push_back(0.3);
 	// probs.push_back(0.4);
-	// std::cout << ComputeProbability(F, probs) << std::endl;
-	int dim = 12;
-	int size = 8;
-	int var_count = dim * dim;
-    // final constraint variables
-    int level = std::ceil(std::log2(var_count));
-    CFLOBDD alpha1 = MkTrue(level);
-	CFLOBDD alpha2 = MkTrue(level);
-	CFLOBDD alpha3 = MkTrue(level);
-	CFLOBDD alpha4 = MkTrue(level);
-    std::vector<CFLOBDD> var_cflobdds;
-	for (int i = 0; i < var_count; i++)
-		var_cflobdds.push_back(MkProjection(i, level));
+	auto ans = ComputeProbabilityOfList(F, probs);
+	for (auto i : ans)
+		std::cout << i << " ";
+	std::cout << std::endl;
+	// int dim = 12;
+	// int size = 8;
+	// int var_count = dim * dim;
+    // // final constraint variables
+    // int level = std::ceil(std::log2(var_count));
+    // CFLOBDD alpha1 = MkTrue(level);
+	// CFLOBDD alpha2 = MkTrue(level);
+	// CFLOBDD alpha3 = MkTrue(level);
+	// CFLOBDD alpha4 = MkTrue(level);
+    // std::vector<CFLOBDD> var_cflobdds;
+	// for (int i = 0; i < var_count; i++)
+	// 	var_cflobdds.push_back(MkProjection(i, level));
     
 
-    for (int i = 0; i < size; i++){
-        for (int j = 0; j < size; j++){
-			// std::cout << "(i,j): (" << i << "," << j << ")" << std::endl;
-            if (i == 0 && j == 0)
-                continue;
-            else{
-                std::vector<std::pair<int,int>> nbrs = get_neighbors(i, j, dim);
-                CFLOBDD beta = MkFalse(level);
-                for (int a = 0; a < nbrs.size(); a++){
-                    int a_idx = get_idx(nbrs[a].first, nbrs[a].second, dim);
-                    CFLOBDD gamma = MkTrue(level);
-                    for (int b = 0; b < nbrs.size(); b++){
-                        if (a != b){
-                            int id_b = get_idx(nbrs[b].first, nbrs[b].second, dim);
-							// std::cout << "a,b: " << a_idx << " " << id_b << std::endl;
-                            gamma = MkAnd(gamma, MkNot(var_cflobdds[id_b-1]));
-						}
-					}
-                    gamma = MkAnd(gamma, var_cflobdds[a_idx-1]);
-                    beta = MkOr(beta, gamma);
-				}
-                int idx = get_idx(i, j, dim)-1;
-				// std::cout << i << " " << j << " " << idx << std::endl;
-                // beta = pwc.CFLOBDD.MkAnd(beta, var_cflobdds[idx])
-                beta = MkOr(beta, MkNot(var_cflobdds[idx]));
-                // list_of_betas.push_back(beta);
-                alpha1 = MkAnd(alpha1, beta);
-			}
-		}
-	}
+    // for (int i = 0; i < size; i++){
+    //     for (int j = 0; j < size; j++){
+	// 		// std::cout << "(i,j): (" << i << "," << j << ")" << std::endl;
+    //         if (i == 0 && j == 0)
+    //             continue;
+    //         else{
+    //             std::vector<std::pair<int,int>> nbrs = get_neighbors(i, j, dim);
+    //             CFLOBDD beta = MkFalse(level);
+    //             for (int a = 0; a < nbrs.size(); a++){
+    //                 int a_idx = get_idx(nbrs[a].first, nbrs[a].second, dim);
+    //                 CFLOBDD gamma = MkTrue(level);
+    //                 for (int b = 0; b < nbrs.size(); b++){
+    //                     if (a != b){
+    //                         int id_b = get_idx(nbrs[b].first, nbrs[b].second, dim);
+	// 						// std::cout << "a,b: " << a_idx << " " << id_b << std::endl;
+    //                         gamma = MkAnd(gamma, MkNot(var_cflobdds[id_b-1]));
+	// 					}
+	// 				}
+    //                 gamma = MkAnd(gamma, var_cflobdds[a_idx-1]);
+    //                 beta = MkOr(beta, gamma);
+	// 			}
+    //             int idx = get_idx(i, j, dim)-1;
+	// 			// std::cout << i << " " << j << " " << idx << std::endl;
+    //             // beta = pwc.CFLOBDD.MkAnd(beta, var_cflobdds[idx])
+    //             beta = MkOr(beta, MkNot(var_cflobdds[idx]));
+    //             // list_of_betas.push_back(beta);
+    //             alpha1 = MkAnd(alpha1, beta);
+	// 		}
+	// 	}
+	// }
 
 	// for (int i = size-dim+1; i < dim; i++){
     //     for (int j = 0; j < dim; j++){
@@ -1004,11 +1008,10 @@ void CFLTests::testProbability(){
 	// std::cout << "v2 done" << std::endl;
 	// CFLOBDD alpha = MkAnd(v1, v2);
 	// std::cout << "alpha done" << std::endl;
-	std::vector<double> probs;
-	for (int i = 0; i < var_count; i++)
-		probs.push_back(0.05 * (i + 1));
-	probs = {0.47523754835128784, 0.35840001702308655, 0.40422990918159485, 0.6427563428878784, 0.3945543169975281, 0.47666001319885254, 0.5109491944313049, 0.47476404905319214, 0.47716525197029114, 0.5155134201049805, 0.5513034462928772, 0.7075202465057373, 0.4712821841239929, 0.5843892097473145, 0.4690249562263489, 0.14394433796405792, 0.5160295963287354, 0.507323682308197, 0.6344375610351562, 0.5501036643981934, 0.6690648794174194, 0.4632192552089691, 0.6757922172546387, 0.5909858345985413, 0.4537886381149292, 0.326592355966568, 0.3882814645767212, 0.5094337463378906, 0.5956001281738281, 0.4474394917488098, 0.25868213176727295, 0.6888942122459412, 0.3254657983779907, 0.53031986951828, 0.4189632534980774, 0.3917686343193054, 0.46629345417022705, 0.6070875525474548, 0.5494553446769714, 0.6629170179367065, 0.5779678821563721, 0.37090688943862915, 0.2687567174434662, 0.43658503890037537, 0.41521644592285156, 0.7263814210891724, 0.6006999015808105, 0.47409024834632874, 0.49184897541999817, 0.3896413743495941, 0.697507917881012, 0.30111876130104065, 0.5033246278762817, 0.39004597067832947, 0.8082413077354431, 0.6397709846496582, 0.48349592089653015, 0.5717300176620483, 0.6787660121917725, 0.5429520606994629, 0.35553500056266785, 0.5519851446151733, 0.5043249130249023, 0.49959322810173035, 0.27715378999710083, 0.3787427544593811, 0.6883025169372559, 0.5842676162719727, 0.6885256767272949, 0.5576877593994141, 0.2991431653499603, 0.3824356496334076, 0.7682237029075623, 0.6322533488273621, 0.5012823939323425, 0.48843708634376526, 0.3850597143173218, 0.7298580408096313, 0.5098487734794617, 0.7749925851821899, 0.6073716878890991, 0.5767890810966492, 0.48933297395706177, 0.42236119508743286, 0.4280415177345276, 0.49942606687545776, 0.47088852524757385, 0.19261185824871063, 0.5552672743797302, 0.17675456404685974, 0.5713710784912109, 0.3765259385108948, 0.6855226755142212, 0.43794918060302734, 0.8260107040405273, 0.5438673496246338, 0.6611212491989136, 0.16964785754680634, 0.4899193048477173, 0.3936399817466736, 0.7424902319908142, 0.6247668862342834, 0.6366655826568604, 0.6086507439613342, 0.4795306921005249, 0.5783551335334778, 0.3433167338371277, 0.5369402170181274, 0.6907787919044495, 0.5136685967445374, 0.4624853730201721, 0.7632211446762085, 0.6586105227470398, 0.595402181148529, 0.281001478433609, 0.7046899199485779, 0.52149897813797, 0.31763699650764465, 0.6284160017967224, 0.49544310569763184, 0.68196040391922, 0.7069398760795593, 0.31044983863830566, 0.42014187574386597, 0.3101128339767456, 0.5517004132270813, 0.7134276628494263, 0.6016730070114136, 0.6257535219192505, 0.23820829391479492, 0.4797375202178955, 0.44973868131637573, 0.5939569473266602, 0.59138023853302, 0.38787394762039185, 0.3556436002254486, 0.6250197887420654, 0.5685804486274719, 0.35644644498825073, 0.4297175705432892, 0.24083372950553894, 0.2975868880748749, 0.5623313188552856, 0.47641149163246155};
-	std::cout << ComputeProbability(alpha1, probs)<< std::endl;
+	// std::vector<double> probs;
+	// for (int i = 0; i < var_count; i++)
+	// 	probs.push_back(0.05 * (i + 1));
+	// std::cout << ComputeProbability(alpha1, probs)<< std::endl;
 	// std::cout << ComputeProbability(alpha2, probs)<< std::endl;
 	// std::cout << ComputeProbability(alpha3, probs)<< std::endl;
 	// std::cout << ComputeProbability(alpha4, probs)<< std::endl;
@@ -1227,7 +1230,7 @@ void CFLTests::testQFT(int p, int seed)
 
 void CFLTests::testShorsAlgo()
 {
-	int n = 8;
+	int n = 16;
 	int a = 13;
 	auto start = high_resolution_clock::now();
 	auto out_ans = QuantumAlgos::ShorsAlgoNew(a, n);
@@ -1240,6 +1243,52 @@ void CFLTests::testShorsAlgo()
 		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
 		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
 
+}
+
+void CFLTests::testXOR(int p)
+{
+	std::cout << "start" << std::endl;
+	auto start = high_resolution_clock::now();
+	CFLOBDD F = MkProjection(0, p);
+	for (int i = 1; i < pow(2, p); i++){
+			F = MkExclusiveOr(F, MkProjection(i, p));
+	}
+	auto end = high_resolution_clock::now();
+	std::cout << "end" << std::endl;
+	unsigned int nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount;
+	F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	auto duration = duration_cast<seconds>(end - start);
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
+			<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
+			<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+}
+
+void CFLTests::testMatMul(int p)
+{
+	std::cout << "start" << std::endl;
+	auto start = high_resolution_clock::now();	
+	CFLOBDD_FLOAT_BOOST H = Matrix1234FloatBoost::MkWalshInterleaved(p);
+	CFLOBDD_FLOAT_BOOST I = Matrix1234FloatBoost::MkIdRelationInterleaved(p);
+	CFLOBDD_FLOAT_BOOST X = Matrix1234FloatBoost::MkExchangeInterleaved(p);
+	CFLOBDD_FLOAT_BOOST F = VectorFloatBoost::NoDistinctionNode(p + 1, 0);
+	for (int i = 1; i < 1024; i++)
+	{
+		if (i % 3 == 0){
+			F = F + Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(H, I);
+		} else if (i % 3 == 1){
+			F = F + Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(X, H);
+		} else if (i % 3 == 2){
+			F = F + Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(I, X);
+		}
+	}
+	auto end = high_resolution_clock::now();
+	std::cout << "end" << std::endl;
+	unsigned int nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount;
+	F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	auto duration = duration_cast<seconds>(end - start);
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
+			<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
+			<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
 }
 
 void CFLTests::InitModules()
@@ -1335,7 +1384,10 @@ bool CFLTests::runTests(const char *arg, int size, int seed){
 		CFLTests::testSimonsAlgo(size, seed);
 	// } else if (curTest == "testSimonsAlgoNew") {
 	// 	CFLTests::testSimonsAlgoNew(size);
-	// }
+	} else if (curTest == "testXOR") {
+		CFLTests::testXOR(size);
+	} else if (curTest == "testMatMul") {
+		CFLTests::testMatMul(size);
 	} else if (curTest == "testQFT") {
 		CFLTests::testQFT(size, seed);
 	// }

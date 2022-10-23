@@ -50,6 +50,8 @@ class CFLTests
 		static void testGroversAlgo(int size, int seed);
 		static void testSimonsAlgo(int size, int seed);
         static void testSimonsAlgoNew(int size);
+        static void testXOR(int size);
+        static void testMatMul(int size);
         static void testQFT(int size, int seed);
 	static void InitModules();
 	static void ClearModules();

@@ -4674,27 +4674,6 @@ Cudd::Xeqy(
 
 } // BDD::Xeqy
 
-BDD
-Cudd::GHZ(
-  std::vector<BDD> x,
-  int index1,
-  int index2) const
-{
-    size_t N = x.size();
-    DdManager *mgr = p->manager;
-    DdNode **X = new DdNode *[N];
-    for (size_t i = 0; i < N; i++) {
-	X[i] = x[i].getNode();
-    }
-    DdNode *result = Cudd_ghz(mgr, (int) N, X, index1, index2);
-    delete [] X;
-    delete [] Y;
-    checkReturnValue(result);
-    return BDD(p, result);
-
-} // BDD::Xeqy
-
-
 
 ADD
 Cudd::Xeqy(
@@ -4716,6 +4695,29 @@ Cudd::Xeqy(
     return ADD(p, result);
 
 } // ADD::Xeqy
+  //
+ADD
+Cudd::Xneqy(
+  std::vector<ADD> x,
+  std::vector<ADD> y) const
+{
+    size_t N = x.size();
+    DdManager *mgr = p->manager;
+    DdNode **X = new DdNode *[N];
+    DdNode **Y = new DdNode *[N];
+    for (size_t i = 0; i < N; i++) {
+	X[i] = x[i].getNode();
+	Y[i] = y[i].getNode();
+    }
+    DdNode *result = Cudd_addXneqy(mgr, (int) N, X, Y);
+    delete [] X;
+    delete [] Y;
+    checkReturnValue(result);
+    return ADD(p, result);
+
+} // ADD::Xeqy
+
+
 
 
 BDD

@@ -655,6 +655,7 @@ public:
     BDD Xeqy(std::vector<BDD> x, std::vector<BDD> y) const;
     BDD GHZ(std::vector<BDD> x, int i, int j) const;
     ADD Xeqy(std::vector<ADD> x, std::vector<ADD> y) const;
+    ADD Xneqy(std::vector<ADD> x, std::vector<ADD> y) const;
     BDD Dxygtdxz(std::vector<BDD> x, std::vector<BDD> y,
                  std::vector<BDD> z) const;
     BDD Dxygtdyz(std::vector<BDD> x, std::vector<BDD> y,

@@ -822,6 +822,7 @@ extern DdNode * Cudd_Xgty(DdManager *dd, int N, DdNode **z, DdNode **x, DdNode *
 extern DdNode * Cudd_Xeqy(DdManager *dd, int N, DdNode **x, DdNode **y);
 extern DdNode * Cudd_ghz(DdManager *dd, int N, DdNode **x, int i, int j);
 extern DdNode * Cudd_addXeqy(DdManager *dd, int N, DdNode **x, DdNode **y);
+extern DdNode * Cudd_addXneqy(DdManager *dd, int N, DdNode **x, DdNode **y);
 extern DdNode * Cudd_Dxygtdxz(DdManager *dd, int N, DdNode **x, DdNode **y, DdNode **z);
 extern DdNode * Cudd_Dxygtdyz(DdManager *dd, int N, DdNode **x, DdNode **y, DdNode **z);
 extern DdNode * Cudd_Dxyeqz(DdManager *dd, int N, DdNode **x, DdNode **y, DdNode **z);

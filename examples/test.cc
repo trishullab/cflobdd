@@ -119,6 +119,44 @@ unsigned int hi_sum(Cudd &mgr, int n){
   return ans.nodeCount();
 }
 
+unsigned int matmult(Cudd &mgr, int n){
+
+  std::vector<ADD> x_vars, y_vars, z_vars;
+  for (unsigned int i = 0; i < pow(2, n); i++){
+    x_vars.push_back(mgr.addVar(3*i));
+    y_vars.push_back(mgr.addVar(3*i + 1));
+    z_vars.push_back(mgr.addVar(3*i + 2));
+  }
+  unsigned int N = (unsigned int)pow(2, n);
+  high_resolution_clock::time_point start = high_resolution_clock::now();
+  ADD H = mgr.Walsh(x_vars, y_vars);
+  ADD I = mgr.Xeqy(x_vars, y_vars);
+  ADD X = mgr.Xneqy(x_vars, y_vars);
+  ADD ans = mgr.addZero();
+  for (unsigned int i = 1; i < 1024; i++){
+	  if (i % 3 == 0){
+		 ADD tmpH = H.SwapVariables(y_vars, z_vars); 
+		 ADD tmpI = I.SwapVariables(x_vars, z_vars); 
+		 ans = ans + tmpH.MatrixMultiply(tmpI, z_vars);
+	  }
+	  if (i % 3 == 1){
+		 ADD tmpX = X.SwapVariables(y_vars, z_vars); 
+		 ADD tmpH = H.SwapVariables(x_vars, z_vars); 
+		 ans = ans + tmpX.MatrixMultiply(tmpH, z_vars);
+	  }
+	  if (i % 3 == 2){
+		 ADD tmpI = I.SwapVariables(y_vars, z_vars); 
+		 ADD tmpX = X.SwapVariables(x_vars, z_vars); 
+		 ans = ans + tmpI.MatrixMultiply(tmpX, z_vars);
+	  }
+  }
+  high_resolution_clock::time_point end = high_resolution_clock::now();
+  duration<double> time_taken = duration_cast<duration<double>>(end - start);
+  std::cout << "time_taken: " << time_taken.count() << " H nodeCount: " << H.nodeCount() << " ans nodeCount: " <<  ans.nodeCount() << std::endl;
+  return ans.nodeCount();
+
+}
+
 unsigned int mult(Cudd &mgr, int n){
 
   high_resolution_clock::time_point start = high_resolution_clock::now();
@@ -746,12 +784,14 @@ int main (int argc, char** argv)
     if (argc < 2)
       return 0;
     Cudd mgr(0,0);
-    mgr.AutodynEnable();
+    //mgr.AutodynEnable();
     unsigned int nodeCount = 0;
     if (strcmp(argv[1], "xor") == 0)
       nodeCount = exclusive_or(mgr, atoi(argv[2])); 
     else if (strcmp(argv[1], "hi_sum") == 0)
       nodeCount = hi_sum(mgr, atoi(argv[2])); 
+    else if (strcmp(argv[1], "matmult") == 0)
+      nodeCount = matmult(mgr, atoi(argv[2])); 
     else if (strcmp(argv[1], "mult") == 0)
       nodeCount = mult(mgr, atoi(argv[2]));
     else if (strcmp(argv[1], "simons") == 0)

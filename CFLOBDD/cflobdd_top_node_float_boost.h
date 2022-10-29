@@ -38,7 +38,7 @@ namespace mp = boost::multiprecision;
 namespace CFL_OBDD {
 
 	typedef mp::cpp_dec_float_100 BIG_FLOAT;
-	//typedef mp::number<mp::cpp_dec_float<1500> > BIG_FLOAT;
+	//typedef mp::number<mp::cpp_dec_float<1000> > BIG_FLOAT;
 	typedef CFLOBDDTopNodeT<BIG_FLOAT>::CFLOBDDTopNodeTRefPtr CFLOBDDTopNodeFloatBoostRefPtr;
 	typedef ReturnMapHandle<BIG_FLOAT> FloatBoostReturnMapHandle;
 	typedef CFLOBDDTopNodeT<BIG_FLOAT> CFLOBDDFloatBoostTopNode;

@@ -8,11 +8,11 @@
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include "cflobdd_t.h"
 
-// namespace mp = boost::multiprecision;
+ namespace mp = boost::multiprecision;
 
 namespace CFL_OBDD {
 	typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
-	//typedef mp::number<mp::cpp_dec_float<1500> > BIG_FLOAT;
+	//typedef boost::multiprecision::number<mp::cpp_dec_float<1000> > BIG_FLOAT;
 	typedef CFLOBDD_T<BIG_FLOAT> CFLOBDD_FLOAT_BOOST;
 
 	namespace VectorFloatBoost {

@@ -457,6 +457,7 @@ unsigned int Shors(Cudd& mgr, unsigned int N)
   	high_resolution_clock::time_point end = high_resolution_clock::now();
   	duration<double> time_taken = duration_cast<duration<double>>(end - start);
   	std::cout << "nodeCount: " <<  ans.nodeCount() << " time_taken: " << time_taken.count() << std::endl;
+	ans.print(4*N,2);
 
 	return ans.nodeCount();
 

@@ -9,6 +9,7 @@
 namespace CFL_OBDD {
 
 	typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
+	//typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<1000> > BIG_FLOAT;
 
 	extern CFLOBDDNodeHandle MkBasisVectorNode(unsigned int level, unsigned int index);
 	extern CFLOBDDNodeHandle MkBasisVectorNode(unsigned int level, std::string s);

@@ -1672,7 +1672,7 @@ namespace CFL_OBDD {
 				for (long int j = 0; j < i; j++)
 				{
 					double theta = std::pow(2, j - i);
-					std::cout << j << " " << i << std::endl;
+					//std::cout << j << " " << i << std::endl;
 					CFLOBDD_COMPLEX_BIG CP = Matrix1234ComplexFloatBoost::MkCPGate(level+1, j, i, theta);
 					// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(CP, std::cout);
 					// tmp = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(CP, tmp);

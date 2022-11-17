@@ -575,15 +575,8 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDNodeHandle n1,
         answer = n1;
       }
     }
-	try{
 		pairProductCache->Insert(PairProductKey(n1, n2),
-			PairProductMemo(answer, pairProductMapHandle));
-	}
-	catch (std::exception e){
-		std::cout << e.what() << std::endl;
-		std::cout << "pairproductCache" << std::endl;
-		throw e;
-	}
+		PairProductMemo(answer, pairProductMapHandle));
     return answer;
   }
 }

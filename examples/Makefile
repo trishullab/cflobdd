@@ -25,13 +25,8 @@ big:
 	g++ -O3 -DHAVE_CONFIG_H -I./$(B_DIR)  -I./$(B_DIR)/cudd -I./$(B_DIR)/mtr -I./$(B_DIR)/epd -I./$(B_DIR)/st -I./Solver2/assert -I./Solver2/bit_vector -I./Solver2/matrix -I./Solver2/parsing  -Wall -Wextra -std=c++2a -g -O3 -MT big_test.o -MD -MP -MF big_test.Tpo -c -o big_test.o `test -f 'big_test.cc' || echo './'`big_test.cc
 	/bin/bash ./$(REL_B_DIR)/libtool  --tag=CXX   --mode=link g++  -Wall -Wextra -std=c++2a -g -O3 -Wdeprecated-copy -lgmp -lmpfr -lgmpxx  -o big_test big_test.o Solver2/bit_vector/value.o Solver2/bit_vector/bit_vector_1.o Solver2/parsing/parsing.o $(B_DIR)/cplusplus/libobj.la $(B_DIR)/cudd/libcudd.la 
 complex_big:
-<<<<<<< Updated upstream
 	g++ -O3 -DHAVE_CONFIG_H -I./$(C_B_DIR)  -I./$(C_B_DIR)/cudd -I./$(C_B_DIR)/mtr -I./$(C_B_DIR)/epd -I./$(C_B_DIR)/st   -Wall -Wextra -std=c++0x -g -O3 -MT complex_big_test.o -MD -MP -MF complex_big_test.Tpo -c -o complex_big_test.o `test -f 'complex_big_test.cc' || echo './'`complex_big_test.cc
 	/bin/sh ./$(REL_C_B_DIR)/libtool  --tag=CXX   --mode=link g++  -Wall -Wextra -std=c++0x -g -O3   -o complex_big_test complex_big_test.o $(C_B_DIR)/cplusplus/libobj.la $(C_B_DIR)/cudd/libcudd.la 
-=======
-	g++ -O3 -DHAVE_CONFIG_H -I./$(C_B_DIR)  -I./$(C_B_DIR)/cudd -I./$(C_B_DIR)/mtr -I./$(C_B_DIR)/epd -I./$(C_B_DIR)/st   -Wall -Wextra -std=c++2a -g -O3 -MT complex_big_test.o -MD -MP -MF complex_big_test.Tpo -c -o complex_big_test.o `test -f 'complex_big_test.cc' || echo './'`complex_big_test.cc
-	/bin/bash ./$(REL_C_B_DIR)/libtool  --tag=CXX   --mode=link g++  -Wall -Wextra -std=c++0x -g -O3   -o complex_big_test complex_big_test.o $(C_B_DIR)/cplusplus/libobj.la $(C_B_DIR)/cudd/libcudd.la 
->>>>>>> Stashed changes
 
 fourier:
 	g++ -O3 -DHAVE_CONFIG_H -I./$(F_DIR)  -I./$(F_DIR)/cudd -I./$(F_DIR)/mtr -I./$(F_DIR)/epd -I./$(F_DIR)/st   -Wall -Wextra -std=c++0x -g -O3 -MT fourier_test.o -MD -MP -MF fourier_test.Tpo -c -o fourier_test.o `test -f 'fourier_test.cc' || echo './'`fourier_test.cc

@@ -802,6 +802,11 @@ std::vector<double> ComputeProbabilityOfList(CFLOBDD f, std::vector<std::vector<
   return ComputeProbabilityOfListTop(f.root, probs);
 }
 
+// std::vector<double> ComputeEntropyOfList(CFLOBDD f, std::vector<std::vector<double>>& probs)
+// {
+//   return ComputeEntropyOfListTop(f.root, probs);
+// }
+
 void PrintCFLOBDD(CFLOBDD f)
 {
   std::cout << f << std::endl;

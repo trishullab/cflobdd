@@ -119,6 +119,7 @@ extern apvector<int> *GetSupportSet(CFLOBDD f);
 
 extern double ComputeProbability(CFLOBDD f, std::vector<double>& probs); // probs is a list of probs of vars in the same order.
 extern std::vector<double> ComputeProbabilityOfList(CFLOBDD f, std::vector<std::vector<double>>& probs); // probs is a list of probs of vars in the same order.
+// extern std::vector<double> ComputeEntropyOfList(CFLOBDD f, std::vector<std::vector<double>>& probs); // probs is a list of probs of vars in the same order.
 extern void PrintCFLOBDD(CFLOBDD f);
 
 } // namespace CFL_OBDD

@@ -642,7 +642,6 @@ namespace CFL_OBDD {
 
 			v.Canonicalize();
 			reductionMapHandle.Canonicalize();
-			//std::cout << v << std::endl;
 			CFLOBDDNodeHandle tempHandle = *(c->rootConnection.entryPointHandle);
 			// Perform reduction on tempHandle, with respect to the common elements that rmh maps together
 			/*ReductionMapHandle inducedReductionMapHandle;
@@ -692,7 +691,6 @@ namespace CFL_OBDD {
 
 			v.Canonicalize();
 			reductionMapHandle.Canonicalize();
-			//std::cout << v << std::endl;
 			CFLOBDDNodeHandle tempHandle = *(c->rootConnection.entryPointHandle);
 			// Perform reduction on tempHandle, with respect to the common elements that rmh maps together
 			/*ReductionMapHandle inducedReductionMapHandle;

@@ -1271,7 +1271,7 @@ void CFLTests::testMatMul(int p)
 	CFLOBDD_FLOAT_BOOST I = Matrix1234FloatBoost::MkIdRelationInterleaved(p);
 	CFLOBDD_FLOAT_BOOST X = Matrix1234FloatBoost::MkExchangeInterleaved(p);
 	CFLOBDD_FLOAT_BOOST F = VectorFloatBoost::NoDistinctionNode(p + 1, 0);
-	for (int i = 1; i < 1024; i++)
+	for (int i = 1; i < 4; i++)
 	{
 		if (i % 3 == 0){
 			F = F + Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(H, I);
@@ -1285,7 +1285,7 @@ void CFLTests::testMatMul(int p)
 	std::cout << "end" << std::endl;
 	unsigned int nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount;
 	F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
-	auto duration = duration_cast<seconds>(end - start);
+	auto duration = duration_cast<milliseconds>(end - start);
 	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
 			<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
 			<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;

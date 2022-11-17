@@ -133,7 +133,7 @@ unsigned int matmult(Cudd &mgr, int n){
   ADD I = mgr.Xeqy(x_vars, y_vars);
   ADD X = mgr.Xneqy(x_vars, y_vars);
   ADD ans = mgr.addZero();
-  for (unsigned int i = 1; i < 1024; i++){
+  for (unsigned int i = 1; i < 4; i++){
 	  if (i % 3 == 0){
 		 ADD tmpH = H.SwapVariables(y_vars, z_vars); 
 		 ADD tmpI = I.SwapVariables(x_vars, z_vars); 

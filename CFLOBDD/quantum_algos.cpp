@@ -1062,7 +1062,6 @@ namespace CFL_OBDD {
 			for (unsigned int i = 1; i < n; i++) {
 				std::cout << i << std::endl;
 				CFLOBDD_FLOAT_BOOST tmp = Matrix1234FloatBoost::MkCNOT(level + 2, 2 * n, i, n + i);
-				std::cout << "hey" << std::endl;
 				vectorTensor = Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(tmp, vectorTensor);
 			}
 			std::cout << "C * vectorTensor created... " << vectorTensor.root->rootConnection.returnMapHandle << std::endl;
@@ -1075,7 +1074,6 @@ namespace CFL_OBDD {
 						if (s[j] == '1') {
 							std::cout << i << " " << j << " " << k << " " << m << std::endl;
 							CFLOBDD_FLOAT_BOOST tmp = Matrix1234FloatBoost::MkCNOT(level + 2, 2 * n, k, m);
-							std::cout << "hey" << std::endl;
 							t = Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(tmp, t);
 						}
 						m += 1;

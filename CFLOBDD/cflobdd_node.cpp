@@ -359,40 +359,26 @@ static Hashtable<CFLReduceKey, CFLOBDDNodeHandle> *reduceCache = NULL;
 
 CFLOBDDNodeHandle CFLOBDDNodeHandle::Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce)
 {
-	try{
-		if (replacementNumExits == 1 && !forceReduce) {
-			return CFLOBDDNodeHandle::NoDistinctionNode[handleContents->Level()];
-		}
-
-		if (redMapHandle.mapContents->isIdentityMap && !forceReduce) {
-			return *this;
-		}
-
-		CFLOBDDNodeHandle cachedNodeHandle;
-		bool isCached = reduceCache->Fetch(CFLReduceKey(*this, redMapHandle), cachedNodeHandle);
-		if (isCached) {
-			// std::cout << "Hit : " << handleContents->Level() << std::endl;
-			return cachedNodeHandle;
-		}
-		else {
-			// std::cout << "Miss: " << handleContents->Level() << std::endl;
-			CFLOBDDNodeHandle temp;
-			try {
-				temp = handleContents->Reduce(redMapHandle, replacementNumExits, forceReduce);
-			}
-			catch (std::exception e) {
-				std::cout << e.what() << std::endl;
-				std::cout << "reduce call" << std::endl;
-				abort();
-			}
-			reduceCache->Insert(CFLReduceKey(*this, redMapHandle), temp);
-			return temp;
-		}
+	if (replacementNumExits == 1 && !forceReduce) {
+		return CFLOBDDNodeHandle::NoDistinctionNode[handleContents->Level()];
 	}
-	catch (std::exception e){
-		std::cout << e.what() << std::endl;
-		std::cout << "Reduce" << std::endl;
-		abort();
+
+	if (redMapHandle.mapContents->isIdentityMap && !forceReduce) {
+		return *this;
+	}
+
+	CFLOBDDNodeHandle cachedNodeHandle;
+	bool isCached = reduceCache->Fetch(CFLReduceKey(*this, redMapHandle), cachedNodeHandle);
+	if (isCached) {
+		// std::cout << "Hit : " << handleContents->Level() << std::endl;
+		return cachedNodeHandle;
+	}
+	else {
+		// std::cout << "Miss: " << handleContents->Level() << std::endl;
+		CFLOBDDNodeHandle temp;
+		temp = handleContents->Reduce(redMapHandle, replacementNumExits, forceReduce);
+		reduceCache->Insert(CFLReduceKey(*this, redMapHandle), temp);
+		return temp;
 	}
 }
 
@@ -754,6 +740,51 @@ std::vector<double> ComputeProbabilityOfListNode(CFLOBDDNodeHandle g, std::vecto
 		return AProb;
 	}
 }
+
+// TODO
+// std::vector<double> ComputeEntropyOfListNode(CFLOBDDNodeHandle g, std::vector<std::vector<double>>& var_probs, std::vector<std::vector<double>>& path_probs, std::vector<std::vector<double>>& entropy, int start, int end){
+// 	if (g.handleContents->level == 0){
+// 		if (g == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle){
+// 			std::vector<double> ans (path_probs[0].size(), 0);
+// 			for (int i = 0; i < path_probs[0].size(); i++){
+// 				ans[i] = (1 - var_probs[start][i]) * path_probs[0][i] + var_probs[start][i] * path_probs[1][i];
+// 			}
+// 			return ans;
+// 		} else {
+// 			std::vector<double> ans (path_probs[0].size(), 0);
+// 			for (int i = 0; i < path_probs[0].size(); i++){
+// 				if (path_probs[0][i] == 0)
+// 					ans[i] = 0;
+// 				else{
+// 					double v1 = (1 - var_probs[start][i]) == 0 ? 0 : (1 - var_probs[start][i]) * log2((1 - var_probs[start][i]));
+// 					double v2 = var_probs[start][i] == 0 ? 0 : var_probs[start][i] * log2(var_probs[start][i]);
+// 					ans[i] = path_probs[0][i] * (log2(path_probs[0][i]) + v1 + v2 - entropy[0][i]);
+// 				}
+// 			}
+// 			return ans;
+// 		}
+// 	} else if (g == CFLOBDDNodeHandle::NoDistinctionNode[g.handleContents->level]){
+// 		std::vector<double> ans (path_probs[0].size(), 0);
+// 		for (int i = 0; i <  path_probs[0].size(); i++)
+// 			ans[i] = path_probs[0][i];
+// 		return ans;
+// 	} else {
+// 		CFLOBDDInternalNode* gh = (CFLOBDDInternalNode *) g.handleContents;
+// 		std::vector<std::vector<double>> AConnection_PathProbs;
+// 		for (int i = 0; i < gh->numBConnections; i++){
+// 			std::vector<std::vector<double>> BConnection_PathProbs;
+// 			for (int j = 0; j < gh->BConnection[i].returnMapHandle.Size(); j++){
+// 				BConnection_PathProbs.push_back(path_probs[gh->BConnection[i].returnMapHandle[j]]);
+// 			}
+// 			std::vector<double> prob = ComputeProbabilityOfListNode(*(gh->BConnection[i].entryPointHandle), var_probs, BConnection_PathProbs, (end - start)/2 + 1 + start, end);
+// 			AConnection_PathProbs.push_back(prob);
+// 		}
+
+// 		std::vector<double> AProb = ComputeProbabilityOfListNode(*(gh->AConnection.entryPointHandle), var_probs, AConnection_PathProbs, start, (end - start)/2 + start);
+// 		return AProb;
+// 	}
+// }
+
 
 }
 

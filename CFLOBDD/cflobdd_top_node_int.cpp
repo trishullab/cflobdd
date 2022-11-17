@@ -514,6 +514,7 @@ std::vector<double> ComputeProbabilityOfListTop(CFLOBDDTopNodeIntRefPtr f, std::
 {
   // assumption that the output contains only 0 and 1 values.
   std::vector<std::vector<double>> path_probs; 
+ 
   for (int i = 0; i < f->rootConnection.returnMapHandle.Size(); i++){
      std::vector<double> tmp(var_probs[0].size(), 1);
      path_probs.push_back(tmp);
@@ -528,6 +529,29 @@ std::vector<double> ComputeProbabilityOfListTop(CFLOBDDTopNodeIntRefPtr f, std::
     path_probs[index][i] = 0;
   return ComputeProbabilityOfListNode(*(f->rootConnection.entryPointHandle), var_probs, path_probs, 0, pow(2, f->level)-1);
 }
+
+// std::vector<double> ComputeEntropyOfListTop(CFLOBDDTopNodeIntRefPtr f, std::vector<std::vector<double>>& var_probs)
+// {
+//   // assumption that the output contains only 0 and 1 values.
+//   std::vector<std::vector<double>> path_probs; 
+//   std::vector<std::vector<double>> entropy;
+//   for (int i = 0; i < f->rootConnection.returnMapHandle.Size(); i++){
+//     std::vector<double> tmp(var_probs[0].size(), 1);
+//     path_probs.push_back(tmp);
+//     entropy.push_back(tmp);
+//   }
+//   int index = f->rootConnection.returnMapHandle.LookupInv(0);
+//   if (index == -1){
+//     return std::vector<double>(var_probs[0].size(), 1);
+//   }
+//   // if (index == 0 && f->rootConnection.returnMapHandle.Size() == 1)
+//   //   return std::vector<double>(var_probs[0].size(), 0);
+//   for (int i = 0; i < var_probs[0].size(); i++){
+//     path_probs[index][i] = 0;
+//     entropy[index][i] = 0;
+//   }
+//   return ComputeEntropyOfListNode(*(f->rootConnection.entryPointHandle), var_probs, path_probs, entropy, 0, pow(2, f->level)-1);
+// }
 
 
 }

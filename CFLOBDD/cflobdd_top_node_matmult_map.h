@@ -168,6 +168,7 @@ namespace CFL_OBDD {
 		}
 	};
 
+
 } // namespace CFL_OBDD
 
 #endif

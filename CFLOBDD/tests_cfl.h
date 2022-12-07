@@ -53,8 +53,12 @@ class CFLTests
         static void testXOR(int size);
         static void testMatMul(int size);
         static void testQFT(int size, int seed);
-	static void InitModules();
-	static void ClearModules();
+
+        static void testWeightedOps(unsigned int size);
+		static void testGHZAlgo_W(int size);
+	    
+        static void InitModules();
+	    static void ClearModules();
 		static bool runTests(const char *arg, int size = 0, int seed = 0);
 };
 }

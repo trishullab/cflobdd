@@ -33,6 +33,7 @@
 #include "cflobdd_node.h"
 #include "matmult_map.h"
 #include "fourier_semiring.h"
+#include "weighted_matmult_map.h"
 
 
 #include <boost/multiprecision/cpp_dec_float.hpp>
@@ -73,6 +74,33 @@ void ReturnMapBody<MatMultMapHandle>::setHashCheck()
 
 template<>
 unsigned int ReturnMapBody<MatMultMapHandle>::Hash(unsigned int modsize)
+{
+	unsigned int hvalue = 0;
+
+	for (unsigned i = 0; i < mapArray.size(); i++)
+	{
+		hvalue = (997 * hvalue + mapArray[i].Hash(modsize)) % modsize;
+	}
+	return hvalue;
+}
+
+template<>
+void ReturnMapBody<WeightedMatMultMapHandle>::setHashCheck()
+{
+	unsigned int hvalue = 0;
+
+	for (unsigned i = 0; i < mapArray.size(); i++)
+	{
+		if (mapArray[i].mapContents->hashCheck == NULL) {
+			mapArray[i].mapContents->setHashCheck();
+		}
+		hvalue = (117 * (hvalue + 1) + mapArray[i].mapContents->hashCheck);
+	}
+	hashCheck = hvalue;
+}
+
+template<>
+unsigned int ReturnMapBody<WeightedMatMultMapHandle>::Hash(unsigned int modsize)
 {
 	unsigned int hvalue = 0;
 

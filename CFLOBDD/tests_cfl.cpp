@@ -29,6 +29,10 @@
 #include "matmult_map.h"
 // #include "matrix1234_node.h"
 #include "matrix1234_int.h"
+#include "wmatrix1234_fb_mul.h"
+#include "weighted_cross_product.h"
+#include "wvector_fb_mul.h"
+#include "weighted_quantum_algos.h"
 using namespace CFL_OBDD;
 using namespace SH_OBDD;
 using namespace std::chrono;
@@ -1291,6 +1295,39 @@ void CFLTests::testMatMul(int p)
 			<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
 }
 
+void CFLTests::testWeightedOps(unsigned int level)
+{
+	int n = std::pow(2, level-2);
+	WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL F = WeightedMatrix1234FloatBoostMul::MkCNOT(level, 2*n, 0, n);
+	WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL tmp = WeightedMatrix1234FloatBoostMul::MkCNOT(level, 2*n, 1, n);
+    auto y = high_resolution_clock::now(); 
+	WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL C = WeightedMatrix1234FloatBoostMul::MatrixMultiplyV4(F, tmp);
+	auto x = high_resolution_clock::now(); 
+	auto duration = duration_cast<milliseconds>(x - y);
+	std::cout << duration.count() << std::endl;
+	C.print(std::cout);
+}
+
+void CFLTests::testGHZAlgo_W(int p){
+	unsigned long long int n = pow(2, p);
+	std::cout << "GHZ start..." << std::endl;
+	auto start = high_resolution_clock::now();
+	auto out = WeightedQuantumAlgos::GHZ(n);
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	// std::string all_ones(n + 1, '1');
+	// std::string all_zeros(n + 1, '0');
+	// unsigned int nodeCount = 0, edgeCount = 0;
+	// unsigned int returnEdgesCount, returnEdgesObjCount;
+	// out.second.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	// std::cout << "is same: " << ((out.first == all_ones) || (out.first == all_zeros)) << std::endl;
+	std::cout << "Duration: " << duration.count() << std::endl;
+		// << " nodeCount: " << nodeCount 
+		// << " egdeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
+		// << " returnEdgesObjCount " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+	// out.second.print(std::cout);
+}
+
 void CFLTests::InitModules()
 {
 
@@ -1301,6 +1338,14 @@ void CFLTests::InitModules()
 	InitTripleProductCache();
 	Matrix1234Int::Matrix1234Initializer();
 	VectorFloatBoost::VectorInitializer();
+
+	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitNoDistinctionTable();
+	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitNoDistinctionTable_Ann();
+	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitIdentityNodeTable();	
+	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitReduceCache();
+	WeightedMatrix1234FloatBoostMul::Matrix1234Initializer();
+	WeightedVectorFloatBoostMul::VectorInitializer();
+	InitWeightedPairProductCache<BIG_FLOAT, std::multiplies<BIG_FLOAT>>();
 }
 
 void CFLTests::ClearModules()
@@ -1308,6 +1353,7 @@ void CFLTests::ClearModules()
 	DisposeOfTripleProductCache();
 	DisposeOfPairProductCache();
 	CFLOBDDNodeHandle::DisposeOfReduceCache();
+	DisposeOfWeightedPairProductCache<BIG_FLOAT, std::multiplies<BIG_FLOAT>>();
 }
 
 
@@ -1390,6 +1436,10 @@ bool CFLTests::runTests(const char *arg, int size, int seed){
 		CFLTests::testMatMul(size);
 	} else if (curTest == "testQFT") {
 		CFLTests::testQFT(size, seed);
+	} else if (curTest == "testWeightedOps") {
+		CFLTests::testWeightedOps(size);
+	} else if (curTest == "testGHZAlgo_W") {
+		CFLTests::testGHZAlgo_W(size);
 	// }
 	// else {
 	// 	std::cout << "Unrecognized test name: " << curTest << std::endl;

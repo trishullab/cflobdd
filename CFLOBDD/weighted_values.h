@@ -6,7 +6,8 @@
 #include <boost/multiprecision/cpp_dec_float.hpp>
 
 namespace CFL_OBDD {
-    typedef boost::multiprecision::cpp_dec_float_100 FLOAT_BOOST;
+    typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
+    // typedef double BIG_FLOAT;
 }
 
 

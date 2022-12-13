@@ -67,6 +67,7 @@ class WeightedValuesListBody {//: public List<int> {
   unsigned int refCount;         // reference-count value
   std::vector<T> mapArray;
   bool isAllSame;
+  bool isOneOrZero;
   T value; // the value that is same in all
   bool operator==(const WeightedValuesListBody &o) const;
   T& operator[](unsigned int i);                       // Overloaded []

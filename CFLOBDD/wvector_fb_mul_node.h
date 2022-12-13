@@ -2,21 +2,25 @@
 #define W_VECTOR_NODE_GUARD
 
 #include <string.h>
-#include "weighted_cflobdd_node_t.h"
+#include <unordered_map>
 #include <boost/multiprecision/cpp_dec_float.hpp>
+#include "weighted_cflobdd_node_t.h"
 
 namespace CFL_OBDD {
 	
 
     namespace WeightedVectorFloatBoostMul {
 
-        typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
+	    typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
+
         typedef WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WeightedCFLOBDDFloatBoostMulNodeHandle;
         typedef WeightedCFLOBDDInternalNode<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WeightedCFLOBDDFloatBoostInternalNode;
         typedef WeightedCFLOBDDDontCareNode<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WeightedCFLOBDDFloatBoostDontCareNode;
         typedef WeightedCFLOBDDForkNode<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WeightedCFLOBDDFloatBoostForkNode;
         typedef WeightedCFLOBDDLeafNode<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WeightedCFLOBDDFloatBoostLeafNode;
         typedef WConnection<BIG_FLOAT, std::multiplies<BIG_FLOAT>> Connection;
+        typedef WeightedCFLOBDDNodeMemoTable<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WeightedCFLOBDDFloatBoostMulNodeMemoTable;
+        typedef WeightedCFLOBDDNodeMemoTableRefPtr<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WeightedCFLOBDDFloatBoostMulNodeMemoTableRefPtr;
 
 
         extern WeightedCFLOBDDFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, unsigned int index);
@@ -24,8 +28,8 @@ namespace CFL_OBDD {
         
         extern void VectorInitializerNode();  // Empty for now
 
-        extern WeightedCFLOBDDFloatBoostMulNodeHandle VectorToMatrixInterleavedNode(std::unordered_map<WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash>& hashMap,
-                                                        WeightedCFLOBDDFloatBoostMulNodeHandle nh);
+        extern WeightedCFLOBDDFloatBoostMulNodeHandle VectorToMatrixInterleavedNode(std::unordered_map<WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap,
+                                                        WeightedCFLOBDDFloatBoostMulNodeHandle& nh);
         extern WeightedCFLOBDDFloatBoostMulNodeHandle MkColumn1MatrixNode(unsigned int level);
         extern std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDFloatBoostMulNodeHandle nh, unsigned int index, bool voctwo = false);
         // needs to be removed and linked to the one in cflobdd_node.cpp

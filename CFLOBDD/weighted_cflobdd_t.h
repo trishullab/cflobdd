@@ -52,6 +52,7 @@ class WEIGHTED_CFLOBDD_T {
   void CountNodes(unsigned int &nodeCount);
   void GroupCountNodesAndEdges(unsigned int &nodeCount, unsigned int &edgeCount);
   void CountPaths();
+  void ComputeWeightOfPathsAsAmpsToExits();
 
  public:
 	 std::ostream& print(std::ostream & out = std::cout) const;
@@ -176,6 +177,15 @@ void WEIGHTED_CFLOBDD_T<T, Op>::CountPaths()
 {
 	Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes = new Hashset<WeightedCFLOBDDNodeHandleT<T,Op>>;
 	root->CountPaths(visitedNodes);
+	delete visitedNodes;
+}
+
+// Compute Weights of Paths
+template <typename T, typename Op>
+void WEIGHTED_CFLOBDD_T<T, Op>::ComputeWeightOfPathsAsAmpsToExits()
+{
+	Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes = new Hashset<WeightedCFLOBDDNodeHandleT<T,Op>>;
+	root->ComputeWeightOfPathsAsAmpsToExits(visitedNodes);
 	delete visitedNodes;
 }
 

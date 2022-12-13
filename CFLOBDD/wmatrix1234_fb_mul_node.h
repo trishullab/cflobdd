@@ -12,6 +12,7 @@ namespace CFL_OBDD {
     namespace WeightedMatrix1234FloatBoostMul {
 
         typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
+        // typedef double BIG_FLOAT;
         //typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<1000> > BIG_FLOAT;
         typedef WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WeightedCFLOBDDFloatBoostMulNodeHandle;
         typedef WeightedCFLOBDDInternalNode<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WeightedCFLOBDDFloatBoostInternalNode;
@@ -66,7 +67,7 @@ namespace CFL_OBDD {
 
         extern WeightedCFLOBDDFloatBoostMulNodeHandle KroneckerProduct2VocsNode(WeightedCFLOBDDFloatBoostMulNodeHandle m1, WeightedCFLOBDDFloatBoostMulNodeHandle m2, int zero_index_m1, int zero_index_m2); 
         extern std::tuple<WeightedCFLOBDDFloatBoostMulNodeHandle, CFLOBDDMatMultMapHandle, BIG_FLOAT>
-		MatrixMultiplyV4Node(WeightedCFLOBDDFloatBoostMulNodeHandle c1, WeightedCFLOBDDFloatBoostMulNodeHandle c2);
+		MatrixMultiplyV4Node(WeightedCFLOBDDFloatBoostMulNodeHandle c1, WeightedCFLOBDDFloatBoostMulNodeHandle c2, int zero_exit_1, int zero_exit_2);
         
         // Initialization routine that needs to be called before any call to MatrixProjectVoc23Node
         extern void Matrix1234InitializerNode();  // Empty for now

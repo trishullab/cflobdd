@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <unordered_map>
 #include "wvector_fb_mul_node.h"
 #include "weighted_cflobdd_node_t.h"
 #include "reduction_map.h"
@@ -127,9 +128,15 @@ namespace CFL_OBDD {
             return WeightedCFLOBDDFloatBoostMulNodeHandle(n);
         }
 
-        WeightedCFLOBDDFloatBoostMulNodeHandle VectorToMatrixInterleavedNode(std::unordered_map<WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash>& hashMap, 
-                                WeightedCFLOBDDFloatBoostMulNodeHandle nh)
+        WeightedCFLOBDDFloatBoostMulNodeHandle VectorToMatrixInterleavedNode(std::unordered_map<WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap, 
+                                WeightedCFLOBDDFloatBoostMulNodeHandle& nh)
         {
+            // if (hashMap)
+            // {
+            //     WeightedCFLOBDDFloatBoostMulNodeHandle lookupResult;
+            //     hashMap->Fetch(nh, lookupResult);
+            //     return lookupResult;
+            // }
             if (hashMap.find(nh) != hashMap.end())
                 return hashMap[nh];
             WeightedCFLOBDDFloatBoostInternalNode *nhNode = (WeightedCFLOBDDFloatBoostInternalNode *)nh.handleContents;
@@ -222,6 +229,7 @@ namespace CFL_OBDD {
     #endif
 
             WeightedCFLOBDDFloatBoostMulNodeHandle nHandle(n);
+            // hashMap->Insert(nh, nHandle);
             hashMap[nh] = nHandle;
             return nHandle;
         }
@@ -243,7 +251,7 @@ namespace CFL_OBDD {
                 n->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m1);
                 n->numBConnections = 1;
                 n->BConnection = new Connection[1];
-                WeightedCFLOBDDFloatBoostMulNodeHandle t = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(1.0, 0.0));
+                WeightedCFLOBDDFloatBoostMulNodeHandle t = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(1, 0));
                 n->BConnection[0] = Connection(t, m2);
             }
             else
@@ -326,6 +334,20 @@ namespace CFL_OBDD {
             return addNumPathsToExit(paths);
         }
 
+        int chooseIndexRandomly(std::vector<std::pair<long double, unsigned int>>& weights, double random_value)
+        {
+            long double val = 0;
+            for (int i = 0; i < weights.size(); i++)
+            {
+                if (val + weights[i].first >= random_value)
+                    return weights[i].second;
+                val += weights[i].first;
+                
+            }
+            return weights[weights.size()-1].second;
+        }
+        
+
     //#ifdef PATH_COUNTING_ENABLED
         std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDFloatBoostMulNodeHandle nh, unsigned int index, bool VocTwo)
         {
@@ -333,72 +355,48 @@ namespace CFL_OBDD {
 
             if (nhNode->level == 0)
             {
-                if (nh == WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle)
+                if (nhNode->numExits == 2)
                 {
                     return std::make_pair(std::to_string(index),"");
                 }
                 else
                 {
+                    WeightedCFLOBDDFloatBoostDontCareNode* nhL = (WeightedCFLOBDDFloatBoostDontCareNode *)nh.handleContents;
                     assert(index == 0);
+                    long double lw = ((nhL->lweight * nhL->lweight) / nhL->numWeightsOfPathsAsAmpsToExit[0]).convert_to<long double>();
+                    long double rw = ((nhL->rweight * nhL->rweight) / nhL->numWeightsOfPathsAsAmpsToExit[0]).convert_to<long double>();
+                    std::vector<std::pair<long double, unsigned int>> weights = {std::make_pair(lw, 0), std::make_pair(rw, 1)};
+                    // sort(weights.begin(), weights.end(), sortNumPathPairs<long double>);
                     double random_value = ((double)rand() / (RAND_MAX));
-                    if (random_value < 0.5)
-                        return std::make_pair("0","");
-                    else
-                        return std::make_pair("1","");
+                    int chosen_index = chooseIndexRandomly(weights, random_value);
+                    return std::make_pair(std::to_string(chosen_index), "");
                 }
             }
             std::vector<std::pair<long double, unsigned int>> numBPaths;
-            //std::vector<cpp_int> numBPaths;
-            //std::vector<unsigned long long int> numBPaths;
-            //cpp_int numBTotalPaths = 0;
             long double numBTotalPaths = 0.0;
-            //unsigned long long int numBTotalPaths = 0;
             for (unsigned int i = 0; i < nhNode->numBConnections; i++)
             {
                 int BIndex = nhNode->BConnection[i].returnMapHandle.LookupInv(index);
-                if (BIndex == -1){
-                    numBPaths.push_back(std::make_pair(-1 * std::numeric_limits<long double>::infinity(), i));
-                }
-                else{
-                    numBPaths.push_back(std::make_pair(nhNode->BConnection[i].entryPointHandle->handleContents->numPathsToExit[BIndex] + 
-                        nhNode->AConnection.entryPointHandle->handleContents->numPathsToExit[i], i));
-                }
-                    //numBPaths.push_back(nhNode->BConnection[i].entryPointHandle.handleContents->numPathsToExit[BIndex]);
+                // if (BIndex == -1){
+                //     numBPaths.push_back(std::make_pair(0, i));
+                // }
+                // else{
+                    if (BIndex != -1){
+                        long double w = ((nhNode->BConnection[i].entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[BIndex] * 
+                            nhNode->AConnection.entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[i]) / nhNode->numWeightsOfPathsAsAmpsToExit[index]).convert_to<long double>();
+                        numBPaths.push_back(std::make_pair(w, i));
+                    }
+                // }
             }
-            sort(numBPaths.begin(), numBPaths.end(), sortNumPathPairs<long double>);
+            // sort(numBPaths.begin(), numBPaths.end(), sortNumPathPairs<long double>);
             /*std::cout << numBPaths.size() << std::endl;
             for (unsigned int i = 0; i < numBPaths.size(); i++)
             {
                 std::cout << i << " " << numBPaths[i].first << " " << numBPaths[i].second << std::endl;
             }*/
-            numBTotalPaths = getLogSumNumPaths(numBPaths, numBPaths.size());
-            long double random_value = 0.0;
-            if (numBTotalPaths >= 64){
-                std::random_device rd;
-                std::default_random_engine generator(rd());
-                std::uniform_int_distribution<long long unsigned> distribution(0, 0xFFFFFFFFFFFFFFFF);
-                random_value = log2l(distribution(generator)) + numBTotalPaths - 64;
-            }
-            else{
-                random_value = log2l((((double)rand()) / RAND_MAX)*pow(2, numBTotalPaths));
-            }
-            long double val = -1 * std::numeric_limits<long double>::infinity();
-            /*cpp_int random_value = gen() % numBTotalPaths;
-            cpp_int val = 0;*/
-            /*unsigned long long int random_value = rand() % numBTotalPaths;
-            unsigned long long int val = 0;*/
-            int BConnectionIndex = -1;
-            for (unsigned int i = 0; i < numBPaths.size(); i++)
-            {
-                if (numBPaths[i].first == -1 * std::numeric_limits<long double>::infinity())
-                    continue;
-                val = getLogSumNumPaths(numBPaths, i+1);
-                if (val >= random_value)
-                {
-                    BConnectionIndex = numBPaths[i].second;
-                    break;
-                }
-            }
+            long double random_value = ((double)rand() / RAND_MAX);
+            
+            int BConnectionIndex = chooseIndexRandomly(numBPaths, random_value);
             //if (BConnectionIndex == -1){
             //	std::cout << val << " " << random_value << " " << index << " " << nhNode->level << std::endl;
             //	for (unsigned int i = 0; i < numBPaths.size(); i++)

@@ -13,6 +13,7 @@ namespace CFL_OBDD {
 
 
 	typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
+    // typedef double BIG_FLOAT;
 	typedef WEIGHTED_CFLOBDD_T<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL;
 
 	namespace WeightedMatrix1234FloatBoostMul {
@@ -32,6 +33,7 @@ namespace CFL_OBDD {
 		extern void MatrixPrintRowMajorInterleaved(WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL c, std::ostream & out);
 
 		extern WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL MatrixMultiplyV4(WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL m2);
+        extern WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL CreateBalancedFn(int n, std::mt19937 mt);
 	}
 }
 

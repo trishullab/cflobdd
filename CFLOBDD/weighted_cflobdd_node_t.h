@@ -81,6 +81,8 @@ class WeightedCFLOBDDNodeHandleT {
       static WeightedCFLOBDDNodeHandleT *NoDistinctionNode_Ann;        // WeightedCFLOBDDNodeHandleT NoDistinctionNode_Ann[maxLevel+1] for levels 0, ..., CFLOBDDMaxLevel
       static WeightedCFLOBDDNodeHandleT *IdentityNode;        // WeightedCFLOBDDNodeHandleT IdentityNode[maxLevel+1] for levels 1, ..., CFLOBDDMaxLevel
       static WeightedCFLOBDDNodeHandleT CFLOBDDForkNodeHandle;
+      static WeightedCFLOBDDNodeHandleT CFLOBDDForkNodeHandle01;
+      static WeightedCFLOBDDNodeHandleT CFLOBDDForkNodeHandle10;
       static WeightedCFLOBDDNodeHandleT CFLOBDDDontCareNodeHandle;
       static void InitNoDistinctionTable();
       static void InitNoDistinctionTable_Ann();
@@ -212,7 +214,9 @@ class WeightedCFLOBDDNode {
   //unsigned long long int *numPathsToExit;       // unsigned int numPathsToExit[numExits]
   //cpp_int *numPathsToExit;
   long double *numPathsToExit;
+  T *numWeightsOfPathsAsAmpsToExit;
   bool isNumPathsMemAllocated;
+  bool isWeightsOfPathsMemAllocated;
 //#endif
   virtual void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index) = 0;
   virtual int Traverse(SH_OBDD::AssignmentIterator &ai) = 0;
@@ -223,6 +227,7 @@ class WeightedCFLOBDDNode {
         unsigned int &nodeCount, unsigned int &edgeCount, unsigned int &returnEdgesCount) = 0;
   virtual void CountNodes(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes, unsigned int &nodeCount) = 0;
   virtual void CountPaths(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes) = 0;
+  virtual void ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes) = 0;
   virtual bool operator!= (const WeightedCFLOBDDNode<T,Op> & n) = 0;  // Overloaded !=
   virtual bool operator== (const WeightedCFLOBDDNode<T,Op> & n) = 0;  // Overloaded ==
   virtual void IncrRef() = 0;
@@ -275,6 +280,7 @@ class WeightedCFLOBDDInternalNode : public WeightedCFLOBDDNode<T,Op> {
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount);
   void CountNodes(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes, unsigned int &nodeCount);
   void CountPaths(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes);
+  void ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes);
   bool operator!= (const WeightedCFLOBDDNode<T,Op> & n);        // Overloaded !=
   bool operator== (const WeightedCFLOBDDNode<T,Op> & n);        // Overloaded ==
   void IncrRef();
@@ -289,6 +295,7 @@ class WeightedCFLOBDDInternalNode : public WeightedCFLOBDDNode<T,Op> {
   unsigned int InsertBConnection(unsigned int &j, WConnection<T,Op> &c);
 //#ifdef PATH_COUNTING_ENABLED
   void InstallPathCounts();
+  void InstallWeightsOfPathsAsAmpsToExits();
 //#endif
 
  private:
@@ -304,7 +311,6 @@ class WeightedCFLOBDDInternalNode : public WeightedCFLOBDDNode<T,Op> {
 //********************************************************************
 // CFLOBDDLeafNode
 //********************************************************************
-
 template <typename T, typename Op>
 class WeightedCFLOBDDLeafNode : public WeightedCFLOBDDNode<T,Op> {
  public:
@@ -321,8 +327,10 @@ class WeightedCFLOBDDLeafNode : public WeightedCFLOBDDNode<T,Op> {
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount);
   void CountNodes(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes, unsigned int &nodeCount);
   void CountPaths(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes);
+  void ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes);
   virtual bool operator!= (const WeightedCFLOBDDNode<T,Op> & n) = 0;  // Overloaded !=
   virtual bool operator== (const WeightedCFLOBDDNode<T,Op> & n) = 0;  // Overloaded ==
+  virtual void InstallWeightsOfPathsAsAmpsToExits() = 0;
   void IncrRef();
   void DecrRef();
   T lweight;
@@ -350,6 +358,7 @@ class WeightedCFLOBDDForkNode : public WeightedCFLOBDDLeafNode<T,Op> {
   unsigned int Hash(unsigned int modsize);
   bool operator!= (const WeightedCFLOBDDNode<T,Op> & n);        // Overloaded !=
   bool operator== (const WeightedCFLOBDDNode<T,Op> & n);        // Overloaded ==
+  void InstallWeightsOfPathsAsAmpsToExits(); 
 
  public:
 	 std::ostream& print(std::ostream & out = std::cout) const;
@@ -377,6 +386,7 @@ class WeightedCFLOBDDDontCareNode : public WeightedCFLOBDDLeafNode<T,Op> {
   unsigned int Hash(unsigned int modsize);
   bool operator!= (const WeightedCFLOBDDNode<T,Op> & n);        // Overloaded !=
   bool operator== (const WeightedCFLOBDDNode<T,Op> & n);        // Overloaded ==
+  void InstallWeightsOfPathsAsAmpsToExits();
 
  public:
 	 std::ostream& print(std::ostream & out = std::cout) const;

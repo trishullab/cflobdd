@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include <chrono>
 #include <random>
+#include <unordered_map>
 #include "wvector_top_node_fb_mul.h"
 #include "wvector_fb_mul_node.h"
 
@@ -66,6 +67,9 @@ namespace CFL_OBDD {
 
 		WeightedCFLOBDDTopNodeFloatBoostRefPtr VectorToMatrixInterleavedTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n)
 		{
+			// std::unordered_map<WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap;
+			
+			// WeightedCFLOBDDFloatBoostMulNodeMemoTableRefPtr memoTable = new WeightedCFLOBDDFloatBoostMulNodeMemoTable;
 			std::unordered_map<WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap;
 			WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle = VectorToMatrixInterleavedNode(hashMap, *(n->rootConnection.entryPointHandle));
 			WeightedCFLOBDDTopNodeFloatBoostRefPtr v = new WeightedCFLOBDDTopNodeFloatBoost(tempHandle, n->rootConnection.returnMapHandle, n->rootConnection.factor);
@@ -122,57 +126,9 @@ namespace CFL_OBDD {
 //#ifdef PATH_COUNTING_ENABLED
 		std::string SamplingTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n, bool VocTwo)
 		{
-			std::vector<std::pair<BIG_FLOAT, unsigned int>> values;
-			long double prob = -1 * std::numeric_limits<long double>::infinity();
-			
-			for (unsigned int i = 0; i < n->rootConnection.returnMapHandle.Size(); i++)
-			{
-				if (n->rootConnection.returnMapHandle.Lookup(i) == 0){
-					values.push_back(std::make_pair(-1 * std::numeric_limits<BIG_FLOAT>::infinity(), i));
-				}
-				else{
-					BIG_FLOAT amplitude = boost::multiprecision::log2(n->rootConnection.returnMapHandle.Lookup(i));
-					long double logNumPaths = n->rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
-					values.push_back(std::make_pair(amplitude + logNumPaths, i));
-				}
-			}
-
-
-			sort(values.begin(), values.end(), sortNumPathPairs<BIG_FLOAT>);
-			prob = getLogSumNumPaths(values, values.size()).convert_to<long double>();
-			
-			/*for (int j = 0; j < values.size(); j++)
-				std::cout << values[j].first << " " << values[j].second << std::endl;*/
-			BIG_FLOAT val = -1 * std::numeric_limits<BIG_FLOAT>::infinity();
-			long double random_value = 0.0;
-			if (prob >= 64){
-				std::random_device rd;
-				std::default_random_engine generator(rd());
-				std::uniform_int_distribution<long long unsigned> distribution(0, 0xFFFFFFFFFFFFFFFF);
-				random_value = log2l(distribution(generator)) + prob - 64;
-			}
-			else{
-				auto rand_val = rand();
-				random_value = log2l((((double)rand_val) / RAND_MAX)*pow(2, prob));
-				//std::cout << rand() << " " << (((double)rand_val) / RAND_MAX) << " " << pow(2, prob) << " " << random_value;
-			}
-
-			unsigned int index = 0;
-			for (unsigned int i = 0; i < values.size(); i++)
-			{
-				val = getLogSumNumPaths(values, i + 1);
-				if (val >= random_value)
-				{
-					index = values[i].second;
-					break;
-				}
-			}
-			if (n->rootConnection.returnMapHandle.Size() == 2){
-				if (n->rootConnection.returnMapHandle.Lookup(0) == 0)
-					index = 1;
-				else if (n->rootConnection.returnMapHandle.Lookup(1) == 0)
-					index = 0;
-			}
+			if (n->rootConnection.factor == 0)
+				return "";
+			int index = n->rootConnection.returnMapHandle.LookupInv(1);
 			std::pair<std::string, std::string> stringPair = SamplingNode(*(n->rootConnection.entryPointHandle), index, VocTwo);
 			//std::cout << stringPair.first << " " << stringPair.second << std::endl;
 			return stringPair.first + stringPair.second;

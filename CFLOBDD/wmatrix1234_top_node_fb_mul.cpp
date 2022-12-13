@@ -66,14 +66,14 @@ namespace CFL_OBDD {
 		WeightedCFLOBDDTopNodeFloatBoostRefPtr MkExchangeInterleavedTop(unsigned int i)
 		{
 			WeightedCFLOBDDTopNodeFloatBoostRefPtr v;
-			// WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle;
-			// FloatBoostReturnMapHandle m01;
+			WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle;
+			FloatBoostReturnMapHandle m01;
 
-			// tempHandle = MkExchangeInterleavedNode(i);
-			// m01.AddToEnd(0);
-			// m01.AddToEnd(1);
-			// m01.Canonicalize();
-			// v = new WeightedCFLOBDDTopNodeFloatBoost(tempHandle, m01);
+			tempHandle = MkExchangeInterleavedNode(i);
+			m01.AddToEnd(0);
+			m01.AddToEnd(1);
+			m01.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeFloatBoost(tempHandle, m01);
 			return v;
 		}
 
@@ -246,7 +246,10 @@ namespace CFL_OBDD {
 		
 		WeightedCFLOBDDTopNodeFloatBoostRefPtr MatrixMultiplyV4TopNode(WeightedCFLOBDDTopNodeFloatBoostRefPtr c1, WeightedCFLOBDDTopNodeFloatBoostRefPtr c2)
 		{
-			auto c = MatrixMultiplyV4Node(*(c1->rootConnection.entryPointHandle), *(c2->rootConnection.entryPointHandle));
+            int zero_exit_1 = -1, zero_exit_2 = -1;
+            zero_exit_1 = c1->rootConnection.returnMapHandle.LookupInv(0);
+            zero_exit_2 = c2->rootConnection.returnMapHandle.LookupInv(0);
+			auto c = MatrixMultiplyV4Node(*(c1->rootConnection.entryPointHandle), *(c2->rootConnection.entryPointHandle), zero_exit_1, zero_exit_2);
 			FloatBoostReturnMapHandle v;
 			boost::unordered_map<BIG_FLOAT, unsigned int> reductionMap;
 			ReductionMapHandle reductionMapHandle;
@@ -254,16 +257,28 @@ namespace CFL_OBDD {
             WeightedCFLOBDDFloatBoostMulNodeHandle n = std::get<0>(c);
             CFLOBDDMatMultMapHandle n_return = std::get<1>(c);
             BIG_FLOAT n_factor = std::get<2>(c);
+            bool first = true;
+            BIG_FLOAT common_f = 1.0;
 			for (unsigned int i = 0; i < n_return.Size(); i++){
 				WeightedMatMultMapHandle r = n_return[i];
 				BIG_FLOAT val = 0;
 				for (auto &j : r.mapContents->map){
-					unsigned int index1 = j.first.first;
-					unsigned int index2 = j.first.second;
+					long int index1 = j.first.first;
+					long int index2 = j.first.second;
 					BIG_FLOAT factor(j.second);
                     if (!(index1 == -1 && index2 == -1))
 					    val = val + (factor * (c1->rootConnection.returnMapHandle[index1] * c2->rootConnection.returnMapHandle[index2]));
 				}
+                if (first && val != 0)
+                {
+                    common_f = val;
+                    val = 1.0;
+                    first = false;
+                }
+                else
+                {
+                    val = val/common_f;
+                }
                 BIG_FLOAT val_to_check = (val == 0)? 0 : 1;
 				if (reductionMap.find(val_to_check) == reductionMap.end()){
 					v.AddToEnd(val_to_check);
@@ -276,15 +291,15 @@ namespace CFL_OBDD {
                     valList.AddToEnd(val);
 				}
 			}
-			
 			v.Canonicalize();
 			reductionMapHandle.Canonicalize();
             valList.Canonicalize();
             // n.print(std::cout);
-			auto g = n.Reduce(reductionMapHandle, v.Size(), valList, false);
+            // std::cout << valList << std::endl;
+			auto g = n.Reduce(reductionMapHandle, v.Size(), valList, true);
 			// Create and return CFLOBDDTopNode
 			//return(new CFLOBDDTopNodeFloatBoost(reduced_tempHandle, inducedReturnMap));
-			return(new WeightedCFLOBDDTopNodeFloatBoost(g.first, v, g.second));
+			return(new WeightedCFLOBDDTopNodeFloatBoost(g.first, v, g.second * common_f * c1->rootConnection.factor * c2->rootConnection.factor));
 		}
 
 		WeightedCFLOBDDTopNodeFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled)

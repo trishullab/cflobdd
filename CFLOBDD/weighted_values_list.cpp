@@ -22,13 +22,13 @@
 // Constructor
 template <typename T>
 WeightedValuesListBody<T>::WeightedValuesListBody()
-  : refCount(0), isCanonical(false), isAllSame(true)
+  : refCount(0), isCanonical(false), isAllSame(true), isOneOrZero(true)
 {
 }
 
 template <typename T>
 WeightedValuesListBody<T>::WeightedValuesListBody(unsigned int capacity)
-	: refCount(0), isCanonical(false), isAllSame(true)
+	: refCount(0), isCanonical(false), isAllSame(true), isOneOrZero(true)
 {
 	mapArray.reserve(capacity);
 }
@@ -88,6 +88,8 @@ void WeightedValuesListBody<T>::AddToEnd(T y)
     {
         isAllSame = isAllSame && (y == mapArray[mapArray.size()-1]);
     }
+    if (isOneOrZero)
+        isOneOrZero = isOneOrZero && ((y == 0) || (y == 1));
 	mapArray.push_back(y);
 }
 

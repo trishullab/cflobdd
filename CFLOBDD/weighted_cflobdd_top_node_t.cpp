@@ -271,6 +271,13 @@ namespace CFL_OBDD {
 
 
     template <typename T, typename Op>
+    void WeightedCFLOBDDTopNodeT<T, Op>::ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedCFLOBDDNodeHandleT<T, Op>> *visitedNodes)
+    {
+        rootConnection.entryPointHandle->handleContents->ComputeWeightOfPathsAsAmpsToExits(visitedNodes);
+    }
+
+
+    template <typename T, typename Op>
     void WeightedCFLOBDDTopNodeT<T, Op>::CountNodesAndEdges(Hashset<WeightedCFLOBDDNodeHandleT<T, Op>> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
         unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount, unsigned int& returnEdgesObjCount)
     {

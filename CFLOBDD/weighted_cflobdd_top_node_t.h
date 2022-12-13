@@ -12,7 +12,6 @@
 #include "ref_ptr.h"
 #include "weighted_cflobdd_node_t.h"
 #include "weighted_rootConnectionT.h"
-#include "matmult_map.h"
 // #include "traverse_state_cfl.h"
 
 namespace CFL_OBDD {
@@ -45,6 +44,7 @@ class WeightedCFLOBDDTopNodeT {
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount, unsigned int &returnEdgesObjCount);
   void CountNodes(Hashset<WeightedCFLOBDDNodeHandleT<T, Op>> *visitedNodes, unsigned int &nodeCount);
   void CountPaths(Hashset<WeightedCFLOBDDNodeHandleT<T, Op>> *visitedNodes);
+  void ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedCFLOBDDNodeHandleT<T, Op>> *visitedNodes);
   bool operator!= (const WeightedCFLOBDDTopNodeT<T, Op> & C);          // Overloaded !=
   bool operator== (const WeightedCFLOBDDTopNodeT<T, Op> & C);          // Overloaded ==
   static unsigned int const maxLevel;

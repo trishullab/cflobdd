@@ -80,6 +80,36 @@ namespace CFL_OBDD {
 			MatrixPrintRowMajorInterleavedTop(c.root, out);
 			return;
 		}
+
+        WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL ApplyExchangeAndIdentity(std::string s){
+			if (s.find('1') == std::string::npos){
+				return MkIdRelationInterleaved(ceil(log2(s.length())) + 1);
+			}
+			else if (s.find('0') == std::string::npos){
+				return MkExchangeInterleaved(ceil(log2(s.length())) + 1);
+			}
+			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL F1 = ApplyExchangeAndIdentity(s.substr(0, s.length() / 2));
+			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL F2 = ApplyExchangeAndIdentity(s.substr(s.length() / 2));
+			return KroneckerProduct2Vocs(F1, F2);
+		}
+
+		WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL CreateBalancedFn(int n, std::mt19937 mt){
+			std::string s(2*n, '0');
+			for (unsigned int i = 0; i < n; i++)
+				s[i] = mt() % 2 ? '1' : '0';
+			
+			unsigned int level = ceil(log2(n)) + 2;
+			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL F = ApplyExchangeAndIdentity(s);
+			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL C = WeightedMatrix1234FloatBoostMul::MkCNOT(level, n, 0, n);
+			for (int i = 1; i < n; i++){
+				WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL tmp = WeightedMatrix1234FloatBoostMul::MkCNOT(level, n, i, n);
+				C = WeightedMatrix1234FloatBoostMul::MatrixMultiplyV4(C, tmp);
+			}
+			std::cout << "C created" << std::endl;
+			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL ans = WeightedMatrix1234FloatBoostMul::MatrixMultiplyV4(C, F);
+			ans = WeightedMatrix1234FloatBoostMul::MatrixMultiplyV4(F, ans);
+			return ans;
+		}
 	}
 }
 

@@ -11,50 +11,57 @@
 //***************************************************************
 
 // Constructor
-WeightedMatMultMapBody::WeightedMatMultMapBody()
+template <typename T>
+WeightedMatMultMapBody<T>::WeightedMatMultMapBody()
 	: refCount(0), isCanonical(false), contains_zero_val(false)
 {
 	hashCheck = NULL;
 }
 
-void WeightedMatMultMapBody::IncrRef()
+template <typename T>
+void WeightedMatMultMapBody<T>::IncrRef()
 {
 	refCount++;    // Warning: Saturation not checked
 }
 
-void WeightedMatMultMapBody::DecrRef()
+template <typename T>
+void WeightedMatMultMapBody<T>::DecrRef()
 {
 	if (--refCount == 0) {    // Warning: Saturation not checked
 		if (isCanonical) {
-			WeightedMatMultMapHandle::canonicalWeightedMatMultMapBodySet->DeleteEq(this);
+			WeightedMatMultMapHandle<T>::canonicalWeightedMatMultMapBodySet->DeleteEq(this);
 		}
 		delete this;
 	}
 }
 
-unsigned int WeightedMatMultMapBody::Hash(unsigned int modsize)
+template <typename T>
+unsigned int WeightedMatMultMapBody<T>::Hash(unsigned int modsize)
 {
 	/*if (modsize == HASHSETBASE)
 		return hashCheck;*/
 	unsigned int hvalue = 0;
-	boost::hash<BIG_FLOAT> boost_hash;
+	boost::hash<T> boost_hash;
 	for (auto &i : map)
 	{
 		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second))) % modsize;
 	}
 	return hvalue;
 }
-void WeightedMatMultMapBody::setHashCheck()
+
+template <typename T>
+void WeightedMatMultMapBody<T>::setHashCheck()
 {
 	long int hvalue = 0;
-	boost::hash<BIG_FLOAT> boost_hash;
+	boost::hash<T> boost_hash;
 	for (auto &i : map) {
 		hvalue = (117 * (hvalue + 1) + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second)));
 	}
 	hashCheck = hvalue;
 }
 
-bool WeightedMatMultMapBody::operator==(const WeightedMatMultMapBody &o) const
+template <typename T>
+bool WeightedMatMultMapBody<T>::operator==(const WeightedMatMultMapBody<T> &o) const
 {
 	if (hashCheck != o.hashCheck) {
 		return false;
@@ -73,12 +80,14 @@ bool WeightedMatMultMapBody::operator==(const WeightedMatMultMapBody &o) const
 }
 
 // Overloaded []
-BIG_FLOAT& WeightedMatMultMapBody::operator[](INT_PAIR& p)
+template <typename T>
+T& WeightedMatMultMapBody<T>::operator[](INT_PAIR& p)
 {
 	return map[p];
 }
 
-std::ostream& operator<< (std::ostream & out, const WeightedMatMultMapBody &r)
+template <typename T>
+std::ostream& operator<< (std::ostream & out, const WeightedMatMultMapBody<T> &r)
 {
 	out << "{WMMMB: ";
 	for (auto &i : r.map) {
@@ -93,34 +102,39 @@ std::ostream& operator<< (std::ostream & out, const WeightedMatMultMapBody &r)
 //***************************************************************
 
 // Initializations of static members ---------------------------------
-Hashset<WeightedMatMultMapBody> *WeightedMatMultMapHandle::canonicalWeightedMatMultMapBodySet = new Hashset<WeightedMatMultMapBody>(HASHSET_NUM_BUCKETS);
+template <typename T>
+Hashset<WeightedMatMultMapBody<T>> *WeightedMatMultMapHandle<T>::canonicalWeightedMatMultMapBodySet = new Hashset<WeightedMatMultMapBody<T>>(HASHSET_NUM_BUCKETS);
 
 // Default constructor
-WeightedMatMultMapHandle::WeightedMatMultMapHandle()
-	: mapContents(new WeightedMatMultMapBody)
+template <typename T>
+WeightedMatMultMapHandle<T>::WeightedMatMultMapHandle()
+	: mapContents(new WeightedMatMultMapBody<T>)
 {
 	mapContents->IncrRef();
 }
 
 // Destructor
-WeightedMatMultMapHandle::~WeightedMatMultMapHandle()
+template <typename T>
+WeightedMatMultMapHandle<T>::~WeightedMatMultMapHandle()
 {
 	mapContents->DecrRef();
 }
 
 // Copy constructor
-WeightedMatMultMapHandle::WeightedMatMultMapHandle(const WeightedMatMultMapHandle &r)
+template <typename T>
+WeightedMatMultMapHandle<T>::WeightedMatMultMapHandle(const WeightedMatMultMapHandle<T> &r)
 	: mapContents(r.mapContents)
 {
 	mapContents->IncrRef();
 }
 
 // Overloaded assignment
-WeightedMatMultMapHandle& WeightedMatMultMapHandle::operator= (const WeightedMatMultMapHandle &r)
+template <typename T>
+WeightedMatMultMapHandle<T>& WeightedMatMultMapHandle<T>::operator= (const WeightedMatMultMapHandle<T> &r)
 {
 	if (this != &r)      // don't assign to self!
 	{
-		WeightedMatMultMapBody *temp = mapContents;
+		WeightedMatMultMapBody<T> *temp = mapContents;
 		mapContents = r.mapContents;
 		mapContents->IncrRef();
 		temp->DecrRef();
@@ -129,38 +143,44 @@ WeightedMatMultMapHandle& WeightedMatMultMapHandle::operator= (const WeightedMat
 }
 
 // Overloaded !=
-bool WeightedMatMultMapHandle::operator!=(const WeightedMatMultMapHandle &r) const
+template <typename T>
+bool WeightedMatMultMapHandle<T>::operator!=(const WeightedMatMultMapHandle<T> &r) const
 {
 	return (mapContents != r.mapContents);
 }
 
 // Overloaded ==
-bool WeightedMatMultMapHandle::operator==(const WeightedMatMultMapHandle &r) const
+template <typename T>
+bool WeightedMatMultMapHandle<T>::operator==(const WeightedMatMultMapHandle<T> &r) const
 {
 
 	return (mapContents == r.mapContents);
 }
 
 // Overloaded []
-BIG_FLOAT& WeightedMatMultMapHandle::operator[](INT_PAIR& i)
+template <typename T>
+T& WeightedMatMultMapHandle<T>::operator[](INT_PAIR& i)
 {
 	return (*(this->mapContents))[i];
 }
 
 // print
-std::ostream& WeightedMatMultMapHandle::print(std::ostream & out) const
+template <typename T>
+std::ostream& WeightedMatMultMapHandle<T>::print(std::ostream & out) const
 {
 	out << *mapContents;
 	return out;
 }
 
-std::ostream& operator<< (std::ostream & out, const WeightedMatMultMapHandle &r)
+template <typename T>
+std::ostream& operator<< (std::ostream & out, const WeightedMatMultMapHandle<T> &r)
 {
 	r.print(out);
 	return(out);
 }
 
-unsigned int WeightedMatMultMapHandle::Hash(unsigned int modsize)
+template <typename T>
+unsigned int WeightedMatMultMapHandle<T>::Hash(unsigned int modsize)
 {
 	if (!(mapContents->isCanonical)) {
 		std::cout << "Hash of a non-canonical LinearMapHandle occurred" << std::endl;
@@ -171,7 +191,8 @@ unsigned int WeightedMatMultMapHandle::Hash(unsigned int modsize)
 	return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
 }
 
-void WeightedMatMultMapHandle::Add(const INT_PAIR& p, BIG_FLOAT& v)
+template <typename T>
+void WeightedMatMultMapHandle<T>::Add(const INT_PAIR& p, T& v)
 {
 	assert(mapContents->refCount <= 1);
 	auto it = mapContents->map.find(p);
@@ -185,7 +206,8 @@ void WeightedMatMultMapHandle::Add(const INT_PAIR& p, BIG_FLOAT& v)
     }
 }
 
-void WeightedMatMultMapHandle::ForceAdd(const INT_PAIR& p, BIG_FLOAT& v)
+template <typename T>
+void WeightedMatMultMapHandle<T>::ForceAdd(const INT_PAIR& p, T& v)
 {
 	assert(mapContents->refCount <= 1);
 	auto it = mapContents->map.find(p);
@@ -204,21 +226,25 @@ void WeightedMatMultMapHandle::ForceAdd(const INT_PAIR& p, BIG_FLOAT& v)
 	}
 }
 
-bool WeightedMatMultMapHandle::Member(INT_PAIR& y)
+template <typename T>
+bool WeightedMatMultMapHandle<T>::Member(INT_PAIR& y)
 {
 	return (mapContents->map.find(y) != mapContents->map.end());
 }
 
-BIG_FLOAT WeightedMatMultMapHandle::Lookup(INT_PAIR& p)
+template <typename T>
+T WeightedMatMultMapHandle<T>::Lookup(INT_PAIR& p)
 {
 	return mapContents->map[p];
 }
 
-unsigned int WeightedMatMultMapHandle::Size(){
+template <typename T>
+unsigned int WeightedMatMultMapHandle<T>::Size(){
 	return (unsigned int)mapContents->map.size();
 }
 
-std::string WeightedMatMultMapHandle::ToString(){
+template <typename T>
+std::string WeightedMatMultMapHandle<T>::ToString(){
 	std::string map_string;
 	for (auto &i : mapContents->map){
 		//map_string += std::to_string(i.first.first) + "," + std::to_string(i.first.second);
@@ -231,7 +257,8 @@ std::string WeightedMatMultMapHandle::ToString(){
 }
 
 
-void WeightedMatMultMapHandle::Canonicalize()
+template <typename T>
+void WeightedMatMultMapHandle<T>::Canonicalize()
 {
 
     // TODO: maybe change this to a function
@@ -246,7 +273,7 @@ void WeightedMatMultMapHandle::Canonicalize()
     if (mapContents->map.empty())
         mapContents->map.insert(std::make_pair(std::make_pair(-1, -1), 0));
 
-	WeightedMatMultMapBody *answerContents;
+	WeightedMatMultMapBody<T> *answerContents;
 	mapContents->setHashCheck();
 
 	if (!mapContents->isCanonical) {
@@ -265,7 +292,8 @@ void WeightedMatMultMapHandle::Canonicalize()
 	}
 }
 
-size_t WeightedMatMultMapHandle::getHashCheck()
+template <typename T>
+size_t WeightedMatMultMapHandle<T>::getHashCheck()
 {
     return mapContents->hashCheck;
 }
@@ -273,9 +301,10 @@ size_t WeightedMatMultMapHandle::getHashCheck()
 // Linear operators on WeightedMatMultMapHandles ------------------------------------------------
 
 // Binary addition
-WeightedMatMultMapHandle WeightedMatMultMapHandle::operator+ (const WeightedMatMultMapHandle& mapHandle) const
+template <typename T>
+WeightedMatMultMapHandle<T> WeightedMatMultMapHandle<T>::operator+ (const WeightedMatMultMapHandle<T>& mapHandle) const
 {
-	WeightedMatMultMapHandle ans;
+	WeightedMatMultMapHandle<T> ans;
 	for (auto &i : mapContents->map){
 		ans.Add(i.first, i.second);
 	}
@@ -283,7 +312,7 @@ WeightedMatMultMapHandle WeightedMatMultMapHandle::operator+ (const WeightedMatM
 		ans.Add(i.first, i.second);
 	}
 	if (ans.Size() == 0){
-		BIG_FLOAT one = 1;
+		T one(1);
 		ans.ForceAdd(std::make_pair(-1, -1), one);
 	}
 	ans.Canonicalize();
@@ -291,17 +320,18 @@ WeightedMatMultMapHandle WeightedMatMultMapHandle::operator+ (const WeightedMatM
 }
 
 // Left scalar-multiplication
-WeightedMatMultMapHandle operator* (const BIG_FLOAT& factor, const WeightedMatMultMapHandle& mapHandle)
+template <typename T>
+WeightedMatMultMapHandle<T> operator* (const T& factor, const WeightedMatMultMapHandle<T>& mapHandle)
 {
 	if (factor == 1)
 		return mapHandle;
-	WeightedMatMultMapHandle ans;
+	WeightedMatMultMapHandle<T> ans;
 	for (auto &i : mapHandle.mapContents->map){
-		BIG_FLOAT v = i.second * factor;
+		T v = i.second * factor;
 		ans.Add(i.first, v);
 	}
 	if (ans.Size() == 0){
-		BIG_FLOAT one = 1;
+		T one(1);
 		ans.ForceAdd(std::make_pair(-1, -1), one);
 	}
 	ans.Canonicalize();
@@ -309,24 +339,34 @@ WeightedMatMultMapHandle operator* (const BIG_FLOAT& factor, const WeightedMatMu
 }
 
 // Right scalar-multiplication
-WeightedMatMultMapHandle operator* (const WeightedMatMultMapHandle& mapHandle, const BIG_FLOAT& factor)
+template <typename T>
+WeightedMatMultMapHandle<T> operator* (const WeightedMatMultMapHandle<T>& mapHandle, const T& factor)
 {
 	if (factor == 1)
 		return mapHandle;
-	WeightedMatMultMapHandle ans;
+	WeightedMatMultMapHandle<T> ans;
 	for (auto &i : mapHandle.mapContents->map){
-		BIG_FLOAT v = i.second * factor;
+		T v = i.second * factor;
 		ans.Add(i.first, v);
 	}
 	if (ans.Size() == 0){
-		BIG_FLOAT one = 1;
+		T one(1);
 		ans.ForceAdd(std::make_pair(-1, -1), one);
 	}
 	ans.Canonicalize();
 	return ans;
 }
 
-std::size_t hash_value(const WeightedMatMultMapHandle& val)
+template <typename T>
+std::size_t hash_value(const WeightedMatMultMapHandle<T>& val)
 {
 	return val.mapContents->hashCheck;
 }
+
+template class WeightedMatMultMapHandle<BIG_FLOAT>;
+template WeightedMatMultMapHandle<BIG_FLOAT> operator*<BIG_FLOAT>(const BIG_FLOAT&, const WeightedMatMultMapHandle<BIG_FLOAT>&);
+template WeightedMatMultMapHandle<BIG_FLOAT> operator*<BIG_FLOAT>(const WeightedMatMultMapHandle<BIG_FLOAT>&, const BIG_FLOAT&);
+
+template class WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>;
+template WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT> operator*<BIG_COMPLEX_FLOAT>(const BIG_COMPLEX_FLOAT&, const WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>&);
+template WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT> operator*<BIG_COMPLEX_FLOAT>(const WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>&, const BIG_COMPLEX_FLOAT&);

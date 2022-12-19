@@ -465,7 +465,7 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>, T> WeightedCFLOBDDNodeHandleT<T,Op>:
 		return std::make_pair(*this, valueTuple.mapContents->value);
 	}
 
-    if (addCheck && redMapHandle.mapContents->isIdentityMap && valueTuple.mapContents->isOneOrZero)
+    if (addCheck && redMapHandle.mapContents->isIdentityMap && valueTuple.mapContents->isOneOrZero && this->handleContents->level != 0)
     {
         return std::make_pair(*this, getIdentityValue<T,Op>());
     }
@@ -2155,8 +2155,8 @@ void WeightedCFLOBDDForkNode<T,Op>::InstallWeightsOfPathsAsAmpsToExits()
 {
     this->isWeightsOfPathsMemAllocated = true;
     this->numWeightsOfPathsAsAmpsToExit = new T[2];
-    this->numWeightsOfPathsAsAmpsToExit[0] = this->lweight * this->lweight;
-    this->numWeightsOfPathsAsAmpsToExit[1] = this->rweight * this->rweight;
+    this->numWeightsOfPathsAsAmpsToExit[0] = computeProbabilityFromAmplitude<T,Op>(this->lweight);
+    this->numWeightsOfPathsAsAmpsToExit[1] = computeProbabilityFromAmplitude<T,Op>(this->rweight);
 }
 
 // print
@@ -2291,7 +2291,7 @@ void WeightedCFLOBDDDontCareNode<T,Op>::InstallWeightsOfPathsAsAmpsToExits()
 {
     this->isWeightsOfPathsMemAllocated = true;
     this->numWeightsOfPathsAsAmpsToExit = new T[1];
-    this->numWeightsOfPathsAsAmpsToExit[0] = this->lweight * this->lweight + this->rweight * this->rweight;
+    this->numWeightsOfPathsAsAmpsToExit[0] = computeProbabilityFromAmplitude<T,Op>(this->lweight) + computeProbabilityFromAmplitude<T,Op>(this->rweight);
 }
 
 // print

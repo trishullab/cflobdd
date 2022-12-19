@@ -85,7 +85,7 @@ unsigned int ReturnMapBody<MatMultMapHandle>::Hash(unsigned int modsize)
 }
 
 template<>
-void ReturnMapBody<WeightedMatMultMapHandle>::setHashCheck()
+void ReturnMapBody<WeightedMatMultMapHandle<BIG_FLOAT>>::setHashCheck()
 {
 	unsigned int hvalue = 0;
 
@@ -100,7 +100,34 @@ void ReturnMapBody<WeightedMatMultMapHandle>::setHashCheck()
 }
 
 template<>
-unsigned int ReturnMapBody<WeightedMatMultMapHandle>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<WeightedMatMultMapHandle<BIG_FLOAT>>::Hash(unsigned int modsize)
+{
+	unsigned int hvalue = 0;
+
+	for (unsigned i = 0; i < mapArray.size(); i++)
+	{
+		hvalue = (997 * hvalue + mapArray[i].Hash(modsize)) % modsize;
+	}
+	return hvalue;
+}
+
+template<>
+void ReturnMapBody<WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>>::setHashCheck()
+{
+	unsigned int hvalue = 0;
+
+	for (unsigned i = 0; i < mapArray.size(); i++)
+	{
+		if (mapArray[i].mapContents->hashCheck == NULL) {
+			mapArray[i].mapContents->setHashCheck();
+		}
+		hvalue = (117 * (hvalue + 1) + mapArray[i].mapContents->hashCheck);
+	}
+	hashCheck = hvalue;
+}
+
+template<>
+unsigned int ReturnMapBody<WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>>::Hash(unsigned int modsize)
 {
 	unsigned int hvalue = 0;
 

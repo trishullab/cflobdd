@@ -12,7 +12,7 @@
 #include "hashset.h"
 #include "wmatrix1234_fb_mul_node.h"
 #include "weighted_cross_product.h"
-#include "return_map_t.h"
+#include "return_map_T.h"
 #include "weighted_matmult_map.h"
 
 namespace CFL_OBDD {
@@ -246,13 +246,13 @@ namespace CFL_OBDD {
             unsigned int iterator = 0;
             WeightedValuesListHandle<BIG_FLOAT> valList;
             while (iterator < MapHandle.Size()){
-                WeightedMatMultMapHandle c1, c2;
+                WeightedMatMultMapHandle<BIG_FLOAT> c1, c2;
                 int first, second;
                 first = MapHandle[iterator].first.First();
                 second = MapHandle[iterator].first.Second();
-                WeightedMatMultMapHandle val;
+                WeightedMatMultMapHandle<BIG_FLOAT> val;
                 if (first == -1 && second == -1){
-                    val = WeightedMatMultMapHandle();
+                    val = WeightedMatMultMapHandle<BIG_FLOAT>();
                     BIG_FLOAT v = 0.0;
                     val.Add(std::make_pair(-1,-1), v);
                     val.mapContents->contains_zero_val = true;
@@ -263,7 +263,7 @@ namespace CFL_OBDD {
                     BIG_FLOAT v1, v2;
                     v1 = MapHandle[iterator].second.First();
                     v2 = MapHandle[iterator].second.Second();
-                    val = (v1 * c1 + v2 * c2);
+                    val = v1 * c1 + v2 * c2;
                 }
                 val.Canonicalize();
                 if (reductionMap.find(val.getHashCheck()) == reductionMap.end()){
@@ -305,7 +305,7 @@ namespace CFL_OBDD {
             if (c1 == WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[c1.handleContents->level] || c2 == WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[c2.handleContents->level])
             {
                 CFLOBDDMatMultMapHandle m;
-                WeightedMatMultMapHandle tmp;
+                WeightedMatMultMapHandle<BIG_FLOAT> tmp;
                 tmp.Add(std::make_pair(-1,-1), zero);
                 tmp.mapContents->contains_zero_val = true;
                 tmp.Canonicalize();
@@ -318,7 +318,7 @@ namespace CFL_OBDD {
             {
                 CFLOBDDMatMultMapHandle m;
                 BIG_FLOAT one = 1.0;
-                WeightedMatMultMapHandle m0, m1;
+                WeightedMatMultMapHandle<BIG_FLOAT> m0, m1;
                 m0.Add(std::make_pair(0,0), one); m0.Canonicalize();
                 m1.Add(std::make_pair(-1,-1), zero); m1.mapContents->contains_zero_val = true; m1.Canonicalize();
                 m.AddToEnd(m0); m.AddToEnd(m1); m.Canonicalize();
@@ -331,7 +331,7 @@ namespace CFL_OBDD {
                 BIG_FLOAT one = 1.0;
                 for (int i = 0; i < c2.handleContents->numExits; i++)
                 {
-                    WeightedMatMultMapHandle tmp;
+                    WeightedMatMultMapHandle<BIG_FLOAT> tmp;
                     if (i != zero_exit_2)
                         tmp.Add(std::make_pair(0, i), one);
                     else{
@@ -350,7 +350,7 @@ namespace CFL_OBDD {
                 BIG_FLOAT one = 1.0;
                 for (int i = 0; i < c1.handleContents->numExits; i++)
                 {
-                    WeightedMatMultMapHandle tmp;
+                    WeightedMatMultMapHandle<BIG_FLOAT> tmp;
                     if (i != zero_exit_1)
                         tmp.Add(std::make_pair(i, 0), one);
                     else{
@@ -385,7 +385,7 @@ namespace CFL_OBDD {
                 c0 = d0 = M1_A->rweight;
                 a1 = b1 = M2_A->lweight;
                 c1 = d1 = M2_A->rweight;
-                WeightedMatMultMapHandle v1, v2, v3, v4;
+                WeightedMatMultMapHandle<BIG_FLOAT> v1, v2, v3, v4;
                 int M1_numB = c1_internal->numBConnections;
                 int M2_numB = c2_internal->numBConnections;
                 WeightedCFLOBDDFloatBoostLeafNode* M1_b0 = (WeightedCFLOBDDFloatBoostLeafNode *)c1_internal->BConnection[0].entryPointHandle->handleContents;
@@ -440,7 +440,7 @@ namespace CFL_OBDD {
                     v3.mapContents->contains_zero_val = true;
                 }
                 if (d0c1 != 0)
-                    v3.Add(std::make_pair(c1_internal->BConnection[M1_numB-1].returnMapHandle[M1_b0_numE-1], c2_internal->BConnection[M2_numB-1].returnMapHandle[0]), d0c1);
+                    v3.Add(std::make_pair(c1_internal->BConnection[M1_numB-1].returnMapHandle[M1_b1_numE-1], c2_internal->BConnection[M2_numB-1].returnMapHandle[0]), d0c1);
                 if (c0a1 != 0)
                     v3.Add(std::make_pair(c1_internal->BConnection[M1_numB-1].returnMapHandle[0], c2_internal->BConnection[0].returnMapHandle[0]), c0a1);
                 v3.Canonicalize();
@@ -453,7 +453,7 @@ namespace CFL_OBDD {
                     v4.mapContents->contains_zero_val = true;
                 }
                 if (d0d1 != 0)
-                    v4.Add(std::make_pair(c1_internal->BConnection[M1_numB-1].returnMapHandle[M1_b0_numE-1], c2_internal->BConnection[M2_numB-1].returnMapHandle[M2_b1_numE-1]), d0d1);
+                    v4.Add(std::make_pair(c1_internal->BConnection[M1_numB-1].returnMapHandle[M1_b1_numE-1], c2_internal->BConnection[M2_numB-1].returnMapHandle[M2_b1_numE-1]), d0d1);
                 if (c0b1 != 0)
                     v4.Add(std::make_pair(c1_internal->BConnection[M1_numB-1].returnMapHandle[0], c2_internal->BConnection[0].returnMapHandle[M2_b0_numE-1]), c0b1);
                 v4.Canonicalize();
@@ -612,20 +612,25 @@ namespace CFL_OBDD {
                 int level = c1.handleContents->level;
                 // populate zero exit information
                 int a_zero_exit_1 = -1, a_zero_exit_2 = -1;
-                for (int i = 0; i < c1_internal->numBConnections; i++)
-                {
-                    if (*(c1_internal->BConnection[i].entryPointHandle) == WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                if (zero_exit_1 != -1){
+                    for (int i = 0; i < c1_internal->numBConnections; i++)
                     {
-                        a_zero_exit_1 = i;
-                        break;
+                        if (*(c1_internal->BConnection[i].entryPointHandle) == WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                        {
+                            a_zero_exit_1 = i;
+                            break;
+                        }
                     }
                 }
-                for (int i = 0; i < c2_internal->numBConnections; i++)
+                if (zero_exit_2 != -1)
                 {
-                    if (*(c2_internal->BConnection[i].entryPointHandle) == WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                    for (int i = 0; i < c2_internal->numBConnections; i++)
                     {
-                        a_zero_exit_2 = i;
-                        break;
+                        if (*(c2_internal->BConnection[i].entryPointHandle) == WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                        {
+                            a_zero_exit_2 = i;
+                            break;
+                        }
                     }
                 }
                 auto aa = MatrixMultiplyV4Node(*(c1_internal->AConnection.entryPointHandle),
@@ -641,7 +646,7 @@ namespace CFL_OBDD {
                 g->numExits = 0;
                 std::unordered_map<unsigned int, unsigned int> mapFromHandleToIndex;
                 for (unsigned int i = 0; i < g->numBConnections; i++){
-                    WeightedMatMultMapHandle matmult_returnmap = std::get<1>(aa)[i];
+                    WeightedMatMultMapHandle<BIG_FLOAT> matmult_returnmap = std::get<1>(aa)[i];
                     WeightedCFLOBDDFloatBoostMulNodeHandle ans;
                     CFLOBDDMatMultMapHandle ans_matmult_map;
                     BIG_FLOAT ans_factor = 1.0;
@@ -683,7 +688,7 @@ namespace CFL_OBDD {
                         CFLOBDDMatMultMapHandle old_bb_return = std::get<1>(bb_old);
                         for (unsigned int j = 0; j < old_bb_return.Size(); j++)
                         {
-                            WeightedMatMultMapHandle tmp;
+                            WeightedMatMultMapHandle<BIG_FLOAT> tmp;
                             for (auto& it : old_bb_return[j].mapContents->map){
                                 if (it.first.first == -1 && it.first.second == -1)
                                     tmp.Add(std::make_pair(-1,-1), it.second);
@@ -717,7 +722,7 @@ namespace CFL_OBDD {
                             ans_return_map.AddToEnd(g->numExits++);
                             g_return_map.AddToEnd(ans_matmult_map[j]);
                             reductionMapHandle.AddToEnd(g_return_map.Size() - 1);
-                            mapFromHandleToIndex[map_hash_check] = g->numExits - 1;
+                            mapFromHandleToIndex[map_hash_check] = g_return_map.Size() - 1;
                             if (ans_matmult_map[j].mapContents->contains_zero_val == true)
                                 valList.AddToEnd(0.0);
                             else
@@ -764,7 +769,7 @@ namespace CFL_OBDD {
                 ret = std::make_tuple(tmp.first, g_return_map, tmp.second * top_factor);
                 // ret = std::make_tuple(gHandle, g_return_map, top_factor);
             }
-            matmult_hash[mmp] = ret;
+            matmult_hash.insert(std::make_pair(mmp, ret));
             return ret;
         }
 

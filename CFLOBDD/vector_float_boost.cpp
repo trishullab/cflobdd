@@ -93,9 +93,9 @@ namespace CFL_OBDD {
 		}
 
 //#ifdef PATH_COUNTING_ENABLED
-		std::string Sampling(CFLOBDD_FLOAT_BOOST c, bool isTwoVoc)
+		std::string Sampling(CFLOBDD_FLOAT_BOOST c, bool isTwoVoc, std::string func)
 		{
-			return SamplingTop(c.root, isTwoVoc);
+			return SamplingTop(c.root, isTwoVoc, func);
 		}
 
 		std::string SamplingV2(CFLOBDD_FLOAT_BOOST c)

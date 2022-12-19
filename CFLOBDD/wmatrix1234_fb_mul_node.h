@@ -20,7 +20,7 @@ namespace CFL_OBDD {
         typedef WeightedCFLOBDDForkNode<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WeightedCFLOBDDFloatBoostForkNode;
         typedef WeightedCFLOBDDLeafNode<BIG_FLOAT, std::multiplies<BIG_FLOAT>> WeightedCFLOBDDFloatBoostLeafNode;
         typedef WConnection<BIG_FLOAT, std::multiplies<BIG_FLOAT>> Connection;
-	    typedef ReturnMapHandle<WeightedMatMultMapHandle> CFLOBDDMatMultMapHandle;
+	    typedef ReturnMapHandle<WeightedMatMultMapHandle<BIG_FLOAT>> CFLOBDDMatMultMapHandle;
         typedef std::tuple<WeightedCFLOBDDFloatBoostMulNodeHandle, CFLOBDDMatMultMapHandle, BIG_FLOAT> MatMultReturnT;
 
         class WeightedMatMultPair{

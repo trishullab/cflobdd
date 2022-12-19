@@ -5,13 +5,13 @@
 #include <chrono>
 #include <random>
 #include <unordered_map>
-#include "wvector_top_node_fb_mul.h"
-#include "wvector_fb_mul_node.h"
+#include "wvector_top_node_complex_fb_mul.h"
+#include "wvector_complex_fb_mul_node.h"
 
 
 namespace CFL_OBDD {
 
-	namespace WeightedVectorFloatBoostMul {
+	namespace WeightedVectorComplexFloatBoostMul {
 
 		void VectorInitializerTop()
 		{
@@ -19,11 +19,11 @@ namespace CFL_OBDD {
 			return;
 		}
 
-		WeightedCFLOBDDTopNodeFloatBoostRefPtr MkBasisVectorTop(unsigned int level, unsigned int index)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkBasisVectorTop(unsigned int level, unsigned int index)
 		{
-			WeightedCFLOBDDTopNodeFloatBoostRefPtr ptr;
-			WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle;
-			FloatBoostReturnMapHandle rhandle;
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr ptr;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle rhandle;
 
 			tempHandle = MkBasisVectorNode(level, index);
 			if (index == 0)
@@ -38,15 +38,15 @@ namespace CFL_OBDD {
 			}
 			rhandle.Canonicalize();
 
-			ptr = new WeightedCFLOBDDTopNodeFloatBoost(tempHandle, rhandle);
+			ptr = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, rhandle);
 			return ptr;
 		}
 
-		WeightedCFLOBDDTopNodeFloatBoostRefPtr MkBasisVectorTop(unsigned int level, std::string s)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkBasisVectorTop(unsigned int level, std::string s)
 		{
-			WeightedCFLOBDDTopNodeFloatBoostRefPtr ptr;
-			WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle;
-			FloatBoostReturnMapHandle rhandle;
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr ptr;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle rhandle;
 
 			tempHandle = MkBasisVectorNode(level, s);
 			if (s.find('1') == std::string::npos)
@@ -61,42 +61,42 @@ namespace CFL_OBDD {
 			}
 			rhandle.Canonicalize();
 
-			ptr = new WeightedCFLOBDDTopNodeFloatBoost(tempHandle, rhandle);
+			ptr = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, rhandle);
 			return ptr;
 		}
 
-		WeightedCFLOBDDTopNodeFloatBoostRefPtr VectorToMatrixInterleavedTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr VectorToMatrixInterleavedTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n)
 		{
-			// std::unordered_map<WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap;
+			// std::unordered_map<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, WeightedCFLOBDDComplexFloatBoostMulNodeHandle, WeightedCFLOBDDComplexFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap;
 			
 			// WeightedCFLOBDDFloatBoostMulNodeMemoTableRefPtr memoTable = new WeightedCFLOBDDFloatBoostMulNodeMemoTable;
-			std::unordered_map<WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap;
-			WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle = VectorToMatrixInterleavedNode(hashMap, *(n->rootConnection.entryPointHandle));
-			WeightedCFLOBDDTopNodeFloatBoostRefPtr v = new WeightedCFLOBDDTopNodeFloatBoost(tempHandle, n->rootConnection.returnMapHandle, n->rootConnection.factor);
+			std::unordered_map<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, WeightedCFLOBDDComplexFloatBoostMulNodeHandle, WeightedCFLOBDDComplexFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle = VectorToMatrixInterleavedNode(hashMap, *(n->rootConnection.entryPointHandle));
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, n->rootConnection.returnMapHandle, n->rootConnection.factor);
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeFloatBoostRefPtr NoDistinctionNodeTop(unsigned int level, BIG_FLOAT val)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr NoDistinctionNodeTop(unsigned int level, BIG_COMPLEX_FLOAT val)
 		{
 			if (val == 0)
 			{
-				FloatBoostReturnMapHandle m0;
+				ComplexFloatBoostReturnMapHandle m0;
 				m0.AddToEnd(0);
 				m0.Canonicalize();
-				return new WeightedCFLOBDDTopNodeFloatBoost(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level], m0, 0);
+				return new WeightedCFLOBDDTopNodeComplexFloatBoost(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level], m0, 0);
 			}
-			FloatBoostReturnMapHandle m1;
+			ComplexFloatBoostReturnMapHandle m1;
 			m1.AddToEnd(1);
 			m1.Canonicalize();
 
-			return new WeightedCFLOBDDTopNodeFloatBoost(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode[level], m1, val);
+			return new WeightedCFLOBDDTopNodeComplexFloatBoost(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode[level], m1, val);
 		}
 
-		WeightedCFLOBDDTopNodeFloatBoostRefPtr MkColumn1MatrixTop(unsigned int level)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkColumn1MatrixTop(unsigned int level)
 		{
-			WeightedCFLOBDDTopNodeFloatBoostRefPtr ptr;
-			WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle;
-			FloatBoostReturnMapHandle rhandle;
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr ptr;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle rhandle;
 
 			tempHandle = MkColumn1MatrixNode(level);
 
@@ -104,27 +104,27 @@ namespace CFL_OBDD {
 			rhandle.AddToEnd(0);
 			rhandle.Canonicalize();
 
-			ptr = new WeightedCFLOBDDTopNodeFloatBoost(tempHandle, rhandle);
+			ptr = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, rhandle);
 			return ptr;
 		}
 
-		WeightedCFLOBDDTopNodeFloatBoostRefPtr VectorWithAmplitudeTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr VectorWithAmplitudeTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n)
 		{
-			FloatBoostReturnMapHandle rhandle;
+			ComplexFloatBoostReturnMapHandle rhandle;
 			for (unsigned int i = 0; i < n->rootConnection.returnMapHandle.Size(); i++)
 			{
-				BIG_FLOAT val = n->rootConnection.returnMapHandle[i];
+				BIG_COMPLEX_FLOAT val = n->rootConnection.returnMapHandle[i];
 				rhandle.AddToEnd(val * val);
 			}
 
 			ReductionMapHandle inducedReductionMapHandle;
-			ReturnMapHandle<BIG_FLOAT> inducedReturnMap;
+			ReturnMapHandle<BIG_COMPLEX_FLOAT> inducedReturnMap;
 			rhandle.InducedReductionAndReturnMap(inducedReductionMapHandle, inducedReturnMap);
 			return n;
 		}
 
 //#ifdef PATH_COUNTING_ENABLED
-		std::string SamplingTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n, bool VocTwo, std::string func)
+		std::string SamplingTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, bool VocTwo, std::string func)
 		{
 			if (n->rootConnection.factor == 0)
 				return "";
@@ -134,7 +134,7 @@ namespace CFL_OBDD {
 			return stringPair.first + stringPair.second;
 		}
 
-		void VectorPrintColumnMajorTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n, std::ostream & out)
+		void VectorPrintColumnMajorTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out)
 		{
 			// unsigned int level = n->rootConnection.entryPointHandle->handleContents->level;
 			// if (level >= 2 && level <= 4 || true) {
@@ -176,7 +176,7 @@ namespace CFL_OBDD {
 			// }
 		}
 
-		void VectorPrintColumnMajorInterleavedTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n, std::ostream & out)
+		void VectorPrintColumnMajorInterleavedTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out)
 		{
 			unsigned int level = n->rootConnection.entryPointHandle->handleContents->level;
 			// if (level >= 1 && level <= 4) {

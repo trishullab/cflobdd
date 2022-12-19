@@ -31,7 +31,7 @@ namespace CFL_OBDD {
         extern WeightedCFLOBDDFloatBoostMulNodeHandle VectorToMatrixInterleavedNode(std::unordered_map<WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap,
                                                         WeightedCFLOBDDFloatBoostMulNodeHandle& nh);
         extern WeightedCFLOBDDFloatBoostMulNodeHandle MkColumn1MatrixNode(unsigned int level);
-        extern std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDFloatBoostMulNodeHandle nh, unsigned int index, bool voctwo = false);
+        extern std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDFloatBoostMulNodeHandle nh, unsigned int index, bool voctwo = false, std::string = "");
         // needs to be removed and linked to the one in cflobdd_node.cpp
         extern long double addNumPathsToExit(long double path1, long double path2);
         extern long double addNumPathsToExit(std::vector<long double>& paths);

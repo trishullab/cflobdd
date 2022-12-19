@@ -49,9 +49,9 @@ namespace CFL_OBDD {
 			return WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL(NoDistinctionNodeTop(level, val));
 		}
 
-		std::string Sampling(WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL c, bool isTwoVoc)
+		std::string Sampling(WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL c, bool isTwoVoc, std::string func)
 		{
-			return SamplingTop(c.root, isTwoVoc);
+			return SamplingTop(c.root, isTwoVoc, func);
 		}
 
 		WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL VectorWithAmplitude(WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL c)

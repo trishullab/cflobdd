@@ -5,15 +5,20 @@
 #include <fstream>
 #include <unordered_map>
 #include <boost/multiprecision/cpp_dec_float.hpp>
+#include <boost/multiprecision/cpp_complex.hpp>
 #include <map>
 
 #include "hashset.h"
 
+template <typename>
 class WeightedMatMultMapHandle;
+template <typename>
 class WeightedMatMultMapBody;
 
 
 typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
+typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
+// typedef double BIG_FLOAT;
 
 typedef std::pair<long int, long int> INT_PAIR;
 
@@ -22,45 +27,51 @@ typedef std::pair<long int, long int> INT_PAIR;
 // WeightedMatMultMapHandle
 //***************************************************************
 
+template <typename T>
 class WeightedMatMultMapHandle {
 public:
 	WeightedMatMultMapHandle();                               // Default constructor
 	~WeightedMatMultMapHandle();                              // Destructor
-	WeightedMatMultMapHandle(const WeightedMatMultMapHandle &r);             // Copy constructor
+	WeightedMatMultMapHandle(const WeightedMatMultMapHandle<T> &r);             // Copy constructor
 	WeightedMatMultMapHandle(const int size);             // constructor with size for vector
-	WeightedMatMultMapHandle& operator= (const WeightedMatMultMapHandle &r); // Overloaded assignment
-	bool operator!= (const WeightedMatMultMapHandle &r) const;      // Overloaded !=
-	bool operator== (const WeightedMatMultMapHandle &r) const;      // Overloaded ==
-	BIG_FLOAT& operator[](INT_PAIR& p);                        // Overloaded []
+	WeightedMatMultMapHandle<T>& operator= (const WeightedMatMultMapHandle<T> &r); // Overloaded assignment
+	bool operator!= (const WeightedMatMultMapHandle<T> &r) const;      // Overloaded !=
+	bool operator== (const WeightedMatMultMapHandle<T> &r) const;      // Overloaded ==
+	T& operator[](INT_PAIR& p);                        // Overloaded []
 	unsigned int Hash(unsigned int modsize);
-	void Add(const INT_PAIR& p, BIG_FLOAT& v);
-	void ForceAdd(const INT_PAIR& p, BIG_FLOAT& v);
+	void Add(const INT_PAIR& p, T& v);
+	void ForceAdd(const INT_PAIR& p, T& v);
 	bool Member(INT_PAIR& p);
-	BIG_FLOAT Lookup(INT_PAIR& x);
+	T Lookup(INT_PAIR& x);
 	std::string ToString();
 	unsigned int Size();
 	void Canonicalize();
     size_t getHashCheck();
-	WeightedMatMultMapBody *mapContents;
-	static Hashset<WeightedMatMultMapBody> *canonicalWeightedMatMultMapBodySet;
+	WeightedMatMultMapBody<T> *mapContents;
+	static Hashset<WeightedMatMultMapBody<T>> *canonicalWeightedMatMultMapBodySet;
 	std::ostream& print(std::ostream & out = std::cout) const;
-	WeightedMatMultMapHandle operator+ (const WeightedMatMultMapHandle&) const; // map concatenation with summation as merge operation
+	WeightedMatMultMapHandle<T> operator+ (const WeightedMatMultMapHandle<T>&) const; // map concatenation with summation as merge operation
 };
 
-std::ostream& operator<< (std::ostream & out, const WeightedMatMultMapHandle &r);
+template <typename T>
+std::ostream& operator<< (std::ostream & out, const WeightedMatMultMapHandle<T> &r);
 
-extern WeightedMatMultMapHandle operator* (const BIG_FLOAT&, const WeightedMatMultMapHandle&);
-extern WeightedMatMultMapHandle operator* (const WeightedMatMultMapHandle&, const BIG_FLOAT&);
-extern std::size_t hash_value(const WeightedMatMultMapHandle& val);
+template <typename T>
+extern WeightedMatMultMapHandle<T> operator* (const T&, const WeightedMatMultMapHandle<T>&);
+template <typename T>
+extern WeightedMatMultMapHandle<T> operator* (const WeightedMatMultMapHandle<T>&, const T&);
+template <typename T>
+extern std::size_t hash_value(const WeightedMatMultMapHandle<T>& val);
 
 //***************************************************************
 // WeightedMatMultMapBody
 //***************************************************************
 
+template <typename T>
 class WeightedMatMultMapBody {
 
-	friend void WeightedMatMultMapHandle::Canonicalize();
-	friend unsigned int WeightedMatMultMapHandle::Hash(unsigned int modsize);
+	friend void WeightedMatMultMapHandle<T>::Canonicalize();
+	friend unsigned int WeightedMatMultMapHandle<T>::Hash(unsigned int modsize);
 
 public:
 	WeightedMatMultMapBody();    // Constructor
@@ -69,9 +80,9 @@ public:
 	unsigned int Hash(unsigned int modsize);
 	void setHashCheck();
 	unsigned int refCount;         // reference-count value
-	std::map<INT_PAIR, BIG_FLOAT> map;
-	bool operator==(const WeightedMatMultMapBody &o) const;
-	BIG_FLOAT& operator[](INT_PAIR& i);                        // Overloaded []
+	std::map<INT_PAIR, T> map;
+	bool operator==(const WeightedMatMultMapBody<T> &o) const;
+	T& operator[](INT_PAIR& i);                        // Overloaded []
 	long int hashCheck;
 	bool contains_zero_val;
 	bool isCanonical;              // Is this WeightedMatMultMapBody in *canonicalWeightedMatMultMapBodySet?

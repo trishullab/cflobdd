@@ -5,7 +5,7 @@
 #include <fstream>
 #include <algorithm>
 #include <unordered_map>
-#include "wvector_fb_mul_node.h"
+#include "wvector_complex_fb_mul_node.h"
 #include "weighted_cflobdd_node_t.h"
 #include "reduction_map.h"
 #include "hash.h"
@@ -13,7 +13,7 @@
 
 namespace CFL_OBDD {
 
-    namespace WeightedVectorFloatBoostMul {
+    namespace WeightedVectorComplexFloatBoostMul {
 
         std::vector<ReturnMapHandle<int>> commonly_used_return_maps_vector;// m0, m1, m01, m10
 
@@ -42,37 +42,37 @@ namespace CFL_OBDD {
             return;
         }
 
-        WeightedCFLOBDDFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, unsigned int index)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, unsigned int index)
         {
             if (level == 0)
             {
                 assert(index < 2);
                 if (index == 0)
-                    return WeightedCFLOBDDFloatBoostMulNodeHandle( new WeightedCFLOBDDFloatBoostForkNode(1, 0));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0));
                 else
-                    return WeightedCFLOBDDFloatBoostMulNodeHandle( new WeightedCFLOBDDFloatBoostForkNode(0, 1));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1));
             }
 
-            WeightedCFLOBDDFloatBoostInternalNode *n = new WeightedCFLOBDDFloatBoostInternalNode(level);
+            WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(level);
 
             unsigned int higherOrderIndex = index >> (1 << (level - 1));
-            WeightedCFLOBDDFloatBoostMulNodeHandle tempANodeHandle = MkBasisVectorNode(level-1, higherOrderIndex);
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempANodeHandle = MkBasisVectorNode(level-1, higherOrderIndex);
             n->AConnection = Connection(tempANodeHandle, commonly_used_return_maps_vector[2]);//m01
 
             n->numBConnections = 2;
             n->BConnection = new Connection[n->numBConnections];
             unsigned int lowerOrderIndex = index & ((1 << (1 << (level - 1))) - 1);
-            WeightedCFLOBDDFloatBoostMulNodeHandle tempBNodeHandle = MkBasisVectorNode(level - 1, lowerOrderIndex);
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempBNodeHandle = MkBasisVectorNode(level - 1, lowerOrderIndex);
             if (higherOrderIndex == 0)
             {
                 if (lowerOrderIndex == 0)
-                    n->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[1]);//m1
+                    n->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[1]);//m1
                 else
-                    n->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[0]);//m0
+                    n->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[0]);//m0
                 n->BConnection[0] = Connection(tempBNodeHandle, commonly_used_return_maps_vector[2]);//m01
             }
             else{
-                n->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[0]);//m0
+                n->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[0]);//m0
                 if (lowerOrderIndex == 0)
                     n->BConnection[1] = Connection(tempBNodeHandle, commonly_used_return_maps_vector[3]);//m10
                 else
@@ -82,40 +82,40 @@ namespace CFL_OBDD {
     #ifdef PATH_COUNTING_ENABLED
             n->InstallPathCounts();
     #endif
-            return WeightedCFLOBDDFloatBoostMulNodeHandle(n);
+            return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
         }
 
-        WeightedCFLOBDDFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, std::string s)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, std::string s)
         {
             if (level == 0)
             {
                 assert(s.length() == 1);
                 if (s[0] == '0')
-                    return WeightedCFLOBDDFloatBoostMulNodeHandle( new WeightedCFLOBDDFloatBoostForkNode(1, 0));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0));
                 else
-                    return WeightedCFLOBDDFloatBoostMulNodeHandle( new WeightedCFLOBDDFloatBoostForkNode(0, 1));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1));
             }
 
-            WeightedCFLOBDDFloatBoostInternalNode *n = new WeightedCFLOBDDFloatBoostInternalNode(level);
+            WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(level);
             std::string first_half_s = s.substr(0, s.length() / 2);
-            WeightedCFLOBDDFloatBoostMulNodeHandle tempANodeHandle = MkBasisVectorNode(level - 1, first_half_s);
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempANodeHandle = MkBasisVectorNode(level - 1, first_half_s);
             n->AConnection = Connection(tempANodeHandle, commonly_used_return_maps_vector[2]);//m01
 
             
             n->numBConnections = 2;
             n->BConnection = new Connection[n->numBConnections];
             std::string half_string = s.substr(s.length() / 2);
-            WeightedCFLOBDDFloatBoostMulNodeHandle tempBNodeHandle = MkBasisVectorNode(level - 1, half_string);
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempBNodeHandle = MkBasisVectorNode(level - 1, half_string);
             if (first_half_s.find('1') == std::string::npos)
             {
                 if (half_string.find('1') == std::string::npos)
-                    n->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[1]);//m1
+                    n->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[1]);//m1
                 else
-                    n->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[0]);//m0
+                    n->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[0]);//m0
                 n->BConnection[0] = Connection(tempBNodeHandle, commonly_used_return_maps_vector[2]);//m01
             }
             else{
-                n->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[0]);//m0
+                n->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps_vector[0]);//m0
                 if (half_string.find('1') == std::string::npos)
                     n->BConnection[1] = Connection(tempBNodeHandle, commonly_used_return_maps_vector[3]);//m10
                 else
@@ -125,28 +125,28 @@ namespace CFL_OBDD {
     #ifdef PATH_COUNTING_ENABLED
             n->InstallPathCounts();
     #endif
-            return WeightedCFLOBDDFloatBoostMulNodeHandle(n);
+            return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
         }
 
-        WeightedCFLOBDDFloatBoostMulNodeHandle VectorToMatrixInterleavedNode(std::unordered_map<WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle, WeightedCFLOBDDFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap, 
-                                WeightedCFLOBDDFloatBoostMulNodeHandle& nh)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle VectorToMatrixInterleavedNode(std::unordered_map<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, WeightedCFLOBDDComplexFloatBoostMulNodeHandle, WeightedCFLOBDDComplexFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap, 
+                                WeightedCFLOBDDComplexFloatBoostMulNodeHandle& nh)
         {
             // if (hashMap)
             // {
-            //     WeightedCFLOBDDFloatBoostMulNodeHandle lookupResult;
+            //     WeightedCFLOBDDComplexFloatBoostMulNodeHandle lookupResult;
             //     hashMap->Fetch(nh, lookupResult);
             //     return lookupResult;
             // }
             if (hashMap.find(nh) != hashMap.end())
                 return hashMap[nh];
-            WeightedCFLOBDDFloatBoostInternalNode *nhNode = (WeightedCFLOBDDFloatBoostInternalNode *)nh.handleContents;
+            WeightedCFLOBDDComplexFloatBoostInternalNode *nhNode = (WeightedCFLOBDDComplexFloatBoostInternalNode *)nh.handleContents;
             
-            if (nh == WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode[nh.handleContents->level])
-                return WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode[nh.handleContents->level + 1];
-            if (nh == WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[nh.handleContents->level])
-                return WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[nh.handleContents->level + 1];
+            if (nh == WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode[nh.handleContents->level])
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode[nh.handleContents->level + 1];
+            if (nh == WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[nh.handleContents->level])
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[nh.handleContents->level + 1];
 
-            WeightedCFLOBDDFloatBoostInternalNode *n = new WeightedCFLOBDDFloatBoostInternalNode(nh.handleContents->level + 1);
+            WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(nh.handleContents->level + 1);
 
             if (nh.handleContents->level == 0)
             {
@@ -157,14 +157,14 @@ namespace CFL_OBDD {
                 n->AConnection = Connection(nh, mI);
                 n->numBConnections = mI.Size();
                 n->BConnection = new Connection[n->numBConnections];
-                WeightedCFLOBDDFloatBoostLeafNode* nhL = (WeightedCFLOBDDFloatBoostLeafNode *)nhNode;
+                WeightedCFLOBDDComplexFloatBoostLeafNode* nhL = (WeightedCFLOBDDComplexFloatBoostLeafNode *)nhNode;
                 if (n->numBConnections == 1)
                 {
                     if ((nhL->lweight != 0) && (nhL->rweight != 0))
                     {
                         CFLOBDDReturnMapHandle m0;
                         m0.AddToEnd(0); m0.AddToEnd(1); m0.Canonicalize();
-                        n->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode[0], m0);
+                        n->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode[0], m0);
                         n->numExits = 1;
                     }
                 }
@@ -175,8 +175,8 @@ namespace CFL_OBDD {
                         CFLOBDDReturnMapHandle m0, m1;
                         m0.AddToEnd(0); m0.Canonicalize();
                         m1.AddToEnd(1); m1.Canonicalize();
-                        n->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode[0], m0);
-                        n->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode[0], m1);
+                        n->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode[0], m0);
+                        n->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode[0], m1);
                         n->numExits = 2; 
                     }
                     else if ((nhL->lweight == 0))
@@ -184,8 +184,8 @@ namespace CFL_OBDD {
                         CFLOBDDReturnMapHandle m0, m1;
                         m0.AddToEnd(0); m0.Canonicalize();
                         m1.AddToEnd(1); m1.Canonicalize();
-                        n->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
-                        n->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode[0], m1);
+                        n->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
+                        n->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode[0], m1);
                         n->numExits = 2;
                     }
                     else if (nhL->rweight == 0)
@@ -193,8 +193,8 @@ namespace CFL_OBDD {
                         CFLOBDDReturnMapHandle m0, m1;
                         m0.AddToEnd(0); m0.Canonicalize();
                         m1.AddToEnd(1); m1.Canonicalize();
-                        n->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode[0], m0);
-                        n->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m1);
+                        n->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode[0], m0);
+                        n->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m1);
                         n->numExits = 2; 
                     }
                 }
@@ -228,15 +228,15 @@ namespace CFL_OBDD {
             n->InstallPathCounts();
     #endif
 
-            WeightedCFLOBDDFloatBoostMulNodeHandle nHandle(n);
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle nHandle(n);
             // hashMap->Insert(nh, nHandle);
             hashMap[nh] = nHandle;
             return nHandle;
         }
 
-        WeightedCFLOBDDFloatBoostMulNodeHandle MkColumn1MatrixNode(unsigned int level)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkColumn1MatrixNode(unsigned int level)
         {
-            WeightedCFLOBDDFloatBoostInternalNode *n = new WeightedCFLOBDDFloatBoostInternalNode(level);
+            WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(level);
             assert(level > 0);
             if (level == 1)
             {
@@ -248,10 +248,10 @@ namespace CFL_OBDD {
                 m2.AddToEnd(1);
                 m2.Canonicalize();
 
-                n->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m1);
+                n->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m1);
                 n->numBConnections = 1;
                 n->BConnection = new Connection[1];
-                WeightedCFLOBDDFloatBoostMulNodeHandle t = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(1, 0));
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle t = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0));
                 n->BConnection[0] = Connection(t, m2);
             }
             else
@@ -264,74 +264,18 @@ namespace CFL_OBDD {
                 m2.AddToEnd(1);
                 m2.Canonicalize();
 
-                WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle = MkColumn1MatrixNode(level - 1);
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle = MkColumn1MatrixNode(level - 1);
                 n->AConnection = Connection(tempHandle, m1);
                 n->numBConnections = 2;
                 n->BConnection = new Connection[n->numBConnections];
                 n->BConnection[0] = Connection(tempHandle, m1);
-                n->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1],m2);
+                n->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1],m2);
             }
             n->numExits = 2;
     #ifdef PATH_COUNTING_ENABLED
             n->InstallPathCounts();
     #endif
-            return WeightedCFLOBDDFloatBoostMulNodeHandle(n);
-        }
-
-        long double addNumPathsToExit(long double path1, long double path2){
-            long double maxPath = std::max(path1, path2);
-            long double minPath = std::min(path1, path2);
-            if (minPath == -1 * std::numeric_limits<double>::infinity())
-                return maxPath;
-            long double totalPaths = minPath;
-            if ((maxPath - minPath) > 15)
-                totalPaths = maxPath;
-            else{
-                unsigned int powerVal = pow(2, maxPath - minPath) + 1;
-                totalPaths += log2l(powerVal);
-            }
-            return totalPaths;
-        }
-
-
-        long double addNumPathsToExit(std::vector<long double>& logOfPaths){
-            if (logOfPaths.size() == 1)
-                return logOfPaths.back();
-            long double sum = 0.0;
-            for (int i = 0; i < logOfPaths.size() - 1; i++){
-                if (logOfPaths[i] != -1.0 * std::numeric_limits<double>::infinity())
-                    sum += pow(2, logOfPaths[i] - logOfPaths.back());
-            }
-            long double logOfSum = logOfPaths.back() + log1p(sum) / ((double)log(2));
-            return logOfSum;
-        }
-
-        BIG_FLOAT addNumPathsToExit(std::vector<BIG_FLOAT>& logOfPaths){
-            if (logOfPaths.size() == 1)
-                return logOfPaths.back();
-            BIG_FLOAT sum = 0.0;
-            for (int i = 0; i < logOfPaths.size() - 1; i++){
-                if (logOfPaths[i] != -1.0 * std::numeric_limits<BIG_FLOAT>::infinity())
-                    sum += boost::multiprecision::pow(2, logOfPaths[i] - logOfPaths.back());
-            }
-            BIG_FLOAT logOfSum = logOfPaths.back() + (boost::multiprecision::log1p(sum) / ((double)log(2)));
-            return logOfSum;
-        }
-
-        long double getLogSumNumPaths(std::vector<std::pair<long double, unsigned int>>& numBPaths, unsigned int size){
-            std::vector<long double> paths;
-            assert(numBPaths.size() >= size);
-            for (int i = 0; i < size; i++)
-                paths.push_back(numBPaths[i].first);
-            return addNumPathsToExit(paths);
-        }
-
-        BIG_FLOAT getLogSumNumPaths(std::vector<std::pair<BIG_FLOAT, unsigned int>>& numBPaths, unsigned int size){
-            std::vector<BIG_FLOAT> paths;
-            assert(numBPaths.size() >= size);
-            for (int i = 0; i < size; i++)
-                paths.push_back(numBPaths[i].first);
-            return addNumPathsToExit(paths);
+            return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
         }
 
         int chooseIndexRandomly(std::vector<std::pair<long double, unsigned int>>& weights, double random_value)
@@ -349,9 +293,9 @@ namespace CFL_OBDD {
         
 
     //#ifdef PATH_COUNTING_ENABLED
-        std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDFloatBoostMulNodeHandle nh, unsigned int index, bool VocTwo, std::string func)
+        std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh, unsigned int index, bool VocTwo, std::string func)
         {
-            WeightedCFLOBDDFloatBoostInternalNode *nhNode = (WeightedCFLOBDDFloatBoostInternalNode *)nh.handleContents;
+            WeightedCFLOBDDComplexFloatBoostInternalNode *nhNode = (WeightedCFLOBDDComplexFloatBoostInternalNode *)nh.handleContents;
 
             if (nhNode->level == 0)
             {
@@ -361,7 +305,7 @@ namespace CFL_OBDD {
                 }
                 else
                 {
-                    WeightedCFLOBDDFloatBoostDontCareNode* nhL = (WeightedCFLOBDDFloatBoostDontCareNode *)nh.handleContents;
+                    WeightedCFLOBDDComplexFloatBoostDontCareNode* nhL = (WeightedCFLOBDDComplexFloatBoostDontCareNode *)nh.handleContents;
                     assert(index == 0);
                     long double lw = ((nhL->lweight * nhL->lweight) / nhL->numWeightsOfPathsAsAmpsToExit[0]).convert_to<long double>();
                     long double rw = ((nhL->rweight * nhL->rweight) / nhL->numWeightsOfPathsAsAmpsToExit[0]).convert_to<long double>();

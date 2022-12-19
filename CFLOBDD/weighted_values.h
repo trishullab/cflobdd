@@ -4,9 +4,11 @@
 
 #include <iostream>
 #include <boost/multiprecision/cpp_dec_float.hpp>
+#include <boost/multiprecision/cpp_complex.hpp>
 
 namespace CFL_OBDD {
     typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
+    typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
     // typedef double BIG_FLOAT;
 }
 
@@ -36,6 +38,9 @@ namespace CFL_OBDD {
 
     template <typename T, typename Op>
     T computeComposition(T lw, T rw);
+
+    template <typename T, typename Op>
+    T computeProbabilityFromAmplitude(T w);
 
 }
 

@@ -13,6 +13,7 @@
 #include "weighted_cross_product.h"
 #include "weighted_values.h"
 #include <boost/multiprecision/cpp_dec_float.hpp>
+#include <boost/multiprecision/cpp_complex.hpp>
 #include <boost/functional/hash.hpp>
 
 // using namespace CFL_OBDD;
@@ -657,6 +658,12 @@ namespace CFL_OBDD {
                                 WeightedPairProductMapHandle<T> &pairProductMapHandle
                                 )
     {
+        if (n1 == WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[n1->level] && n2 == WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[n2->level])
+        {
+            pairProductMapHandle.AddToEnd(intpair(-1,-1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+            pairProductMapHandle.Canonicalize();
+            return WeightedCFLOBDDNodeHandleT(n1);
+        }
         if (n1 == WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[n1->level].handleContents) {
             for (int i = 0; i < n2->numExits; i++)
                 pairProductMapHandle.AddToEnd(intpair(0,i), Pair_T<T,T>(factor1, factor2));
@@ -715,7 +722,7 @@ namespace CFL_OBDD {
                 b2 = AVal.first.Second();
                 WeightedCFLOBDDNodeHandleT<T,Op> bHandle;
                 if (b1 == -1 && b2 == -1){
-                    bHandle = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[n1->level];
+                    bHandle = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[n1->level-1];
                     BMap.AddToEnd(intpair(-1,-1));
                 }
                 else{
@@ -732,7 +739,7 @@ namespace CFL_OBDD {
                 unsigned int Biterator = 0;
                 while (Biterator < BMap.Size()){
                         int c1, c2;
-                        T v1 = getIdentityValue<T,Op>(), v2 = getIdentityValue<T,Op>();
+                        T v1 = getAnnhilatorValue<T,Op>(), v2 = getAnnhilatorValue<T,Op>();
                         if (BMap[Biterator].first.First() == -1 && BMap[Biterator].first.Second()){
                             c1 = -1;
                             c2 = -1;
@@ -805,37 +812,153 @@ namespace CFL_OBDD {
             if (n2.handleContents->NodeKind() == W_CFLOBDD_FORK) {                 // W_CFLOBDD_FORK, W_CFLOBDD_FORK
                 WeightedCFLOBDDForkNode<T,Op>* c1 = (WeightedCFLOBDDForkNode<T,Op> *)(n1.handleContents);
                 WeightedCFLOBDDForkNode<T,Op>* c2 = (WeightedCFLOBDDForkNode<T,Op> *)(n2.handleContents);
-                pairProductMapHandle.AddToEnd(intpair(0,0), Pair_T<T,T>(factor1 * c1->lweight, factor2 * c2->lweight));
-                pairProductMapHandle.AddToEnd(intpair(1,1), Pair_T<T,T>(factor1 * c1->rweight, factor2 * c2->rweight));
-                pairProductMapHandle.Canonicalize();
-                answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle;
+                T lw1 = computeComposition<T,Op>(factor1, c1->lweight);
+                T lw2 = computeComposition<T,Op>(factor2, c2->lweight);
+                T rw1 = computeComposition<T,Op>(factor1, c1->rweight);
+                T rw2 = computeComposition<T,Op>(factor2, c2->rweight);
+
+                if (lw1 == getAnnhilatorValue<T,Op>() && lw2 == getAnnhilatorValue<T,Op>())
+                {
+                    if (rw1 == getAnnhilatorValue<T,Op>() && rw2 == getAnnhilatorValue<T,Op>())
+                    {
+                        pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                        pairProductMapHandle.Canonicalize();
+                        answer = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0];
+                    }
+                    else {
+                        pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                        pairProductMapHandle.AddToEnd(intpair(1, 1), Pair_T<T,T>(rw1, rw2));
+                        pairProductMapHandle.Canonicalize();
+                        answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01;
+                    }
+                }
+                else if (rw1 == getAnnhilatorValue<T,Op>() && rw2 == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0, 0), Pair_T<T,T>(lw1, lw2));
+                    pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10; 
+                }
+                else {
+                    pairProductMapHandle.AddToEnd(intpair(0, 0), Pair_T<T,T>(lw1, lw2));
+                    pairProductMapHandle.AddToEnd(intpair(1, 1), Pair_T<T,T>(rw1, rw2));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle;  
+                }
             }
             else { /* n2.handleContents->NodeKind() == CFLOBDD_DONTCARE */       // W_CFLOBDD_FORK, CFLOBDD_DONTCARE
                 WeightedCFLOBDDForkNode<T,Op>* c1 = (WeightedCFLOBDDForkNode<T,Op> *)(n1.handleContents);
                 WeightedCFLOBDDForkNode<T,Op>* c2 = (WeightedCFLOBDDForkNode<T,Op> *)(n2.handleContents);
-                pairProductMapHandle.AddToEnd(intpair(0,0), Pair_T<T,T>(factor1 * c1->lweight, factor2 * c2->lweight));
-                pairProductMapHandle.AddToEnd(intpair(1,0), Pair_T<T,T>(factor1 * c1->rweight, factor2 * c2->rweight));
-                pairProductMapHandle.Canonicalize();
-                answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle;
+                T lw1 = computeComposition<T,Op>(factor1, c1->lweight);
+                T lw2 = computeComposition<T,Op>(factor2, c2->lweight);
+                T rw1 = computeComposition<T,Op>(factor1, c1->rweight);
+                T rw2 = computeComposition<T,Op>(factor2, c2->rweight);
+
+                if (lw1 == getAnnhilatorValue<T,Op>() && lw2 == getAnnhilatorValue<T,Op>())
+                {
+                    if (rw1 == getAnnhilatorValue<T,Op>() && rw2 == getAnnhilatorValue<T,Op>())
+                    {
+                        pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                        pairProductMapHandle.Canonicalize();
+                        answer = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0];
+                    }
+                    else {
+                        pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                        pairProductMapHandle.AddToEnd(intpair(1, 0), Pair_T<T,T>(rw1, rw2));
+                        pairProductMapHandle.Canonicalize();
+                        answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01;
+                    }
+                }
+                else if (rw1 == getAnnhilatorValue<T,Op>() && rw2 == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0, 0), Pair_T<T,T>(lw1, lw2));
+                    pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10; 
+                }
+                else{
+                    pairProductMapHandle.AddToEnd(intpair(0, 0), Pair_T<T,T>(lw1, lw2));
+                    pairProductMapHandle.AddToEnd(intpair(1, 0), Pair_T<T,T>(rw1, rw2));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle; 
+                }
             }
             }
             else { /* n1.handleContents->NodeKind() == CFLOBDD_DONTCARE */
             if (n2.handleContents->NodeKind() == W_CFLOBDD_FORK) {                 // CFLOBDD_DONTCARE, W_CFLOBDD_FORK
                 WeightedCFLOBDDForkNode<T,Op>* c1 = (WeightedCFLOBDDForkNode<T,Op> *)(n1.handleContents);
                 WeightedCFLOBDDForkNode<T,Op>* c2 = (WeightedCFLOBDDForkNode<T,Op> *)(n2.handleContents);
-                pairProductMapHandle.AddToEnd(intpair(0,0), Pair_T<T,T>(factor1 * c1->lweight, factor2 * c2->lweight));
-                pairProductMapHandle.AddToEnd(intpair(0,1), Pair_T<T,T>(factor1 * c1->rweight, factor2 * c2->rweight));
-                pairProductMapHandle.Canonicalize();
-                answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle;
+                T lw1 = computeComposition<T,Op>(factor1, c1->lweight);
+                T lw2 = computeComposition<T,Op>(factor2, c2->lweight);
+                T rw1 = computeComposition<T,Op>(factor1, c1->rweight);
+                T rw2 = computeComposition<T,Op>(factor2, c2->rweight);
+
+                if (lw1 == getAnnhilatorValue<T,Op>() && lw2 == getAnnhilatorValue<T,Op>())
+                {
+                    if (rw1 == getAnnhilatorValue<T,Op>() && rw2 == getAnnhilatorValue<T,Op>())
+                    {
+                        pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                        pairProductMapHandle.Canonicalize();
+                        answer = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0];
+                    }
+                    else {
+                        pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                        pairProductMapHandle.AddToEnd(intpair(0, 1), Pair_T<T,T>(rw1, rw2));
+                        pairProductMapHandle.Canonicalize();
+                        answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01;
+                    }
+                }
+                else if (rw1 == getAnnhilatorValue<T,Op>() && rw2 == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0, 0), Pair_T<T,T>(lw1, lw2));
+                    pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10; 
+                }
+                else {
+                    pairProductMapHandle.AddToEnd(intpair(0, 0), Pair_T<T,T>(lw1, lw2));
+                    pairProductMapHandle.AddToEnd(intpair(0, 1), Pair_T<T,T>(rw1, rw2));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle; 
+                }
             }
             else { /* n2.handleContents->NodeKind() == CFLOBDD_DONTCARE */       // CFLOBDD_DONTCARE, CFLOBDD_DONTCARE
                 // TODO: To optimize
                 WeightedCFLOBDDForkNode<T,Op>* c1 = (WeightedCFLOBDDForkNode<T,Op> *)(n1.handleContents);
                 WeightedCFLOBDDForkNode<T,Op>* c2 = (WeightedCFLOBDDForkNode<T,Op> *)(n2.handleContents);
-                pairProductMapHandle.AddToEnd(intpair(0,0), Pair_T<T,T>(factor1 * c1->lweight, factor2 * c2->lweight));
-                pairProductMapHandle.AddToEnd(intpair(0,0), Pair_T<T,T>(factor1 * c1->rweight, factor2 * c2->rweight));
-                pairProductMapHandle.Canonicalize();
-                answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle;
+                T lw1 = computeComposition<T,Op>(factor1, c1->lweight);
+                T lw2 = computeComposition<T,Op>(factor2, c2->lweight);
+                T rw1 = computeComposition<T,Op>(factor1, c1->rweight);
+                T rw2 = computeComposition<T,Op>(factor2, c2->rweight);
+
+                if (lw1 == getAnnhilatorValue<T,Op>() && lw2 == getAnnhilatorValue<T,Op>())
+                {
+                    if (rw1 == getAnnhilatorValue<T,Op>() && rw2 == getAnnhilatorValue<T,Op>())
+                    {
+                        pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                        pairProductMapHandle.Canonicalize();
+                        answer = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0];
+                    }
+                    else {
+                        pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                        pairProductMapHandle.AddToEnd(intpair(0, 0), Pair_T<T,T>(rw1, rw2));
+                        pairProductMapHandle.Canonicalize();
+                        answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01;
+                    }
+                }
+                else if (rw1 == getAnnhilatorValue<T,Op>() && rw2 == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0, 0), Pair_T<T,T>(lw1, lw2));
+                    pairProductMapHandle.AddToEnd(intpair(-1, -1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10; 
+                }
+                else {
+                    pairProductMapHandle.AddToEnd(intpair(0, 0), Pair_T<T,T>(lw1, lw2));
+                    pairProductMapHandle.AddToEnd(intpair(0, 0), Pair_T<T,T>(rw1, rw2));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle; 
+                }
             }
             }
                 pairProduct2Cache<T,Op>->Insert(WeightedPairProductKey(n1, n2, factor1, factor2),
@@ -863,6 +986,9 @@ namespace CFL_OBDD {
 
 
     typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
+	typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
+    // typedef double BIG_FLOAT;
+    template class WeightedPairProductMapHandle<BIG_FLOAT>;
     template WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>> 
                 PairProduct<BIG_FLOAT, std::multiplies<BIG_FLOAT>>(WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>> n1,
                                 WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>> n2,
@@ -890,6 +1016,35 @@ namespace CFL_OBDD {
 
     template void InitWeightedPairProductCache<BIG_FLOAT, std::multiplies<BIG_FLOAT>>();
     template void DisposeOfWeightedPairProductCache<BIG_FLOAT, std::multiplies<BIG_FLOAT>>();
+
+    template class WeightedPairProductMapHandle<BIG_COMPLEX_FLOAT>;
+    template WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> 
+                PairProduct<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>(WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> n1,
+                                WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> n2,
+                                WeightedPairProductMapHandle<BIG_COMPLEX_FLOAT> &pairProductMap
+                                );
+    template WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> 
+                PairProduct(WeightedCFLOBDDInternalNode<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> *n1,
+                                WeightedCFLOBDDInternalNode<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> *n2,
+                                WeightedPairProductMapHandle<BIG_COMPLEX_FLOAT> &pairProductMap
+                            );
+    template WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> 
+                PairProduct2<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>(WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> n1,
+                                WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> n2,
+                                BIG_COMPLEX_FLOAT factor1,
+                                BIG_COMPLEX_FLOAT factor2,
+                                WeightedPairProductMapHandle<BIG_COMPLEX_FLOAT> &pairProductMap
+                                );
+    template WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> 
+                PairProduct2(WeightedCFLOBDDInternalNode<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> *n1,
+                                WeightedCFLOBDDInternalNode<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> *n2,
+                                BIG_COMPLEX_FLOAT factor1,
+                                BIG_COMPLEX_FLOAT factor2,
+                                WeightedPairProductMapHandle<BIG_COMPLEX_FLOAT> &pairProductMap
+                            );
+
+    template void InitWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
+    template void DisposeOfWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
 
 
 }

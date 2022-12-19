@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include "pair_t.h"
 #include <boost/multiprecision/cpp_dec_float.hpp>
+#include <boost/multiprecision/cpp_complex.hpp>
 
 template <typename T, typename T1>
 Pair_T<T,T1>::Pair_T()
@@ -66,3 +67,6 @@ bool Pair_T<T,T1>::operator==(const Pair_T<T,T1>& p)
 
 typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
 template class Pair_T<BIG_FLOAT, BIG_FLOAT>;
+
+typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
+template class Pair_T<BIG_COMPLEX_FLOAT, BIG_COMPLEX_FLOAT>;

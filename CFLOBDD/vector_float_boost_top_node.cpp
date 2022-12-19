@@ -173,7 +173,7 @@ namespace CFL_OBDD {
 		}
 
 //#ifdef PATH_COUNTING_ENABLED
-		std::string SamplingTop(CFLOBDDTopNodeFloatBoostRefPtr n, bool VocTwo)
+		std::string SamplingTop(CFLOBDDTopNodeFloatBoostRefPtr n, bool VocTwo, std::string func)
 		{
 			std::vector<std::pair<BIG_FLOAT, unsigned int>> values;
 			long double prob = -1 * std::numeric_limits<long double>::infinity();
@@ -194,8 +194,8 @@ namespace CFL_OBDD {
 			sort(values.begin(), values.end(), sortNumPathPairs<BIG_FLOAT>);
 			prob = getLogSumNumPaths(values, values.size()).convert_to<long double>();
 			
-			/*for (int j = 0; j < values.size(); j++)
-				std::cout << values[j].first << " " << values[j].second << std::endl;*/
+			// for (int j = 0; j < values.size(); j++)
+			// 	std::cout << values[j].first << " " << values[j].second << std::endl;
 			BIG_FLOAT val = -1 * std::numeric_limits<BIG_FLOAT>::infinity();
 			long double random_value = 0.0;
 			if (prob >= 64){
@@ -207,7 +207,7 @@ namespace CFL_OBDD {
 			else{
 				auto rand_val = rand();
 				random_value = log2l((((double)rand_val) / RAND_MAX)*pow(2, prob));
-				//std::cout << rand() << " " << (((double)rand_val) / RAND_MAX) << " " << pow(2, prob) << " " << random_value;
+				// std::cout << rand_val << " " << (((double)rand_val) / RAND_MAX) << " " << pow(2, prob) << " " << random_value;
 			}
 
 			unsigned int index = 0;
@@ -225,6 +225,14 @@ namespace CFL_OBDD {
 					index = 1;
 				else if (n->rootConnection.returnMapHandle.Lookup(1) == 0)
 					index = 0;
+			}
+			if (n->rootConnection.returnMapHandle.Size() == 2 && func == "Grovers"){
+				BIG_FLOAT a = n->rootConnection.returnMapHandle[0];
+				BIG_FLOAT b = n->rootConnection.returnMapHandle[1];
+				if (abs(a - (a - b)) < 0.01)
+					index = 0;
+				else if (abs(b - (b - a)) < 0.01)
+					index = 1;
 			}
 			std::pair<std::string, std::string> stringPair = SamplingNode(*(n->rootConnection.entryPointHandle), index, VocTwo);
 			//std::cout << stringPair.first << " " << stringPair.second << std::endl;

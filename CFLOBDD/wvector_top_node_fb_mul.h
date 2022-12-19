@@ -12,6 +12,7 @@
 
 namespace CFL_OBDD {
 	typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
+	// typedef double BIG_FLOAT;
 	//typedef mp::number<mp::cpp_dec_float<1000> > BIG_FLOAT;
 	typedef ReturnMapBody<BIG_FLOAT> FloatBoostReturnMapBody;
 	typedef ReturnMapHandle<BIG_FLOAT> FloatBoostReturnMapHandle;
@@ -31,7 +32,7 @@ namespace CFL_OBDD {
 		extern WeightedCFLOBDDTopNodeFloatBoostRefPtr VectorToMatrixInterleavedTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n); // Convert vector to matrix with variables interleaved
 		extern WeightedCFLOBDDTopNodeFloatBoostRefPtr MkColumn1MatrixTop(unsigned int level);
 		extern WeightedCFLOBDDTopNodeFloatBoostRefPtr NoDistinctionNodeTop(unsigned int level, BIG_FLOAT val);
-		extern std::string SamplingTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n, bool voctwo = false);
+		extern std::string SamplingTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n, bool voctwo = false, std::string = "");
 		extern WeightedCFLOBDDTopNodeFloatBoostRefPtr VectorWithAmplitudeTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n);
 		extern void VectorPrintColumnMajorTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n, std::ostream & out);
 		extern void VectorPrintColumnMajorInterleavedTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n, std::ostream & out);

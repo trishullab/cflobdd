@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include "return_map_T.h"
 #include "weighted_values_list.h"
+#include "fourier_semiring.h"
 #include "list_T.h"
 #include "list_TPtr.h"
 #include "intpair.h"
@@ -90,6 +91,24 @@ void WeightedValuesListBody<T>::AddToEnd(T y)
     }
     if (isOneOrZero)
         isOneOrZero = isOneOrZero && ((y == 0) || (y == 1));
+	mapArray.push_back(y);
+}
+
+template <>
+void WeightedValuesListBody<fourierSemiring>::AddToEnd(fourierSemiring y)
+{
+    // TODO: To change this
+    if (mapArray.size() == 0)
+    {
+        isAllSame = true;
+        value = y;
+    }
+    else if (mapArray.size() > 0 && isAllSame == true)
+    {
+        isAllSame = isAllSame && (y == mapArray[mapArray.size()-1]);
+    }
+    if (isOneOrZero)
+        isOneOrZero = isOneOrZero && ((y == fourierSemiring(0, 1)) || (y == fourierSemiring(1, 1)));
 	mapArray.push_back(y);
 }
 
@@ -278,5 +297,18 @@ std::size_t hash_value(const WeightedValuesListHandle<T>& val)
 	return val.mapContents->hashCheck;
 }
 
+#include <boost/multiprecision/cpp_dec_float.hpp>
+#include <boost/multiprecision/cpp_complex.hpp>
 
+typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
+template class WeightedValuesListHandle<BIG_FLOAT>;
+template std::ostream& operator<< (std::ostream & out, const WeightedValuesListHandle<BIG_FLOAT> &r);
+
+
+typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
+template class WeightedValuesListHandle<BIG_COMPLEX_FLOAT>;
+template std::ostream& operator<< (std::ostream & out, const WeightedValuesListHandle<BIG_COMPLEX_FLOAT> &r);
+
+template class WeightedValuesListHandle<fourierSemiring>;
+template std::ostream& operator<< (std::ostream & out, const WeightedValuesListHandle<fourierSemiring> &r);
 

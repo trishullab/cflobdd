@@ -34,6 +34,8 @@
 #include "wvector_fb_mul.h"
 #include "weighted_quantum_algos.h"
 #include "wvector_complex_fb_mul.h"
+#include "wmatrix1234_fourier_mul.h"
+#include "wvector_fourier_mul.h"
 using namespace CFL_OBDD;
 using namespace SH_OBDD;
 using namespace std::chrono;
@@ -1299,17 +1301,20 @@ void CFLTests::testMatMul(int p)
 
 void CFLTests::testWeightedOps(unsigned int level)
 {
-	int n = std::pow(2, level-2);
-	WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL F = WeightedMatrix1234FloatBoostMul::MkCNOT(level, 2*n, 0, n);
-	WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL tmp = WeightedMatrix1234FloatBoostMul::MkCNOT(level, 2*n, 1, n);
-    auto y = high_resolution_clock::now(); 
-	F.print(std::cout);
-	tmp.print(std::cout);
-	WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL C = WeightedMatrix1234FloatBoostMul::MatrixMultiplyV4(F, tmp);
-	auto x = high_resolution_clock::now(); 
-	auto duration = duration_cast<milliseconds>(x - y);
-	std::cout << duration.count() << std::endl;
-	C.print(std::cout);
+	// int n = std::pow(2, level-2);
+	// WEIGHTED_CFLOBDD_FOURIER_MUL F = WeightedMatrix1234FourierMul::MkCNOT(level, 2*n, 0, n);
+	// WEIGHTED_CFLOBDD_FOURIER_MUL tmp = WeightedMatrix1234FourierMul::MkCNOT(level, 2*n, 1, n);
+    // auto y = high_resolution_clock::now(); 
+	// F.print(std::cout);
+	// tmp.print(std::cout);
+	// WEIGHTED_CFLOBDD_FOURIER_MUL C = WeightedMatrix1234FourierMul::MatrixMultiplyV4(F, tmp);
+	// auto x = high_resolution_clock::now(); 
+	// auto duration = duration_cast<milliseconds>(x - y);
+	// std::cout << duration.count() << std::endl;
+	// C.print(std::cout);
+	auto H = WeightedMatrix1234FourierMul::MkWalshInterleaved(level);
+	H = WeightedMatrix1234FourierMul::MatrixMultiplyV4(H, H);
+	H.print(std::cout);
 }
 
 void CFLTests::testGHZAlgo_W(int p){
@@ -1450,7 +1455,7 @@ void CFLTests::testQFT_W(int p, int seed)
 	std::cout << "s: " << s << std::endl;
 	std::cout << "QFT start..." << std::endl;
 	auto start = high_resolution_clock::now();
-	auto out_ans = WeightedQuantumAlgos::QFT(n, s);
+	auto out_ans = WeightedQuantumAlgos::QFT_fourier(n, s);
 	auto end = high_resolution_clock::now();
 	auto duration = duration_cast<milliseconds>(end - start);
 	unsigned int nodeCount = 0, edgeCount = 0;
@@ -1460,6 +1465,24 @@ void CFLTests::testQFT_W(int p, int seed)
 		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
 		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
 	// out_ans.print(std::cout);
+}
+
+void CFLTests::testShorsAlgo_W(int N, int a)
+{
+	N = 16;
+	a = 2;
+	int bits = 5;
+	auto start = high_resolution_clock::now();
+	auto out_ans = WeightedQuantumAlgos::ShorsAlgo(a, N, bits);
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	out_ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
+		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
+		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
+	out_ans.print(std::cout);
 }
 
 
@@ -1490,6 +1513,14 @@ void CFLTests::InitModules()
 	WeightedMatrix1234ComplexFloatBoostMul::Matrix1234Initializer();
 	WeightedVectorComplexFloatBoostMul::VectorInitializer();
 	InitWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
+
+	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitNoDistinctionTable();
+	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitNoDistinctionTable_Ann();
+	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitIdentityNodeTable();	
+	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitReduceCache();
+	WeightedMatrix1234FourierMul::Matrix1234Initializer();
+	WeightedVectorFourierMul::VectorInitializer();
+	InitWeightedPairProductCache<fourierSemiring, std::multiplies<fourierSemiring>>();
 }
 
 void CFLTests::ClearModules()
@@ -1499,6 +1530,7 @@ void CFLTests::ClearModules()
 	CFLOBDDNodeHandle::DisposeOfReduceCache();
 	DisposeOfWeightedPairProductCache<BIG_FLOAT, std::multiplies<BIG_FLOAT>>();
 	DisposeOfWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
+	DisposeOfWeightedPairProductCache<fourierSemiring, std::multiplies<fourierSemiring>>();
 }
 
 
@@ -1593,6 +1625,8 @@ bool CFLTests::runTests(const char *arg, int size, int seed){
 		CFLTests::testGroversAlgo_W(size, seed);
 	} else if (curTest == "testQFT_W") {
 		CFLTests::testQFT_W(size, seed);
+	} else if (curTest == "testShorsAlgo_W") {
+		CFLTests::testShorsAlgo_W(size, seed);
 	// }
 	// else {
 	// 	std::cout << "Unrecognized test name: " << curTest << std::endl;

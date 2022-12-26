@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cassert>
 #include "weighted_matmult_map.h"
+#include "fourier_semiring.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/functional/hash.hpp>
 
@@ -56,6 +57,16 @@ void WeightedMatMultMapBody<T>::setHashCheck()
 	boost::hash<T> boost_hash;
 	for (auto &i : map) {
 		hvalue = (117 * (hvalue + 1) + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second)));
+	}
+	hashCheck = hvalue;
+}
+
+template <>
+void WeightedMatMultMapBody<fourierSemiring>::setHashCheck()
+{
+	long int hvalue = 0;
+	for (auto &i : map) {
+		hvalue = (117 * (hvalue + 1) + (int)(i.first.first + 97 * i.first.second + 97 * 97 * (i.second.GetVal() + 17 * i.second.GetRingSize())));
 	}
 	hashCheck = hvalue;
 }
@@ -206,6 +217,21 @@ void WeightedMatMultMapHandle<T>::Add(const INT_PAIR& p, T& v)
     }
 }
 
+template <>
+void WeightedMatMultMapHandle<fourierSemiring>::Add(const INT_PAIR& p, fourierSemiring& v)
+{
+	assert(mapContents->refCount <= 1);
+	auto it = mapContents->map.find(p);
+    if (it == mapContents->map.end()){
+        mapContents->map.emplace(p, v);
+    }
+    else{
+        it->second = it->second + v;
+        if (it->second == fourierSemiring(0, 1))
+            mapContents->map.erase(it);
+    }
+}
+
 template <typename T>
 void WeightedMatMultMapHandle<T>::ForceAdd(const INT_PAIR& p, T& v)
 {
@@ -218,7 +244,7 @@ void WeightedMatMultMapHandle<T>::ForceAdd(const INT_PAIR& p, T& v)
 	}
 	else{
 		if (p.first != -1 && p.second != -1){
-			it->second += v;
+			it->second = it->second + v;
         }
 		else{
 			assert(it->first.first == -1 && it->first.second == -1);
@@ -292,6 +318,31 @@ void WeightedMatMultMapHandle<T>::Canonicalize()
 	}
 }
 
+template <>
+void WeightedMatMultMapHandle<fourierSemiring>::Canonicalize()
+{
+
+    if (mapContents->map.empty())
+        mapContents->map.insert(std::make_pair(std::make_pair(-1, -1), fourierSemiring(0, 1)));
+
+	WeightedMatMultMapBody<fourierSemiring> *answerContents;
+	mapContents->setHashCheck();
+
+	if (!mapContents->isCanonical) {
+		unsigned int hash = canonicalWeightedMatMultMapBodySet->GetHash(mapContents);
+		answerContents = canonicalWeightedMatMultMapBodySet->Lookup(mapContents, hash);
+		if (answerContents == NULL) {
+			canonicalWeightedMatMultMapBodySet->Insert(mapContents, hash);
+			mapContents->isCanonical = true;
+		}
+		else {
+			answerContents->IncrRef();
+			mapContents->DecrRef();
+			mapContents = answerContents;
+		}
+	}
+}
+
 template <typename T>
 size_t WeightedMatMultMapHandle<T>::getHashCheck()
 {
@@ -312,7 +363,25 @@ WeightedMatMultMapHandle<T> WeightedMatMultMapHandle<T>::operator+ (const Weight
 		ans.Add(i.first, i.second);
 	}
 	if (ans.Size() == 0){
-		T one(1);
+		T one(0);
+		ans.ForceAdd(std::make_pair(-1, -1), one);
+	}
+	ans.Canonicalize();
+	return ans;
+}
+
+template <>
+WeightedMatMultMapHandle<fourierSemiring> WeightedMatMultMapHandle<fourierSemiring>::operator+ (const WeightedMatMultMapHandle<fourierSemiring>& mapHandle) const
+{
+	WeightedMatMultMapHandle<fourierSemiring> ans;
+	for (auto &i : mapContents->map){
+		ans.Add(i.first, i.second);
+	}
+	for (auto &i : mapHandle.mapContents->map){
+		ans.Add(i.first, i.second);
+	}
+	if (ans.Size() == 0){
+		fourierSemiring one(0, 1);
 		ans.ForceAdd(std::make_pair(-1, -1), one);
 	}
 	ans.Canonicalize();
@@ -331,7 +400,25 @@ WeightedMatMultMapHandle<T> operator* (const T& factor, const WeightedMatMultMap
 		ans.Add(i.first, v);
 	}
 	if (ans.Size() == 0){
-		T one(1);
+		T one(0);
+		ans.ForceAdd(std::make_pair(-1, -1), one);
+	}
+	ans.Canonicalize();
+	return ans;
+}
+
+template <>
+WeightedMatMultMapHandle<fourierSemiring> operator* (const fourierSemiring& factor, const WeightedMatMultMapHandle<fourierSemiring>& mapHandle)
+{
+	if (factor == fourierSemiring(1, 1))
+		return mapHandle;
+	WeightedMatMultMapHandle<fourierSemiring> ans;
+	for (auto &i : mapHandle.mapContents->map){
+		fourierSemiring v = i.second * factor;
+		ans.Add(i.first, v);
+	}
+	if (ans.Size() == 0){
+		fourierSemiring one(0, 1);
 		ans.ForceAdd(std::make_pair(-1, -1), one);
 	}
 	ans.Canonicalize();
@@ -350,8 +437,26 @@ WeightedMatMultMapHandle<T> operator* (const WeightedMatMultMapHandle<T>& mapHan
 		ans.Add(i.first, v);
 	}
 	if (ans.Size() == 0){
-		T one(1);
+		T one(0);
 		ans.ForceAdd(std::make_pair(-1, -1), one);
+	}
+	ans.Canonicalize();
+	return ans;
+}
+
+template <>
+WeightedMatMultMapHandle<fourierSemiring> operator* (const WeightedMatMultMapHandle<fourierSemiring>& mapHandle, const fourierSemiring& factor)
+{
+	if (factor == fourierSemiring(1, 1))
+		return mapHandle;
+	WeightedMatMultMapHandle<fourierSemiring> ans;
+	for (auto &i : mapHandle.mapContents->map){
+		fourierSemiring v = i.second * factor;
+		ans.Add(i.first, v);
+	}
+	if (ans.Size() == 0){
+		fourierSemiring zero(0, 1);
+		ans.ForceAdd(std::make_pair(-1, -1), zero);
 	}
 	ans.Canonicalize();
 	return ans;
@@ -370,3 +475,9 @@ template WeightedMatMultMapHandle<BIG_FLOAT> operator*<BIG_FLOAT>(const Weighted
 template class WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>;
 template WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT> operator*<BIG_COMPLEX_FLOAT>(const BIG_COMPLEX_FLOAT&, const WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>&);
 template WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT> operator*<BIG_COMPLEX_FLOAT>(const WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>&, const BIG_COMPLEX_FLOAT&);
+
+
+#include "fourier_semiring.h"
+template class WeightedMatMultMapHandle<fourierSemiring>;
+template WeightedMatMultMapHandle<fourierSemiring> operator*<fourierSemiring>(const fourierSemiring&, const WeightedMatMultMapHandle<fourierSemiring>&);
+template WeightedMatMultMapHandle<fourierSemiring> operator*<fourierSemiring>(const WeightedMatMultMapHandle<fourierSemiring>&, const fourierSemiring&);

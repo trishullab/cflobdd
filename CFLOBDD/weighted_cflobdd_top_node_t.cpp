@@ -660,7 +660,7 @@ namespace CFL_OBDD {
     typename WeightedCFLOBDDTopNodeT<T, Op>::WeightedCFLOBDDTopNodeTRefPtr
     MkLeftScalarTimesTopNode(T1 c, typename WeightedCFLOBDDTopNodeT<T, Op>::WeightedCFLOBDDTopNodeTRefPtr g)
     {
-        if (c == 1) return g;  // Nothing need be performed
+        if (c == getIdentityValue<T, Op>()) return g;  // Nothing need be performed
 
         WeightedCFLOBDDNodeHandleT<T,Op> eph;
         typename WeightedCFLOBDDTopNodeT<T, Op>::WeightedCFLOBDDTopNodeTRefPtr ans;

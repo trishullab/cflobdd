@@ -1991,7 +1991,7 @@ void WeightedCFLOBDDInternalNode<T,Op>::InstallPathCounts()
 template <typename T, typename Op>
 void WeightedCFLOBDDInternalNode<T,Op>::InstallWeightsOfPathsAsAmpsToExits()
 {
-  this->numWeightsOfPathsAsAmpsToExit = new T[this->numExits];
+  this->numWeightsOfPathsAsAmpsToExit = new long double[this->numExits];
   this->isWeightsOfPathsMemAllocated = true;
   for (unsigned int i = 0; i < this->numExits; i++) {
     this->numWeightsOfPathsAsAmpsToExit[i] = 0;
@@ -2002,7 +2002,7 @@ void WeightedCFLOBDDInternalNode<T,Op>::InstallWeightsOfPathsAsAmpsToExits()
   for (unsigned int i = 0; i < AConnection.entryPointHandle->handleContents->numExits; i++) {
     for (unsigned int j = 0; j < BConnection[i].entryPointHandle->handleContents->numExits; j++) {
       unsigned int k = BConnection[i].returnMapHandle.Lookup(j);
-	  T numPathsValue = AConnection.entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[i] * BConnection[i].entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[j];
+	  long double numPathsValue = AConnection.entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[i] * BConnection[i].entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[j];
 	//   if (storingNumPathsToExit.find(k) == storingNumPathsToExit.end()){
 	// 	  std::vector<long double> logOfPaths;
 	// 	  logOfPaths.push_back(numPathsValue);
@@ -2154,7 +2154,7 @@ template <typename T, typename Op>
 void WeightedCFLOBDDForkNode<T,Op>::InstallWeightsOfPathsAsAmpsToExits()
 {
     this->isWeightsOfPathsMemAllocated = true;
-    this->numWeightsOfPathsAsAmpsToExit = new T[2];
+    this->numWeightsOfPathsAsAmpsToExit = new long double[2];
     this->numWeightsOfPathsAsAmpsToExit[0] = computeProbabilityFromAmplitude<T,Op>(this->lweight);
     this->numWeightsOfPathsAsAmpsToExit[1] = computeProbabilityFromAmplitude<T,Op>(this->rweight);
 }
@@ -2290,7 +2290,7 @@ template <typename T, typename Op>
 void WeightedCFLOBDDDontCareNode<T,Op>::InstallWeightsOfPathsAsAmpsToExits()
 {
     this->isWeightsOfPathsMemAllocated = true;
-    this->numWeightsOfPathsAsAmpsToExit = new T[1];
+    this->numWeightsOfPathsAsAmpsToExit = new long double[1];
     this->numWeightsOfPathsAsAmpsToExit[0] = computeProbabilityFromAmplitude<T,Op>(this->lweight) + computeProbabilityFromAmplitude<T,Op>(this->rweight);
 }
 

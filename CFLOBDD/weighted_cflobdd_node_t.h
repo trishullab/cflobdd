@@ -214,7 +214,7 @@ class WeightedCFLOBDDNode {
   //unsigned long long int *numPathsToExit;       // unsigned int numPathsToExit[numExits]
   //cpp_int *numPathsToExit;
   long double *numPathsToExit;
-  T *numWeightsOfPathsAsAmpsToExit;
+  long double *numWeightsOfPathsAsAmpsToExit;
   bool isNumPathsMemAllocated;
   bool isWeightsOfPathsMemAllocated;
 //#endif

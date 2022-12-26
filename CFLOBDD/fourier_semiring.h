@@ -29,33 +29,40 @@
 
 #include <iostream>
 #include <fstream>
+#include <boost/multiprecision/cpp_int.hpp>
+#include <boost/functional/hash.hpp>
+
+typedef boost::multiprecision::cpp_int BIG_INT;
 
 class fourierSemiring {
 public:
 	fourierSemiring();                              // Default constructor
-	fourierSemiring(const int val, const int ringSize);    // Constructor
+	fourierSemiring(const BIG_INT val, const BIG_INT ringSize);    // Constructor
 	fourierSemiring& operator= (const fourierSemiring& p);  // Overloaded assignment
 	bool operator!= (const fourierSemiring& p) const;     // Overloaded !=
 	bool operator== (const fourierSemiring& p);     // Overloaded ==
-	int GetVal() const { return val; }     // Access function
-	int GetRingSize() const { return ringSize; }   // Access function
-	void SetVal(int v) { val = v; }
-	void SetRingSize(int r){ ringSize = r; }
+	BIG_INT GetVal() const { return val; }     // Access function
+	BIG_INT GetRingSize() const { return ringSize; }   // Access function
+	void SetVal(BIG_INT v) { val = v; }
+	void SetValAndRingSize(BIG_INT v, BIG_INT r);
+	void SetRingSize(BIG_INT r){ ringSize = r; }
 	fourierSemiring operator* (const fourierSemiring& p);
+	fourierSemiring operator/ (const fourierSemiring& p);
 	fourierSemiring operator+ (const fourierSemiring& p);
 	struct fourierSemiring_hash {
 		size_t operator()(const fourierSemiring& p) const {
-			return 117 * (p.GetVal() + 1) + p.GetRingSize();
+			boost::hash<BIG_INT> boost_hash;
+			return 117 * (boost_hash(p.GetVal()) + 1) + boost_hash(p.GetRingSize());
 		}
 	};
 private:
-	int val;
-	int ringSize;
+	BIG_INT val;
+	BIG_INT ringSize;
 };
 
 bool operator==(const fourierSemiring& lhs, const fourierSemiring& rhs);
-fourierSemiring operator*(const unsigned long long int lhs, const fourierSemiring& rhs);
-fourierSemiring operator*(const fourierSemiring& lhs, const unsigned long long int rhs);
+fourierSemiring operator*(const BIG_INT lhs, const fourierSemiring& rhs);
+fourierSemiring operator*(const fourierSemiring& lhs, const BIG_INT rhs);
 std::ostream& operator<< (std::ostream & out, const fourierSemiring &p);
 std::size_t hash_value(const fourierSemiring& val);
 

@@ -120,6 +120,11 @@ namespace CFL_OBDD {
 		{
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCPGateTop(i, c1, c2, theta));
 		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCSwapGateTop(i, c1, x1, x2));
+		}
 	}
 }
 

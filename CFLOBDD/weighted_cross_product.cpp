@@ -15,6 +15,7 @@
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/cpp_complex.hpp>
 #include <boost/functional/hash.hpp>
+#include "fourier_semiring.h"
 
 // using namespace CFL_OBDD;
 
@@ -65,7 +66,7 @@ namespace CFL_OBDD {
         }
         boost::hash<T> boost_hash;
         for (unsigned int i = 0; i < mapArray.size(); i++){
-            hvalue = (997*hvalue + 97*boost_hash(mapArray[i].First()) + boost_hash(mapArray[i].Second())) % modsize;
+            hvalue = (997*hvalue + 97*boost_hash(valueArray[i].First()) + boost_hash(valueArray[i].Second())) % modsize;
         }
 
         return hvalue;
@@ -99,6 +100,14 @@ namespace CFL_OBDD {
         mapArray.push_back(y);
         // TODO: change this
         valueArray.push_back(Pair_T<T,T>(1.0, 1.0));
+    }
+
+    template <>
+    void WeightedPairProductMapBody<fourierSemiring>::AddToEnd(const intpair& y)
+    {
+        mapArray.push_back(y);
+        fourierSemiring one(1, 1);
+        valueArray.push_back(Pair_T<fourierSemiring,fourierSemiring>(one, one)); 
     }
 
     template <typename T>
@@ -291,8 +300,8 @@ namespace CFL_OBDD {
     WeightedPairProductKey<T,Op>::WeightedPairProductKey(WeightedCFLOBDDNodeHandleT<T,Op> nodeHandle1, WeightedCFLOBDDNodeHandleT<T,Op> nodeHandle2)
     :  nodeHandle1(nodeHandle1), nodeHandle2(nodeHandle2)
     {
-        factor1 = 1;
-        factor2 = 1;
+        factor1 = getIdentityValue<T,Op>();
+        factor2 = getIdentityValue<T,Op>();
     }
 
     template <typename T, typename Op>
@@ -1045,6 +1054,36 @@ namespace CFL_OBDD {
 
     template void InitWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
     template void DisposeOfWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
+
+    template class WeightedPairProductMapHandle<fourierSemiring>;
+    template WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>> 
+                PairProduct<fourierSemiring, std::multiplies<fourierSemiring>>(WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>> n1,
+                                WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>> n2,
+                                WeightedPairProductMapHandle<fourierSemiring> &pairProductMap
+                                );
+    template WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>> 
+                PairProduct(WeightedCFLOBDDInternalNode<fourierSemiring, std::multiplies<fourierSemiring>> *n1,
+                                WeightedCFLOBDDInternalNode<fourierSemiring, std::multiplies<fourierSemiring>> *n2,
+                                WeightedPairProductMapHandle<fourierSemiring> &pairProductMap
+                            );
+
+    template WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>> 
+                PairProduct2<fourierSemiring, std::multiplies<fourierSemiring>>(WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>> n1,
+                                WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>> n2,
+                                fourierSemiring factor1,
+                                fourierSemiring factor2,
+                                WeightedPairProductMapHandle<fourierSemiring> &pairProductMap
+                                );
+    template WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>> 
+                PairProduct2(WeightedCFLOBDDInternalNode<fourierSemiring, std::multiplies<fourierSemiring>> *n1,
+                                WeightedCFLOBDDInternalNode<fourierSemiring, std::multiplies<fourierSemiring>> *n2,
+                                fourierSemiring factor1,
+                                fourierSemiring factor2,
+                                WeightedPairProductMapHandle<fourierSemiring> &pairProductMap
+                            );
+
+    template void InitWeightedPairProductCache<fourierSemiring, std::multiplies<fourierSemiring>>();
+    template void DisposeOfWeightedPairProductCache<fourierSemiring, std::multiplies<fourierSemiring>>();
 
 
 }

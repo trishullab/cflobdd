@@ -6,6 +6,7 @@
 #include "pair_t.h"
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/cpp_complex.hpp>
+#include "fourier_semiring.h"
 
 template <typename T, typename T1>
 Pair_T<T,T1>::Pair_T()
@@ -50,6 +51,12 @@ Pair_T<T,T1> Pair_T<T,T1>::operator! ()
 	return Pair_T(newFirst,newSecond);
 }
 
+template <>
+Pair_T<fourierSemiring, fourierSemiring> Pair_T<fourierSemiring,fourierSemiring>::operator! ()
+{
+	abort();
+}
+
 // Overloaded !=
 template <typename T, typename T1>
 bool Pair_T<T,T1>::operator!=(const Pair_T<T,T1>& p) const
@@ -70,3 +77,4 @@ template class Pair_T<BIG_FLOAT, BIG_FLOAT>;
 
 typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
 template class Pair_T<BIG_COMPLEX_FLOAT, BIG_COMPLEX_FLOAT>;
+template class Pair_T<fourierSemiring, fourierSemiring>;

@@ -138,6 +138,33 @@ unsigned int ReturnMapBody<WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>>::Hash(un
 	return hvalue;
 }
 
+template<>
+void ReturnMapBody<WeightedMatMultMapHandle<fourierSemiring>>::setHashCheck()
+{
+	unsigned int hvalue = 0;
+
+	for (unsigned i = 0; i < mapArray.size(); i++)
+	{
+		if (mapArray[i].mapContents->hashCheck == NULL) {
+			mapArray[i].mapContents->setHashCheck();
+		}
+		hvalue = (117 * (hvalue + 1) + mapArray[i].mapContents->hashCheck);
+	}
+	hashCheck = hvalue;
+}
+
+template<>
+unsigned int ReturnMapBody<WeightedMatMultMapHandle<fourierSemiring>>::Hash(unsigned int modsize)
+{
+	unsigned int hvalue = 0;
+
+	for (unsigned i = 0; i < mapArray.size(); i++)
+	{
+		hvalue = (997 * hvalue + mapArray[i].Hash(modsize)) % modsize;
+	}
+	return hvalue;
+}
+
 
 // template<>
 // void ReturnMapBody<LinearMapHandle>::setHashCheck()
@@ -441,10 +468,10 @@ template<>
 unsigned int ReturnMapBody<fourierSemiring>::Hash(unsigned int modsize)
 {
 	unsigned int hvalue = 0;
-
+	boost::hash<BIG_INT> boost_hash;
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (997 * hvalue + 117 * mapArray[i].GetVal() + mapArray[i].GetRingSize()) % modsize;
+		hvalue = (997 * hvalue + 117 * boost_hash(mapArray[i].GetVal()) + boost_hash(mapArray[i].GetRingSize())) % modsize;
 	}
 	return hvalue;
 }
@@ -453,10 +480,11 @@ template<>
 void ReturnMapBody<fourierSemiring>::setHashCheck()
 {
 	unsigned int hvalue = 0;
+	boost::hash<BIG_INT> boost_hash;
 
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (117 * (hvalue + 1) + 97 * mapArray[i].GetVal() + mapArray[i].GetRingSize());
+		hvalue = (117 * (hvalue + 1) + 97 * boost_hash(mapArray[i].GetVal()) + boost_hash(mapArray[i].GetRingSize()));
 	}
 	hashCheck = hvalue;
 }

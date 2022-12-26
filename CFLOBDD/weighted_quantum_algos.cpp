@@ -6,6 +6,8 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #include "wmatrix1234_complex_fb_mul.h"
 #include "wvector_complex_fb_mul.h"
+#include "wvector_fourier_mul.h"
+#include "wmatrix1234_fourier_mul.h"
 using namespace std;
 using namespace chrono;
 
@@ -36,10 +38,10 @@ namespace CFL_OBDD
             auto s2 = high_resolution_clock::now();
 			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL e0 = WeightedVectorFloatBoostMul::NoDistinctionNode(level - 2, 1);
             e0 = WeightedVectorFloatBoostMul::VectorToMatrixInterleaved(e0);
-			std::string last_one(n, '0');
+			std::string last_one(2*n, '0');
 			last_one[0] = '1';
-			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL e1 = WeightedVectorFloatBoostMul::MkBasisVector(level - 2, last_one);
-            e1 = WeightedVectorFloatBoostMul::VectorToMatrixInterleaved(e1);
+			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL e1 = WeightedVectorFloatBoostMul::MkBasisVector(level - 1, last_one);
+            // e1 = WeightedVectorFloatBoostMul::VectorToMatrixInterleaved(e1);
 			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL stateV = WeightedMatrix1234FloatBoostMul::KroneckerProduct2Vocs(e0, e1);
             auto s3 = high_resolution_clock::now();
 			//unsigned int nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount;
@@ -111,10 +113,10 @@ namespace CFL_OBDD
 		{
 			int level = ceil(log2(n));
 			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL X = WeightedVectorFloatBoostMul::NoDistinctionNode(level, 1);
-			std::string last_one(n, '0');
+			std::string last_one(2*n, '0');
 			last_one[0] = '1';
-			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL Y = WeightedVectorFloatBoostMul::MkBasisVector(level, last_one);
-			Y = WeightedVectorFloatBoostMul::VectorToMatrixInterleaved(Y);
+			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL Y = WeightedVectorFloatBoostMul::MkBasisVector(level+1, last_one);
+			// Y = WeightedVectorFloatBoostMul::VectorToMatrixInterleaved(Y);
 			X = WeightedVectorFloatBoostMul::VectorToMatrixInterleaved(X);
 			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL H = WeightedMatrix1234FloatBoostMul::MkWalshInterleaved(level + 1);
 			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL I = WeightedMatrix1234FloatBoostMul::MkIdRelationInterleaved(level + 1);
@@ -288,14 +290,41 @@ namespace CFL_OBDD
 			}
 		}
 
+        WEIGHTED_CFLOBDD_FOURIER_MUL Hadamard_i(unsigned int n, unsigned int i)
+		{
+			if (n == 1)
+			{
+				return WeightedMatrix1234FourierMul::MkWalshInterleaved(1);
+			}
+			else {
+                int level = ceil(log2(n/2));
+				if (i < n/2)
+				{
+					WEIGHTED_CFLOBDD_FOURIER_MUL T = WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level + 1);
+					WEIGHTED_CFLOBDD_FOURIER_MUL H = Hadamard_i(n/2, i);
+					return WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(H, T);
+				}
+				else
+				{
+					WEIGHTED_CFLOBDD_FOURIER_MUL T = WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level + 1);
+					return WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(T, Hadamard_i(n/2, i - n/2)); 
+				}
+			}
+		}
+
         WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL QFT(long long int n, std::string s)
 		{
 			unsigned int level = ceil(log2(n));
 			
 			// std::cout << "s: " << s << std::endl;
 			// std::reverse(s.begin(), s.end());
-			WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL stateV = WeightedVectorComplexFloatBoostMul::MkBasisVector(level, s);
-			stateV = WeightedVectorComplexFloatBoostMul::VectorToMatrixInterleaved(stateV);
+            std::string S(2*s.length(), '0');
+            for (int i = 0; i < s.length(); i++)
+            {
+                S[2*i] = s[i];
+            }
+			WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL stateV = WeightedVectorComplexFloatBoostMul::MkBasisVector(level+1, S);
+			// stateV = WeightedVectorComplexFloatBoostMul::VectorToMatrixInterleaved(stateV);
 			std::cout << "start" << std::endl;
 
 
@@ -319,7 +348,7 @@ namespace CFL_OBDD
                 // std::cout << "(i): " << i << " " << duration.count() << std::endl;
 				for (long int j = 0; j < i; j++)
 				{
-					double theta = std::pow(2, j - i);
+					double theta = std::pow(2, j - i - 1);
 					WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CP = WeightedMatrix1234ComplexFloatBoostMul::MkCPGate(level+1, j, i, theta);
                     // auto start = high_resolution_clock::now();
 					stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CP, stateV);
@@ -331,6 +360,191 @@ namespace CFL_OBDD
 			}
 			std::cout << "done" << std::endl;
 
+
+			return stateV;
+		}
+
+        WEIGHTED_CFLOBDD_FOURIER_MUL QFT_fourier(long long int n, std::string s)
+		{
+			unsigned int level = ceil(log2(n));
+			
+			// std::cout << "s: " << s << std::endl;
+			// std::reverse(s.begin(), s.end());
+            std::string S(2*s.length(), '0');
+            for (int i = 0; i < s.length(); i++)
+            {
+                S[2*i] = s[i];
+            }
+			WEIGHTED_CFLOBDD_FOURIER_MUL stateV = WeightedVectorFourierMul::MkBasisVector(level+1, S);
+			std::cout << "start" << std::endl;
+
+
+			for (long long int i = 0; i < n/2; i++)
+			{
+				WEIGHTED_CFLOBDD_FOURIER_MUL SwapM = WeightedMatrix1234FourierMul::MkSwapGate(level+1, i, n-i-1);
+				stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(SwapM, stateV);
+			}
+
+			std::cout << "loop start" << std::endl;
+
+			for (long long int i = n-1; i >= 0; i--)
+			{
+				WEIGHTED_CFLOBDD_FOURIER_MUL H = Hadamard_i(n, i);
+                // auto start = high_resolution_clock::now();
+				stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(H, stateV);
+                // auto end = high_resolution_clock::now();
+                // auto duration = duration_cast<milliseconds>(end - start);
+                // std::cout << "(i): " << i << " " << duration.count() << std::endl;
+				for (long int j = 0; j < i; j++)
+				{
+					fourierSemiring theta(1, boost::multiprecision::pow(BIG_INT(2), i - j + 1));
+					WEIGHTED_CFLOBDD_FOURIER_MUL CP = WeightedMatrix1234FourierMul::MkCPGate(level+1, j, i, theta);
+                    // auto start = high_resolution_clock::now();
+					stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(CP, stateV);
+                    // auto end = high_resolution_clock::now();
+                    // auto duration = duration_cast<milliseconds>(end - start);
+                    // std::cout << "(i,j): " << i << "," << j << " " << duration.count() << std::endl;
+				}
+			}
+			std::cout << "done" << std::endl;
+
+
+			return stateV;
+		}
+
+        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ShorsAlgoNew(int a, int N)
+		{
+			unsigned int level = ceil(log2(N));
+			WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL allOnes = WeightedVectorComplexFloatBoostMul::NoDistinctionNode(level,1);
+            allOnes = WeightedVectorComplexFloatBoostMul::VectorToMatrixInterleaved(allOnes);
+			std::string s(2*N, '0');
+			s[N-2] = '1';
+			WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL e = WeightedVectorComplexFloatBoostMul::MkBasisVector(level + 1, s);
+            // e.print(std::cout);
+			// e = WeightedVectorComplexFloatBoostMul::VectorToMatrixInterleaved(e);
+            // e.print(std::cout);
+			WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL stateV = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(allOnes, e);
+
+			for (int q = N-1; q >= 0; q--)
+			{
+				// std::cout << "q: " << q << std::endl;
+				unsigned int power = std::pow(2, N-1-q);
+				for (unsigned int i = 0; i < power; i++)
+				{
+					if (a == 2 || a == 13)
+					{
+						WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CSWAP = WeightedMatrix1234ComplexFloatBoostMul::MkCSwapGate(level+2, q, N, N+1);
+						stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CSWAP, stateV);
+						CSWAP = WeightedMatrix1234ComplexFloatBoostMul::MkCSwapGate(level+2, q, N+1, N+2);
+						stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CSWAP, stateV);
+						CSWAP = WeightedMatrix1234ComplexFloatBoostMul::MkCSwapGate(level+2, q, N+2, N+3);
+						stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CSWAP, stateV);
+					}
+					if (a == 7 || a == 8)
+					{
+						WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CSWAP = WeightedMatrix1234ComplexFloatBoostMul::MkCSwapGate(level+2, q, N+2, N+3);
+						stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CSWAP, stateV);
+						CSWAP = WeightedMatrix1234ComplexFloatBoostMul::MkCSwapGate(level+2, q, N+1, N+2);
+						stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CSWAP, stateV);
+						CSWAP = WeightedMatrix1234ComplexFloatBoostMul::MkCSwapGate(level+2, q, N, N+1);
+						stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CSWAP, stateV);
+					}
+					if (a == 4 || a == 11)
+					{
+						WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CSWAP = WeightedMatrix1234ComplexFloatBoostMul::MkCSwapGate(level+2, q, N+1, N+3);
+						stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CSWAP, stateV);
+						CSWAP = WeightedMatrix1234ComplexFloatBoostMul::MkCSwapGate(level+2, q, N, N+2);
+						stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CSWAP, stateV);
+					}
+					if (a == 7 || a == 11 || a == 13)
+					{
+						WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL X = WeightedMatrix1234ComplexFloatBoostMul::MkExchangeInterleaved(level);
+						WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL Id = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level);
+						WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL XI = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(X, Id);
+						WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level+1);
+						WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL IXI = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(I, XI);
+						stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IXI, stateV);
+					}
+				}
+			}
+
+			WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level+1);
+			for (long long int i = 0; i < N; i++)
+			{
+				for (long int j = 0; j < i; j++)
+				{
+					double theta = -1*std::pow(2, j - i - 1);
+					// std::cout << j << " " << i << std::endl;
+					WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CP = WeightedMatrix1234ComplexFloatBoostMul::MkCPGate(level+1, j, i, theta);
+					WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CPI = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(CP, I);
+					stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CPI, stateV);
+				}
+				WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = Hadamard(2*N, i);
+				stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(H, stateV);
+			}
+			for (long long int i = 0; i < N/2; i++)
+			{
+				WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL SwapM = WeightedMatrix1234ComplexFloatBoostMul::MkSwapGate(level+1, i, N-i-1);
+				WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL SwapMI = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(SwapM, I);
+				stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(SwapMI, stateV);
+			}
+
+			return stateV;
+		}
+
+
+          WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ShorsAlgo(int a, int N, int bits)
+		{
+			unsigned int level = ceil(log2(N));
+			WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL allOnes = WeightedVectorComplexFloatBoostMul::NoDistinctionNode(level,1);
+            allOnes = WeightedVectorComplexFloatBoostMul::VectorToMatrixInterleaved(allOnes);
+			std::string s(2*N, '0');
+			s[2*bits-2] = '1';
+			WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL e = WeightedVectorComplexFloatBoostMul::MkBasisVector(level + 1, s);
+            // e.print(std::cout);
+			// e = WeightedVectorComplexFloatBoostMul::VectorToMatrixInterleaved(e);
+            // e.print(std::cout);
+			WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL stateV = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(allOnes, e);
+            int alpha = std::floor(std::log2(a));
+			for (int q = 2*bits-1; q >= 0; q--)
+			{
+				std::cout << "q: " << q << std::endl;
+				unsigned int power = std::pow(2, 2*bits-1-q);
+				for (unsigned int i = 0; i < power; i++)
+				{
+                    for (int k = alpha-1; k >= 0; k--)
+                    {
+                        for (int j = k; j < bits-1; j++)
+                        {
+                           WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CSWAP = WeightedMatrix1234ComplexFloatBoostMul::MkCSwapGate(level+2, q, N + j, N+j+1); 
+                           stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CSWAP, stateV);
+                        }
+                    }
+				}
+			}
+
+			WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level+1);
+			for (long long int i = 0; i < 1/*2*bits*/; i++)
+			{
+				// for (long int j = 0; j < i; j++)
+				// {
+				// 	double theta = -1*std::pow(2, j - i - 1);
+				// 	std::cout << j << " " << i << std::endl;
+				// 	WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CP = WeightedMatrix1234ComplexFloatBoostMul::MkCPGate(level+1, j, i, theta);
+				// 	WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CPI = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(CP, I);
+				// 	stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CPI, stateV);
+				// }
+				WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = Hadamard(2*N, i);
+                H.print(std::cout);
+                stateV.print(std::cout);
+				stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(H, stateV);
+			}
+			for (long long int i = 0; i < bits; i++)
+			{
+				WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL SwapM = WeightedMatrix1234ComplexFloatBoostMul::MkSwapGate(level+1, i, 2*bits-i-1);
+				WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL SwapMI = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(SwapM, I);
+				stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(SwapMI, stateV);
+			}
 
 			return stateV;
 		}

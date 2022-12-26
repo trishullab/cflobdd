@@ -5,12 +5,12 @@
 #include <bitset>
 #include <unordered_map>
 #include <boost/unordered_map.hpp>
-#include "wmatrix1234_top_node_complex_fb_mul.h"
-#include "wmatrix1234_complex_fb_mul_node.h"
+#include "wmatrix1234_top_node_fourier_mul.h"
+#include "wmatrix1234_fourier_mul_node.h"
 
 namespace CFL_OBDD {
 
-	namespace WeightedMatrix1234ComplexFloatBoostMul {
+	namespace WeightedMatrix1234FourierMul {
 
 		void Matrix1234InitializerTop()
 		{
@@ -21,59 +21,59 @@ namespace CFL_OBDD {
 		// Create representation of identity relation (with interleaved variable order).
 		// That is, input (x0,y0,x1,y1,...,xN,yN) yield Id[(x0,x1,...,xN)][(y0,y1,...,yN)]
 		// which equals 1 iff xi == yi, for 0 <= i <= N.
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkIdRelationInterleavedTop(unsigned int i)
+		WeightedCFLOBDDTopNodeFourierRefPtr MkIdRelationInterleavedTop(unsigned int i)
 		{
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			ComplexFloatBoostReturnMapHandle m10;
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			FourierReturnMapHandle m10;
 
 			tempHandle = MkIdRelationInterleavedNode(i);
-			m10.AddToEnd(1);
-			m10.AddToEnd(0);
+			m10.AddToEnd(fourierSemiring(1, 1));
+			m10.AddToEnd(fourierSemiring(0, 1));
 			m10.Canonicalize();
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m10);
+			v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m10, fourierSemiring(1, 1));
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkNegationMatrixInterleavedTop(unsigned int i)
+		WeightedCFLOBDDTopNodeFourierRefPtr MkNegationMatrixInterleavedTop(unsigned int i)
 		{
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			// WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			// ComplexFloatBoostReturnMapHandle m01;
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			// WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			// FourierReturnMapHandle m01;
 
 			// tempHandle = MkNegationMatrixInterleavedNode(i);
 			// m01.AddToEnd(0);
 			// m01.AddToEnd(1);
 			// m01.Canonicalize();
-			// v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			// v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m01);
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTInterleavedTop(unsigned int i)
+		WeightedCFLOBDDTopNodeFourierRefPtr MkCNOTInterleavedTop(unsigned int i)
 		{
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			// WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			// ComplexFloatBoostReturnMapHandle m01;
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			// WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			// FourierReturnMapHandle m01;
 
 			// tempHandle = MkCNOTInterleavedNode(i);
 			// m01.AddToEnd(1);
 			// m01.AddToEnd(0);
 			// m01.Canonicalize();
-			// v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			// v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m01);
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkExchangeInterleavedTop(unsigned int i)
+		WeightedCFLOBDDTopNodeFourierRefPtr MkExchangeInterleavedTop(unsigned int i)
 		{
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			ComplexFloatBoostReturnMapHandle m01;
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			FourierReturnMapHandle m01;
 
 			tempHandle = MkExchangeInterleavedNode(i);
-			m01.AddToEnd(0);
-			m01.AddToEnd(1);
+			m01.AddToEnd(fourierSemiring(0, 1));
+			m01.AddToEnd(fourierSemiring(1, 1));
 			m01.Canonicalize();
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m01, fourierSemiring(1, 1));
 			return v;
 		}
 
@@ -81,41 +81,43 @@ namespace CFL_OBDD {
 		// [i.e., a matrix of size 2**(2**(i-1))) x 2**(2**(i-1)))]
 		// with interleaved indexing of components: that is, input
 		// (x0,y0,x1,y1,...,xN,yN) yields W[(x0,x1,...,xN)][(y0,y1,...,yN)]
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkWalshInterleavedTop(unsigned int i)
+		WeightedCFLOBDDTopNodeFourierRefPtr MkWalshInterleavedTop(unsigned int i)
 		{
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			ComplexFloatBoostReturnMapHandle m;
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			FourierReturnMapHandle m;
 
 			tempHandle = MkWalshInterleavedNode(i);
-			// auto val = boost::multiprecision::pow(BIG_COMPLEX_FLOAT(sqrt(2)), i).convert_to<BIG_COMPLEX_FLOAT>();
-			m.AddToEnd(1);
+			// auto val = boost::multiprecision::pow(fourierSemiring(sqrt(2)), i).convert_to<fourierSemiring>();
+			m.AddToEnd(fourierSemiring(1, 1));
 			m.Canonicalize();
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m, 1.0);
+			v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m, fourierSemiring(1, 1));
 			return v;
 		}
 
-        WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr KroneckerProduct2VocsTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr m1, WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr m2)
+        WeightedCFLOBDDTopNodeFourierRefPtr KroneckerProduct2VocsTop(WeightedCFLOBDDTopNodeFourierRefPtr m1, WeightedCFLOBDDTopNodeFourierRefPtr m2)
         {
             unsigned int level = m1->rootConnection.entryPointHandle->handleContents->level;
-            if (m1->rootConnection.factor == 0 || m2->rootConnection.factor == 0)
+            if (m1->rootConnection.factor == fourierSemiring(0, 1) || m2->rootConnection.factor == fourierSemiring(0, 1))
             {
-                ComplexFloatBoostReturnMapHandle m;
-                m.AddToEnd(0);
+                FourierReturnMapHandle m;
+                m.AddToEnd(fourierSemiring(0, 1));
                 m.Canonicalize();
-                return new WeightedCFLOBDDTopNodeComplexFloatBoost(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level + 1], m);
+                return new WeightedCFLOBDDTopNodeFourier(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level + 1], m, fourierSemiring(0, 1));
             }
-            int zero_index_m1 = m1->rootConnection.returnMapHandle.LookupInv(0);
-            int zero_index_m2 = m2->rootConnection.returnMapHandle.LookupInv(0);
+            int zero_index_m1 = m1->rootConnection.returnMapHandle.LookupInv(fourierSemiring(0, 1));
+            int zero_index_m2 = m2->rootConnection.returnMapHandle.LookupInv(fourierSemiring(0, 1));
+			fourierSemiring zero = fourierSemiring(0, 1);
+			fourierSemiring one = fourierSemiring(1, 1);
 
-            WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-            WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle; 
-            ComplexFloatBoostReturnMapHandle m;
+            WeightedCFLOBDDTopNodeFourierRefPtr v;
+            WeightedCFLOBDDFourierMulNodeHandle tempHandle; 
+            FourierReturnMapHandle m;
             tempHandle = KroneckerProduct2VocsNode(*(m1->rootConnection.entryPointHandle), *(m2->rootConnection.entryPointHandle), zero_index_m1, zero_index_m2);
-            ComplexFloatBoostReturnMapHandle m01, m10, m_1;
-            m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-            m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
-            m_1.AddToEnd(1); m_1.Canonicalize();
+            FourierReturnMapHandle m01, m10, m_1;
+            m01.AddToEnd(zero); m01.AddToEnd(one); m01.Canonicalize();
+            m10.AddToEnd(one); m10.AddToEnd(zero); m10.Canonicalize();
+            m_1.AddToEnd(one); m_1.Canonicalize();
 
             if (m1->rootConnection.returnMapHandle == m01)
                 m = m01;
@@ -126,10 +128,10 @@ namespace CFL_OBDD {
 
             if (m1->rootConnection.returnMapHandle == m_1 && m2->rootConnection.returnMapHandle == m_1)
                 m = m_1;
-            BIG_COMPLEX_FLOAT f1 = m1->rootConnection.factor;
-            BIG_COMPLEX_FLOAT f2 = m2->rootConnection.factor;
-            BIG_COMPLEX_FLOAT f = f1 * f2;
-            v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m, f);
+            fourierSemiring f1 = m1->rootConnection.factor;
+            fourierSemiring f2 = m2->rootConnection.factor;
+            fourierSemiring f = f1 * f2;
+            v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m, f);
             return v;
         }
 
@@ -141,7 +143,7 @@ namespace CFL_OBDD {
 		// interleaving row and column bits.  The most-significant bit (of the row value) corresponds
 		// to the root; the least-significant bit (of the col value) corresponds to the leaf.
 		//
-		void MatrixPrintRowMajorTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out)
+		void MatrixPrintRowMajorTop(WeightedCFLOBDDTopNodeFourierRefPtr n, std::ostream & out)
 		{
 			unsigned int level = n->rootConnection.entryPointHandle->handleContents->level;
 			if (level >= 2 && level <= 4 || true) {
@@ -198,7 +200,7 @@ namespace CFL_OBDD {
 		// interleaving row and column bits.  The most-significant bit (of the row value) corresponds
 		// to the root; the least-significant bit (of the col value) corresponds to the leaf.
 		//
-		void MatrixPrintRowMajorInterleavedTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out)
+		void MatrixPrintRowMajorInterleavedTop(WeightedCFLOBDDTopNodeFourierRefPtr n, std::ostream & out)
 		{
 			unsigned int level = n->rootConnection.entryPointHandle->handleContents->level;
 			if (level >= 1 && level <= 4 || true) {
@@ -244,42 +246,44 @@ namespace CFL_OBDD {
 
 		
 		
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MatrixMultiplyV4TopNode(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr c1, WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr c2)
+		WeightedCFLOBDDTopNodeFourierRefPtr MatrixMultiplyV4TopNode(WeightedCFLOBDDTopNodeFourierRefPtr c1, WeightedCFLOBDDTopNodeFourierRefPtr c2)
 		{
             int zero_exit_1 = -1, zero_exit_2 = -1;
-            zero_exit_1 = c1->rootConnection.returnMapHandle.LookupInv(0);
-            zero_exit_2 = c2->rootConnection.returnMapHandle.LookupInv(0);
+			fourierSemiring zero = fourierSemiring(0, 1);
+			fourierSemiring one = fourierSemiring(1, 1);
+            zero_exit_1 = c1->rootConnection.returnMapHandle.LookupInv(zero);
+            zero_exit_2 = c2->rootConnection.returnMapHandle.LookupInv(zero);
 			auto c = MatrixMultiplyV4Node(*(c1->rootConnection.entryPointHandle), *(c2->rootConnection.entryPointHandle), zero_exit_1, zero_exit_2);
-			ComplexFloatBoostReturnMapHandle v;
-			boost::unordered_map<BIG_COMPLEX_FLOAT, unsigned int> reductionMap;
+			FourierReturnMapHandle v;
+			boost::unordered_map<fourierSemiring, unsigned int> reductionMap;
 			ReductionMapHandle reductionMapHandle;
-            WeightedValuesListHandle<BIG_COMPLEX_FLOAT> valList;
-            WeightedCFLOBDDComplexFloatBoostMulNodeHandle n = std::get<0>(c);
+            WeightedValuesListHandle<fourierSemiring> valList;
+            WeightedCFLOBDDFourierMulNodeHandle n = std::get<0>(c);
             CFLOBDDMatMultMapHandle n_return = std::get<1>(c);
-            BIG_COMPLEX_FLOAT n_factor = std::get<2>(c);
+            fourierSemiring n_factor = std::get<2>(c);
             bool first = true;
-            BIG_COMPLEX_FLOAT common_f = 1.0;
+            fourierSemiring common_f = one;
 			for (unsigned int i = 0; i < n_return.Size(); i++){
 				WeightedMatMultMapHandle r = n_return[i];
-				BIG_COMPLEX_FLOAT val = 0;
+				fourierSemiring val = zero;
 				for (auto &j : r.mapContents->map){
 					long int index1 = j.first.first;
 					long int index2 = j.first.second;
-					BIG_COMPLEX_FLOAT factor(j.second);
+					fourierSemiring factor(j.second);
                     if (!(index1 == -1 && index2 == -1))
 					    val = val + (factor * (c1->rootConnection.returnMapHandle[index1] * c2->rootConnection.returnMapHandle[index2]));
 				}
-                if (first && val != 0)
+                if (first && val != zero)
                 {
                     common_f = val;
-                    val = 1.0;
+                    val = one;
                     first = false;
                 }
                 else
                 {
                     val = val/common_f;
                 }
-                BIG_COMPLEX_FLOAT val_to_check = (val == 0)? 0 : 1;
+                fourierSemiring val_to_check = (val == zero)? zero : one;
 				if (reductionMap.find(val_to_check) == reductionMap.end()){
 					v.AddToEnd(val_to_check);
 					reductionMap.insert(std::make_pair(val_to_check, v.Size() - 1));
@@ -294,67 +298,59 @@ namespace CFL_OBDD {
 			v.Canonicalize();
 			reductionMapHandle.Canonicalize();
             valList.Canonicalize();
-            // n.print(std::cout);
-            // std::cout << valList << std::endl;
 			auto g = n.Reduce(reductionMapHandle, v.Size(), valList, true);
-			// Create and return CFLOBDDTopNode
-			//return(new CFLOBDDTopNodeFloatBoost(reduced_tempHandle, inducedReturnMap));
-			return(new WeightedCFLOBDDTopNodeComplexFloatBoost(g.first, v, g.second * common_f * c1->rootConnection.factor * c2->rootConnection.factor));
+			return(new WeightedCFLOBDDTopNodeFourier(g.first, v, g.second * common_f * c1->rootConnection.factor * c2->rootConnection.factor));
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled)
+		WeightedCFLOBDDTopNodeFourierRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled)
 		{
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle c = MkCNOTNode(level, n, controller, controlled);
-			ComplexFloatBoostReturnMapHandle m;
-			m.AddToEnd(1);
-			m.AddToEnd(0);
+			WeightedCFLOBDDFourierMulNodeHandle c = MkCNOTNode(level, n, controller, controlled);
+			FourierReturnMapHandle m;
+			m.AddToEnd(fourierSemiring(1, 1));
+			m.AddToEnd(fourierSemiring(0, 1));
 			m.Canonicalize();
-			return new WeightedCFLOBDDTopNodeComplexFloatBoost(c, m, 1.0);
+			return new WeightedCFLOBDDTopNodeFourier(c, m, fourierSemiring(1, 1));
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSwapGateTop(unsigned int i, long int c1, long int c2)
+		WeightedCFLOBDDTopNodeFourierRefPtr MkSwapGateTop(unsigned int i, long int c1, long int c2)
 		{
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			ComplexFloatBoostReturnMapHandle m01;
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			FourierReturnMapHandle m01;
 
 			tempHandle = MkSwapGateNode(i, c1, c2, -1);
-			m01.AddToEnd(1);
-			m01.AddToEnd(0);
+			m01.AddToEnd(fourierSemiring(1, 1));
+			m01.AddToEnd(fourierSemiring(0, 1));
 			m01.Canonicalize();
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m01, fourierSemiring(1, 1));
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int i, long int c1, long int c2, double theta)
+		WeightedCFLOBDDTopNodeFourierRefPtr MkCPGateTop(unsigned int i, long int c1, long int c2, fourierSemiring theta)
 		{
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			ComplexFloatBoostReturnMapHandle m10;
-
-			double cos_v = boost::math::cos_pi(theta);
-			double sin_v = boost::math::sin_pi(theta);
-			BIG_COMPLEX_FLOAT val(cos_v, sin_v);
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			FourierReturnMapHandle m10;
 
 			// std::unordered_map<std::string, CFLOBDDNodeHandle> cp_hashMap;
-			std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle> cp_hashMap;
-			tempHandle = MkCPGateNode(cp_hashMap, i, c1, c2, val);
-			m10.AddToEnd(1);
-			m10.AddToEnd(0);
+			std::unordered_map<std::string, WeightedCFLOBDDFourierMulNodeHandle> cp_hashMap;
+			tempHandle = MkCPGateNode(cp_hashMap, i, c1, c2, theta);
+			m10.AddToEnd(fourierSemiring(1, 1));
+			m10.AddToEnd(fourierSemiring(0, 1));
 			m10.Canonicalize();
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m10);
+			v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m10, fourierSemiring(1, 1));
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCSwapGateTop(unsigned int level, long int c, long int i, long int j)
+		WeightedCFLOBDDTopNodeFourierRefPtr MkCSwapGateTop(unsigned int level, long int c, long int i, long int j)
 		{
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			ComplexFloatBoostReturnMapHandle m01;
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			FourierReturnMapHandle m01;
 			tempHandle = MkCSwapGateNode(level, c, i, j, 1);
-			m01.AddToEnd(1);
-			m01.AddToEnd(0);
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			m01.AddToEnd(fourierSemiring(1, 1));
+			m01.AddToEnd(fourierSemiring(0, 1));
+			v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m01, fourierSemiring(1, 1));
 			return v;
 		}
 

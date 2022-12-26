@@ -37,9 +37,35 @@ fourierSemiring::fourierSemiring()
 {
 }
 
-fourierSemiring::fourierSemiring(const int i1, const int i2)
-	: val(i1), ringSize(i2)
+fourierSemiring::fourierSemiring(const BIG_INT i1, const BIG_INT i2)
 {
+	// ringSize = i2;
+	// val = i1;
+	// if (i1 < 0)
+	// 	val = i2 + i1;
+	// if (ringSize != 1)
+	// 	val = val % ringSize;
+	// if (val == 0 && ringSize != 1)
+	// {
+	// 	val = 1;
+	// 	ringSize = 1;
+	// }
+	SetValAndRingSize(i1, i2);
+}
+
+void fourierSemiring::SetValAndRingSize(BIG_INT v, BIG_INT r) 
+{ 
+	ringSize = r;
+	val = v;
+	if (v < 0) 
+		val = r + v; 
+	if (ringSize != 1)
+		val = val % ringSize;
+	if (val == 0 && ringSize != 1)
+	{
+		val = 1;
+		ringSize = 1;
+	}
 }
 
 std::ostream& operator<< (std::ostream & out, const fourierSemiring &p)
@@ -68,34 +94,91 @@ fourierSemiring fourierSemiring::operator* (const fourierSemiring& p){
 	if (p.GetRingSize() == 1){
 		if (p.GetVal() == 0) { return ans; }
 		else if (p.GetVal() == 1) { 
-			ans.SetRingSize(ringSize);
-			ans.SetVal(val);
+			ans.SetValAndRingSize(val, ringSize);
 			return ans;
 		}
-		else abort();
+		else {
+			std::cout << *(this) << std::endl;
+			std::cout << p << std::endl;
+			abort();
+		}
 	}
 	else if (ringSize == 1){
 		if (val == 0) return ans;
 		else if (val == 1){ 
-			ans.SetVal(p.GetVal());
-			ans.SetRingSize(p.GetRingSize());
+			ans.SetValAndRingSize(p.GetVal(), p.GetRingSize());
 			return ans;
 		}
-		else abort();
+		else { 
+			std::cout << *(this) << std::endl;
+			std::cout << p << std::endl;
+			abort();
+		}
 	}
-	else if (log2(p.GetRingSize()) - log2(ringSize) > 0){
-		ans.SetVal((ringSize * val + p.GetVal()) % p.GetRingSize());
-		ans.SetRingSize(p.GetRingSize());
+	else if (p.GetRingSize() > p.GetVal()){
+		BIG_INT factor = p.GetRingSize() / ringSize;
+		ans.SetValAndRingSize( (factor * val + p.GetVal()), p.GetRingSize());
 	}
-	else if (log2(p.GetRingSize()) - log2(ringSize) < 0){
-		ans.SetVal((p.GetRingSize() * p.GetVal() + val) % ringSize);
-		ans.SetRingSize(ringSize);
+	else if (p.GetRingSize() < ringSize){
+		BIG_INT factor = ringSize / p.GetRingSize();
+		ans.SetValAndRingSize((factor * p.GetVal() + val), ringSize);
 	}
-	else if (log2(p.GetRingSize()) - log2(ringSize) == 0){
-		ans.SetRingSize(ringSize);
-		ans.SetVal((val + p.GetVal()) % ringSize);
+	else if (p.GetRingSize() == ringSize){
+		ans.SetValAndRingSize((val + p.GetVal()), ringSize);
 	}
 	else{
+		std::cout << *(this) << std::endl;
+		std::cout << p << std::endl;
+		abort();
+	}
+	return ans;
+}
+
+// curr/p
+fourierSemiring fourierSemiring::operator/ (const fourierSemiring& p){
+	fourierSemiring ans;
+	if (p.GetRingSize() == 1){
+		if (p.GetVal() == 0) { 
+			std::cout << *(this) << std::endl;
+			std::cout << p << std::endl;
+			abort(); 
+		}
+		else if (p.GetVal() == 1) { 
+			ans.SetValAndRingSize(val, ringSize);
+			return ans;
+		}
+		else {
+			std::cout << *(this) << std::endl;
+			std::cout << p << std::endl;
+			abort();
+		}
+	}
+	else if (ringSize == 1){
+		if (val == 0) return ans;
+		else if (val == 1){ 
+			ans.SetValAndRingSize(-1 * p.GetVal(), p.GetRingSize());
+			return ans;
+		}
+		else {
+			std::cout << *(this) << std::endl;
+			std::cout << p << std::endl;
+			abort();
+		}
+	}
+	else if (p.GetRingSize() > ringSize){
+		BIG_INT factor = p.GetRingSize() / ringSize;
+		ans.SetValAndRingSize(( factor * val - p.GetVal()), p.GetRingSize());
+	}
+	else if (p.GetRingSize() < ringSize){
+		BIG_INT factor = ringSize / p.GetRingSize();
+		ans.SetValAndRingSize((factor * p.GetVal() - val), ringSize);
+	}
+	else if (p.GetRingSize() == ringSize){
+		ans.SetValAndRingSize((val - p.GetVal()), ringSize);
+	}
+	else{
+		std::cout << *(this) << std::endl;
+		std::cout << p << std::endl;
 		abort();
 	}
 	return ans;
@@ -109,6 +192,9 @@ fourierSemiring fourierSemiring::operator+ (const fourierSemiring& p){
 		return ans;
 	}
 	if (ringSize == 1 && val == 0){ return p; }
+	
+	std::cout << *(this) << std::endl;
+	std::cout << p << std::endl;
 	abort();
 }
 
@@ -125,7 +211,7 @@ bool fourierSemiring::operator==(const fourierSemiring& p)
 	return (val == p.GetVal()) && (ringSize == p.GetRingSize());
 }
 
-fourierSemiring operator*(const unsigned long long int lhs, const fourierSemiring& rhs)
+fourierSemiring operator*(const BIG_INT lhs, const fourierSemiring& rhs)
 {
 	fourierSemiring ans;
 	if (lhs == 0)
@@ -137,10 +223,12 @@ fourierSemiring operator*(const unsigned long long int lhs, const fourierSemirin
 		ans.SetRingSize(rhs.GetRingSize());
 		return ans;
 	}
+	std::cout << lhs << std::endl;
+	std::cout << rhs << std::endl;
 	abort();
 }
 
-fourierSemiring operator*(const fourierSemiring& lhs, const unsigned long long int rhs)
+fourierSemiring operator*(const fourierSemiring& lhs, const BIG_INT rhs)
 {
 	fourierSemiring ans;
 	if (rhs == 0)
@@ -152,10 +240,13 @@ fourierSemiring operator*(const fourierSemiring& lhs, const unsigned long long i
 		ans.SetRingSize(lhs.GetRingSize());
 		return ans;
 	}
+	std::cout << lhs << std::endl;
+	std::cout << rhs << std::endl;
 	abort();
 }
 
 std::size_t hash_value(const fourierSemiring& p)
 {
-	return 117 * (p.GetVal() + 1) + p.GetRingSize();
+	boost::hash<BIG_INT> boost_hash;
+	return 117 * (boost_hash(p.GetVal()) + 1) + boost_hash(p.GetRingSize());
 }

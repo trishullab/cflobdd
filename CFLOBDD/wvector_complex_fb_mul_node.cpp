@@ -307,8 +307,8 @@ namespace CFL_OBDD {
                 {
                     WeightedCFLOBDDComplexFloatBoostDontCareNode* nhL = (WeightedCFLOBDDComplexFloatBoostDontCareNode *)nh.handleContents;
                     assert(index == 0);
-                    long double lw = ((nhL->lweight * nhL->lweight) / nhL->numWeightsOfPathsAsAmpsToExit[0]).convert_to<long double>();
-                    long double rw = ((nhL->rweight * nhL->rweight) / nhL->numWeightsOfPathsAsAmpsToExit[0]).convert_to<long double>();
+                    long double lw = ((nhL->lweight * nhL->lweight).convert_to<long double>() / nhL->numWeightsOfPathsAsAmpsToExit[0]);
+                    long double rw = ((nhL->rweight * nhL->rweight).convert_to<long double>() / nhL->numWeightsOfPathsAsAmpsToExit[0]);
                     std::vector<std::pair<long double, unsigned int>> weights = {std::make_pair(lw, 0), std::make_pair(rw, 1)};
                     // sort(weights.begin(), weights.end(), sortNumPathPairs<long double>);
                     double random_value = ((double)rand() / (RAND_MAX));
@@ -333,7 +333,7 @@ namespace CFL_OBDD {
                 // else{
                     if (BIndex != -1){
                         long double w = ((nhNode->BConnection[i].entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[BIndex] * 
-                            nhNode->AConnection.entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[i]) / nhNode->numWeightsOfPathsAsAmpsToExit[index]).convert_to<long double>();
+                            nhNode->AConnection.entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[i]) / nhNode->numWeightsOfPathsAsAmpsToExit[index]);
                         numBPaths.push_back(std::make_pair(w, i));
                     }
                 // }

@@ -60,6 +60,7 @@ class CFLTests
 		static void testDJAlgo_W(int size, int seed);
         static void testGroversAlgo_W(int size, int seed);
         static void testQFT_W(int size, int seed);
+		static void testShorsAlgo_W(int N, int a);
 	    
         static void InitModules();
 	    static void ClearModules();

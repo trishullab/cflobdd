@@ -32,9 +32,10 @@ namespace CFL_OBDD {
     }
 
     template <>
-    BIG_FLOAT computeProbabilityFromAmplitude<BIG_FLOAT,std::multiplies<BIG_FLOAT>>(BIG_FLOAT w)
+    long double computeProbabilityFromAmplitude<BIG_FLOAT,std::multiplies<BIG_FLOAT>>(BIG_FLOAT w)
     {
-        return w * w;
+        long double ans = (w * w).convert_to<long double>();
+        return ans;
     }
 
     template <>
@@ -66,10 +67,44 @@ namespace CFL_OBDD {
     }
 
     template <>
-    BIG_COMPLEX_FLOAT computeProbabilityFromAmplitude<BIG_COMPLEX_FLOAT,std::multiplies<BIG_COMPLEX_FLOAT>>(BIG_COMPLEX_FLOAT w)
+    long double computeProbabilityFromAmplitude<BIG_COMPLEX_FLOAT,std::multiplies<BIG_COMPLEX_FLOAT>>(BIG_COMPLEX_FLOAT w)
     {
-        BIG_COMPLEX_FLOAT ans(w.real() * w.real() + w.imag() * w.imag());
+        auto ans = (w.real() * w.real() + w.imag() * w.imag()).convert_to<long double>();
         return ans;
+    }
+
+    template <>
+    fourierSemiring getIdentityValue<fourierSemiring, std::multiplies<fourierSemiring>>()
+    {
+        return fourierSemiring(1, 1);
+    }
+
+    template <>
+    fourierSemiring getAnnhilatorValue<fourierSemiring, std::multiplies<fourierSemiring>>()
+    {
+        return fourierSemiring(0, 1);
+    }
+
+    template <>
+    std::tuple<fourierSemiring, fourierSemiring, fourierSemiring> computeInverseValue<fourierSemiring, std::multiplies<fourierSemiring>>(fourierSemiring lw, fourierSemiring rw)
+    {
+        if (lw == fourierSemiring(0, 1))
+            return std::make_tuple(rw, fourierSemiring(0, 1), fourierSemiring(1, 1)); 
+        if (rw == fourierSemiring(0, 1))
+            return std::make_tuple(lw, fourierSemiring(1, 1), fourierSemiring(0, 1));
+        return std::make_tuple(lw, fourierSemiring(1, 1), rw/lw);
+    }
+
+    template <>
+    fourierSemiring computeComposition<fourierSemiring, std::multiplies<fourierSemiring>>(fourierSemiring c, fourierSemiring w)
+    {
+        return c * w;
+    }
+
+    template <>
+    long double computeProbabilityFromAmplitude<fourierSemiring,std::multiplies<fourierSemiring>>(fourierSemiring w)
+    {
+        abort();
     }
 
 }

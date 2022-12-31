@@ -471,7 +471,13 @@ unsigned int ReturnMapBody<fourierSemiring>::Hash(unsigned int modsize)
 	boost::hash<BIG_INT> boost_hash;
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (997 * hvalue + 117 * boost_hash(mapArray[i].GetVal()) + boost_hash(mapArray[i].GetRingSize())) % modsize;
+		if (!mapArray[i].isComplexValueSet)
+			hvalue = (997 * hvalue + 117 * boost_hash(mapArray[i].GetVal()) + boost_hash(mapArray[i].GetRingSize())) % modsize;
+		else
+		{
+			boost::hash<BIG_COMPLEX> h;
+			hvalue = (997 * hvalue + 97 * h(mapArray[i].complex_value)) % modsize;	
+		}
 	}
 	return hvalue;
 }
@@ -484,7 +490,12 @@ void ReturnMapBody<fourierSemiring>::setHashCheck()
 
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (117 * (hvalue + 1) + 97 * boost_hash(mapArray[i].GetVal()) + boost_hash(mapArray[i].GetRingSize()));
+		if (!mapArray[i].isComplexValueSet)
+			hvalue = (117 * (hvalue + 1) + 97 * boost_hash(mapArray[i].GetVal()) + boost_hash(mapArray[i].GetRingSize()));
+		else{
+			boost::hash<BIG_COMPLEX> h;
+			hvalue = (117 * (hvalue + 1) + 97 * h(mapArray[i].complex_value));
+		}
 	}
 	hashCheck = hvalue;
 }

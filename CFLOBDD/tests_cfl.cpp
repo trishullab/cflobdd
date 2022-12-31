@@ -1464,16 +1464,13 @@ void CFLTests::testQFT_W(int p, int seed)
 	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
 		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
 		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
-	// out_ans.print(std::cout);
+	out_ans.print(std::cout);
 }
 
 void CFLTests::testShorsAlgo_W(int N, int a)
 {
-	N = 16;
-	a = 2;
-	int bits = 5;
 	auto start = high_resolution_clock::now();
-	auto out_ans = WeightedQuantumAlgos::ShorsAlgo(a, N, bits);
+	auto out_ans = WeightedQuantumAlgos::ShorsFourier(a, N);
 	auto end = high_resolution_clock::now();
 	auto duration = duration_cast<milliseconds>(end - start);
 	unsigned int nodeCount = 0, edgeCount = 0;

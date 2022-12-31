@@ -30,9 +30,11 @@
 #include <iostream>
 #include <fstream>
 #include <boost/multiprecision/cpp_int.hpp>
+#include <boost/multiprecision/cpp_complex.hpp>
 #include <boost/functional/hash.hpp>
 
 typedef boost::multiprecision::cpp_int BIG_INT;
+typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX;
 
 class fourierSemiring {
 public:
@@ -49,10 +51,22 @@ public:
 	fourierSemiring operator* (const fourierSemiring& p);
 	fourierSemiring operator/ (const fourierSemiring& p);
 	fourierSemiring operator+ (const fourierSemiring& p);
+	bool isComplexValueSet;
+	BIG_COMPLEX complex_value;
+	void ResetComplexValue();
+	void SetComplexValue();
 	struct fourierSemiring_hash {
 		size_t operator()(const fourierSemiring& p) const {
-			boost::hash<BIG_INT> boost_hash;
-			return 117 * (boost_hash(p.GetVal()) + 1) + boost_hash(p.GetRingSize());
+			if (!p.isComplexValueSet)
+			{
+				boost::hash<BIG_INT> boost_hash;
+				return 117 * (boost_hash(p.GetVal()) + 1) + boost_hash(p.GetRingSize());
+			}
+			else
+			{
+				boost::hash<BIG_COMPLEX> boost_hash;
+				return boost_hash(p.complex_value);
+			}
 		}
 	};
 private:

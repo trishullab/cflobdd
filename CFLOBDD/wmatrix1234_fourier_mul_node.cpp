@@ -1331,9 +1331,10 @@ namespace CFL_OBDD {
                 }
                 else if (controller == -1)
                 {
-                    CFLOBDDReturnMapHandle m01, m10;
+                    CFLOBDDReturnMapHandle m01, m10, m0;
                     m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
                     m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                    m0.AddToEnd(0); m0.Canonicalize();
                     WeightedCFLOBDDFourierMulNodeHandle atmp = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(fourierSemiring(1, 1), theta_val));
                     g->AConnection = Connection(atmp, m01);
                     g->numBConnections = 2;
@@ -1578,6 +1579,217 @@ namespace CFL_OBDD {
             return gHandle;
         }
 
+        WeightedCFLOBDDFourierMulNodeHandle MkRZGateNode(unsigned int level, fourierSemiring theta)
+        {
+            WeightedCFLOBDDFourierInternalNode* g = new WeightedCFLOBDDFourierInternalNode(level);
+            CFLOBDDReturnMapHandle m10, m01;
+            m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+            m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+            auto atmp = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(fourierSemiring(1, 1), theta));
+            g->AConnection = Connection(atmp, m01);
+            g->numBConnections = 2;
+            g->BConnection = new Connection[g->numBConnections];
+            g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
+            g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle01, m10);
+            g->numExits = 2;
+            WeightedCFLOBDDFourierMulNodeHandle gHandle = WeightedCFLOBDDFourierMulNodeHandle(g);
+            return gHandle;
+        }
+
+
+        WeightedCFLOBDDFourierMulNodeHandle MkCADDGateNode(unsigned int level, long int c, long int x, WeightedCFLOBDDFourierMulNodeHandle f, int flag)
+        {
+           WeightedCFLOBDDFourierInternalNode *g = new WeightedCFLOBDDFourierInternalNode(level);
+            if (flag == 1)
+            {
+                WeightedCFLOBDDFourierMulNodeHandle atmp = MkCADDGateNode(level-1, c, x, f, 0);
+                CFLOBDDReturnMapHandle m012;
+                m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                g->AConnection = Connection(atmp, m012);
+                g->numBConnections = 3;
+                g->BConnection = new Connection[3];
+                WeightedCFLOBDDFourierMulNodeHandle Id = WeightedCFLOBDDFourierMulNodeHandle::IdentityNode[level-1];
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                g->BConnection[0] = Connection(Id, m01);
+                CFLOBDDReturnMapHandle m1;
+                m1.AddToEnd(1); m1.Canonicalize();
+                g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                unsigned int n = pow(2, level - 1);
+                WeightedCFLOBDDFourierMulNodeHandle btmp = MkCADDGateNode(level-1, c, x  - n/2, f, 2);
+                g->BConnection[2] = Connection(btmp, m01);
+                g->numExits = 2;
+
+            }
+            else if (flag == 2)
+            {
+                WeightedCFLOBDDFourierMulNodeHandle atmp = MkCADDGateNode(level-1, c, x, f, 3);
+                CFLOBDDReturnMapHandle m012;
+                m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                g->AConnection = Connection(atmp, m012);
+                g->numBConnections = 3;
+                g->BConnection = new Connection[3];
+                WeightedCFLOBDDFourierMulNodeHandle Id = WeightedCFLOBDDFourierMulNodeHandle::IdentityNode[level-1];
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                g->BConnection[0] = Connection(Id, m01);
+                CFLOBDDReturnMapHandle m1;
+                m1.AddToEnd(1); m1.Canonicalize();
+                g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                unsigned int n = pow(2, level - 1);
+                g->BConnection[2] = Connection(f, m01);
+                g->numExits = 2;
+            }
+            else if (flag == 0)
+            {
+                unsigned int n = pow(2, level - 1);
+                if (level == 1)
+                {
+                    CFLOBDDReturnMapHandle m01, m12;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m12.AddToEnd(1); m12.AddToEnd(2); m12.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle01, m12);
+                    g->numExits = 3;
+                }
+                else if (c < n/2)
+                {
+                    WeightedCFLOBDDFourierMulNodeHandle atmp = MkCADDGateNode(level-1,c,x,f,flag);
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    g->AConnection = Connection(atmp, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    WeightedCFLOBDDFourierMulNodeHandle Id = WeightedCFLOBDDFourierMulNodeHandle::IdentityNode[level-1];
+                    CFLOBDDReturnMapHandle m01,m1,m21;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m21.AddToEnd(2); m21.AddToEnd(1); m21.Canonicalize();
+                    g->BConnection[0] = Connection(Id, m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1],m1);
+                    g->BConnection[2] = Connection(Id, m21);
+                    g->numExits = 3;
+                }
+                else
+                {
+                    WeightedCFLOBDDFourierMulNodeHandle Id = WeightedCFLOBDDFourierMulNodeHandle::IdentityNode[level-1];
+                    CFLOBDDReturnMapHandle m01,m1;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(Id, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    WeightedCFLOBDDFourierMulNodeHandle btmp = MkCADDGateNode(level-1, c - n/2, x, f, flag);
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[0] = Connection(btmp, m012);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 3;
+                }
+                
+            }
+            else if (flag == 3)
+            {
+                unsigned int n = pow(2, level - 1);
+                if (level == 1)
+                {
+                    CFLOBDDReturnMapHandle m01, m12;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m12.AddToEnd(1); m12.AddToEnd(2); m12.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle01, m12);
+                    g->numExits = 3;
+                }
+                else if (x < n/2)
+                {
+                    WeightedCFLOBDDFourierMulNodeHandle atmp = MkCADDGateNode(level-1,c,x,f,flag);
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    g->AConnection = Connection(atmp, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    WeightedCFLOBDDFourierMulNodeHandle Id = WeightedCFLOBDDFourierMulNodeHandle::IdentityNode[level-1];
+                    CFLOBDDReturnMapHandle m01,m1,m21;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m21.AddToEnd(2); m21.AddToEnd(1); m21.Canonicalize();
+                    g->BConnection[0] = Connection(Id, m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1],m1);
+                    g->BConnection[2] = Connection(Id, m21);
+                    g->numExits = 3;
+                }
+                else
+                {
+                    WeightedCFLOBDDFourierMulNodeHandle Id = WeightedCFLOBDDFourierMulNodeHandle::IdentityNode[level-1];
+                    CFLOBDDReturnMapHandle m01,m1;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(Id, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    WeightedCFLOBDDFourierMulNodeHandle btmp = MkCADDGateNode(level-1, c, x - n/2, f, flag);
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[0] = Connection(btmp, m012);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 3;
+                }
+                
+            }
+    #ifdef PATH_COUNTING_ENABLED
+            g->InstallPathCounts();
+    #endif
+            WeightedCFLOBDDFourierMulNodeHandle gHandle = WeightedCFLOBDDFourierMulNodeHandle(g);
+            return gHandle; 
+        }
+
+        bool CheckIfIndexIsNonZeroNode(unsigned int level, int index, WeightedCFLOBDDFourierMulNodeHandle f, int flag)
+        {
+            if (flag == 1)
+            {
+                WeightedCFLOBDDFourierInternalNode* g = (WeightedCFLOBDDFourierInternalNode *)f.handleContents;
+                return CheckIfIndexIsNonZeroNode(level-1, index, *(g->BConnection[0].entryPointHandle), 2);
+            }
+            else if (flag == 2)
+            {
+                WeightedCFLOBDDFourierInternalNode* g = (WeightedCFLOBDDFourierInternalNode *)f.handleContents;
+                return CheckIfIndexIsNonZeroNode(level-1, index, *(g->BConnection[0].entryPointHandle), 0); 
+            }
+            else if (flag == 0)
+            {
+                if (level == 0)
+                {
+                    WeightedCFLOBDDFourierLeafNode* g = (WeightedCFLOBDDFourierLeafNode *)f.handleContents;
+                    return (g->rweight != fourierSemiring(0, 1));
+                }
+                else if (level == 1)
+                {
+                   WeightedCFLOBDDFourierInternalNode* g = (WeightedCFLOBDDFourierInternalNode *)f.handleContents; 
+                   return CheckIfIndexIsNonZeroNode(level-1, index, *(g->AConnection.entryPointHandle), flag); 
+                }
+                else
+                {
+                    WeightedCFLOBDDFourierInternalNode* g = (WeightedCFLOBDDFourierInternalNode *)f.handleContents; 
+                    int n = std::pow(2, level - 1);
+                    if (index < n/2)
+                        return CheckIfIndexIsNonZeroNode(level-1, index, *(g->AConnection.entryPointHandle), flag);
+                    else
+                    {
+                        if (*(g->BConnection[0].entryPointHandle) == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1]);
+                            return CheckIfIndexIsNonZeroNode(level-1, index - n/2, *(g->BConnection[1].entryPointHandle), flag);
+                        return CheckIfIndexIsNonZeroNode(level-1, index-n/2, *(g->BConnection[0].entryPointHandle), flag);
+                    }
+                }
+            }
+            abort();
+            return false;
+        }
 
     }
 

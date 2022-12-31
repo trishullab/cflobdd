@@ -62,6 +62,9 @@ namespace CFL_OBDD {
         extern WeightedCFLOBDDFourierMulNodeHandle MkCPGateNode(std::unordered_map<std::string, WeightedCFLOBDDFourierMulNodeHandle>& cp_hashMap, unsigned int level, long int controller, long int controlled, fourierSemiring theta_val);
         extern WeightedCFLOBDDFourierMulNodeHandle MkSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num);
         extern WeightedCFLOBDDFourierMulNodeHandle MkCSwapGateNode(unsigned int level, long int controller, long int i, long int j, int case_num);
+        extern WeightedCFLOBDDFourierMulNodeHandle MkRZGateNode(unsigned int level, fourierSemiring theta);
+        extern WeightedCFLOBDDFourierMulNodeHandle MkCADDGateNode(unsigned int level, long int c, long int x, WeightedCFLOBDDFourierMulNodeHandle f, int flag);
+        extern bool CheckIfIndexIsNonZeroNode(unsigned int level, int index, WeightedCFLOBDDFourierMulNodeHandle f, int flag);
 
         extern WeightedCFLOBDDFourierMulNodeHandle KroneckerProduct2VocsNode(WeightedCFLOBDDFourierMulNodeHandle m1, WeightedCFLOBDDFourierMulNodeHandle m2, int zero_index_m1, int zero_index_m2); 
         extern std::tuple<WeightedCFLOBDDFourierMulNodeHandle, CFLOBDDMatMultMapHandle, fourierSemiring>

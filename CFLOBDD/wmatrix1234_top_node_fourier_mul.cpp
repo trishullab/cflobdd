@@ -354,6 +354,36 @@ namespace CFL_OBDD {
 			return v;
 		}
 
+		WeightedCFLOBDDTopNodeFourierRefPtr MkRZGateTop(unsigned int level, fourierSemiring theta)
+		{
+			assert(level == 1);
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			FourierReturnMapHandle m01;
+			tempHandle = MkRZGateNode(level, theta);
+			m01.AddToEnd(fourierSemiring(1, 1));
+			m01.AddToEnd(fourierSemiring(0, 1));
+			v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m01, fourierSemiring(1, 1));
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeFourierRefPtr MkCADDGateTop(unsigned int level, int c, int x, WeightedCFLOBDDTopNodeFourierRefPtr f)
+		{
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			FourierReturnMapHandle m01;
+			tempHandle = MkCADDGateNode(level, c, x, *(f->rootConnection.entryPointHandle), 1);
+			m01.AddToEnd(fourierSemiring(1, 1));
+			m01.AddToEnd(fourierSemiring(0, 1));
+			v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m01, fourierSemiring(1, 1));
+			return v;
+		}
+
+		bool CheckIfIndexIsNonZeroTop(unsigned int level, int index, WeightedCFLOBDDTopNodeFourierRefPtr f)
+		{
+			return CheckIfIndexIsNonZeroNode(level, index, *(f->rootConnection.entryPointHandle), 1);
+		}
+
 	}
 }
 

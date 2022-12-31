@@ -32,6 +32,7 @@ namespace CFL_OBDD {
         extern WEIGHTED_CFLOBDD_FOURIER_MUL QFT_fourier(long long int n, std::string s);
         extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ShorsAlgoNew(int a, int N);
         extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ShorsAlgo(int a, int N, int bits);
+        extern WEIGHTED_CFLOBDD_FOURIER_MUL ShorsFourier(int a, int N);
 	}
 }
 

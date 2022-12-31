@@ -126,6 +126,21 @@ namespace CFL_OBDD {
 		{
 			return WEIGHTED_CFLOBDD_FOURIER_MUL(MkCSwapGateTop(i, c1, x1, x2));
 		}
+		
+		WEIGHTED_CFLOBDD_FOURIER_MUL MkRZGate(unsigned int level, fourierSemiring theta)
+		{
+			return WEIGHTED_CFLOBDD_FOURIER_MUL(MkRZGateTop(level, theta));
+		}
+
+		WEIGHTED_CFLOBDD_FOURIER_MUL MkCADDGate(unsigned int level, int c, int x, WEIGHTED_CFLOBDD_FOURIER_MUL f)
+		{
+			return WEIGHTED_CFLOBDD_FOURIER_MUL(MkCADDGateTop(level, c, x, f.root));
+		}
+
+		bool CheckIfIndexIsNonZero(unsigned int level, int index, WEIGHTED_CFLOBDD_FOURIER_MUL f)
+		{
+			return CheckIfIndexIsNonZeroTop(level, index, f.root);
+		}
 	}
 }
 

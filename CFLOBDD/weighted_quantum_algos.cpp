@@ -339,8 +339,8 @@ namespace CFL_OBDD
 			for (long long int i = n-1; i >= 0; i--)
 			{
 				WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = Hadamard(n, i);
-                BIG_COMPLEX_FLOAT c = 1.0/sqrt(2);
-                H = c * H;
+                // BIG_COMPLEX_FLOAT c = 1.0/sqrt(2);
+                // H = c * H;
                 // auto start = high_resolution_clock::now();
 				stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(H, stateV);
                 // auto end = high_resolution_clock::now();
@@ -348,7 +348,7 @@ namespace CFL_OBDD
                 // std::cout << "(i): " << i << " " << duration.count() << std::endl;
 				for (long int j = 0; j < i; j++)
 				{
-					double theta = std::pow(2, j - i - 1);
+					double theta = std::pow(2, j - i);
 					WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CP = WeightedMatrix1234ComplexFloatBoostMul::MkCPGate(level+1, j, i, theta);
                     // auto start = high_resolution_clock::now();
 					stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CP, stateV);
@@ -358,6 +358,29 @@ namespace CFL_OBDD
                     // std::cout << "(i,j): " << i << "," << j << " " << duration.count() << std::endl;
 				}
 			}
+
+            /*
+                Inverse QFT
+
+            for (long long int i = 0; i < n; i++)
+			{
+				WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = Hadamard(n, i);
+				stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(H, stateV);
+				for (long int j = i+1; j < n; j++)
+				{
+					double theta = -1 * std::pow(2, i - j);
+					WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CP = WeightedMatrix1234ComplexFloatBoostMul::MkCPGate(level+1, i, j, theta);
+					stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CP, stateV);
+				}
+			}
+
+            for (long long int i = 0; i < n/2; i++)
+			{
+				WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL SwapM = WeightedMatrix1234ComplexFloatBoostMul::MkSwapGate(level+1, i, n-i-1);
+				stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(SwapM, stateV);
+			}
+            */
+
 			std::cout << "done" << std::endl;
 
 
@@ -386,27 +409,35 @@ namespace CFL_OBDD
 			}
 
 			std::cout << "loop start" << std::endl;
-
 			for (long long int i = n-1; i >= 0; i--)
 			{
 				WEIGHTED_CFLOBDD_FOURIER_MUL H = Hadamard_i(n, i);
-                // auto start = high_resolution_clock::now();
 				stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(H, stateV);
-                // auto end = high_resolution_clock::now();
-                // auto duration = duration_cast<milliseconds>(end - start);
-                // std::cout << "(i): " << i << " " << duration.count() << std::endl;
 				for (long int j = 0; j < i; j++)
 				{
 					fourierSemiring theta(1, boost::multiprecision::pow(BIG_INT(2), i - j + 1));
 					WEIGHTED_CFLOBDD_FOURIER_MUL CP = WeightedMatrix1234FourierMul::MkCPGate(level+1, j, i, theta);
-                    // auto start = high_resolution_clock::now();
 					stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(CP, stateV);
-                    // auto end = high_resolution_clock::now();
-                    // auto duration = duration_cast<milliseconds>(end - start);
-                    // std::cout << "(i,j): " << i << "," << j << " " << duration.count() << std::endl;
 				}
 			}
-			std::cout << "done" << std::endl;
+
+            /* IQFT
+            for (long long int i = 0; i < n; i++)
+			{
+				WEIGHTED_CFLOBDD_FOURIER_MUL H = Hadamard_i(n, i);
+				stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(H, stateV);
+				for (long int j = i+1; j < n; j++)
+				{
+					fourierSemiring theta(-1, boost::multiprecision::pow(BIG_INT(2), -i + j + 1));
+                    theta.SetComplexValue();
+					WEIGHTED_CFLOBDD_FOURIER_MUL CP = WeightedMatrix1234FourierMul::MkCPGate(level+1, i, j, theta);
+					stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(CP, stateV);
+				}
+			}
+            */
+
+
+		// 	std::cout << "done" << std::endl;
 
 
 			return stateV;
@@ -493,7 +524,7 @@ namespace CFL_OBDD
 		}
 
 
-          WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ShorsAlgo(int a, int N, int bits)
+        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ShorsAlgo(int a, int N, int bits)
 		{
 			unsigned int level = ceil(log2(N));
 			WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL allOnes = WeightedVectorComplexFloatBoostMul::NoDistinctionNode(level,1);
@@ -548,6 +579,232 @@ namespace CFL_OBDD
 
 			return stateV;
 		}
+
+        void QFT_helper(int level, int b_vars, int total_vars, WEIGHTED_CFLOBDD_FOURIER_MUL& stateV)
+        {
+            // level is of the second half
+            auto I = WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level);
+            int n = total_vars / 4;
+            for (long long int i = 0; i < b_vars/2; i++)
+			{
+				WEIGHTED_CFLOBDD_FOURIER_MUL SwapM = WeightedMatrix1234FourierMul::MkSwapGate(level+1, i + n + total_vars/2, b_vars-i-1 + n + total_vars/2);
+				stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(SwapM, stateV);
+			}
+
+			for (long long int i = b_vars-1; i >= 0; i--)
+			{
+				WEIGHTED_CFLOBDD_FOURIER_MUL H = Hadamard_i(std::pow(2, level), i + n + total_vars/2);
+				stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(H, stateV);
+				for (long int j = 0; j < i; j++)
+				{
+					fourierSemiring theta(1, boost::multiprecision::pow(BIG_INT(2), i - j + 1));
+					WEIGHTED_CFLOBDD_FOURIER_MUL CP = WeightedMatrix1234FourierMul::MkCPGate(level+1, j + n + total_vars/2, i + n + total_vars/2, theta);
+					stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(CP, stateV);
+				}
+			} 
+        }
+
+        void IQFT_helper(int level, int b_vars, int total_vars, WEIGHTED_CFLOBDD_FOURIER_MUL& stateV)
+        {
+            // level is of the second half
+            auto I = WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level);
+            int n = total_vars / 4;
+
+			for (long long int i = 0; i < b_vars; i++)
+			{
+				WEIGHTED_CFLOBDD_FOURIER_MUL H = Hadamard_i(std::pow(2, level), i + n + total_vars/2);
+				stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(H, stateV);
+				for (long int j = i+1; j < b_vars; j++)
+				{
+					fourierSemiring theta(-1, boost::multiprecision::pow(BIG_INT(2), -i + j + 1));
+					WEIGHTED_CFLOBDD_FOURIER_MUL CP = WeightedMatrix1234FourierMul::MkCPGate(level+1, i + n + total_vars/2, j + n + total_vars/2, theta); 
+					stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(CP, stateV);
+				}
+			} 
+
+            for (long long int i = 0; i < b_vars/2; i++)
+			{
+				WEIGHTED_CFLOBDD_FOURIER_MUL SwapM = WeightedMatrix1234FourierMul::MkSwapGate(level+1, i + n + total_vars/2, b_vars-i-1 + n + total_vars/2);
+				stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(SwapM, stateV);
+			}
+            stateV.root->rootConnection.factor = fourierSemiring(1, 1);
+        }
+
+        WEIGHTED_CFLOBDD_FOURIER_MUL MkADDGate(int level, BIG_INT a, int& count, int n)
+        {
+            if (count > n)
+            {
+                return WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level);
+            }
+            if (level == 1)
+            {
+               fourierSemiring a_modn(a, (int)std::pow(2, count));
+               count += 1;
+               return WeightedMatrix1234FourierMul::MkRZGate(level, a_modn); 
+            }
+            int vars = std::pow(2, level-2);
+            auto lhs = MkADDGate(level-1, a, count, n);
+            auto rhs = MkADDGate(level-1, a, count, n);
+            return WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(lhs, rhs);
+        }
+
+        void CADDModN(int controller, int x_c, int a, int N, WEIGHTED_CFLOBDD_FOURIER_MUL& stateV, int b_vars)
+        {
+            int level = stateV.root->level - 2; /* 4 */
+            int n = (int)std::pow(2, level-1); // 8
+            int count = 1;
+            auto ADD_amodn = MkADDGate(level, a, count, b_vars);
+            auto CADD_amodn = WeightedMatrix1234FourierMul::MkCADDGate(stateV.root->level, controller, x_c, ADD_amodn);
+            stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(CADD_amodn, stateV);
+            // stateV.print(std::cout);
+            BIG_INT MinN = BIG_INT(std::pow(2, b_vars) - N);
+            count = 1;
+            auto ADD_MinNModn = WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level+1), 
+                                    WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level), MkADDGate(level, MinN, count, b_vars)));
+            stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(ADD_MinNModn, stateV);
+            IQFT_helper(level+1, b_vars, 4*n, stateV);
+            bool isNonZero = WeightedMatrix1234FourierMul::CheckIfIndexIsNonZero(stateV.root->level, 0, stateV);
+            QFT_helper(level + 1, b_vars, 4 * n, stateV);
+            if (isNonZero){
+                count = 1;
+                auto ADD_NModn = WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level+1), 
+                                    WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level), MkADDGate(level, BIG_INT(N), count, b_vars)));
+                stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(ADD_NModn, stateV); 
+            }
+        }
+
+        void CMULT(int controller, int powerOfa, int N, WEIGHTED_CFLOBDD_FOURIER_MUL& stateV, int N_vars /* 5 */, int b_vars /* 6 */, int total_vars /* 32 */)
+        {
+            int n = total_vars / 4;
+            QFT_helper(stateV.root->level-1, b_vars, total_vars, stateV);
+            for (int i = 0; i < N_vars; i++)
+            {
+                CADDModN(controller /* c */, (N_vars - 1 - i) /* x */, (int)std::pow(2, i) * powerOfa, N, stateV, b_vars);
+            }
+            IQFT_helper(stateV.root->level-1, b_vars, total_vars, stateV);
+        }
+
+        // Source: geeks for geeks
+        int gcdExtended(int a, int b, int* x, int* y)
+        {
+            // Base Case
+            if (a == 0) {
+                *x = 0, *y = 1;
+                return b;
+            }
+        
+            // To store results of recursive call
+            int x1, y1;
+            int gcd = gcdExtended(b % a, a, &x1, &y1);
+        
+            // Update x and y using results of recursive
+            // call
+            *x = y1 - (b / a) * x1;
+            *y = x1;
+        
+            return gcd;
+        }
+
+        int modInverse(int a, int N)
+        {
+            int x, y;
+            int g = gcdExtended(a, N, &x, &y);
+            assert(g == 1);
+            int res = (x % N + N) % N;
+            return res;
+        }
+        
+        WEIGHTED_CFLOBDD_FOURIER_MUL HadamardMatrix(unsigned int level, int end /*15*/, int n/*9*/)
+        {
+            if (end == n){
+                return WeightedMatrix1234FourierMul::MkWalshInterleaved(level);
+            }
+            if (n < 0)
+                return WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level);
+            int mid = (end)/2;
+            auto lhs = HadamardMatrix(level-1, mid, std::min(mid, n));
+            int new_end = end - mid - 1;
+            int new_n = n - mid - 1;
+            auto rhs = HadamardMatrix(level-1, new_end, new_n);
+            return WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(lhs, rhs);
+        } 
+        
+        
+        WEIGHTED_CFLOBDD_FOURIER_MUL ShorsFourier(int a, int N)
+        {
+            // NEED 2logN+3 BITS. But we will be using 4 * nearestPow2(n)
+            // Consider N = 21
+            // <c, x, b> == <2*n, n, n + 2>
+            int x_vars = ceil(log2(N)); // 5
+            int b_vars = x_vars + 1; // 6
+            int total_vars = pow(2, ceil(log2(b_vars))); // 8 bits
+            total_vars = 2 * total_vars; // 16
+            total_vars = 2 * total_vars; // 32
+
+            int level = log2(total_vars); // of the vector (level-1 x level-1) x (level-1 x level-1)
+
+            WEIGHTED_CFLOBDD_FOURIER_MUL e0 = WeightedVectorFourierMul::MkBasisVector(level, 0); // matrix
+            auto H = HadamardMatrix(level, total_vars/2 - 1, 2 * x_vars-1);
+            e0 = WeightedMatrix1234FourierMul::MatrixMultiplyV4(H, e0);
+            std::string s(total_vars, '0');
+            s[2*x_vars-2] = '1'; // (00001) x (00000)
+
+            WEIGHTED_CFLOBDD_FOURIER_MUL e1 = WeightedVectorFourierMul::MkBasisVector(level, s);
+            auto stateV = WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(e0, e1);
+
+            // Let's create U_a^{2^i}
+            long long int prevPowOfa = 1;
+            for (int i = 0; i < 2 * x_vars; i++)
+            {
+                // U_a => CMULT(a)modN SWAP CMULT(a^-1)modN
+                // CMULT(a)modN = QFT Add_{2^k a} mod N, k \in 0..N_vars-1 QFT^-1
+                std::cout << i << std::endl;
+                int controller = (2 * x_vars - 1 - i);
+                int powerOfa;
+                if (i == 0)
+                    powerOfa = a % N;
+                else
+                    powerOfa = (prevPowOfa * prevPowOfa) % N;
+                prevPowOfa = powerOfa;
+                CMULT(controller, powerOfa, N, stateV, x_vars, b_vars, total_vars);
+                // SWAP
+                for (int x = 0; x < x_vars; x++)
+                {
+                    auto SW = WeightedMatrix1234FourierMul::MkCSwapGate(level + 1, controller, total_vars/2 + x, total_vars/2 + total_vars/4 + x);
+                    stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(SW, stateV);
+                }
+                int powOfaInv = modInverse(powerOfa, N);
+                CMULT(controller, powOfaInv, N, stateV, x_vars, b_vars, total_vars);
+            }
+
+            std::cout << "partly done" << std::endl;
+
+            // IQFT
+            auto I = WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level);
+
+			for (long long int i = 0; i <2*x_vars; i++)
+			{
+				WEIGHTED_CFLOBDD_FOURIER_MUL H = Hadamard_i(std::pow(2, level), i);
+				stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(H, stateV);
+				for (long int j = i+1; j < 2*x_vars; j++)
+				{
+					fourierSemiring theta(-1, boost::multiprecision::pow(BIG_INT(2), -i + j + 1));
+					WEIGHTED_CFLOBDD_FOURIER_MUL CP = WeightedMatrix1234FourierMul::MkCPGate(level+1, i, j, theta); 
+					stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(CP, stateV);
+				}
+			} 
+
+            for (long long int i = 0; i < x_vars; i++)
+			{
+				WEIGHTED_CFLOBDD_FOURIER_MUL SwapM = WeightedMatrix1234FourierMul::MkSwapGate(level+1, i, 2*x_vars-i-1);
+				stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(SwapM, stateV);
+			}
+            stateV.root->rootConnection.factor = fourierSemiring(1, 1);
+
+            std::cout << "fully done" << std::endl;
+
+            return stateV;
+        }
 
 
 

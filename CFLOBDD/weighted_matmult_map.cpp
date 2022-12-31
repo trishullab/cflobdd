@@ -66,7 +66,13 @@ void WeightedMatMultMapBody<fourierSemiring>::setHashCheck()
 {
 	long int hvalue = 0;
 	for (auto &i : map) {
-		hvalue = (117 * (hvalue + 1) + (int)(i.first.first + 97 * i.first.second + 97 * 97 * (i.second.GetVal() + 17 * i.second.GetRingSize())));
+        if (!i.second.isComplexValueSet)
+		    hvalue = (117 * (hvalue + 1) + (int)(i.first.first + 97 * i.first.second + 97 * 97 * (i.second.GetVal() + 17 * i.second.GetRingSize())));
+        else
+        {
+            boost::hash<BIG_COMPLEX> boost_hash;
+            hvalue = (117 * (hvalue + 1) + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second.complex_value))); 
+        }
 	}
 	hashCheck = hvalue;
 }
@@ -227,8 +233,15 @@ void WeightedMatMultMapHandle<fourierSemiring>::Add(const INT_PAIR& p, fourierSe
     }
     else{
         it->second = it->second + v;
-        if (it->second == fourierSemiring(0, 1))
-            mapContents->map.erase(it);
+        if (!it->second.isComplexValueSet){
+            if (it->second == fourierSemiring(0, 1))
+                mapContents->map.erase(it);
+        }
+        else
+        {
+            if (it->second.complex_value == BIG_COMPLEX(0))
+                mapContents->map.erase(it);
+        }
     }
 }
 
@@ -410,8 +423,10 @@ WeightedMatMultMapHandle<T> operator* (const T& factor, const WeightedMatMultMap
 template <>
 WeightedMatMultMapHandle<fourierSemiring> operator* (const fourierSemiring& factor, const WeightedMatMultMapHandle<fourierSemiring>& mapHandle)
 {
-	if (factor == fourierSemiring(1, 1))
+	if (!factor.isComplexValueSet && factor == fourierSemiring(1, 1))
 		return mapHandle;
+    if (factor.isComplexValueSet && factor.complex_value == BIG_COMPLEX(1))
+        return mapHandle;
 	WeightedMatMultMapHandle<fourierSemiring> ans;
 	for (auto &i : mapHandle.mapContents->map){
 		fourierSemiring v = i.second * factor;
@@ -447,8 +462,10 @@ WeightedMatMultMapHandle<T> operator* (const WeightedMatMultMapHandle<T>& mapHan
 template <>
 WeightedMatMultMapHandle<fourierSemiring> operator* (const WeightedMatMultMapHandle<fourierSemiring>& mapHandle, const fourierSemiring& factor)
 {
-	if (factor == fourierSemiring(1, 1))
+	if (!factor.isComplexValueSet && factor == fourierSemiring(1, 1))
 		return mapHandle;
+    if (factor.isComplexValueSet && factor.complex_value == BIG_COMPLEX(1))
+        return mapHandle;
 	WeightedMatMultMapHandle<fourierSemiring> ans;
 	for (auto &i : mapHandle.mapContents->map){
 		fourierSemiring v = i.second * factor;
@@ -477,7 +494,6 @@ template WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT> operator*<BIG_COMPLEX_FLOAT
 template WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT> operator*<BIG_COMPLEX_FLOAT>(const WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>&, const BIG_COMPLEX_FLOAT&);
 
 
-#include "fourier_semiring.h"
 template class WeightedMatMultMapHandle<fourierSemiring>;
 template WeightedMatMultMapHandle<fourierSemiring> operator*<fourierSemiring>(const fourierSemiring&, const WeightedMatMultMapHandle<fourierSemiring>&);
 template WeightedMatMultMapHandle<fourierSemiring> operator*<fourierSemiring>(const WeightedMatMultMapHandle<fourierSemiring>&, const fourierSemiring&);

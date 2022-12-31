@@ -35,6 +35,10 @@ namespace CFL_OBDD {
 		extern WEIGHTED_CFLOBDD_FOURIER_MUL MkSwapGate(unsigned int i, long int c1, long int c2);
 		extern WEIGHTED_CFLOBDD_FOURIER_MUL MkCPGate(unsigned int i, long int c1, long int c2, fourierSemiring theta);
 		extern WEIGHTED_CFLOBDD_FOURIER_MUL MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2);
+		extern WEIGHTED_CFLOBDD_FOURIER_MUL MkRZGate(unsigned int level, fourierSemiring theta);
+		extern WEIGHTED_CFLOBDD_FOURIER_MUL MkCADDGate(unsigned int level, int c, int x, WEIGHTED_CFLOBDD_FOURIER_MUL f);
+		// specifically for shors
+		extern bool CheckIfIndexIsNonZero(unsigned int level, int index, WEIGHTED_CFLOBDD_FOURIER_MUL f);
 	}
 }
 

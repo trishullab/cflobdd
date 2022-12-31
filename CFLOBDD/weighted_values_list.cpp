@@ -107,8 +107,12 @@ void WeightedValuesListBody<fourierSemiring>::AddToEnd(fourierSemiring y)
     {
         isAllSame = isAllSame && (y == mapArray[mapArray.size()-1]);
     }
-    if (isOneOrZero)
-        isOneOrZero = isOneOrZero && ((y == fourierSemiring(0, 1)) || (y == fourierSemiring(1, 1)));
+    if (isOneOrZero){
+        if (!y.isComplexValueSet)
+            isOneOrZero = isOneOrZero && ((y == fourierSemiring(0, 1)) || (y == fourierSemiring(1, 1)));
+        else if (y.isComplexValueSet)
+            isOneOrZero = isOneOrZero && (y.complex_value == BIG_COMPLEX(0) || y.complex_value == BIG_COMPLEX(1));
+    }
 	mapArray.push_back(y);
 }
 

@@ -43,6 +43,9 @@ namespace CFL_OBDD {
 		extern WeightedCFLOBDDTopNodeFourierRefPtr MkSwapGateTop(unsigned int level, long int i, long int j);
 		extern WeightedCFLOBDDTopNodeFourierRefPtr MkCPGateTop(unsigned int level, long int i, long int j, fourierSemiring theta);
 		extern WeightedCFLOBDDTopNodeFourierRefPtr MkCSwapGateTop(unsigned int level, long int c, long int i, long int j);
+		extern WeightedCFLOBDDTopNodeFourierRefPtr MkRZGateTop(unsigned int level, fourierSemiring theta);
+		extern WeightedCFLOBDDTopNodeFourierRefPtr MkCADDGateTop(unsigned int level, int c, int x, WeightedCFLOBDDTopNodeFourierRefPtr f);
+		extern bool CheckIfIndexIsNonZeroTop(unsigned int level, int index, WeightedCFLOBDDTopNodeFourierRefPtr f);
 	}
 }
 

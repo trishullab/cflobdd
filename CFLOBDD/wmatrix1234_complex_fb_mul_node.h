@@ -72,7 +72,6 @@ namespace CFL_OBDD {
         
         // Initialization routine that needs to be called before any call to MatrixProjectVoc23Node
         extern void Matrix1234InitializerNode();  // Empty for now
-	    extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num);
 
         // extern CFLOBDDTopNodeMatMultMapRefPtr MatrixMultiplyV4Node(
         // 	std::unordered_map<MatMultPair, CFLOBDDTopNodeMatMultMapRefPtr, MatMultPair::MatMultPairHash>& hashMap,

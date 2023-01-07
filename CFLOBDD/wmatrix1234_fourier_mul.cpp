@@ -137,9 +137,30 @@ namespace CFL_OBDD {
 			return WEIGHTED_CFLOBDD_FOURIER_MUL(MkCADDGateTop(level, c, x, f.root));
 		}
 
+		WEIGHTED_CFLOBDD_FOURIER_MUL MkCADDGate2(unsigned int level, int x, WEIGHTED_CFLOBDD_FOURIER_MUL f)
+		{
+			return WEIGHTED_CFLOBDD_FOURIER_MUL(MkCADDGate2Top(level, x, f.root));
+		}
+
 		bool CheckIfIndexIsNonZero(unsigned int level, int index, WEIGHTED_CFLOBDD_FOURIER_MUL f)
 		{
 			return CheckIfIndexIsNonZeroTop(level, index, f.root);
+		}
+
+		WEIGHTED_CFLOBDD_FOURIER_MUL MkSetBToZero(unsigned int level, WEIGHTED_CFLOBDD_FOURIER_MUL f)
+		{
+			return WEIGHTED_CFLOBDD_FOURIER_MUL(MkSetBToZeroTop(level, f.root)); 
+		}
+
+		WEIGHTED_CFLOBDD_FOURIER_MUL ComputeIQFT(unsigned int level, WEIGHTED_CFLOBDD_FOURIER_MUL f, BIG_INT N, int n)
+		{
+			return WEIGHTED_CFLOBDD_FOURIER_MUL(ComputeIQFTTop(level, f.root, N, n)); 
+		}
+
+		std::pair<WEIGHTED_CFLOBDD_FOURIER_MUL, int> MeasureAndReset(unsigned int level, long int n, WEIGHTED_CFLOBDD_FOURIER_MUL f, fourierSemiring R)
+		{
+			auto t = MeasureAndResetTop(level, n, f.root, R);
+			return std::make_pair(WEIGHTED_CFLOBDD_FOURIER_MUL(t.first), t.second);
 		}
 	}
 }

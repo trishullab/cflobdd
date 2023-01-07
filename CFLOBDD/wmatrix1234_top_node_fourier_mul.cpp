@@ -379,9 +379,47 @@ namespace CFL_OBDD {
 			return v;
 		}
 
+		WeightedCFLOBDDTopNodeFourierRefPtr MkCADDGate2Top(unsigned int level, int x, WeightedCFLOBDDTopNodeFourierRefPtr f)
+		{
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			FourierReturnMapHandle m01;
+			tempHandle = MkCADDGate2Node(level, x, *(f->rootConnection.entryPointHandle), 1);
+			m01.AddToEnd(fourierSemiring(1, 1));
+			m01.AddToEnd(fourierSemiring(0, 1));
+			v = new WeightedCFLOBDDTopNodeFourier(tempHandle, m01, fourierSemiring(1, 1));
+			return v;
+		}
+
 		bool CheckIfIndexIsNonZeroTop(unsigned int level, int index, WeightedCFLOBDDTopNodeFourierRefPtr f)
 		{
 			return CheckIfIndexIsNonZeroNode(level, index, *(f->rootConnection.entryPointHandle), 1);
+		}
+
+		WeightedCFLOBDDTopNodeFourierRefPtr MkSetBToZeroTop(unsigned int level, WeightedCFLOBDDTopNodeFourierRefPtr f)
+		{
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			tempHandle = MkSetBToZeroNode(level, *(f->rootConnection.entryPointHandle), 1);
+			v = new WeightedCFLOBDDTopNodeFourier(tempHandle, f->rootConnection.returnMapHandle, fourierSemiring(1, 1));
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeFourierRefPtr ComputeIQFTTop(unsigned int level, WeightedCFLOBDDTopNodeFourierRefPtr f, BIG_INT N, int n)
+		{
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			WeightedCFLOBDDFourierMulNodeHandle tempHandle;
+			tempHandle = ComputeIQFTNode(level, *(f->rootConnection.entryPointHandle), N, n, 1, n+1, level).first;
+			v = new WeightedCFLOBDDTopNodeFourier(tempHandle, f->rootConnection.returnMapHandle, fourierSemiring(1, 1));
+			return v;
+		}
+
+		std::pair<WeightedCFLOBDDTopNodeFourierRefPtr, int> MeasureAndResetTop(unsigned int level, long int n, WeightedCFLOBDDTopNodeFourierRefPtr f, fourierSemiring R)
+		{
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			auto t = MeasureAndResetNode(level, n, *(f->rootConnection.entryPointHandle), R);
+			v = new WeightedCFLOBDDTopNodeFourier(t.first, f->rootConnection.returnMapHandle, fourierSemiring(1, 1));
+			return std::make_pair(v, t.second);	
 		}
 
 	}

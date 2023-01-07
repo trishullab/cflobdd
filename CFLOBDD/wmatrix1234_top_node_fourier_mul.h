@@ -45,7 +45,11 @@ namespace CFL_OBDD {
 		extern WeightedCFLOBDDTopNodeFourierRefPtr MkCSwapGateTop(unsigned int level, long int c, long int i, long int j);
 		extern WeightedCFLOBDDTopNodeFourierRefPtr MkRZGateTop(unsigned int level, fourierSemiring theta);
 		extern WeightedCFLOBDDTopNodeFourierRefPtr MkCADDGateTop(unsigned int level, int c, int x, WeightedCFLOBDDTopNodeFourierRefPtr f);
+		extern WeightedCFLOBDDTopNodeFourierRefPtr MkCADDGate2Top(unsigned int level, int x, WeightedCFLOBDDTopNodeFourierRefPtr f);
 		extern bool CheckIfIndexIsNonZeroTop(unsigned int level, int index, WeightedCFLOBDDTopNodeFourierRefPtr f);
+		extern WeightedCFLOBDDTopNodeFourierRefPtr MkSetBToZeroTop(unsigned int level, WeightedCFLOBDDTopNodeFourierRefPtr f);
+		extern WeightedCFLOBDDTopNodeFourierRefPtr ComputeIQFTTop(unsigned int level, WeightedCFLOBDDTopNodeFourierRefPtr f, BIG_INT N, int n);
+		extern std::pair<WeightedCFLOBDDTopNodeFourierRefPtr, int> MeasureAndResetTop(unsigned int level, long int n, WeightedCFLOBDDTopNodeFourierRefPtr f, fourierSemiring R);
 	}
 }
 

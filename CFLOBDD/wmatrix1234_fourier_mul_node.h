@@ -64,7 +64,11 @@ namespace CFL_OBDD {
         extern WeightedCFLOBDDFourierMulNodeHandle MkCSwapGateNode(unsigned int level, long int controller, long int i, long int j, int case_num);
         extern WeightedCFLOBDDFourierMulNodeHandle MkRZGateNode(unsigned int level, fourierSemiring theta);
         extern WeightedCFLOBDDFourierMulNodeHandle MkCADDGateNode(unsigned int level, long int c, long int x, WeightedCFLOBDDFourierMulNodeHandle f, int flag);
+        extern WeightedCFLOBDDFourierMulNodeHandle MkCADDGate2Node(unsigned int level, long int x, WeightedCFLOBDDFourierMulNodeHandle f, int flag);
         extern bool CheckIfIndexIsNonZeroNode(unsigned int level, int index, WeightedCFLOBDDFourierMulNodeHandle f, int flag);
+        extern WeightedCFLOBDDFourierMulNodeHandle MkSetBToZeroNode(unsigned int level, WeightedCFLOBDDFourierMulNodeHandle f, int flag);
+        extern std::pair<WeightedCFLOBDDFourierMulNodeHandle, int> ComputeIQFTNode(unsigned int level, WeightedCFLOBDDFourierMulNodeHandle f, BIG_INT N, int n, int flag, int b_vars, int actual_level);
+        extern std::pair<WeightedCFLOBDDFourierMulNodeHandle, int> MeasureAndResetNode(unsigned int level, long int n, WeightedCFLOBDDFourierMulNodeHandle f, fourierSemiring R);
 
         extern WeightedCFLOBDDFourierMulNodeHandle KroneckerProduct2VocsNode(WeightedCFLOBDDFourierMulNodeHandle m1, WeightedCFLOBDDFourierMulNodeHandle m2, int zero_index_m1, int zero_index_m2); 
         extern std::tuple<WeightedCFLOBDDFourierMulNodeHandle, CFLOBDDMatMultMapHandle, fourierSemiring>

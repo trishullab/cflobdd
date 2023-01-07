@@ -71,6 +71,9 @@ void fourierSemiring::SetValAndRingSize(BIG_INT v, BIG_INT r)
 		val = 1;
 		ringSize = 1;
 	}
+	// BIG_INT g = boost::math::gcd(val, ringSize);
+	// val = val / g;
+	// ringSize = ringSize / g;
 }
 
 std::ostream& operator<< (std::ostream & out, const fourierSemiring &p)

@@ -55,6 +55,11 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG MkWalshInterleaved(unsigned int i);              // Representation of Walsh matrix
 		extern CFLOBDD_COMPLEX_BIG MkInverseReedMullerInterleaved(unsigned int i);  // Representation of Inverse Reed-Muller matrix
 		extern CFLOBDD_COMPLEX_BIG MkExchangeInterleaved(unsigned int i); // Representation of exchange matrix
+		extern CFLOBDD_COMPLEX_BIG MkNegationMatrixInterleaved(unsigned int i);
+		extern CFLOBDD_COMPLEX_BIG MkPauliYMatrixInterleaved(unsigned int i);
+		extern CFLOBDD_COMPLEX_BIG MkPauliZMatrixInterleaved(unsigned int i);
+		extern CFLOBDD_COMPLEX_BIG MkSGateInterleaved(unsigned int i);
+		extern CFLOBDD_COMPLEX_BIG MkPhaseShiftGateInterleaved(unsigned int i, double theta);
 
 		// Matrix-related operations (on matrices with room for two extra vocabularies) ------------
 		extern CFLOBDD_COMPLEX_BIG MkWalshVoc13(unsigned int i);                    // Create representation of Walsh matrix with room for two extra vocabularies
@@ -75,7 +80,7 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG MkFourierMatrixInterleaved(unsigned int i);      // Create representation of the DFT matrix
 		extern CFLOBDD_COMPLEX_BIG MkFourierMatrixInterleavedV4(unsigned int i);      // Create representation of the DFT matrix
 		extern CFLOBDD_COMPLEX_BIG MkFourierMatrixInterleavedV4WithInfo(unsigned int i);      // Create representation of the DFT matrix
-		extern CFLOBDD_COMPLEX_BIG MkCFLOBDD_COMPLEX_BIGMatrixEqVoc14(unsigned int i);          // Create representation of a matrix in which vocabularies 1 and 4 are constrained to be equal: (W,X,Y,Z) s.t. W==Z with interleaved variables
+		extern CFLOBDD_COMPLEX_BIG MkCFLOBDDMatrixEqVoc14(unsigned int i);          // Create representation of a matrix in which vocabularies 1 and 4 are constrained to be equal: (W,X,Y,Z) s.t. W==Z with interleaved variables
 		extern CFLOBDD_COMPLEX_BIG MkFourierDiagonalComponent(unsigned int i);
 		extern CFLOBDD_COMPLEX_BIG PromoteInterleavedTo12(CFLOBDD_COMPLEX_BIG c);
 		extern CFLOBDD_COMPLEX_BIG Demote12ToInterleaved(CFLOBDD_COMPLEX_BIG c);
@@ -83,7 +88,10 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG MkCNOTInterleaved(unsigned int i);
 		extern CFLOBDD_COMPLEX_BIG MkCPGate(unsigned int i, long int c1, long int c2, double theta);
 		extern CFLOBDD_COMPLEX_BIG MkSwapGate(unsigned int i, long int c1, long int c2);
+		extern CFLOBDD_COMPLEX_BIG MkiSwapGate(unsigned int i, long int c1, long int c2);
 		extern CFLOBDD_COMPLEX_BIG MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2);
+		extern CFLOBDD_COMPLEX_BIG MkCNOT(unsigned int level, unsigned int n, long int controller, long int controlled); // Representation of CNOT matrix with index1 as controller and index2 as controlled bits
+		extern CFLOBDD_COMPLEX_BIG MkCCNOT(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled);
 
 		extern CFLOBDD_COMPLEX_BIG MatrixShiftToAConnection(CFLOBDD_COMPLEX_BIG c);
 		extern CFLOBDD_COMPLEX_BIG MatrixShiftToBConnection(CFLOBDD_COMPLEX_BIG c);

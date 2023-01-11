@@ -262,6 +262,7 @@ namespace CFL_OBDD {
             CFLOBDDMatMultMapHandle n_return = std::get<1>(c);
             fourierSemiring n_factor = std::get<2>(c);
             bool first = true;
+			// n.print(std::cout);
             fourierSemiring common_f = one;
 			for (unsigned int i = 0; i < n_return.Size(); i++){
 				WeightedMatMultMapHandle r = n_return[i];
@@ -420,6 +421,14 @@ namespace CFL_OBDD {
 			auto t = MeasureAndResetNode(level, n, *(f->rootConnection.entryPointHandle), R);
 			v = new WeightedCFLOBDDTopNodeFourier(t.first, f->rootConnection.returnMapHandle, fourierSemiring(1, 1));
 			return std::make_pair(v, t.second);	
+		}
+
+		WeightedCFLOBDDTopNodeFourierRefPtr ResetStateTop(unsigned int level, WeightedCFLOBDDTopNodeFourierRefPtr f)
+		{
+			WeightedCFLOBDDTopNodeFourierRefPtr v;
+			auto t = ResetStateNode(level, *(f->rootConnection.entryPointHandle));
+			v = new WeightedCFLOBDDTopNodeFourier(t, f->rootConnection.returnMapHandle, fourierSemiring(1, 1));
+			return v;	
 		}
 
 	}

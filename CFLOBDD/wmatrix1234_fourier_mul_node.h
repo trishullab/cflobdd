@@ -69,6 +69,7 @@ namespace CFL_OBDD {
         extern WeightedCFLOBDDFourierMulNodeHandle MkSetBToZeroNode(unsigned int level, WeightedCFLOBDDFourierMulNodeHandle f, int flag);
         extern std::pair<WeightedCFLOBDDFourierMulNodeHandle, int> ComputeIQFTNode(unsigned int level, WeightedCFLOBDDFourierMulNodeHandle f, BIG_INT N, int n, int flag, int b_vars, int actual_level);
         extern std::pair<WeightedCFLOBDDFourierMulNodeHandle, int> MeasureAndResetNode(unsigned int level, long int n, WeightedCFLOBDDFourierMulNodeHandle f, fourierSemiring R);
+        extern WeightedCFLOBDDFourierMulNodeHandle ResetStateNode(unsigned int level, WeightedCFLOBDDFourierMulNodeHandle f);
 
         extern WeightedCFLOBDDFourierMulNodeHandle KroneckerProduct2VocsNode(WeightedCFLOBDDFourierMulNodeHandle m1, WeightedCFLOBDDFourierMulNodeHandle m2, int zero_index_m1, int zero_index_m2); 
         extern std::tuple<WeightedCFLOBDDFourierMulNodeHandle, CFLOBDDMatMultMapHandle, fourierSemiring>

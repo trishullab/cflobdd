@@ -43,6 +43,7 @@ namespace CFL_OBDD {
 		extern WEIGHTED_CFLOBDD_FOURIER_MUL MkSetBToZero(unsigned int level, WEIGHTED_CFLOBDD_FOURIER_MUL f);
 		extern WEIGHTED_CFLOBDD_FOURIER_MUL ComputeIQFT(unsigned int level, WEIGHTED_CFLOBDD_FOURIER_MUL f, BIG_INT N, int n);
 		extern std::pair<WEIGHTED_CFLOBDD_FOURIER_MUL, int> MeasureAndReset(unsigned int level, long int n, WEIGHTED_CFLOBDD_FOURIER_MUL f, fourierSemiring R);
+		extern WEIGHTED_CFLOBDD_FOURIER_MUL ResetState(unsigned int level, WEIGHTED_CFLOBDD_FOURIER_MUL f);
 	}
 }
 

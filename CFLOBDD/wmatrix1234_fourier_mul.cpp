@@ -162,6 +162,11 @@ namespace CFL_OBDD {
 			auto t = MeasureAndResetTop(level, n, f.root, R);
 			return std::make_pair(WEIGHTED_CFLOBDD_FOURIER_MUL(t.first), t.second);
 		}
+
+		WEIGHTED_CFLOBDD_FOURIER_MUL ResetState(unsigned int level, WEIGHTED_CFLOBDD_FOURIER_MUL f)
+		{
+			return WEIGHTED_CFLOBDD_FOURIER_MUL(ResetStateTop(level, f.root));
+		}
 	}
 }
 

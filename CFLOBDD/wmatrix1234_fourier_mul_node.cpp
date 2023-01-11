@@ -2069,40 +2069,51 @@ namespace CFL_OBDD {
                 WeightedCFLOBDDFourierLeafNode* fh = (WeightedCFLOBDDFourierLeafNode *)f.handleContents;
                 fourierSemiring lw = fh->lweight;
                 fourierSemiring rw = fh->rweight;
-                rw = rw * R;
-                double lw_c = (lw == fourierSemiring(1, 1)) ? 1 : 0;
-                double v = (double)(2 * rw.GetVal()) / (double) rw.GetRingSize();
-                auto cos_v = boost::math::cos_pi(v);
-                auto sin_v = boost::math::sin_pi(v);
-                double alpha_plus_1 = (1 + cos_v) * (1 + cos_v) + sin_v * sin_v;
-                double alpha_minus_1 = (1 - cos_v) * (1 - cos_v) + sin_v * sin_v; 
+                double lw_c = (lw == fourierSemiring(0, 1)) ? 0 : 1;
+                double rw_c = (rw == fourierSemiring(0, 1)) ? 0 : 1;
                 int index = -1;
                 // std::cout << R << std::endl;
                 // std::cout << "lw_c: " << lw_c << " rw_c: " << rw_c << std::endl;
                 // TODO: Change this
-                if (alpha_minus_1 > alpha_plus_1) 
-                    index = 1;
-                else if (alpha_plus_1 > alpha_minus_1)
+                if (lw_c > rw_c) 
                     index = 0;
+                else if (rw_c > lw_c)
+                    index = 1;
                 else
                 {
                     index = rand() % 2;
                 }
-                if (fh->numExits == 1)
-                {
+                // if (fh->numExits == 1)
+                // {
                     WeightedCFLOBDDFourierDontCareNode* g = new WeightedCFLOBDDFourierDontCareNode();
                     g->lweight = fourierSemiring(1, 1);
                     g->rweight = fourierSemiring(1, 1);
                     g->numExits = 1;
                     return std::make_pair(WeightedCFLOBDDFourierMulNodeHandle(g), index);
+                // }
+                // else {
+                //     WeightedCFLOBDDFourierForkNode* g = new WeightedCFLOBDDFourierForkNode();
+                //     g->lweight = fourierSemiring(1, 1);
+                //     g->rweight = fourierSemiring(1, 1);
+                //     g->numExits = 2;
+                //     return std::make_pair(WeightedCFLOBDDFourierMulNodeHandle(g), index); 
+                // }
+            }
+            else if (level == 1)
+            {
+                WeightedCFLOBDDFourierInternalNode* fh = (WeightedCFLOBDDFourierInternalNode *)f.handleContents;
+                auto t = MeasureAndResetNode(level-1, n/2, *(fh->AConnection.entryPointHandle), R);
+                WeightedCFLOBDDFourierInternalNode* g = new WeightedCFLOBDDFourierInternalNode(level);
+                CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                g->AConnection = Connection(t.first, m0);
+                g->numBConnections = 1;
+                g->BConnection = new Connection[g->numBConnections];
+                for (long int i = 0; i < g->numBConnections; i++)
+                {
+                    g->BConnection[i] = Connection(*(fh->BConnection[i].entryPointHandle), fh->BConnection[i].returnMapHandle);
                 }
-                else {
-                    WeightedCFLOBDDFourierForkNode* g = new WeightedCFLOBDDFourierForkNode();
-                    g->lweight = fourierSemiring(1, 1);
-                    g->rweight = fourierSemiring(1, 1);
-                    g->numExits = 2;
-                    return std::make_pair(WeightedCFLOBDDFourierMulNodeHandle(g), index); 
-                }
+                g->numExits = fh->numExits;
+                return std::make_pair(WeightedCFLOBDDFourierMulNodeHandle(g), t.second);  
             }
             else
             {
@@ -2118,6 +2129,33 @@ namespace CFL_OBDD {
                 }
                 g->numExits = fh->numExits;
                 return std::make_pair(WeightedCFLOBDDFourierMulNodeHandle(g), t.second); 
+            }
+        }
+
+        // Incorrect
+        WeightedCFLOBDDFourierMulNodeHandle ResetStateNode(unsigned int level, WeightedCFLOBDDFourierMulNodeHandle f)
+        {
+            if (level == 0)
+            {
+                WeightedCFLOBDDFourierLeafNode* fh = (WeightedCFLOBDDFourierLeafNode *)f.handleContents;
+                WeightedCFLOBDDFourierLeafNode* g = fh;
+                g->rweight = fourierSemiring(1, 1);
+                return WeightedCFLOBDDFourierMulNodeHandle(g);  
+            }
+            else
+            {
+                WeightedCFLOBDDFourierInternalNode* fh = (WeightedCFLOBDDFourierInternalNode *)f.handleContents;
+                auto t = ResetStateNode(level-1, *(fh->AConnection.entryPointHandle));
+                WeightedCFLOBDDFourierInternalNode* g = new WeightedCFLOBDDFourierInternalNode(level);
+                g->AConnection = Connection(t, fh->AConnection.returnMapHandle);
+                g->numBConnections = fh->numBConnections;
+                g->BConnection = new Connection[g->numBConnections];
+                for (unsigned int i = 0; i < g->numBConnections; i++)
+                {
+                    g->BConnection[i] = Connection(*(fh->BConnection[i].entryPointHandle), fh->BConnection[i].returnMapHandle);
+                }
+                g->numExits = fh->numExits;
+                return WeightedCFLOBDDFourierMulNodeHandle(g); 
             }
         }
     }

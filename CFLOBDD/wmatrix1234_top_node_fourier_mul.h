@@ -50,6 +50,7 @@ namespace CFL_OBDD {
 		extern WeightedCFLOBDDTopNodeFourierRefPtr MkSetBToZeroTop(unsigned int level, WeightedCFLOBDDTopNodeFourierRefPtr f);
 		extern WeightedCFLOBDDTopNodeFourierRefPtr ComputeIQFTTop(unsigned int level, WeightedCFLOBDDTopNodeFourierRefPtr f, BIG_INT N, int n);
 		extern std::pair<WeightedCFLOBDDTopNodeFourierRefPtr, int> MeasureAndResetTop(unsigned int level, long int n, WeightedCFLOBDDTopNodeFourierRefPtr f, fourierSemiring R);
+		extern WeightedCFLOBDDTopNodeFourierRefPtr ResetStateTop(unsigned int level, WeightedCFLOBDDTopNodeFourierRefPtr f);
 	}
 }
 

@@ -542,7 +542,7 @@ namespace CFL_OBDD {
                 b2 = AVal.first.Second();
                 WeightedCFLOBDDNodeHandleT<T,Op> bHandle;
                 if (b1 == -1 && b2 == -1){
-                    bHandle = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[n1->level];
+                    bHandle = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[n1->level-1];
                     BMap.AddToEnd(intpair(-1,-1));
                 }
                 else{
@@ -619,37 +619,145 @@ namespace CFL_OBDD {
             }
             else if (n1.handleContents->NodeKind() == W_CFLOBDD_FORK) {
             if (n2.handleContents->NodeKind() == W_CFLOBDD_FORK) {                 // W_CFLOBDD_FORK, W_CFLOBDD_FORK
-                pairProductMapHandle.AddToEnd(intpair(0,0));
-                pairProductMapHandle.AddToEnd(intpair(1,1));
-                pairProductMapHandle.Canonicalize();
                 WeightedCFLOBDDForkNode<T,Op>* c1 = (WeightedCFLOBDDForkNode<T,Op> *)(n1.handleContents);
                 WeightedCFLOBDDForkNode<T,Op>* c2 = (WeightedCFLOBDDForkNode<T,Op> *)(n2.handleContents);
-                answer = WeightedCFLOBDDNodeHandleT(new WeightedCFLOBDDForkNode<T,Op>(computeComposition<T,Op>(c1->lweight, c2->lweight), computeComposition<T,Op>(c1->rweight, c2->rweight)));
+
+                T lw = computeComposition<T,Op>(c1->lweight, c2->lweight);
+                T rw = computeComposition<T,Op>(c1->rweight, c2->rweight);
+
+                if (lw == getAnnhilatorValue<T,Op>() && rw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(-1,-1));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0];
+                }
+                else if (lw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(-1, -1));
+                    pairProductMapHandle.AddToEnd(intpair(1, 1));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01;
+                }
+                else if (rw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0, 0));
+                    pairProductMapHandle.AddToEnd(intpair(-1,-1));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10;
+                }
+                else
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0,0));
+                    pairProductMapHandle.AddToEnd(intpair(1,1));
+                    pairProductMapHandle.Canonicalize();   
+                    answer = WeightedCFLOBDDNodeHandleT(new WeightedCFLOBDDForkNode<T,Op>(lw, rw));
+                }
             }
             else { /* n2.handleContents->NodeKind() == CFLOBDD_DONTCARE */       // W_CFLOBDD_FORK, CFLOBDD_DONTCARE
-                pairProductMapHandle.AddToEnd(intpair(0,0));
-                pairProductMapHandle.AddToEnd(intpair(1,0));
-                pairProductMapHandle.Canonicalize();
                 WeightedCFLOBDDForkNode<T,Op>* c1 = (WeightedCFLOBDDForkNode<T,Op> *)(n1.handleContents);
-                WeightedCFLOBDDForkNode<T,Op>* c2 = (WeightedCFLOBDDForkNode<T,Op> *)(n2.handleContents);
-                answer = WeightedCFLOBDDNodeHandleT(new WeightedCFLOBDDForkNode<T,Op>(computeComposition<T,Op>(c1->lweight, c2->lweight), computeComposition<T,Op>(c1->rweight, c2->rweight)));
+                WeightedCFLOBDDDontCareNode<T,Op>* c2 = (WeightedCFLOBDDDontCareNode<T,Op> *)(n2.handleContents);
+
+                T lw = computeComposition<T,Op>(c1->lweight, c2->lweight);
+                T rw = computeComposition<T,Op>(c1->rweight, c2->rweight);
+
+                if (lw == getAnnhilatorValue<T,Op>() && rw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(-1,-1));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0];
+                }
+                else if (lw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(-1, -1));
+                    pairProductMapHandle.AddToEnd(intpair(1, 0));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01;
+                }
+                else if (rw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0, 0));
+                    pairProductMapHandle.AddToEnd(intpair(-1,-1));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10;
+                }
+                else
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0,0));
+                    pairProductMapHandle.AddToEnd(intpair(1,0));
+                    pairProductMapHandle.Canonicalize();   
+                    answer = WeightedCFLOBDDNodeHandleT(new WeightedCFLOBDDForkNode<T,Op>(lw, rw));
+                }
             }
             }
             else { /* n1.handleContents->NodeKind() == CFLOBDD_DONTCARE */
             if (n2.handleContents->NodeKind() == W_CFLOBDD_FORK) {                 // CFLOBDD_DONTCARE, W_CFLOBDD_FORK
-                pairProductMapHandle.AddToEnd(intpair(0,0));
-                pairProductMapHandle.AddToEnd(intpair(0,1));
-                pairProductMapHandle.Canonicalize();
-                WeightedCFLOBDDForkNode<T,Op>* c1 = (WeightedCFLOBDDForkNode<T,Op> *)(n1.handleContents);
+                WeightedCFLOBDDDontCareNode<T,Op>* c1 = (WeightedCFLOBDDDontCareNode<T,Op> *)(n1.handleContents);
                 WeightedCFLOBDDForkNode<T,Op>* c2 = (WeightedCFLOBDDForkNode<T,Op> *)(n2.handleContents);
-                answer = WeightedCFLOBDDNodeHandleT(new WeightedCFLOBDDForkNode<T,Op>(computeComposition<T,Op>(c1->lweight, c2->lweight), computeComposition<T,Op>(c1->rweight, c2->rweight)));
+
+                T lw = computeComposition<T,Op>(c1->lweight, c2->lweight);
+                T rw = computeComposition<T,Op>(c1->rweight, c2->rweight);
+
+                if (lw == getAnnhilatorValue<T,Op>() && rw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(-1,-1));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0];
+                }
+                else if (lw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(-1, -1));
+                    pairProductMapHandle.AddToEnd(intpair(0, 1));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01;
+                }
+                else if (rw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0, 0));
+                    pairProductMapHandle.AddToEnd(intpair(-1,-1));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10;
+                }
+                else
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0,0));
+                    pairProductMapHandle.AddToEnd(intpair(0,1));
+                    pairProductMapHandle.Canonicalize();   
+                    answer = WeightedCFLOBDDNodeHandleT(new WeightedCFLOBDDForkNode<T,Op>(lw, rw));
+                }
             }
             else { /* n2.handleContents->NodeKind() == CFLOBDD_DONTCARE */       // CFLOBDD_DONTCARE, CFLOBDD_DONTCARE
-                pairProductMapHandle.AddToEnd(intpair(0,0));
-                pairProductMapHandle.Canonicalize();
                 WeightedCFLOBDDDontCareNode<T,Op>* c1 = (WeightedCFLOBDDDontCareNode<T,Op> *)(n1.handleContents);
                 WeightedCFLOBDDDontCareNode<T,Op>* c2 = (WeightedCFLOBDDDontCareNode<T,Op> *)(n2.handleContents);
-                answer = WeightedCFLOBDDNodeHandleT(new WeightedCFLOBDDDontCareNode<T,Op>(computeComposition<T,Op>(c1->lweight, c2->lweight), computeComposition<T,Op>(c1->rweight, c2->rweight)));
+
+                T lw = computeComposition<T,Op>(c1->lweight, c2->lweight);
+                T rw = computeComposition<T,Op>(c1->rweight, c2->rweight);
+
+                if (lw == getAnnhilatorValue<T,Op>() && rw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(-1,-1));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0];
+                }
+                else if (lw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(-1, -1));
+                    pairProductMapHandle.AddToEnd(intpair(1, 1));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01;
+                }
+                else if (rw == getAnnhilatorValue<T,Op>())
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0, 0));
+                    pairProductMapHandle.AddToEnd(intpair(-1,-1));
+                    pairProductMapHandle.Canonicalize();
+                    answer = WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10;
+                }
+                else
+                {
+                    pairProductMapHandle.AddToEnd(intpair(0,0));
+                    pairProductMapHandle.Canonicalize();   
+                    answer = WeightedCFLOBDDNodeHandleT(new WeightedCFLOBDDDontCareNode<T,Op>(lw, rw));
+                }
             }
             }
                 pairProductCache<T,Op>->Insert(WeightedPairProductKey(n1, n2),

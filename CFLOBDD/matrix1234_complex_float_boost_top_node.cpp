@@ -208,11 +208,94 @@ namespace CFL_OBDD {
 			assert(i <= CFLOBDDTopNodeComplexFloatBoost::maxLevel);
 
 			tempHandle = MkWalshInterleavedNode(i);
-			m.AddToEnd(1);
-			m.AddToEnd(-1);
+			auto val = boost::multiprecision::pow(sqrt(2), boost::multiprecision::pow(BIG_COMPLEX_FLOAT(2), i-1));
+			m.AddToEnd(1/val);
+			m.AddToEnd(-1/val);
 			m.Canonicalize();
 			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m);
 			return v;
+		}
+
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliYMatrixInterleavedTop(unsigned int i)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m;
+
+			assert(i <= CFLOBDDTopNodeComplexFloatBoost::maxLevel);
+
+			tempHandle = MkPauliYInterleavedNode(i);
+			BIG_COMPLEX_FLOAT img_i(0, 1);
+			m.AddToEnd(0);
+			m.AddToEnd(-1 * boost::multiprecision::pow(img_i, i-1));
+			m.AddToEnd(boost::multiprecision::pow(img_i, i-1));
+			m.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m);
+			return v;	
+		}
+
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliZMatrixInterleavedTop(unsigned int i)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m;
+
+			assert(i <= CFLOBDDTopNodeComplexFloatBoost::maxLevel);
+
+			tempHandle = MkPauliZInterleavedNode(i);
+			m.AddToEnd(1);
+			m.AddToEnd(0);
+			m.AddToEnd(-1);
+			m.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m);
+			return v;	
+		}
+
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkSGateInterleavedTop(unsigned int i)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m;
+
+			assert(i <= CFLOBDDTopNodeComplexFloatBoost::maxLevel);
+
+			tempHandle = MkSGateInterleavedNode(i);
+			if (i >= 1){
+				m.AddToEnd(1);
+				m.AddToEnd(0);
+				m.AddToEnd(BIG_COMPLEX_FLOAT(0, 1));
+			}
+			if (i >= 2)
+			{
+				m.AddToEnd(-1);
+			}
+			if (i >= 3)
+			{
+				m.AddToEnd(BIG_COMPLEX_FLOAT(0, -1));
+			}
+			m.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m);
+			return v;	
+		}
+
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkPhaseShiftGateInterleavedTop(unsigned int i, double theta)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m;
+
+			assert(i == 1);
+
+			double cos_v = boost::math::cos_pi(theta);
+			double sin_v = boost::math::sin_pi(theta);
+			BIG_COMPLEX_FLOAT val(cos_v, sin_v);
+			tempHandle = MkSGateInterleavedNode(i);
+			m.AddToEnd(1);
+			m.AddToEnd(0);
+			m.AddToEnd(val);
+			m.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m);
+			return v;	
 		}
 
 		// Create representation of the Inverse Reed-Muller matrix IRM(2**(i-1))
@@ -465,12 +548,27 @@ namespace CFL_OBDD {
 			return v;
 		}
 
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkiSwapGateTop(unsigned int i, long int c1, long int c2)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m012;
+
+			tempHandle = MkiSwapGateNode(i, c1, c2, -1);
+			m012.AddToEnd(1);
+			m012.AddToEnd(0);
+			m012.AddToEnd(BIG_COMPLEX_FLOAT(0, 1));
+			m012.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m012);
+			return v;
+		}
+
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MkCSwapGateTop(unsigned int level, long int c, long int i, long int j)
 		{
 			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			CFLOBDDNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m01;
-			tempHandle = MkCSwapGateNode(level, c, i, j, 1);
+			tempHandle = MkCSwapGate2Node(level, c, i, j, 1);
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
 			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
@@ -610,7 +708,39 @@ namespace CFL_OBDD {
 			return v;
 		}
 
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkNegationMatrixInterleavedTop(unsigned int i)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
 
+			tempHandle = MkNegationMatrixInterleavedNode(i);
+			m01.AddToEnd(0);
+			m01.AddToEnd(1);
+			m01.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			return v;
+		}
+
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled)
+		{
+			CFLOBDDNodeHandle c = MkCNOT2Node(level, n, controller, controlled);
+			ComplexFloatBoostReturnMapHandle m;
+			m.AddToEnd(1);
+			m.AddToEnd(0);
+			m.Canonicalize();
+			return new CFLOBDDTopNodeComplexFloatBoost(c, m);
+		}
+
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkCCNOTTopNode(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled)
+		{
+			CFLOBDDNodeHandle c = MkCCNOTNode(level, n, controller1, controller2, controlled);
+			ComplexFloatBoostReturnMapHandle m;
+			m.AddToEnd(1);
+			m.AddToEnd(0);
+			m.Canonicalize();
+			return new CFLOBDDTopNodeComplexFloatBoost(c, m);
+		}
 
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixMultiplyV4TopNode(CFLOBDDTopNodeComplexFloatBoostRefPtr c1, CFLOBDDTopNodeComplexFloatBoostRefPtr c2)
 		{

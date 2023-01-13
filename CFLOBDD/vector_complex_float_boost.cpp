@@ -59,7 +59,7 @@ namespace CFL_OBDD {
 			return CFLOBDD_COMPLEX_BIG(VectorShiftVocs1To2Top(m1.root));
 		}
 
-		CFLOBDD_COMPLEX_BIG NoDistinctionNode(unsigned int level, int val)
+		CFLOBDD_COMPLEX_BIG NoDistinctionNode(unsigned int level, BIG_COMPLEX_FLOAT val)
 		{
 			return CFLOBDD_COMPLEX_BIG(NoDistinctionNodeTop(level, val));
 		}
@@ -92,6 +92,11 @@ namespace CFL_OBDD {
 		{
 			VectorPrintColumnMajorInterleavedTop(c.root, out);
 			return;
+		}
+
+		long double getNonZeroProbability(CFLOBDD_COMPLEX_BIG n)
+		{
+			return getNonZeroProbabilityTop(n.root);
 		}
 	}
 }

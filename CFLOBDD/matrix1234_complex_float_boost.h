@@ -61,6 +61,8 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG MkSGateInterleaved(unsigned int i);
 		extern CFLOBDD_COMPLEX_BIG MkPhaseShiftGateInterleaved(unsigned int i, double theta);
 
+		extern CFLOBDD_COMPLEX_BIG MkRestrictMatrix(unsigned int level, std::string s); 
+
 		// Matrix-related operations (on matrices with room for two extra vocabularies) ------------
 		extern CFLOBDD_COMPLEX_BIG MkWalshVoc13(unsigned int i);                    // Create representation of Walsh matrix with room for two extra vocabularies
 		extern CFLOBDD_COMPLEX_BIG MkWalshVoc12(unsigned int i);                    // Create representation of Walsh matrix with room for two extra vocabularies

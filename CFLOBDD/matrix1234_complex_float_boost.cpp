@@ -444,6 +444,11 @@ namespace CFL_OBDD {
 			return CFLOBDD_COMPLEX_BIG(MkCSwapGateTop(i, c1, x1, x2));
 		}
 
+		CFLOBDD_COMPLEX_BIG MkRestrictMatrix(unsigned int level, std::string s)
+		{
+			return CFLOBDD_COMPLEX_BIG(MkRestrictTop(level, s));	
+		}
+
 		CFLOBDD_COMPLEX_BIG MatrixShiftToAConnection(CFLOBDD_COMPLEX_BIG c)
 		{
 			return CFLOBDD_COMPLEX_BIG(MatrixShiftToAConnectionTop(c.root));

@@ -5280,4 +5280,114 @@ namespace CFL_OBDD {
 		return return_ans;
 	}
 
+	std::pair<CFLOBDDNodeHandle, int> MkRestrictNode(unsigned int level, std::string s)
+	{
+		if (s.find('0') == std::string::npos && s.find('1') == std::string::npos)
+			return std::make_pair(CFLOBDDNodeHandle::NoDistinctionNode[level], -1);
+		CFLOBDDInternalNode* g = new CFLOBDDInternalNode(level);
+		if (level == 1)
+		{
+			assert(s.length() == 1);
+			if (s[0] == 'X')
+			{
+				return std::make_pair(CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle, -1);
+			}
+			CFLOBDDReturnMapHandle m01;
+			m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+			g->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);
+			g->numBConnections = 2;
+			g->BConnection = new Connection[g->numBConnections];
+			CFLOBDDReturnMapHandle m0, m1;
+			m0.AddToEnd(0); m0.Canonicalize();
+			m1.AddToEnd(1); m1.Canonicalize();
+			g->BConnection[0] = Connection(CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle, m0);
+			g->BConnection[1] = Connection(CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle, m1);
+			g->numExits = 2;
+			return std::make_pair(CFLOBDDNodeHandle(g), (s[0] == '0') ? 1 : 0);
+		}
+		else
+		{
+			auto aa = MkRestrictNode(level-1, s.substr(0, s.length()/2));
+			CFLOBDDReturnMapHandle mI;
+			for (unsigned int i = 0; i < aa.first.handleContents->numExits; i++)
+				mI.AddToEnd(i);
+			mI.Canonicalize();
+			g->AConnection = Connection(aa.first, mI);
+			g->numBConnections = mI.Size();
+			g->BConnection = new Connection[g->numBConnections];
+			if (aa.second == -1){
+				auto bb = MkRestrictNode(level-1, s.substr(s.length()/2));
+				CFLOBDDReturnMapHandle m;
+				for (unsigned int i = 0; i < bb.first.handleContents->numExits; i++)
+					m.AddToEnd(i);
+				m.Canonicalize();
+				g->BConnection[0] = Connection(bb.first, m);
+				g->numExits = m.Size();
+				return std::make_pair(CFLOBDDNodeHandle(g), bb.second);
+			}
+			else if (aa.second == 0)
+			{
+				CFLOBDDReturnMapHandle m0;
+				m0.AddToEnd(0); m0.Canonicalize();
+				g->BConnection[0] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m0);
+				auto bb = MkRestrictNode(level-1, s.substr(s.length()/2));
+				if (bb.second == 0){
+					CFLOBDDReturnMapHandle m01;
+					m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+					g->BConnection[1] = Connection(bb.first, m01);
+				}
+				else if (bb.second == 1)
+				{
+					CFLOBDDReturnMapHandle m10;
+					m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+					g->BConnection[1] = Connection(bb.first, m10);
+				}
+				else if (bb.second == -1)
+				{
+					CFLOBDDReturnMapHandle m1;
+					m1.AddToEnd(1);
+					m1.Canonicalize();
+					g->BConnection[1] = Connection(bb.first, m1);
+				}
+				g->numExits = 2;
+				return std::make_pair(CFLOBDDNodeHandle(g), 0);
+			}
+			else
+			{
+				CFLOBDDReturnMapHandle m01;
+				m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+				auto bb = MkRestrictNode(level-1, s.substr(s.length()/2));
+				if (bb.second != -1){
+					g->BConnection[0] = Connection(bb.first, m01);
+				}
+				else
+				{
+					CFLOBDDReturnMapHandle m0;
+					m0.AddToEnd(0); m0.Canonicalize();
+					g->BConnection[0] = Connection(bb.first, m0);
+				}
+				if (bb.second == 0){	
+					CFLOBDDReturnMapHandle m0;
+					m0.AddToEnd(0); m0.Canonicalize();
+					g->BConnection[0] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m01);
+				}
+				else if (bb.second == 1)
+				{
+					CFLOBDDReturnMapHandle m1;
+					m1.AddToEnd(1); m1.Canonicalize();
+					g->BConnection[0] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m1);
+				}
+				else if (bb.second == -1)
+				{
+					CFLOBDDReturnMapHandle m1;
+					m1.AddToEnd(1);
+					m1.Canonicalize();
+					g->BConnection[1] = Connection(bb.first, m1);
+				}
+				g->numExits = 2;
+				return std::make_pair(CFLOBDDNodeHandle(g), 1);
+			}
+		}
+	}
+
 }  // namespace CFL_OBDD

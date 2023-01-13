@@ -575,6 +575,31 @@ namespace CFL_OBDD {
 			return v;
 		}
 
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkRestrictTop(unsigned int level, std::string s)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+			auto tmp = MkRestrictNode(level, s);
+			if (tmp.second == 0)
+			{
+				m01.AddToEnd(0);
+				m01.AddToEnd(1);
+			}
+			else if (tmp.second == 1)
+			{
+				m01.AddToEnd(1);
+				m01.AddToEnd(0);
+			}
+			else if (tmp.second == -1)
+			{
+				m01.AddToEnd(1);
+			}
+			m01.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tmp.first, m01);
+			return v;
+		}
+
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixShiftToAConnectionTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c)
 		{
 			CFLOBDDTopNodeComplexFloatBoostRefPtr v;

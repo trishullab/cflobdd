@@ -66,6 +66,8 @@ namespace CFL_OBDD {
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkPhaseShiftGateInterleavedTop(unsigned int i, double theta);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkExchangeInterleavedTop(unsigned int i); // Representation of exchange matrix
 
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkRestrictTop(unsigned int level, std::string s);
+
 		// Matrix-related operations (on matrices with room for two extra vocabularies) ------------
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkWalshVoc13Top(unsigned int i); // Representation of Walsh matrix with room for two additional vocabularies
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkWalshVoc12Top(unsigned int i); // Representation of Walsh matrix with room for two additional vocabularies

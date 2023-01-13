@@ -58,6 +58,7 @@ namespace CFL_OBDD {
 	extern CFLOBDDNodeHandle MkiSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num);
 	extern CFLOBDDNodeHandle MkCSwapGateNode(unsigned int level, long int controller, long int i, long int j, int case_num);
 	extern CFLOBDDNodeHandle MkCSwapGate2Node(unsigned int level, long int controller, long int i, long int j, int case_num);
+	extern std::pair<CFLOBDDNodeHandle, int> MkRestrictNode(unsigned int level, std::string s);
 	
 	// Initialization routine that needs to be called before any call to MatrixProjectVoc23Node
 	extern void Matrix1234InitializerNode();  // Empty for now

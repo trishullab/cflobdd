@@ -29,7 +29,7 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG KroneckerProduct(CFLOBDD_COMPLEX_BIG m1, CFLOBDD_COMPLEX_BIG m2);
 		extern CFLOBDD_COMPLEX_BIG VectorShiftVocs1To2(CFLOBDD_COMPLEX_BIG m1);
 		extern CFLOBDD_COMPLEX_BIG VectorPadWithZeros(CFLOBDD_COMPLEX_BIG c, unsigned int level);
-		extern CFLOBDD_COMPLEX_BIG NoDistinctionNode(unsigned int level, int val);
+		extern CFLOBDD_COMPLEX_BIG NoDistinctionNode(unsigned int level, BIG_COMPLEX_FLOAT val);
 		//#ifdef PATH_COUNTING_ENABLED
 		extern std::string Sampling(CFLOBDD_COMPLEX_BIG c, bool voctwo);
 		extern std::string SamplingV2(CFLOBDD_COMPLEX_BIG c);
@@ -37,6 +37,7 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG VectorWithAmplitude(CFLOBDD_COMPLEX_BIG c);
 		extern void VectorPrintColumnMajor(CFLOBDD_COMPLEX_BIG c, std::ostream & out);
 		extern void VectorPrintColumnMajorInterleaved(CFLOBDD_COMPLEX_BIG c, std::ostream & out);
+		extern long double getNonZeroProbability(CFLOBDD_COMPLEX_BIG n);
 	}
 }
 

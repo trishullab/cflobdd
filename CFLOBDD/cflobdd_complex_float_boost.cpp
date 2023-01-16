@@ -27,7 +27,7 @@ namespace CFL_OBDD	{
 template<>
 CFLOBDD_T<BIG_COMPLEX_FLOAT>::CFLOBDD_T()
 {
-	root = MkTrueComplexFloatTop();
+	root = NULL;//MkTrueComplexFloatTop();
 }
 
 

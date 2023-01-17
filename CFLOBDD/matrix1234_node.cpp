@@ -5354,28 +5354,31 @@ namespace CFL_OBDD {
 			}
 			else
 			{
+				int index = -1;
 				CFLOBDDReturnMapHandle m01;
 				m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
 				auto bb = MkRestrictNode(level-1, s.substr(s.length()/2));
 				if (bb.second != -1){
 					g->BConnection[0] = Connection(bb.first, m01);
+					index = bb.second;
 				}
 				else
 				{
 					CFLOBDDReturnMapHandle m0;
 					m0.AddToEnd(0); m0.Canonicalize();
 					g->BConnection[0] = Connection(bb.first, m0);
+					index = 1;
 				}
 				if (bb.second == 0){	
 					CFLOBDDReturnMapHandle m0;
 					m0.AddToEnd(0); m0.Canonicalize();
-					g->BConnection[0] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m01);
+					g->BConnection[1] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m0);
 				}
 				else if (bb.second == 1)
 				{
 					CFLOBDDReturnMapHandle m1;
 					m1.AddToEnd(1); m1.Canonicalize();
-					g->BConnection[0] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m1);
+					g->BConnection[1] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m1);
 				}
 				else if (bb.second == -1)
 				{
@@ -5385,7 +5388,7 @@ namespace CFL_OBDD {
 					g->BConnection[1] = Connection(bb.first, m1);
 				}
 				g->numExits = 2;
-				return std::make_pair(CFLOBDDNodeHandle(g), 1);
+				return std::make_pair(CFLOBDDNodeHandle(g), index);
 			}
 		}
 	}

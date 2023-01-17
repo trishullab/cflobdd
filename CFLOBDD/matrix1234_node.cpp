@@ -691,7 +691,7 @@ namespace CFL_OBDD {
 				// Case 3: controller in A and controlled in B
 				CFLOBDDReturnMapHandle m012;
 				m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
-				auto aa = MkCNOTNode(level-1, n/2, controller, -1);
+				auto aa = MkCNOT2Node(level-1, n/2, controller, -1);
 				g->AConnection = Connection(aa, m012);
 				g->numBConnections = 3;
 				g->BConnection = new Connection[3];

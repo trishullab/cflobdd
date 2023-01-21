@@ -49,6 +49,7 @@
 #include "util.h"
 #include "epdInt.h"
 #include "cuddInt.h"
+#include "cuddAbsVal.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -297,11 +298,11 @@ Cudd_addSamplePathRecur(
 // CUDD_VALUE_TYPE getAbsValue(CUDD_VALUE_TYPE v)
 // {
 //   CUDD_VALUE_TYPE v_abs;
-//   mpfr_init(v_abs.real); mpfr_init_set_d(v_abs.imag, 0, RND_TYPE);
-//   mpfr_mul(v_abs.real, v.real, v.real, RND_TYPE);
+//   mpfr_init(v_abs->real); mpfr_init_set_d(v_abs->imag, 0, RND_TYPE);
+//   mpfr_mul(v_abs->real, v.real, v.real, RND_TYPE);
 //   mpfr_t tmp; mpfr_init(tmp);
 //   mpfr_mul(tmp, v.imag, v.imag, RND_TYPE);
-//   mpfr_add(v_abs.real, v_abs.real, tmp, RND_TYPE);
+//   mpfr_add(v_abs->real, v_abs->real, tmp, RND_TYPE);
 //   mpfr_clear(tmp);
 //   return v_abs;
 // }
@@ -321,16 +322,19 @@ Cudd_addSamplePath(
     mpfr_exp2(tmp, tmp, RND_TYPE);
     mpfr_t sum; mpfr_init_set_si(sum, 1, RND_TYPE);
     for (unsigned int i = 0; i < f->numPaths->size; i++){
-        CUDD_VALUE_TYPE w_abs;
-        w_abs = getAbsValue(f->numPaths->info[i].weight);
-        mpfr_sqrt(w_abs.real, w_abs.real, RND_TYPE);
-        mpfr_init_set(adjusted_paths[i].weight, w_abs.real, RND_TYPE);
+        CUDD_VALUE_TYPE* w_abs;
+        w_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        mpfr_init(w_abs->real); mpfr_init(w_abs->imag);
+        getAbsValue(f->numPaths->info[i].weight, w_abs);
+        mpfr_sqrt(w_abs->real, w_abs->real, RND_TYPE);
+        mpfr_init_set(adjusted_paths[i].weight, w_abs->real, RND_TYPE);
         mpfr_mul(adjusted_paths[i].weight, adjusted_paths[i].weight, f->numPaths->info[i].path_count, RND_TYPE);
         mpfr_mul(adjusted_paths[i].weight, adjusted_paths[i].weight, tmp, RND_TYPE);
         adjusted_paths[i].index = i;
         mpfr_add(sum, sum, adjusted_paths[i].weight, RND_TYPE);
-        mpfr_clear(w_abs.real);
-        mpfr_clear(w_abs.imag);
+        mpfr_clear(w_abs->real);
+        mpfr_clear(w_abs->imag);
+        free(w_abs);
     }
 
     // for (unsigned int i = 0; i < f->numPaths->size; i++){
@@ -383,6 +387,47 @@ Cudd_addSamplePath(
 
     return sampled_path;
 
+}
+
+long double
+Cudd_addGetProbability(
+    DdManager* dd,
+    DdNode* f, 
+    unsigned int N,
+    unsigned int period)
+{
+
+    mpfr_t tmp;
+    mpfr_init_set_si(tmp, (f->index)/period, RND_TYPE);
+    mpfr_exp2(tmp, tmp, RND_TYPE);
+    mpfr_t sum; mpfr_init_set_si(sum, 0, RND_TYPE);
+    for (unsigned int i = 0; i < f->numPaths->size; i++){
+        CUDD_VALUE_TYPE* w_abs;
+        w_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        mpfr_init(w_abs->real); mpfr_init(w_abs->imag);
+        getAbsValue(f->numPaths->info[i].weight, w_abs);
+        mpfr_sqrt(w_abs->real, w_abs->real, RND_TYPE);
+        mpfr_t value;
+        mpfr_init_set(value, w_abs->real, RND_TYPE);
+        mpfr_mul(value, value, f->numPaths->info[i].path_count, RND_TYPE);
+        mpfr_mul(value, value, tmp, RND_TYPE);
+        mpfr_add(sum, sum, value, RND_TYPE);
+        mpfr_clear(w_abs->real);
+        mpfr_clear(w_abs->imag);
+        free(w_abs);
+        mpfr_clear(value);
+    }
+
+    // for (unsigned int i = 0; i < f->numPaths->size; i++){
+    //     mpfr_printf("i: %d weight: %.4Rf index: %d\n", i, adjusted_paths[i].weight, adjusted_paths[i].index);
+    // }
+
+    mpfr_clear(tmp);
+
+    long double prob = mpfr_get_ld(sum, RND_TYPE);
+    mpfr_clear(sum);
+
+    return prob;
 }
 
 /**
@@ -846,23 +891,15 @@ Cudd_CountMinterm(
     cuddHashTableQuit(table);
     Cudd_SetEpsilon(manager,epsilon);
     if (res == (double)CUDD_OUT_OF_MEM) {
-        mpfr_clear(tmp_zero.real);
-    mpfr_clear(tmp_zero.imag);
         return((double)CUDD_OUT_OF_MEM);
     } else if (res >= pow(2.0,(double)(DBL_MAX_EXP + DBL_MIN_EXP))) {
         /* Minterm count is too large to be scaled back. */
-        mpfr_clear(tmp_zero.real);
-    mpfr_clear(tmp_zero.imag);
         return(DD_PLUS_INF_VAL);
     } else {
         /* Undo the scaling. */
         res *= pow(2.0,(double)-DBL_MIN_EXP);
-        mpfr_clear(tmp_zero.real);
-    mpfr_clear(tmp_zero.imag);
         return(res);
     }
-    mpfr_clear(tmp_zero.real);
-    mpfr_clear(tmp_zero.imag);
 
 } /* end of Cudd_CountMinterm */
 

@@ -45,6 +45,7 @@
 
 #include "util.h"
 #include "cuddInt.h"
+#include "cuddAbsVal.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -128,11 +129,11 @@ Cudd_addScalarInverse(
 // CUDD_VALUE_TYPE getAbsValue(CUDD_VALUE_TYPE v)
 // {
 //   CUDD_VALUE_TYPE v_abs;
-//   mpfr_init(v_abs.real); mpfr_init_set_d(v_abs.imag, 0, RND_TYPE);
-//   mpfr_mul(v_abs.real, v.real, v.real, RND_TYPE);
+//   mpfr_init(v_abs->real); mpfr_init_set_d(v_abs->imag, 0, RND_TYPE);
+//   mpfr_mul(v_abs->real, v.real, v.real, RND_TYPE);
 //   mpfr_t tmp; mpfr_init(tmp);
 //   mpfr_mul(tmp, v.imag, v.imag, RND_TYPE);
-//   mpfr_add(v_abs.real, v_abs.real, tmp, RND_TYPE);
+//   mpfr_add(v_abs->real, v_abs->real, tmp, RND_TYPE);
 //   mpfr_clear(tmp);
 //   return v_abs;
 // }
@@ -159,20 +160,23 @@ cuddAddScalarInverseRecur(
 
     statLine(dd);
     if (cuddIsConstant(f)) {
-      CUDD_VALUE_TYPE f_abs;
-      f_abs = getAbsValue(cuddV(f));
-      if ( mpfr_cmp_abs(f_abs.real, cuddV(epsilon).real) < 0){ mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag); return(NULL);}
+      CUDD_VALUE_TYPE *f_abs;
+      f_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      mpfr_init(f_abs->real); mpfr_init(f_abs->imag);
+      getAbsValue(cuddV(f), f_abs);
+      if ( mpfr_cmp_abs(f_abs->real, cuddV(epsilon).real) < 0){ mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag); return(NULL);}
       // a - ib / (a**2 + b**2)
       mpfr_set(value.real, cuddV(f).real, RND_TYPE);
       mpfr_mul_si(value.imag, cuddV(f).imag, -1, RND_TYPE);
-      mpfr_div(value.real, value.real, f_abs.real, RND_TYPE);
-      mpfr_div(value.imag, value.imag, f_abs.imag, RND_TYPE);
+      mpfr_div(value.real, value.real, f_abs->real, RND_TYPE);
+      mpfr_div(value.imag, value.imag, f_abs->imag, RND_TYPE);
       // value = 1.0 / cuddV(f);
       res = cuddUniqueConst(dd,value);
       mpfr_clear(value.real);
       mpfr_clear(value.imag);
-      mpfr_clear(f_abs.real);
-      mpfr_clear(f_abs.imag);
+      mpfr_clear(f_abs->real);
+      mpfr_clear(f_abs->imag);
+      free(f_abs);
       return(res);
     }
 

@@ -46,6 +46,7 @@
 
 #include "util.h"
 #include "cuddInt.h"
+#include "cuddAbsVal.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -553,14 +554,19 @@ addBddDoThreshold(
     statLine(dd);
     /* Check terminal case. */
     if (cuddIsConstant(f)) {
-        CUDD_VALUE_TYPE f_abs, val_abs;
-        f_abs = getAbsValue(cuddV(f));
-        val_abs = getAbsValue(cuddV(val));
-        DdNode* t = Cudd_NotCond(DD_ONE(dd), mpfr_cmp(f_abs.real, val_abs.real) < 0 );
-        mpfr_clear(f_abs.real);
-        mpfr_clear(f_abs.imag);
-        mpfr_clear(val_abs.real);
-        mpfr_clear(val_abs.imag);
+        CUDD_VALUE_TYPE *f_abs, *val_abs;
+        f_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        val_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        mpfr_init(f_abs->real); mpfr_init(f_abs->imag);
+        mpfr_init(val_abs->real); mpfr_init(val_abs->imag);
+        getAbsValue(cuddV(f), f_abs);
+        getAbsValue(cuddV(val), val_abs);
+        DdNode* t = Cudd_NotCond(DD_ONE(dd), mpfr_cmp(f_abs->real, val_abs->real) < 0 );
+        mpfr_clear(f_abs->real);
+        mpfr_clear(f_abs->imag);
+        mpfr_clear(val_abs->real);
+        mpfr_clear(val_abs->imag);
+        free(f_abs); free(val_abs);
       return(t);
 	// return(Cudd_NotCond(DD_ONE(dd),cuddV(f) < cuddV(val)));
     }
@@ -635,14 +641,19 @@ addBddDoStrictThreshold(
     statLine(dd);
     /* Check terminal case. */
     if (cuddIsConstant(f)) {
-        CUDD_VALUE_TYPE f_abs, val_abs;
-        f_abs = getAbsValue(cuddV(f));
-        val_abs = getAbsValue(cuddV(val));
-        DdNode* t = Cudd_NotCond(DD_ONE(dd), mpfr_cmp(f_abs.real, val_abs.real) <= 0);
-        mpfr_clear(f_abs.real);
-        mpfr_clear(f_abs.imag);
-        mpfr_clear(val_abs.real);
-        mpfr_clear(val_abs.imag);
+        CUDD_VALUE_TYPE *f_abs, *val_abs;
+        f_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        val_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        mpfr_init(f_abs->real); mpfr_init(f_abs->imag);
+        mpfr_init(val_abs->real); mpfr_init(val_abs->imag);
+        getAbsValue(cuddV(f), f_abs);
+        getAbsValue(cuddV(val), val_abs);
+        DdNode* t = Cudd_NotCond(DD_ONE(dd), mpfr_cmp(f_abs->real, val_abs->real) <= 0);
+        mpfr_clear(f_abs->real);
+        mpfr_clear(f_abs->imag);
+        mpfr_clear(val_abs->real);
+        mpfr_clear(val_abs->imag);
+        free(f_abs); free(val_abs);
 	    return(t);
     }
 
@@ -717,17 +728,24 @@ addBddDoInterval(
     statLine(dd);
     /* Check terminal case. */
     if (cuddIsConstant(f)) {
-        CUDD_VALUE_TYPE f_abs, l_abs, u_abs;
-        f_abs = getAbsValue(cuddV(f));
-        l_abs = getAbsValue(cuddV(l));
-        u_abs = getAbsValue(cuddV(u));
-        DdNode* t = Cudd_NotCond(DD_ONE(dd),(mpfr_cmp(f_abs.real, l_abs.real) < 0) || (mpfr_cmp(l_abs.real, u_abs.real) > 0));
-        mpfr_clear(f_abs.real);
-        mpfr_clear(f_abs.imag);
-        mpfr_clear(l_abs.real);
-        mpfr_clear(l_abs.imag);
-        mpfr_clear(u_abs.real);
-        mpfr_clear(u_abs.imag);
+        CUDD_VALUE_TYPE *f_abs, *l_abs, *u_abs;
+        f_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        l_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        u_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        mpfr_init(f_abs->real); mpfr_init(f_abs->imag);
+        mpfr_init(l_abs->real); mpfr_init(l_abs->imag);
+        mpfr_init(u_abs->real); mpfr_init(u_abs->imag);
+        getAbsValue(cuddV(f), f_abs);
+        getAbsValue(cuddV(l), l_abs);
+        getAbsValue(cuddV(u), u_abs);
+        DdNode* t = Cudd_NotCond(DD_ONE(dd),(mpfr_cmp(f_abs->real, l_abs->real) < 0) || (mpfr_cmp(l_abs->real, u_abs->real) > 0));
+        mpfr_clear(f_abs->real);
+        mpfr_clear(f_abs->imag);
+        mpfr_clear(l_abs->real);
+        mpfr_clear(l_abs->imag);
+        mpfr_clear(u_abs->real);
+        mpfr_clear(u_abs->imag);
+        free(f_abs); free(l_abs); free(u_abs);
         return t;
     }
 

@@ -46,6 +46,7 @@
 #include "util.h"
 #include "mtrInt.h"
 #include "cuddInt.h"
+#include "cuddAbsVal.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -1522,11 +1523,11 @@ cuddUniqueInterZdd(
 // CUDD_VALUE_TYPE getAbsValue(CUDD_VALUE_TYPE v)
 // {
 //   CUDD_VALUE_TYPE v_abs;
-//   mpfr_init(v_abs.real); mpfr_init_set_d(v_abs.imag, 0, RND_TYPE);
-//   mpfr_mul(v_abs.real, v.real, v.real, RND_TYPE);
+//   mpfr_init(v_abs->real); mpfr_init_set_d(v_abs->imag, 0, RND_TYPE);
+//   mpfr_mul(v_abs->real, v.real, v.real, RND_TYPE);
 //   mpfr_t tmp; mpfr_init(tmp);
 //   mpfr_mul(tmp, v.imag, v.imag, RND_TYPE);
-//   mpfr_add(v_abs.real, v_abs.real, tmp, RND_TYPE);
+//   mpfr_add(v_abs->real, v_abs->real, tmp, RND_TYPE);
 //   mpfr_clear(tmp);
 //   return v_abs;
 // }
@@ -1578,16 +1579,18 @@ cuddUniqueConst(
     cuddAdjust(value); /* for the case of crippled infinities */
 
     // if (ddAbs(value) < unique->epsilon) {
-	CUDD_VALUE_TYPE val_abs;
-	val_abs = getAbsValue(value);
-	mpfr_sqrt(val_abs.real, val_abs.real, RND_TYPE);
-    if (mpfr_cmpabs(val_abs.real, unique->epsilon.real) < 0) {
+	CUDD_VALUE_TYPE *val_abs;
+	val_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+	mpfr_init(val_abs->real); mpfr_init(val_abs->imag);
+	getAbsValue(value, val_abs);
+	mpfr_sqrt(val_abs->real, val_abs->real, RND_TYPE);
+    if (mpfr_cmpabs(val_abs->real, unique->epsilon.real) < 0) {
 	// value = 0.0;
     	mpfr_set_d(value.real, 0.0, RND_TYPE);
 		mpfr_set_d(value.imag, 0.0, RND_TYPE);
     }
-	mpfr_clear(val_abs.real);
-	mpfr_clear(val_abs.imag);
+	mpfr_clear(val_abs->real);
+	mpfr_clear(val_abs->imag);
     // split.value = value;
     mpfr_init_set(split.value.real, value.real, RND_TYPE);
 	mpfr_init_set(split.value.imag, value.imag, RND_TYPE);
@@ -1604,25 +1607,29 @@ cuddUniqueConst(
     while (looking != NULL) {
     	int cmp_val;
     	ddEqualVal(looking->type.value,value,unique->epsilon, cmp_val);
-		CUDD_VALUE_TYPE a_abs, b_abs;
-		a_abs = getAbsValue(looking->type.value);
-		b_abs = getAbsValue(value);
-	if ((mpfr_cmp(a_abs.real, b_abs.real) == 0) ||
+		CUDD_VALUE_TYPE *a_abs, *b_abs;
+		a_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+		b_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+		mpfr_init(a_abs->real); mpfr_init(a_abs->imag);
+		mpfr_init(b_abs->real); mpfr_init(b_abs->imag);
+		getAbsValue(looking->type.value, a_abs);
+		getAbsValue(value, b_abs);
+	if ((mpfr_cmp(a_abs->real, b_abs->real) == 0) ||
 	 cmp_val < 0) {
 		// mpfr_printf("here: %.16Rf %.16Rf %.16Rf\n", value.t_val, looking->type.value.t_val, unique->epsilon.t_val);
 	    if (looking->ref == 0) {
 		cuddReclaim(unique,looking);
 	    }
-		mpfr_clear(a_abs.real); mpfr_clear(a_abs.imag);
-		mpfr_clear(b_abs.real); mpfr_clear(b_abs.imag);
+		mpfr_clear(a_abs->real); mpfr_clear(a_abs->imag);
+		mpfr_clear(b_abs->real); mpfr_clear(b_abs->imag);
 	    return(looking);
 	}
 	looking = looking->next;
 #ifdef DD_UNIQUE_PROFILE
 	unique->uniqueLinks++;
 #endif
-		mpfr_clear(a_abs.real); mpfr_clear(a_abs.imag);
-		mpfr_clear(b_abs.real); mpfr_clear(b_abs.imag);
+		mpfr_clear(a_abs->real); mpfr_clear(a_abs->imag);
+		mpfr_clear(b_abs->real); mpfr_clear(b_abs->imag);
     }
 
     unique->keys++;

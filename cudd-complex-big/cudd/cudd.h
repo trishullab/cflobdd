@@ -693,6 +693,7 @@ extern DdNode * Cudd_addPathCounts(DdManager * dd,DdNode * f, int period, unsign
 extern DdNode * Cudd_addPathCounts_dup(DdManager * dd,DdNode * f);
 extern int Cudd_addPrintPathInfo(DdManager* dd, DdNode* f);
 extern int* Cudd_addSamplePath(DdManager* dd, DdNode* f, unsigned int N,unsigned int period);
+extern long double Cudd_addGetProbability(DdManager* dd, DdNode* f, unsigned int N, unsigned int period);
 extern DdNode * Cudd_addPlus(DdManager *dd, DdNode **f, DdNode **g);
 extern DdNode * Cudd_addTimes(DdManager *dd, DdNode **f, DdNode **g);
 extern DdNode * Cudd_addSimonsRemoveMinusOne(DdManager *dd, DdNode *f);

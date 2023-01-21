@@ -56,6 +56,7 @@
 #include "st.h"
 #include "mtr.h"
 #include "epd.h"
+#include "cuddAbsVal.h"
 #include "cudd.h"
 
 /*---------------------------------------------------------------------------*/
@@ -856,17 +857,6 @@ struct DdLevelQueue {
 #define cuddClean(p) ((DdNode *)((ptruint)(p) & ~ (ptruint) 0xf))
 
 
-CUDD_VALUE_TYPE getAbsValue(CUDD_VALUE_TYPE v)
-{
-  CUDD_VALUE_TYPE v_abs;
-  mpfr_init(v_abs.real); mpfr_init_set_d(v_abs.imag, 0, RND_TYPE);
-  mpfr_mul(v_abs.real, v.real, v.real, RND_TYPE);
-  mpfr_t tmp; mpfr_init(tmp);
-  mpfr_mul(tmp, v.imag, v.imag, RND_TYPE);
-  mpfr_add(v_abs.real, v_abs.real, tmp, RND_TYPE);
-  mpfr_clear(tmp);
-  return v_abs;
-}
 
 /**
   @brief Computes the minimum of two numbers.
@@ -878,15 +868,21 @@ CUDD_VALUE_TYPE getAbsValue(CUDD_VALUE_TYPE v)
 */
 #define ddMin(x,y) (((y) < (x)) ? (y) : (x))
 #define ddMin_big(out, x,y) ({\
-CUDD_VALUE_TYPE y_abs, x_abs;\
-y_abs = getAbsValue(y);\
-x_abs = getAbsValue(x);\
-(mpfr_cmp(y_abs.real, x_abs.real) < 0) ? mpfr_set(out.real, y.real, RND_TYPE) : mpfr_set(out.real, x.real, RND_TYPE);\
-(mpfr_cmp(y_abs.real, x_abs.real) < 0) ? mpfr_set(out.imag, y.imag, RND_TYPE) : mpfr_set(out.imag, x.imag, RND_TYPE);\
-mpfr_clear(y_abs.real);\
-mpfr_clear(y_abs.imag);\
-mpfr_clear(x_abs.real);\
-mpfr_clear(x_abs.imag);\
+CUDD_VALUE_TYPE *y_abs, *x_abs;\
+y_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));\
+x_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));\
+mpfr_init(y_abs->real); mpfr_init(y_abs->imag);\
+mpfr_init(x_abs->real); mpfr_init(x_abs->imag);\
+getAbsValue(y, y_abs);\
+getAbsValue(x, x_abs);\
+(mpfr_cmp(y_abs->real, x_abs->real) < 0) ? mpfr_set(out.real, y.real, RND_TYPE) : mpfr_set(out.real, x.real, RND_TYPE);\
+(mpfr_cmp(y_abs->real, x_abs->real) < 0) ? mpfr_set(out.imag, y.imag, RND_TYPE) : mpfr_set(out.imag, x.imag, RND_TYPE);\
+mpfr_clear(y_abs->real);\
+mpfr_clear(y_abs->imag);\
+mpfr_clear(x_abs->real);\
+mpfr_clear(x_abs->imag);\
+free(y_abs);\
+free(x_abs);\
 })
 
 
@@ -900,15 +896,21 @@ mpfr_clear(x_abs.imag);\
 */
 #define ddMax(x,y) (((y) > (x)) ? (y) : (x))
 #define ddMax_big(out, x,y) ({\
-CUDD_VALUE_TYPE y_abs, x_abs;\
-y_abs = getAbsValue(y);\
-x_abs = getAbsValue(x);\
-(mpfr_cmp(y_abs.real, x_abs.real) > 0) ? mpfr_set(out.real, y.real, RND_TYPE) : mpfr_set(out.real, x.real, RND_TYPE);\
-(mpfr_cmp(y_abs.real, x_abs.real) > 0) ? mpfr_set(out.imag, y.imag, RND_TYPE) : mpfr_set(out.imag, x.imag, RND_TYPE);\
-mpfr_clear(y_abs.real);\
-mpfr_clear(y_abs.imag);\
-mpfr_clear(x_abs.real);\
-mpfr_clear(x_abs.imag);\
+CUDD_VALUE_TYPE *y_abs, *x_abs;\
+y_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));\
+x_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));\
+mpfr_init(y_abs->real); mpfr_init(y_abs->imag);\
+mpfr_init(x_abs->real); mpfr_init(x_abs->imag);\
+getAbsValue(y, y_abs);\
+getAbsValue(x, x_abs);\
+(mpfr_cmp(y_abs->real, x_abs->real) > 0) ? mpfr_set(out.real, y.real, RND_TYPE) : mpfr_set(out.real, x.real, RND_TYPE);\
+(mpfr_cmp(y_abs->real, x_abs->real) > 0) ? mpfr_set(out.imag, y.imag, RND_TYPE) : mpfr_set(out.imag, x.imag, RND_TYPE);\
+mpfr_clear(y_abs->real);\
+mpfr_clear(y_abs->imag);\
+mpfr_clear(x_abs->real);\
+mpfr_clear(x_abs->imag);\
+free(y_abs);\
+free(x_abs);\
 })
 
 
@@ -932,18 +934,32 @@ mpfr_clear(x_abs.imag);\
 // #define ddEqualVal(x,y,e) (ddAbs((x)-(y))<(e))
 #define ddEqualVal(x,y,e, cmp_val) ({\
     CUDD_VALUE_TYPE tmp_x, tmp_y;\
-    tmp_x = getAbsValue(x);\
-    tmp_y = getAbsValue(y);\
-    mpfr_t tmp;\
-    mpfr_init(tmp);\
-    mpfr_sub(tmp, tmp_x.real, tmp_y.real, RND_TYPE);\
-    mpfr_abs(tmp, tmp, RND_TYPE);\
-    cmp_val = mpfr_cmp(tmp, e.real);\
-    mpfr_clear(tmp);\
+    mpfr_init(tmp_x.real);\
+    mpfr_init(tmp_x.imag);\
+    mpfr_init(tmp_y.real);\
+    mpfr_init(tmp_y.imag);\
+    mpfr_set_d(tmp_x.imag, 0, RND_TYPE);\
+    mpfr_mul(tmp_x.real, x.real, x.real, RND_TYPE);\
+    mpfr_t tmp1; mpfr_init(tmp1);\
+    mpfr_mul(tmp1, x.imag, x.imag, RND_TYPE);\
+    mpfr_add(tmp_x.real, tmp_x.real, tmp1, RND_TYPE);\
+    mpfr_set_d(tmp_y.imag, 0, RND_TYPE);\
+    mpfr_mul(tmp_y.real, y.real, y.real, RND_TYPE);\
+    mpfr_t tmp2; mpfr_init(tmp2);\
+    mpfr_mul(tmp2, y.imag, y.imag, RND_TYPE);\
+    mpfr_add(tmp_y.real, tmp_y.real, tmp2, RND_TYPE);\
+    mpfr_t tmp3;\
+    mpfr_init(tmp3);\
+    mpfr_sub(tmp3, tmp_x.real, tmp_y.real, RND_TYPE);\
+    mpfr_abs(tmp3, tmp3, RND_TYPE);\
+    cmp_val = mpfr_cmp(tmp3, e.real);\
+    mpfr_clear(tmp1);\
+    mpfr_clear(tmp2);\
+    mpfr_clear(tmp3);\
     mpfr_clear(tmp_x.real);\
     mpfr_clear(tmp_x.imag);\
     mpfr_clear(tmp_y.real);\
-    mpfr_clear(tmp_y.real);\
+    mpfr_clear(tmp_y.imag);\
 })
 
 

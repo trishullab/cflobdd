@@ -45,6 +45,7 @@
 
 #include "util.h"
 #include "cuddInt.h"
+#include "cuddAbsVal.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -681,11 +682,11 @@ addTriangleRecur(
 // CUDD_VALUE_TYPE getAbsValue(CUDD_VALUE_TYPE v)
 // {
 //   CUDD_VALUE_TYPE v_abs;
-//   mpfr_init(v_abs.real); mpfr_init_set_d(v_abs.imag, 0, RND_TYPE);
-//   mpfr_mul(v_abs.real, v.real, v.real, RND_TYPE);
+//   mpfr_init(v_abs->real); mpfr_init_set_d(v_abs->imag, 0, RND_TYPE);
+//   mpfr_mul(v_abs->real, v.real, v.real, RND_TYPE);
 //   mpfr_t tmp; mpfr_init(tmp);
 //   mpfr_mul(tmp, v.imag, v.imag, RND_TYPE);
-//   mpfr_add(v_abs.real, v_abs.real, tmp, RND_TYPE);
+//   mpfr_add(v_abs->real, v_abs->real, tmp, RND_TYPE);
 //   mpfr_clear(tmp);
 //   return v_abs;
 // }
@@ -724,22 +725,29 @@ cuddAddOuterSumRecur(
     mpfr_clear(add_val.imag);
 	cuddRef(R);
 	if (cuddIsConstant(M)) {
-        CUDD_VALUE_TYPE r_abs, m_abs;
-        r_abs = getAbsValue(cuddV(R));
-        m_abs = getAbsValue(cuddV(M));
-	    if (mpfr_cmp(r_abs.real, m_abs.real) <= 0) {
+        CUDD_VALUE_TYPE *r_abs, *m_abs;
+        r_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        m_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        mpfr_init(r_abs->real); mpfr_init(r_abs->imag);
+        mpfr_init(m_abs->real); mpfr_init(m_abs->imag);
+        getAbsValue(cuddV(R), r_abs);
+        getAbsValue(cuddV(M), m_abs);
+	    if (mpfr_cmp(r_abs->real, m_abs->real) <= 0) {
 		    cuddDeref(R);
-            mpfr_clear(r_abs.real);
-            mpfr_clear(r_abs.imag);
-            mpfr_clear(m_abs.real);
-            mpfr_clear(m_abs.imag);
+            mpfr_clear(r_abs->real);
+            mpfr_clear(r_abs->imag);
+            mpfr_clear(m_abs->real);
+            mpfr_clear(m_abs->imag);
+            free(r_abs);
+            free(m_abs);
 	        return(R);
 	    } else {
 	        Cudd_RecursiveDeref(dd,R);       
-            mpfr_clear(r_abs.real);
-            mpfr_clear(r_abs.imag);
-            mpfr_clear(m_abs.real);
-            mpfr_clear(m_abs.imag);
+            mpfr_clear(r_abs->real);
+            mpfr_clear(r_abs->imag);
+            mpfr_clear(m_abs->real);
+            mpfr_clear(m_abs->imag);
+            free(r_abs); free(m_abs);
 		    return(M);
 	    }
 	} else {

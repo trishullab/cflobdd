@@ -45,6 +45,7 @@
 
 #include "util.h"
 #include "cuddInt.h"
+#include "cuddAbsVal.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -305,10 +306,16 @@ Cudd_addSquareTerminalValues(
       CUDD_VALUE_TYPE value;
       mpfr_init_set(value.real, cuddV(f).real, RND_TYPE);
       mpfr_init_set_si(value.imag, 0, RND_TYPE); 
+      mpfr_t tmp;
+      mpfr_init_set(tmp, cuddV(f).imag, RND_TYPE);
       mpfr_mul(value.real, value.real, value.real, RND_TYPE);
+      mpfr_mul(tmp, tmp, tmp, RND_TYPE);
+      mpfr_add(value.real, value.real, tmp, RND_TYPE);
+      mpfr_printf("%.128Rf, %.128Rf\n", cuddV(f).real, value.real);
       DdNode *res = cuddUniqueConst(dd,value);
       mpfr_clear(value.real);
       mpfr_clear(value.imag);
+      mpfr_clear(tmp);
       return(res);
     }
     return(NULL);
@@ -318,11 +325,11 @@ Cudd_addSquareTerminalValues(
 // CUDD_VALUE_TYPE getAbsValue(CUDD_VALUE_TYPE v)
 // {
 //   CUDD_VALUE_TYPE v_abs;
-//   mpfr_init(v_abs.real); mpfr_init_set_d(v_abs.imag, 0, RND_TYPE);
-//   mpfr_mul(v_abs.real, v.real, v.real, RND_TYPE);
+//   mpfr_init(v_abs->real); mpfr_init_set_d(v_abs->imag, 0, RND_TYPE);
+//   mpfr_mul(v_abs->real, v.real, v.real, RND_TYPE);
 //   mpfr_t tmp; mpfr_init(tmp);
 //   mpfr_mul(tmp, v.imag, v.imag, RND_TYPE);
-//   mpfr_add(v_abs.real, v_abs.real, tmp, RND_TYPE);
+//   mpfr_add(v_abs->real, v_abs->real, tmp, RND_TYPE);
 //   mpfr_clear(tmp);
 //   return v_abs;
 // }
@@ -352,16 +359,21 @@ Cudd_addThreshold(
     if (F == G || F == DD_PLUS_INFINITY(dd)) return(F);
     if (cuddIsConstant(F) && cuddIsConstant(G)) {
 	// if (cuddV(F) >= cuddV(G)) {
-      CUDD_VALUE_TYPE f_abs, g_abs;
-      f_abs = getAbsValue(cuddV(F));
-      g_abs = getAbsValue(cuddV(G));
-      if (mpfr_cmp(f_abs.real,g_abs.real) >= 0) {
-        mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag);
-        mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+      CUDD_VALUE_TYPE* f_abs, *g_abs;
+      f_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      g_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      mpfr_init(f_abs->real); mpfr_init(f_abs->imag);
+      getAbsValue(cuddV(F), f_abs);
+      mpfr_init(g_abs->real); mpfr_init(g_abs->imag);
+      getAbsValue(cuddV(G), g_abs);
+      if (mpfr_cmp(f_abs->real,g_abs->real) >= 0) {
+        mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag);
+        mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
+        free(f_abs); free(g_abs);
         return(F);
       } else {
-        mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag);
-        mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+        mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag);
+        mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
         return(DD_ZERO(dd));
       }
     }
@@ -444,11 +456,14 @@ Cudd_addDivide(
 
       mpfr_clear(tmp1); mpfr_clear(tmp2);
 
-      CUDD_VALUE_TYPE g_abs;
-      g_abs = getAbsValue(cuddV(G)); 
-      mpfr_div(value.real, value.real, g_abs.real, RND_TYPE);
-      mpfr_div(value.imag, value.imag, g_abs.real, RND_TYPE);
-      mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+      CUDD_VALUE_TYPE* g_abs;
+      g_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      mpfr_init(g_abs->real); mpfr_init(g_abs->imag);
+      getAbsValue(cuddV(G), g_abs); 
+      mpfr_div(value.real, value.real, g_abs->real, RND_TYPE);
+      mpfr_div(value.imag, value.imag, g_abs->real, RND_TYPE);
+      mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
+      free(g_abs);
       // value = cuddV(F)/cuddV(G);
       res = cuddUniqueConst(dd,value);
       mpfr_clear(value.real);
@@ -535,17 +550,23 @@ Cudd_addMinimum(
     if (G == DD_MINUS_INFINITY(dd)) return(G);
 #endif
     if (cuddIsConstant(F) && cuddIsConstant(G)) {
-      CUDD_VALUE_TYPE f_abs, g_abs;
-      f_abs = getAbsValue(cuddV(F));
-      g_abs = getAbsValue(cuddV(G));
-      if (mpfr_cmp(f_abs.real,g_abs.real) <= 0) {
+      CUDD_VALUE_TYPE* f_abs, *g_abs;
+      f_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      g_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      mpfr_init(f_abs->real); mpfr_init(f_abs->imag);
+      getAbsValue(cuddV(F), f_abs);
+      mpfr_init(g_abs->real); mpfr_init(g_abs->imag);
+      getAbsValue(cuddV(G), g_abs);
+      if (mpfr_cmp(f_abs->real,g_abs->real) <= 0) {
       // if (cuddV(F) <= cuddV(G)) {
-          mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag);
-          mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+          mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag);
+          mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
+          free(f_abs); free(g_abs);
           return(F);
       } else {
-          mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag);
-          mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+          mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag);
+          mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
+          free(f_abs); free(g_abs);
           return(G);
       }
     }
@@ -588,17 +609,23 @@ Cudd_addMaximum(
     if (G == DD_PLUS_INFINITY(dd)) return(G);
 #endif
     if (cuddIsConstant(F) && cuddIsConstant(G)) {
-      CUDD_VALUE_TYPE f_abs, g_abs;
-      f_abs = getAbsValue(cuddV(F));
-      g_abs = getAbsValue(cuddV(G));
-      if (mpfr_cmp(f_abs.real, g_abs.imag) >= 0) {
+      CUDD_VALUE_TYPE* f_abs, *g_abs;
+      f_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      g_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      mpfr_init(f_abs->real); mpfr_init(f_abs->imag);
+      getAbsValue(cuddV(F), f_abs);
+      mpfr_init(g_abs->real); mpfr_init(g_abs->imag);
+      getAbsValue(cuddV(G), g_abs);
+      if (mpfr_cmp(f_abs->real, g_abs->imag) >= 0) {
       // if (cuddV(F) >= cuddV(G)) {
-          mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag);
-          mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+          mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag);
+          mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
+          free(f_abs); free(g_abs);
           return(F);
       } else {
-          mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag);
-          mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+          mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag);
+          mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
+          free(f_abs); free(g_abs);
           return(G);
       }
     }
@@ -634,17 +661,23 @@ Cudd_addOneZeroMaximum(
     if (*g == DD_PLUS_INFINITY(dd))
 	return DD_ZERO(dd);
     if (cuddIsConstant(*f) && cuddIsConstant(*g)) {
-      CUDD_VALUE_TYPE f_abs, g_abs;
-      f_abs = getAbsValue(cuddV(*f));
-      g_abs = getAbsValue(cuddV(*g));
-      if (mpfr_cmp(f_abs.real,g_abs.real) > 0) {
-        mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag);
-        mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+      CUDD_VALUE_TYPE* f_abs, *g_abs;
+      f_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      g_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      mpfr_init(f_abs->real); mpfr_init(f_abs->imag);
+      getAbsValue(cuddV(*f), f_abs);
+      mpfr_init(g_abs->real); mpfr_init(g_abs->imag);
+      getAbsValue(cuddV(*g), g_abs);
+      if (mpfr_cmp(f_abs->real,g_abs->real) > 0) {
+        mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag);
+        mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
+        free(f_abs); free(g_abs);
 	    // if (cuddV(*f) > cuddV(*g)) {
 	    return(DD_ONE(dd));
     } else {
-        mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag);
-        mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+        mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag);
+        mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
+        free(f_abs); free(g_abs);
         return(DD_ZERO(dd));
     }
     }
@@ -678,23 +711,30 @@ Cudd_addDiff(
     if (F == DD_PLUS_INFINITY(dd)) return(G);
     if (G == DD_PLUS_INFINITY(dd)) return(F);
     if (cuddIsConstant(F) && cuddIsConstant(G)) {
-      CUDD_VALUE_TYPE f_abs, g_abs;
-      f_abs = getAbsValue(cuddV(F));
-      g_abs = getAbsValue(cuddV(G)); 
-      if (mpfr_cmp(f_abs.real,g_abs.real) != 0) {
+      CUDD_VALUE_TYPE *f_abs, *g_abs;
+      f_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      g_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+      mpfr_init(f_abs->real); mpfr_init(f_abs->imag);
+      getAbsValue(cuddV(F), f_abs);
+      mpfr_init(g_abs->real); mpfr_init(g_abs->imag);
+      getAbsValue(cuddV(G), g_abs); 
+      if (mpfr_cmp(f_abs->real,g_abs->real) != 0) {
 	      // if (cuddV(F) != cuddV(G)) {
-      if (mpfr_cmp(f_abs.real,g_abs.real) < 0) {
+      if (mpfr_cmp(f_abs->real,g_abs->real) < 0) {
 	      // if (cuddV(F) < cuddV(G)) {
-          mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag);
-          mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+          mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag);
+          mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
+          free(f_abs); free(g_abs);
 		      return(F);
 	    } else {
-        mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag);
-        mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+        mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag);
+        mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
+        free(f_abs); free(g_abs); 
 		    return(G);
 	    }
-      mpfr_clear(f_abs.real); mpfr_clear(f_abs.imag);
-      mpfr_clear(g_abs.real); mpfr_clear(g_abs.imag);
+      mpfr_clear(f_abs->real); mpfr_clear(f_abs->imag);
+      mpfr_clear(g_abs->real); mpfr_clear(g_abs->imag);
+      free(f_abs); free(g_abs);
 	} else {
 	    return(DD_PLUS_INFINITY(dd));
 	}

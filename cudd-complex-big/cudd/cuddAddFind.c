@@ -46,6 +46,7 @@
 
 #include "util.h"
 #include "cuddInt.h"
+#include "cuddAbsVal.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -89,11 +90,11 @@ static DdNode * addDoIthBit (DdManager *dd, DdNode *f, DdNode *index);
 // CUDD_VALUE_TYPE getAbsValue(CUDD_VALUE_TYPE v)
 // {
 //   CUDD_VALUE_TYPE v_abs;
-//   mpfr_init(v_abs.real); mpfr_init_set_d(v_abs.imag, 0, RND_TYPE);
-//   mpfr_mul(v_abs.real, v.real, v.real, RND_TYPE);
+//   mpfr_init(v_abs->real); mpfr_init_set_d(v_abs->imag, 0, RND_TYPE);
+//   mpfr_mul(v_abs->real, v.real, v.real, RND_TYPE);
 //   mpfr_t tmp; mpfr_init(tmp);
 //   mpfr_mul(tmp, v.imag, v.imag, RND_TYPE);
-//   mpfr_add(v_abs.real, v_abs.real, tmp, RND_TYPE);
+//   mpfr_add(v_abs->real, v_abs->real, tmp, RND_TYPE);
 //   mpfr_clear(tmp);
 //   return v_abs;
 // }
@@ -129,12 +130,17 @@ Cudd_addFindMax(
     if (t == DD_PLUS_INFINITY(dd)) return(t);
 
     e  = Cudd_addFindMax(dd,cuddE(f));
-    CUDD_VALUE_TYPE t_abs, e_abs;
-    t_abs = getAbsValue(cuddV(t));
-    e_abs = getAbsValue(cuddV(e));
-    res = (mpfr_cmp(t_abs.real,e_abs.real) >= 0) ? t : e;
-    mpfr_clear(t_abs.real); mpfr_clear(t_abs.imag);
-    mpfr_clear(e_abs.real); mpfr_clear(e_abs.imag);
+    CUDD_VALUE_TYPE *t_abs, *e_abs;
+    t_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+    e_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+    mpfr_init(t_abs->real); mpfr_init(t_abs->imag);
+    getAbsValue(cuddV(t), t_abs);
+    mpfr_init(e_abs->real); mpfr_init(e_abs->imag);
+    getAbsValue(cuddV(e), e_abs);
+    res = (mpfr_cmp(t_abs->real,e_abs->real) >= 0) ? t : e;
+    mpfr_clear(t_abs->real); mpfr_clear(t_abs->imag);
+    mpfr_clear(e_abs->real); mpfr_clear(e_abs->imag);
+    free(t_abs); free(e_abs);
     cuddCacheInsert1(dd,Cudd_addFindMax,f,res);
 
     return(res);
@@ -173,13 +179,17 @@ Cudd_addFindMin(
     if (t == DD_MINUS_INFINITY(dd)) return(t);
 
     e  = Cudd_addFindMin(dd,cuddE(f));
-    CUDD_VALUE_TYPE t_abs, e_abs;
-    t_abs = getAbsValue(cuddV(t));
-    e_abs = getAbsValue(cuddV(e)); 
-    res = ((mpfr_cmp(t_abs.real,e_abs.real) <= 0)) ? t : e;
-    mpfr_clear(t_abs.real); mpfr_clear(t_abs.imag);
-    mpfr_clear(e_abs.real); mpfr_clear(e_abs.imag);
-
+    CUDD_VALUE_TYPE *t_abs, *e_abs;
+    t_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+    e_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+    mpfr_init(t_abs->real); mpfr_init(t_abs->imag);
+    getAbsValue(cuddV(t), t_abs);
+    mpfr_init(e_abs->real); mpfr_init(e_abs->imag);
+    getAbsValue(cuddV(e), e_abs); 
+    res = ((mpfr_cmp(t_abs->real,e_abs->real) <= 0)) ? t : e;
+    mpfr_clear(t_abs->real); mpfr_clear(t_abs->imag);
+    mpfr_clear(e_abs->real); mpfr_clear(e_abs->imag);
+    free(t_abs); free(e_abs);
     cuddCacheInsert1(dd,Cudd_addFindMin,f,res);
 
     return(res);

@@ -45,6 +45,7 @@
 
 #include "util.h"
 #include "cuddInt.h"
+#include "cuddAbsVal.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -1561,11 +1562,11 @@ cuddCProjectionRecur(
 // CUDD_VALUE_TYPE getAbsValue(CUDD_VALUE_TYPE v)
 // {
 //   CUDD_VALUE_TYPE v_abs;
-//   mpfr_init(v_abs.real); mpfr_init_set_d(v_abs.imag, 0, RND_TYPE);
-//   mpfr_mul(v_abs.real, v.real, v.real, RND_TYPE);
+//   mpfr_init(v_abs->real); mpfr_init_set_d(v_abs->imag, 0, RND_TYPE);
+//   mpfr_mul(v_abs->real, v.real, v.real, RND_TYPE);
 //   mpfr_t tmp; mpfr_init(tmp);
 //   mpfr_mul(tmp, v.imag, v.imag, RND_TYPE);
-//   mpfr_add(v_abs.real, v_abs.real, tmp, RND_TYPE);
+//   mpfr_add(v_abs->real, v_abs->real, tmp, RND_TYPE);
 //   mpfr_clear(tmp);
 //   return v_abs;
 // }
@@ -1662,13 +1663,16 @@ cuddBddClosestCube(
     unsigned int index;
 
     statLine(dd);
-    CUDD_VALUE_TYPE bound_abs;
-    bound_abs = getAbsValue(bound);
-    if (mpfr_cmp_si(bound_abs.real, (f == Cudd_Not(g))) < 0){
+    CUDD_VALUE_TYPE *bound_abs;
+    bound_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+    mpfr_init(bound_abs->real); mpfr_init(bound_abs->imag);
+    getAbsValue(bound, bound_abs);
+    if (mpfr_cmp_si(bound_abs->real, (f == Cudd_Not(g))) < 0){
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        free(bound_abs);
         return(azero);
     }
     // if (bound < (f == Cudd_Not(g))) return(azero);
@@ -1676,15 +1680,17 @@ cuddBddClosestCube(
     if (g == lzero || f == lzero){
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        free(bound_abs);
         return(azero);
     }
     if (f == one && g == one){
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        free(bound_abs);
         return(one);
     }
 
@@ -1696,8 +1702,9 @@ cuddBddClosestCube(
 	if (res != NULL){
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        free(bound_abs);
         return(res);}
     }
 
@@ -1735,8 +1742,9 @@ cuddBddClosestCube(
     if (tt == NULL){
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag); 
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        free(bound_abs); 
         return(NULL);
     }
     cuddRef(tt);
@@ -1745,8 +1753,9 @@ cuddBddClosestCube(
         Cudd_RecursiveDeref(dd, tt);
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        free(bound_abs); 
     	return(NULL);
     }
     cuddRef(ctt);
@@ -1761,8 +1770,9 @@ cuddBddClosestCube(
 	    Cudd_RecursiveDeref(dd, ctt);
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        free(bound_abs); 
 	    return(NULL);
     }
     cuddRef(ee);
@@ -1772,16 +1782,19 @@ cuddBddClosestCube(
         Cudd_RecursiveDeref(dd, ee);
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        free(bound_abs); 
 	    return(NULL);
     }
     cuddRef(cee);
     Cudd_RecursiveDeref(dd, ee);
     ddMin_big(minD, dtt, dee);
-    CUDD_VALUE_TYPE minD_abs;
-    minD_abs = getAbsValue(minD);
-    if (mpfr_cmp_si(minD_abs.real, CUDD_CONST_INDEX) <= 0) {
+    CUDD_VALUE_TYPE *minD_abs;
+    minD_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+    mpfr_init(minD_abs->real); mpfr_init(minD_abs->imag);
+    getAbsValue(minD, minD_abs);
+    if (mpfr_cmp_si(minD_abs->real, CUDD_CONST_INDEX) <= 0) {
       CUDD_VALUE_TYPE minD_less;
       mpfr_init(minD_less.real);
       mpfr_init(minD_less.imag);
@@ -1792,7 +1805,7 @@ cuddBddClosestCube(
       mpfr_clear(minD_less.imag);
     }
 
-    if ((mpfr_cmp_si(minD_abs.real,0) > 0) && topf == topg) {
+    if ((mpfr_cmp_si(minD_abs->real,0) > 0) && topf == topg) {
       CUDD_VALUE_TYPE bound_less;
       mpfr_init(bound_less.real);
       mpfr_sub_si(bound_less.real, bound.real, -1, RND_TYPE);
@@ -1805,10 +1818,12 @@ cuddBddClosestCube(
 	    Cudd_RecursiveDeref(dd, cee);
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
-        mpfr_clear(minD_abs.real);
-        mpfr_clear(minD_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        mpfr_clear(minD_abs->real);
+        mpfr_clear(minD_abs->imag);
+        free(bound_abs);
+        free(minD_abs);
 	    return(NULL);
 	}
 	cuddRef(te);
@@ -1819,10 +1834,12 @@ cuddBddClosestCube(
 	    Cudd_RecursiveDeref(dd, te);
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
-        mpfr_clear(minD_abs.real);
-        mpfr_clear(minD_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        mpfr_clear(minD_abs->real);
+        mpfr_clear(minD_abs->imag);
+        free(bound_abs);
+        free(minD_abs);
 	    return(NULL);
 	}
 	cuddRef(cte);
@@ -1838,7 +1855,7 @@ cuddBddClosestCube(
   mpfr_add_d(dte.imag, dte.imag,  0.0, RND_TYPE);
 	// dte = CUDD_CONST_INDEX + 1.0;
     }
-    if (mpfr_cmp_si(minD_abs.real, CUDD_CONST_INDEX) <= 0){ 
+    if (mpfr_cmp_si(minD_abs->real, CUDD_CONST_INDEX) <= 0){ 
       CUDD_VALUE_TYPE minD_less;
       mpfr_init(minD_less.real);
       mpfr_init(minD_less.imag);
@@ -1847,9 +1864,11 @@ cuddBddClosestCube(
       ddMin_big(bound,bound,minD_less);
       mpfr_clear(minD_less.real);
       mpfr_clear(minD_less.imag);
+        free(bound_abs);
+        free(minD_abs);
     }
 
-    if ((mpfr_cmp_si(minD_abs.real, 0) > 0) && topf == topg) {
+    if ((mpfr_cmp_si(minD_abs->real, 0) > 0) && topf == topg) {
       CUDD_VALUE_TYPE bound_less;
       mpfr_init(bound_less.real);
       mpfr_init(bound_less.imag);
@@ -1863,10 +1882,12 @@ cuddBddClosestCube(
 	    Cudd_RecursiveDeref(dd, cte);
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
-        mpfr_clear(minD_abs.real);
-        mpfr_clear(minD_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        mpfr_clear(minD_abs->real);
+        mpfr_clear(minD_abs->imag);
+        free(bound_abs);
+        free(minD_abs);
 	    return(NULL);
 	}
 	cuddRef(et);
@@ -1878,10 +1899,12 @@ cuddBddClosestCube(
 	    Cudd_RecursiveDeref(dd, et);
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
-        mpfr_clear(minD_abs.real);
-        mpfr_clear(minD_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        mpfr_clear(minD_abs->real);
+        mpfr_clear(minD_abs->imag);
+        free(bound_abs);
+        free(minD_abs);
 	    return(NULL);
 	}
 	cuddRef(cet);
@@ -1898,19 +1921,25 @@ cuddBddClosestCube(
 	// det = CUDD_CONST_INDEX + 1.0;
     }
 
-    CUDD_VALUE_TYPE dtt_abs, dee_abs, dte_abs;
-    dtt_abs = getAbsValue(dtt);
-    dee_abs = getAbsValue(dee);
-    dte_abs = getAbsValue(dte);
-    if (mpfr_cmp(minD_abs.real, dtt_abs.real) == 0) {
-	if ((mpfr_cmp(dtt_abs.real, dee_abs.real) == 0) && ctt == cee) {
+    CUDD_VALUE_TYPE *dtt_abs, *dee_abs, *dte_abs;
+    dtt_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+    dee_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+    dte_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+    mpfr_init(dtt_abs->real); mpfr_init(dtt_abs->imag);
+    mpfr_init(dee_abs->real); mpfr_init(dee_abs->imag);
+    mpfr_init(dte_abs->real); mpfr_init(dte_abs->imag);
+    getAbsValue(dtt, dtt_abs);
+    getAbsValue(dee, dee_abs);
+    getAbsValue(dte, dte_abs);
+    if (mpfr_cmp(minD_abs->real, dtt_abs->real) == 0) {
+	if ((mpfr_cmp(dtt_abs->real, dee_abs->real) == 0) && ctt == cee) {
 	    res = createResult(dd,CUDD_CONST_INDEX,1,ctt,dtt);
 	} else {
 	    res = createResult(dd,index,1,ctt,dtt);
 	}
-    } else if (mpfr_cmp(minD_abs.real, dee_abs.real) == 0) {
+    } else if (mpfr_cmp(minD_abs->real, dee_abs->real) == 0) {
 	res = createResult(dd,index,0,cee,dee);
-    } else if (mpfr_cmp(minD_abs.real, dte_abs.real) == 0) {
+    } else if (mpfr_cmp(minD_abs->real, dte_abs->real) == 0) {
 #ifdef DD_DEBUG
 	assert(topf == topg);
 #endif
@@ -1928,16 +1957,21 @@ cuddBddClosestCube(
         Cudd_RecursiveDeref(dd, cet);
         mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
         mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-        mpfr_clear(bound_abs.real);
-        mpfr_clear(bound_abs.imag);
-        mpfr_clear(minD_abs.real);
-        mpfr_clear(minD_abs.real);
-        mpfr_clear(dtt_abs.imag);
-        mpfr_clear(dtt_abs.imag);
-        mpfr_clear(dee_abs.real);
-        mpfr_clear(dee_abs.imag);
-        mpfr_clear(dte_abs.real);
-        mpfr_clear(dte_abs.imag);
+        mpfr_clear(bound_abs->real);
+        mpfr_clear(bound_abs->imag);
+        mpfr_clear(minD_abs->real);
+        mpfr_clear(minD_abs->real);
+        mpfr_clear(dtt_abs->imag);
+        mpfr_clear(dtt_abs->imag);
+        mpfr_clear(dee_abs->real);
+        mpfr_clear(dee_abs->imag);
+        mpfr_clear(dte_abs->real);
+        mpfr_clear(dte_abs->imag);
+        free(bound_abs);
+        free(minD_abs);
+        free(dtt_abs);
+        free(dee_abs);
+        free(dte_abs);
 	    return(NULL);
     }
     cuddRef(res);
@@ -1954,16 +1988,21 @@ cuddBddClosestCube(
     cuddDeref(res);
     mpfr_clears(minD.real, dtt.real, dee.real, dte.real, det.real, NULL);
     mpfr_clears(minD.imag, dtt.imag, dee.imag, dte.imag, det.imag, NULL);
-    mpfr_clear(bound_abs.real);
-    mpfr_clear(bound_abs.imag);
-    mpfr_clear(minD_abs.real);
-    mpfr_clear(minD_abs.real);
-    mpfr_clear(dtt_abs.imag);
-    mpfr_clear(dtt_abs.imag);
-    mpfr_clear(dee_abs.real);
-    mpfr_clear(dee_abs.imag);
-    mpfr_clear(dte_abs.real);
-    mpfr_clear(dte_abs.imag);
+    mpfr_clear(bound_abs->real);
+    mpfr_clear(bound_abs->imag);
+    mpfr_clear(minD_abs->real);
+    mpfr_clear(minD_abs->real);
+    mpfr_clear(dtt_abs->imag);
+    mpfr_clear(dtt_abs->imag);
+    mpfr_clear(dee_abs->real);
+    mpfr_clear(dee_abs->imag);
+    mpfr_clear(dte_abs->real);
+    mpfr_clear(dte_abs->imag);
+        free(bound_abs);
+        free(minD_abs);
+        free(dtt_abs);
+        free(dee_abs);
+        free(dte_abs);
     return(res);
 
 } /* end of cuddBddClosestCube */
@@ -2107,9 +2146,11 @@ separateCube(
     /* Find out which branch points to the distance and replace the top
     ** node with one pointing to zero instead. */
     t = cuddT(f);
-    CUDD_VALUE_TYPE t_abs;
-    t_abs = getAbsValue(cuddV(t));
-    if (Cudd_IsConstantInt(t) && (mpfr_cmp_si(t_abs.real, 0) <= 0)) {
+    CUDD_VALUE_TYPE *t_abs;
+    mpfr_init(t_abs->real); mpfr_init(t_abs->imag);
+    t_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+    getAbsValue(cuddV(t), t_abs);
+    if (Cudd_IsConstantInt(t) && (mpfr_cmp_si(t_abs->real, 0) <= 0)) {
 #ifdef DD_DEBUG
 	assert(!Cudd_IsConstantInt(cuddE(f)) || cuddE(f) == DD_ONE(dd));
 #endif
@@ -2137,8 +2178,9 @@ separateCube(
   mpfr_clear(f_neg.imag);
     }
 
-    mpfr_clear(t_abs.real);
-    mpfr_clear(t_abs.imag);
+    mpfr_clear(t_abs->real);
+    mpfr_clear(t_abs->imag);
+    free(t_abs);
 
     return(cube);
 

@@ -170,39 +170,39 @@ am__v_lt_1 =
 @OBJ_FALSE@am_cplusplus_libobj_la_rpath =
 cudd_libcudd_la_DEPENDENCIES =
 am__cudd_libcudd_la_SOURCES_DIST = cudd/cudd.h cudd/cuddInt.h \
-	cudd/cuddAddAbs.c cudd/cuddAddApply.c cudd/cuddAddFind.c \
-	cudd/cuddAddInv.c cudd/cuddAddIte.c cudd/cuddAddNeg.c \
-	cudd/cuddAddWalsh.c cudd/cuddAndAbs.c cudd/cuddAnneal.c \
-	cudd/cuddApa.c cudd/cuddAPI.c cudd/cuddApprox.c \
-	cudd/cuddBddAbs.c cudd/cuddBddCorr.c cudd/cuddBddIte.c \
-	cudd/cuddBridge.c cudd/cuddCache.c cudd/cuddCheck.c \
-	cudd/cuddClip.c cudd/cuddCof.c cudd/cuddCompose.c \
-	cudd/cuddDecomp.c cudd/cuddEssent.c cudd/cuddExact.c \
-	cudd/cuddExport.c cudd/cuddGenCof.c cudd/cuddGenetic.c \
-	cudd/cuddGroup.c cudd/cuddHarwell.c cudd/cuddInit.c \
-	cudd/cuddInteract.c cudd/cuddLCache.c cudd/cuddLevelQ.c \
-	cudd/cuddLinear.c cudd/cuddLiteral.c cudd/cuddMatMult.c \
-	cudd/cuddPriority.c cudd/cuddRead.c cudd/cuddRef.c \
-	cudd/cuddReorder.c cudd/cuddSat.c cudd/cuddSign.c \
-	cudd/cuddSolve.c cudd/cuddSplit.c cudd/cuddSubsetHB.c \
-	cudd/cuddSubsetSP.c cudd/cuddSymmetry.c cudd/cuddTable.c \
-	cudd/cuddUtil.c cudd/cuddWindow.c cudd/cuddZddCount.c \
-	cudd/cuddZddFuncs.c cudd/cuddZddGroup.c cudd/cuddZddIsop.c \
-	cudd/cuddZddLin.c cudd/cuddZddMisc.c cudd/cuddZddPort.c \
-	cudd/cuddZddReord.c cudd/cuddZddSetop.c cudd/cuddZddSymm.c \
-	cudd/cuddZddUtil.c util/util.h util/cstringstream.h \
-	util/cpu_stats.c util/cpu_time.c util/cstringstream.c \
-	util/datalimit.c util/pathsearch.c util/pipefork.c \
-	util/prtime.c util/safe_mem.c util/strsav.c util/texpand.c \
-	util/ucbqsort.c st/st.h st/st.c epd/epd.c epd/epdInt.h \
-	epd/epd.h mtr/mtr.h mtr/mtrInt.h mtr/mtrBasic.c mtr/mtrGroup.c \
-	dddmp/dddmp.h dddmp/dddmpInt.h dddmp/dddmpBinary.c \
-	dddmp/dddmpConvert.c dddmp/dddmpDbg.c dddmp/dddmpLoad.c \
-	dddmp/dddmpLoadCnf.c dddmp/dddmpNodeAdd.c dddmp/dddmpNodeBdd.c \
-	dddmp/dddmpNodeCnf.c dddmp/dddmpStoreAdd.c \
-	dddmp/dddmpStoreBdd.c dddmp/dddmpStoreCnf.c \
-	dddmp/dddmpStoreMisc.c dddmp/dddmpUtil.c cplusplus/cuddObj.hh \
-	cplusplus/cuddObj.cc
+	cudd/cuddAbsVal.h cudd/cuddAbsVal.c cudd/cuddAddAbs.c \
+	cudd/cuddAddApply.c cudd/cuddAddFind.c cudd/cuddAddInv.c \
+	cudd/cuddAddIte.c cudd/cuddAddNeg.c cudd/cuddAddWalsh.c \
+	cudd/cuddAndAbs.c cudd/cuddAnneal.c cudd/cuddApa.c \
+	cudd/cuddAPI.c cudd/cuddApprox.c cudd/cuddBddAbs.c \
+	cudd/cuddBddCorr.c cudd/cuddBddIte.c cudd/cuddBridge.c \
+	cudd/cuddCache.c cudd/cuddCheck.c cudd/cuddClip.c \
+	cudd/cuddCof.c cudd/cuddCompose.c cudd/cuddDecomp.c \
+	cudd/cuddEssent.c cudd/cuddExact.c cudd/cuddExport.c \
+	cudd/cuddGenCof.c cudd/cuddGenetic.c cudd/cuddGroup.c \
+	cudd/cuddHarwell.c cudd/cuddInit.c cudd/cuddInteract.c \
+	cudd/cuddLCache.c cudd/cuddLevelQ.c cudd/cuddLinear.c \
+	cudd/cuddLiteral.c cudd/cuddMatMult.c cudd/cuddPriority.c \
+	cudd/cuddRead.c cudd/cuddRef.c cudd/cuddReorder.c \
+	cudd/cuddSat.c cudd/cuddSign.c cudd/cuddSolve.c \
+	cudd/cuddSplit.c cudd/cuddSubsetHB.c cudd/cuddSubsetSP.c \
+	cudd/cuddSymmetry.c cudd/cuddTable.c cudd/cuddUtil.c \
+	cudd/cuddWindow.c cudd/cuddZddCount.c cudd/cuddZddFuncs.c \
+	cudd/cuddZddGroup.c cudd/cuddZddIsop.c cudd/cuddZddLin.c \
+	cudd/cuddZddMisc.c cudd/cuddZddPort.c cudd/cuddZddReord.c \
+	cudd/cuddZddSetop.c cudd/cuddZddSymm.c cudd/cuddZddUtil.c \
+	util/util.h util/cstringstream.h util/cpu_stats.c \
+	util/cpu_time.c util/cstringstream.c util/datalimit.c \
+	util/pathsearch.c util/pipefork.c util/prtime.c \
+	util/safe_mem.c util/strsav.c util/texpand.c util/ucbqsort.c \
+	st/st.h st/st.c epd/epd.c epd/epdInt.h epd/epd.h mtr/mtr.h \
+	mtr/mtrInt.h mtr/mtrBasic.c mtr/mtrGroup.c dddmp/dddmp.h \
+	dddmp/dddmpInt.h dddmp/dddmpBinary.c dddmp/dddmpConvert.c \
+	dddmp/dddmpDbg.c dddmp/dddmpLoad.c dddmp/dddmpLoadCnf.c \
+	dddmp/dddmpNodeAdd.c dddmp/dddmpNodeBdd.c dddmp/dddmpNodeCnf.c \
+	dddmp/dddmpStoreAdd.c dddmp/dddmpStoreBdd.c \
+	dddmp/dddmpStoreCnf.c dddmp/dddmpStoreMisc.c dddmp/dddmpUtil.c \
+	cplusplus/cuddObj.hh cplusplus/cuddObj.cc
 am__objects_2 = dddmp/cudd_libcudd_la-dddmpBinary.lo \
 	dddmp/cudd_libcudd_la-dddmpConvert.lo \
 	dddmp/cudd_libcudd_la-dddmpDbg.lo \
@@ -219,29 +219,30 @@ am__objects_2 = dddmp/cudd_libcudd_la-dddmpBinary.lo \
 @DDDMP_TRUE@am__objects_3 = $(am__objects_2)
 am__objects_4 = cplusplus/cudd_libcudd_la-cuddObj.lo
 @OBJ_TRUE@am__objects_5 = $(am__objects_4)
-am_cudd_libcudd_la_OBJECTS = cudd/libcudd_la-cuddAddAbs.lo \
-	cudd/libcudd_la-cuddAddApply.lo cudd/libcudd_la-cuddAddFind.lo \
-	cudd/libcudd_la-cuddAddInv.lo cudd/libcudd_la-cuddAddIte.lo \
-	cudd/libcudd_la-cuddAddNeg.lo cudd/libcudd_la-cuddAddWalsh.lo \
-	cudd/libcudd_la-cuddAndAbs.lo cudd/libcudd_la-cuddAnneal.lo \
-	cudd/libcudd_la-cuddApa.lo cudd/libcudd_la-cuddAPI.lo \
-	cudd/libcudd_la-cuddApprox.lo cudd/libcudd_la-cuddBddAbs.lo \
-	cudd/libcudd_la-cuddBddCorr.lo cudd/libcudd_la-cuddBddIte.lo \
-	cudd/libcudd_la-cuddBridge.lo cudd/libcudd_la-cuddCache.lo \
-	cudd/libcudd_la-cuddCheck.lo cudd/libcudd_la-cuddClip.lo \
-	cudd/libcudd_la-cuddCof.lo cudd/libcudd_la-cuddCompose.lo \
-	cudd/libcudd_la-cuddDecomp.lo cudd/libcudd_la-cuddEssent.lo \
-	cudd/libcudd_la-cuddExact.lo cudd/libcudd_la-cuddExport.lo \
-	cudd/libcudd_la-cuddGenCof.lo cudd/libcudd_la-cuddGenetic.lo \
-	cudd/libcudd_la-cuddGroup.lo cudd/libcudd_la-cuddHarwell.lo \
-	cudd/libcudd_la-cuddInit.lo cudd/libcudd_la-cuddInteract.lo \
-	cudd/libcudd_la-cuddLCache.lo cudd/libcudd_la-cuddLevelQ.lo \
-	cudd/libcudd_la-cuddLinear.lo cudd/libcudd_la-cuddLiteral.lo \
-	cudd/libcudd_la-cuddMatMult.lo cudd/libcudd_la-cuddPriority.lo \
-	cudd/libcudd_la-cuddRead.lo cudd/libcudd_la-cuddRef.lo \
-	cudd/libcudd_la-cuddReorder.lo cudd/libcudd_la-cuddSat.lo \
-	cudd/libcudd_la-cuddSign.lo cudd/libcudd_la-cuddSolve.lo \
-	cudd/libcudd_la-cuddSplit.lo cudd/libcudd_la-cuddSubsetHB.lo \
+am_cudd_libcudd_la_OBJECTS = cudd/libcudd_la-cuddAbsVal.lo \
+	cudd/libcudd_la-cuddAddAbs.lo cudd/libcudd_la-cuddAddApply.lo \
+	cudd/libcudd_la-cuddAddFind.lo cudd/libcudd_la-cuddAddInv.lo \
+	cudd/libcudd_la-cuddAddIte.lo cudd/libcudd_la-cuddAddNeg.lo \
+	cudd/libcudd_la-cuddAddWalsh.lo cudd/libcudd_la-cuddAndAbs.lo \
+	cudd/libcudd_la-cuddAnneal.lo cudd/libcudd_la-cuddApa.lo \
+	cudd/libcudd_la-cuddAPI.lo cudd/libcudd_la-cuddApprox.lo \
+	cudd/libcudd_la-cuddBddAbs.lo cudd/libcudd_la-cuddBddCorr.lo \
+	cudd/libcudd_la-cuddBddIte.lo cudd/libcudd_la-cuddBridge.lo \
+	cudd/libcudd_la-cuddCache.lo cudd/libcudd_la-cuddCheck.lo \
+	cudd/libcudd_la-cuddClip.lo cudd/libcudd_la-cuddCof.lo \
+	cudd/libcudd_la-cuddCompose.lo cudd/libcudd_la-cuddDecomp.lo \
+	cudd/libcudd_la-cuddEssent.lo cudd/libcudd_la-cuddExact.lo \
+	cudd/libcudd_la-cuddExport.lo cudd/libcudd_la-cuddGenCof.lo \
+	cudd/libcudd_la-cuddGenetic.lo cudd/libcudd_la-cuddGroup.lo \
+	cudd/libcudd_la-cuddHarwell.lo cudd/libcudd_la-cuddInit.lo \
+	cudd/libcudd_la-cuddInteract.lo cudd/libcudd_la-cuddLCache.lo \
+	cudd/libcudd_la-cuddLevelQ.lo cudd/libcudd_la-cuddLinear.lo \
+	cudd/libcudd_la-cuddLiteral.lo cudd/libcudd_la-cuddMatMult.lo \
+	cudd/libcudd_la-cuddPriority.lo cudd/libcudd_la-cuddRead.lo \
+	cudd/libcudd_la-cuddRef.lo cudd/libcudd_la-cuddReorder.lo \
+	cudd/libcudd_la-cuddSat.lo cudd/libcudd_la-cuddSign.lo \
+	cudd/libcudd_la-cuddSolve.lo cudd/libcudd_la-cuddSplit.lo \
+	cudd/libcudd_la-cuddSubsetHB.lo \
 	cudd/libcudd_la-cuddSubsetSP.lo \
 	cudd/libcudd_la-cuddSymmetry.lo cudd/libcudd_la-cuddTable.lo \
 	cudd/libcudd_la-cuddUtil.lo cudd/libcudd_la-cuddWindow.lo \
@@ -357,6 +358,7 @@ am__depfiles_remade = cplusplus/$(DEPDIR)/cudd_libcudd_la-cuddObj.Plo \
 	cplusplus/$(DEPDIR)/testmulti-testmulti.Po \
 	cplusplus/$(DEPDIR)/testobj-testobj.Po \
 	cudd/$(DEPDIR)/libcudd_la-cuddAPI.Plo \
+	cudd/$(DEPDIR)/libcudd_la-cuddAbsVal.Plo \
 	cudd/$(DEPDIR)/libcudd_la-cuddAddAbs.Plo \
 	cudd/$(DEPDIR)/libcudd_la-cuddAddApply.Plo \
 	cudd/$(DEPDIR)/libcudd_la-cuddAddFind.Plo \
@@ -949,34 +951,34 @@ do_subst = sed \
   -e 's,[@]srcdir[@],$(srcdir),g'
 
 lib_LTLIBRARIES = cudd/libcudd.la
-cudd_libcudd_la_SOURCES = cudd/cudd.h cudd/cuddInt.h cudd/cuddAddAbs.c \
-	cudd/cuddAddApply.c cudd/cuddAddFind.c cudd/cuddAddInv.c \
-	cudd/cuddAddIte.c cudd/cuddAddNeg.c cudd/cuddAddWalsh.c \
-	cudd/cuddAndAbs.c cudd/cuddAnneal.c cudd/cuddApa.c \
-	cudd/cuddAPI.c cudd/cuddApprox.c cudd/cuddBddAbs.c \
-	cudd/cuddBddCorr.c cudd/cuddBddIte.c cudd/cuddBridge.c \
-	cudd/cuddCache.c cudd/cuddCheck.c cudd/cuddClip.c \
-	cudd/cuddCof.c cudd/cuddCompose.c cudd/cuddDecomp.c \
-	cudd/cuddEssent.c cudd/cuddExact.c cudd/cuddExport.c \
-	cudd/cuddGenCof.c cudd/cuddGenetic.c cudd/cuddGroup.c \
-	cudd/cuddHarwell.c cudd/cuddInit.c cudd/cuddInteract.c \
-	cudd/cuddLCache.c cudd/cuddLevelQ.c cudd/cuddLinear.c \
-	cudd/cuddLiteral.c cudd/cuddMatMult.c cudd/cuddPriority.c \
-	cudd/cuddRead.c cudd/cuddRef.c cudd/cuddReorder.c \
-	cudd/cuddSat.c cudd/cuddSign.c cudd/cuddSolve.c \
-	cudd/cuddSplit.c cudd/cuddSubsetHB.c cudd/cuddSubsetSP.c \
-	cudd/cuddSymmetry.c cudd/cuddTable.c cudd/cuddUtil.c \
-	cudd/cuddWindow.c cudd/cuddZddCount.c cudd/cuddZddFuncs.c \
-	cudd/cuddZddGroup.c cudd/cuddZddIsop.c cudd/cuddZddLin.c \
-	cudd/cuddZddMisc.c cudd/cuddZddPort.c cudd/cuddZddReord.c \
-	cudd/cuddZddSetop.c cudd/cuddZddSymm.c cudd/cuddZddUtil.c \
-	util/util.h util/cstringstream.h util/cpu_stats.c \
-	util/cpu_time.c util/cstringstream.c util/datalimit.c \
-	util/pathsearch.c util/pipefork.c util/prtime.c \
-	util/safe_mem.c util/strsav.c util/texpand.c util/ucbqsort.c \
-	st/st.h st/st.c epd/epd.c epd/epdInt.h epd/epd.h mtr/mtr.h \
-	mtr/mtrInt.h mtr/mtrBasic.c mtr/mtrGroup.c $(am__append_4) \
-	$(am__append_6)
+cudd_libcudd_la_SOURCES = cudd/cudd.h cudd/cuddInt.h cudd/cuddAbsVal.h \
+	cudd/cuddAbsVal.c cudd/cuddAddAbs.c cudd/cuddAddApply.c \
+	cudd/cuddAddFind.c cudd/cuddAddInv.c cudd/cuddAddIte.c \
+	cudd/cuddAddNeg.c cudd/cuddAddWalsh.c cudd/cuddAndAbs.c \
+	cudd/cuddAnneal.c cudd/cuddApa.c cudd/cuddAPI.c \
+	cudd/cuddApprox.c cudd/cuddBddAbs.c cudd/cuddBddCorr.c \
+	cudd/cuddBddIte.c cudd/cuddBridge.c cudd/cuddCache.c \
+	cudd/cuddCheck.c cudd/cuddClip.c cudd/cuddCof.c \
+	cudd/cuddCompose.c cudd/cuddDecomp.c cudd/cuddEssent.c \
+	cudd/cuddExact.c cudd/cuddExport.c cudd/cuddGenCof.c \
+	cudd/cuddGenetic.c cudd/cuddGroup.c cudd/cuddHarwell.c \
+	cudd/cuddInit.c cudd/cuddInteract.c cudd/cuddLCache.c \
+	cudd/cuddLevelQ.c cudd/cuddLinear.c cudd/cuddLiteral.c \
+	cudd/cuddMatMult.c cudd/cuddPriority.c cudd/cuddRead.c \
+	cudd/cuddRef.c cudd/cuddReorder.c cudd/cuddSat.c \
+	cudd/cuddSign.c cudd/cuddSolve.c cudd/cuddSplit.c \
+	cudd/cuddSubsetHB.c cudd/cuddSubsetSP.c cudd/cuddSymmetry.c \
+	cudd/cuddTable.c cudd/cuddUtil.c cudd/cuddWindow.c \
+	cudd/cuddZddCount.c cudd/cuddZddFuncs.c cudd/cuddZddGroup.c \
+	cudd/cuddZddIsop.c cudd/cuddZddLin.c cudd/cuddZddMisc.c \
+	cudd/cuddZddPort.c cudd/cuddZddReord.c cudd/cuddZddSetop.c \
+	cudd/cuddZddSymm.c cudd/cuddZddUtil.c util/util.h \
+	util/cstringstream.h util/cpu_stats.c util/cpu_time.c \
+	util/cstringstream.c util/datalimit.c util/pathsearch.c \
+	util/pipefork.c util/prtime.c util/safe_mem.c util/strsav.c \
+	util/texpand.c util/ucbqsort.c st/st.h st/st.c epd/epd.c \
+	epd/epdInt.h epd/epd.h mtr/mtr.h mtr/mtrInt.h mtr/mtrBasic.c \
+	mtr/mtrGroup.c $(am__append_4) $(am__append_6)
 cudd_libcudd_la_CPPFLAGS = -I$(top_srcdir)/cudd -I$(top_srcdir)/st \
   -I$(top_srcdir)/epd -I$(top_srcdir)/mtr -I$(top_srcdir)/util
 
@@ -1187,6 +1189,8 @@ cudd/$(am__dirstamp):
 cudd/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) cudd/$(DEPDIR)
 	@: > cudd/$(DEPDIR)/$(am__dirstamp)
+cudd/libcudd_la-cuddAbsVal.lo: cudd/$(am__dirstamp) \
+	cudd/$(DEPDIR)/$(am__dirstamp)
 cudd/libcudd_la-cuddAddAbs.lo: cudd/$(am__dirstamp) \
 	cudd/$(DEPDIR)/$(am__dirstamp)
 cudd/libcudd_la-cuddAddApply.lo: cudd/$(am__dirstamp) \
@@ -1526,6 +1530,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@cplusplus/$(DEPDIR)/testmulti-testmulti.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@cplusplus/$(DEPDIR)/testobj-testobj.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@cudd/$(DEPDIR)/libcudd_la-cuddAPI.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@cudd/$(DEPDIR)/libcudd_la-cuddAbsVal.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@cudd/$(DEPDIR)/libcudd_la-cuddAddAbs.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@cudd/$(DEPDIR)/libcudd_la-cuddAddApply.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@cudd/$(DEPDIR)/libcudd_la-cuddAddFind.Plo@am__quote@ # am--include-marker
@@ -1671,6 +1676,13 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+cudd/libcudd_la-cuddAbsVal.lo: cudd/cuddAbsVal.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(cudd_libcudd_la_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cudd_libcudd_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cudd/libcudd_la-cuddAbsVal.lo -MD -MP -MF cudd/$(DEPDIR)/libcudd_la-cuddAbsVal.Tpo -c -o cudd/libcudd_la-cuddAbsVal.lo `test -f 'cudd/cuddAbsVal.c' || echo '$(srcdir)/'`cudd/cuddAbsVal.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) cudd/$(DEPDIR)/libcudd_la-cuddAbsVal.Tpo cudd/$(DEPDIR)/libcudd_la-cuddAbsVal.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cudd/cuddAbsVal.c' object='cudd/libcudd_la-cuddAbsVal.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(cudd_libcudd_la_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cudd_libcudd_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cudd/libcudd_la-cuddAbsVal.lo `test -f 'cudd/cuddAbsVal.c' || echo '$(srcdir)/'`cudd/cuddAbsVal.c
 
 cudd/libcudd_la-cuddAddAbs.lo: cudd/cuddAddAbs.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(cudd_libcudd_la_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cudd_libcudd_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cudd/libcudd_la-cuddAddAbs.lo -MD -MP -MF cudd/$(DEPDIR)/libcudd_la-cuddAddAbs.Tpo -c -o cudd/libcudd_la-cuddAddAbs.lo `test -f 'cudd/cuddAddAbs.c' || echo '$(srcdir)/'`cudd/cuddAddAbs.c
@@ -3151,6 +3163,7 @@ distclean: distclean-am
 	-rm -f cplusplus/$(DEPDIR)/testmulti-testmulti.Po
 	-rm -f cplusplus/$(DEPDIR)/testobj-testobj.Po
 	-rm -f cudd/$(DEPDIR)/libcudd_la-cuddAPI.Plo
+	-rm -f cudd/$(DEPDIR)/libcudd_la-cuddAbsVal.Plo
 	-rm -f cudd/$(DEPDIR)/libcudd_la-cuddAddAbs.Plo
 	-rm -f cudd/$(DEPDIR)/libcudd_la-cuddAddApply.Plo
 	-rm -f cudd/$(DEPDIR)/libcudd_la-cuddAddFind.Plo
@@ -3318,6 +3331,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f cplusplus/$(DEPDIR)/testmulti-testmulti.Po
 	-rm -f cplusplus/$(DEPDIR)/testobj-testobj.Po
 	-rm -f cudd/$(DEPDIR)/libcudd_la-cuddAPI.Plo
+	-rm -f cudd/$(DEPDIR)/libcudd_la-cuddAbsVal.Plo
 	-rm -f cudd/$(DEPDIR)/libcudd_la-cuddAddAbs.Plo
 	-rm -f cudd/$(DEPDIR)/libcudd_la-cuddAddApply.Plo
 	-rm -f cudd/$(DEPDIR)/libcudd_la-cuddAddFind.Plo

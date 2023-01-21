@@ -955,6 +955,12 @@ ADD::PrintPathInfo() const
     Cudd_addPrintPathInfo(p->manager, node);
 }
 
+long double
+ADD::GetProbability(unsigned int N, unsigned int period) const
+{
+    return Cudd_addGetProbability(p->manager, node, N, period);
+}
+
 std::string
 ADD::SamplePath(unsigned int N, unsigned int period, std::string fn_name) const
 {

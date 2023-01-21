@@ -45,6 +45,7 @@
 
 #include "util.h"
 #include "cuddInt.h"
+#include "cuddAbsVal.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -341,11 +342,11 @@ Cudd_addCmpl(
 // CUDD_VALUE_TYPE getAbsValue(CUDD_VALUE_TYPE v)
 // {
 //   CUDD_VALUE_TYPE v_abs;
-//   mpfr_init(v_abs.real); mpfr_init_set_d(v_abs.imag, 0, RND_TYPE);
-//   mpfr_mul(v_abs.real, v.real, v.real, RND_TYPE);
+//   mpfr_init(v_abs->real); mpfr_init_set_d(v_abs->imag, 0, RND_TYPE);
+//   mpfr_mul(v_abs->real, v.real, v.real, RND_TYPE);
 //   mpfr_t tmp; mpfr_init(tmp);
 //   mpfr_mul(tmp, v.imag, v.imag, RND_TYPE);
-//   mpfr_add(v_abs.real, v_abs.real, tmp, RND_TYPE);
+//   mpfr_add(v_abs->real, v_abs->real, tmp, RND_TYPE);
 //   mpfr_clear(tmp);
 //   return v_abs;
 // }
@@ -379,14 +380,19 @@ Cudd_addLeq(
     statLine(dd);
     if (cuddIsConstant(f)) {
 	if (cuddIsConstant(g)) {
-        CUDD_VALUE_TYPE f_abs, g_abs;
-        f_abs = getAbsValue(cuddV(f));
-        g_abs = getAbsValue(cuddV(g));
-        return mpfr_cmp(f_abs.real, g_abs.real) <= 0;
-        mpfr_clear(f_abs.real);
-        mpfr_clear(f_abs.imag);
-        mpfr_clear(g_abs.real);
-        mpfr_clear(g_abs.imag);
+        CUDD_VALUE_TYPE *f_abs, *g_abs;
+        f_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        g_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        mpfr_init(f_abs->real); mpfr_init(f_abs->imag);
+        getAbsValue(cuddV(f), f_abs);
+        mpfr_init(g_abs->real); mpfr_init(g_abs->imag);
+        getAbsValue(cuddV(g), g_abs);
+        return mpfr_cmp(f_abs->real, g_abs->real) <= 0;
+        mpfr_clear(f_abs->real);
+        mpfr_clear(f_abs->imag);
+        mpfr_clear(g_abs->real);
+        mpfr_clear(g_abs->imag);
+        free(f_abs); free(g_abs);
     }
 	if (f == DD_MINUS_INFINITY(dd)) return(1);
 	if (f == DD_PLUS_INFINITY(dd)) return(0); /* since f != g */

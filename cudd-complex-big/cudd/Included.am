@@ -1,5 +1,6 @@
 lib_LTLIBRARIES = cudd/libcudd.la
 cudd_libcudd_la_SOURCES = cudd/cudd.h cudd/cuddInt.h \
+  cudd/cuddAbsVal.h  cudd/cuddAbsVal.c \
   cudd/cuddAddAbs.c cudd/cuddAddApply.c cudd/cuddAddFind.c cudd/cuddAddInv.c \
   cudd/cuddAddIte.c cudd/cuddAddNeg.c cudd/cuddAddWalsh.c cudd/cuddAndAbs.c \
   cudd/cuddAnneal.c cudd/cuddApa.c cudd/cuddAPI.c cudd/cuddApprox.c \

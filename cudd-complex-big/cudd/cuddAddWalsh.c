@@ -176,7 +176,8 @@ Cudd_addResidue(
     for (i = 0; i < m; i++) {
     	CUDD_VALUE_TYPE index;
     	mpfr_init_set_si(index.real, i, RND_TYPE);
-        mpfr_init_set_si(index.imag, 0, RND_TYPE);
+        mpfr_init(index.imag); 
+        mpfr_set_zero(index.imag, RND_TYPE);
         tmp = cuddUniqueConst(dd,(CUDD_VALUE_TYPE) index);
         mpfr_clear(index.real);
         mpfr_clear(index.imag);
@@ -296,7 +297,8 @@ addWalshInt(
     /* Build bottom part of ADD outside loop */
     CUDD_VALUE_TYPE t_val;
     mpfr_init_set_si(t_val.real, -1, RND_TYPE);
-    mpfr_init_set_si(t_val.imag, 0, RND_TYPE);
+    mpfr_init(t_val.imag); 
+    mpfr_set_zero(t_val.imag, RND_TYPE);
     minusone = cuddUniqueConst(dd,(CUDD_VALUE_TYPE) t_val);
     mpfr_clear(t_val.real);
     mpfr_clear(t_val.imag);

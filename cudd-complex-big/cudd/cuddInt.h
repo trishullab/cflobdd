@@ -75,7 +75,7 @@
 #define DD_ONE_VAL		(1.0)
 #define DD_ZERO_VAL		(0.0)
 // TODO: What's a good value for this?
-#define DD_EPSILON		(-50)
+#define DD_EPSILON		(-120)
 
 /* The definitions of +/- infinity in terms of HUGE_VAL work on
 ** the DECstations and on many other combinations of OS/compiler.
@@ -932,34 +932,18 @@ free(x_abs);\
 
 */
 // #define ddEqualVal(x,y,e) (ddAbs((x)-(y))<(e))
-#define ddEqualVal(x,y,e, cmp_val) ({\
-    CUDD_VALUE_TYPE tmp_x, tmp_y;\
-    mpfr_init(tmp_x.real);\
-    mpfr_init(tmp_x.imag);\
-    mpfr_init(tmp_y.real);\
-    mpfr_init(tmp_y.imag);\
-    mpfr_set_d(tmp_x.imag, 0, RND_TYPE);\
-    mpfr_mul(tmp_x.real, x.real, x.real, RND_TYPE);\
+// (a + ib) - (c + id)
+#define ddEqualVal(x,y,e, cmp_val1, cmp_val2) ({\
     mpfr_t tmp1; mpfr_init(tmp1);\
-    mpfr_mul(tmp1, x.imag, x.imag, RND_TYPE);\
-    mpfr_add(tmp_x.real, tmp_x.real, tmp1, RND_TYPE);\
-    mpfr_set_d(tmp_y.imag, 0, RND_TYPE);\
-    mpfr_mul(tmp_y.real, y.real, y.real, RND_TYPE);\
+    mpfr_sub(tmp1, x.real, y.real, RND_TYPE);\
+    mpfr_abs(tmp1, tmp1, RND_TYPE);\
     mpfr_t tmp2; mpfr_init(tmp2);\
-    mpfr_mul(tmp2, y.imag, y.imag, RND_TYPE);\
-    mpfr_add(tmp_y.real, tmp_y.real, tmp2, RND_TYPE);\
-    mpfr_t tmp3;\
-    mpfr_init(tmp3);\
-    mpfr_sub(tmp3, tmp_x.real, tmp_y.real, RND_TYPE);\
-    mpfr_abs(tmp3, tmp3, RND_TYPE);\
-    cmp_val = mpfr_cmp(tmp3, e.real);\
+    mpfr_sub(tmp2, x.imag, y.imag, RND_TYPE);\
+    mpfr_abs(tmp2, tmp2, RND_TYPE);\
+    cmp_val1 = mpfr_cmp(tmp1, e.real);\
+    cmp_val2 = mpfr_cmp(tmp2, e.real);\
     mpfr_clear(tmp1);\
     mpfr_clear(tmp2);\
-    mpfr_clear(tmp3);\
-    mpfr_clear(tmp_x.real);\
-    mpfr_clear(tmp_x.imag);\
-    mpfr_clear(tmp_y.real);\
-    mpfr_clear(tmp_y.imag);\
 })
 
 

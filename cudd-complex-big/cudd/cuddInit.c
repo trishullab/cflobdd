@@ -137,15 +137,18 @@ Cudd_Init(
     /* Initialize constants. */
     CUDD_VALUE_TYPE tmp_one;
     mpfr_init_set_d(tmp_one.real, 1.0, RND_TYPE);
-    mpfr_init_set_d(tmp_one.imag, 0.0, RND_TYPE);
+    mpfr_init(tmp_one.imag); 
+    mpfr_set_zero(tmp_one.imag, RND_TYPE);;
     unique->one = cuddUniqueConst(unique,tmp_one);
     mpfr_clear(tmp_one.real);
     mpfr_clear(tmp_one.imag);
     if (unique->one == NULL) return(0);
     cuddRef(unique->one);
     CUDD_VALUE_TYPE tmp_zero;
-    mpfr_init_set_d(tmp_zero.real, 0.0, RND_TYPE);
-    mpfr_init_set_d(tmp_zero.imag, 0.0, RND_TYPE);
+    mpfr_init(tmp_zero.real); 
+    mpfr_set_zero(tmp_zero.real, RND_TYPE);
+    mpfr_init(tmp_zero.imag); 
+    mpfr_set_zero(tmp_zero.imag, RND_TYPE);
     unique->zero = cuddUniqueConst(unique,tmp_zero);
     mpfr_clear(tmp_zero.real);
     mpfr_clear(tmp_zero.imag);
@@ -160,7 +163,8 @@ Cudd_Init(
 #endif
     CUDD_VALUE_TYPE tmp_plus_inf;
     mpfr_init_set_d(tmp_plus_inf.real, DD_PLUS_INF_VAL, RND_TYPE);
-    mpfr_init_set_d(tmp_plus_inf.imag, 0.0, RND_TYPE);
+    mpfr_init(tmp_plus_inf.imag); 
+    mpfr_set_zero(tmp_plus_inf.imag, RND_TYPE);
     unique->plusinfinity = cuddUniqueConst(unique,tmp_plus_inf);
     mpfr_clear(tmp_plus_inf.real);
     mpfr_clear(tmp_plus_inf.imag);
@@ -168,7 +172,8 @@ Cudd_Init(
     cuddRef(unique->plusinfinity);
     CUDD_VALUE_TYPE tmp_minus_inf;
     mpfr_init_set_d(tmp_minus_inf.real, DD_MINUS_INF_VAL, RND_TYPE);
-    mpfr_init_set_d(tmp_minus_inf.imag, 0.0, RND_TYPE);
+    mpfr_init(tmp_minus_inf.imag); 
+    mpfr_set_zero(tmp_minus_inf.imag, RND_TYPE);
     unique->minusinfinity = cuddUniqueConst(unique,tmp_minus_inf);
     mpfr_clear(tmp_minus_inf.real);
     mpfr_clear(tmp_minus_inf.imag);

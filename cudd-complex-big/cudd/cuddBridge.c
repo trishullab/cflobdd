@@ -281,7 +281,8 @@ Cudd_addBddIthBit(
     
     CUDD_VALUE_TYPE bit_val;
     mpfr_init_set_si(bit_val.real, bit, RND_TYPE);
-    mpfr_init_set_si(bit_val.imag, 0, RND_TYPE);
+    mpfr_init(bit_val.imag); 
+    mpfr_set_zero(bit_val.imag, RND_TYPE);
     index = cuddUniqueConst(dd,(CUDD_VALUE_TYPE) bit_val);
     mpfr_clear(bit_val.real);
     mpfr_clear(bit_val.imag);

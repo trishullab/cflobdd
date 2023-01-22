@@ -292,7 +292,7 @@ Cudd_addRead(
         double inp_val;
 	err = fscanf(fp, "%d %d %lf", &u, &v, &inp_val);
     mpfr_set_d(val.real, inp_val, RND_TYPE);
-    mpfr_set_d(val.imag, 0.0, RND_TYPE);
+    mpfr_set_zero(val.imag, RND_TYPE);
 	if (err == EOF) {
 	    break;
 	} else if (err != 3) {

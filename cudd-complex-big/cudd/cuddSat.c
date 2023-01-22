@@ -777,9 +777,9 @@ Cudd_EqualSupNorm(
     /* Check terminal cases. */
     if (f == g) return(1);
     if (cuddIsConstant(f) && cuddIsConstant(g)) {
-      int cmp_val;
-      ddEqualVal(cuddV(f),cuddV(g),tolerance, cmp_val);
-	if (cmp_val) {
+      int cmp_val1, cmp_val2;
+      ddEqualVal(cuddV(f),cuddV(g),tolerance, cmp_val1, cmp_val2);
+	if (cmp_val1 && cmp_val2) {
 	    return(1);
 	} else {
 	    if (pr>0) {

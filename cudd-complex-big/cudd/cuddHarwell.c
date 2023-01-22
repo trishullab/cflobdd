@@ -439,7 +439,8 @@ Cudd_addHarwell(
 	    /* Create new Constant node if necessary */
 	    CUDD_VALUE_TYPE tmp_val;
 	    mpfr_init_set_d(tmp_val.real, val, RND_TYPE);
-		mpfr_init_set_d(tmp_val.real, 0, RND_TYPE);
+		mpfr_init(tmp_val.imag); 
+      	mpfr_set_zero(tmp_val.imag, RND_TYPE);
 	    cubex = cuddUniqueConst(dd, (CUDD_VALUE_TYPE) tmp_val);
 	    mpfr_clear(tmp_val.real);
 		mpfr_clear(tmp_val.imag);
@@ -526,7 +527,8 @@ Cudd_addHarwell(
 	    if (val == (double) 0.0) continue;
 	    CUDD_VALUE_TYPE tmp_val;
 	    mpfr_init_set_d(tmp_val.real, val, RND_TYPE);
-		mpfr_init_set_d(tmp_val.imag, 0, RND_TYPE);
+		mpfr_init(tmp_val.imag); 
+      	mpfr_set_zero(tmp_val.imag, RND_TYPE);
 	    cubex = cuddUniqueConst(dd, (CUDD_VALUE_TYPE) tmp_val);
 	    mpfr_clear(tmp_val.real);
 		mpfr_clear(tmp_val.imag);

@@ -1287,8 +1287,8 @@ Cudd_MinHammingDist(
     CUDD_VALUE_TYPE tmp_zero;
     mpfr_init(tmp_zero.real);
     mpfr_init(tmp_zero.imag);
-    mpfr_set_zero(tmp_zero.real, 0);
-    mpfr_set_zero(tmp_zero.imag, 0);
+    mpfr_set_zero(tmp_zero.real, RND_TYPE);
+    mpfr_set_zero(tmp_zero.imag, RND_TYPE);
     Cudd_SetEpsilon(dd,(CUDD_VALUE_TYPE)tmp_zero);
     mpfr_clear(tmp_zero.real);
     mpfr_clear(tmp_zero.imag);
@@ -1333,7 +1333,8 @@ Cudd_bddClosestCube(
 	dd->reordered = 0;
   CUDD_VALUE_TYPE value;
   mpfr_init_set_d(value.real, CUDD_CONST_INDEX + 1.0, RND_TYPE);
-  mpfr_init_set_d(value.imag, 0.0, RND_TYPE);
+  mpfr_init(value.imag); 
+    mpfr_set_zero(value.imag, RND_TYPE);
 	res = cuddBddClosestCube(dd,f,g,value);
   mpfr_clear(value.real);
   mpfr_clear(value.imag);
@@ -2094,7 +2095,8 @@ cuddMinHammingDistRecur(
 	cuddSatDec(fanout);
   CUDD_VALUE_TYPE tmp;
   mpfr_init_set_d(tmp.real, h, RND_TYPE);
-  mpfr_init_set_d(tmp.imag, 0.0, RND_TYPE);
+  mpfr_init(tmp.imag); 
+    mpfr_set_zero(tmp.imag, RND_TYPE);
 	res = cuddUniqueConst(dd, (CUDD_VALUE_TYPE) tmp);
   mpfr_clear(tmp.real);
   mpfr_clear(tmp.imag);
@@ -2131,9 +2133,12 @@ separateCube(
     if (Cudd_IsConstantInt(f)) {
       CUDD_VALUE_TYPE value, tmp_zero;
       mpfr_init_set_d(value.real, 1.0 + CUDD_CONST_INDEX, RND_TYPE);
-      mpfr_init_set_d(value.imag, 0.0, RND_TYPE);
-      mpfr_init_set_d(tmp_zero.real, 0.0, RND_TYPE);
-      mpfr_init_set_d(tmp_zero.imag, 0.0, RND_TYPE);
+      mpfr_init(value.imag); 
+      mpfr_set_zero(value.imag, RND_TYPE);
+      mpfr_init(tmp_zero.real); 
+      mpfr_set_zero(tmp_zero.real, RND_TYPE);
+      mpfr_init(tmp_zero.imag); 
+      mpfr_set_zero(tmp_zero.imag, RND_TYPE);
 	*distance = (f == DD_ONE(dd)) ? tmp_zero :
 	    ((CUDD_VALUE_TYPE) value);
       mpfr_clear(tmp_zero.real);
@@ -2147,8 +2152,8 @@ separateCube(
     ** node with one pointing to zero instead. */
     t = cuddT(f);
     CUDD_VALUE_TYPE *t_abs;
-    mpfr_init(t_abs->real); mpfr_init(t_abs->imag);
     t_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+    mpfr_init(t_abs->real); mpfr_init(t_abs->imag);
     getAbsValue(cuddV(t), t_abs);
     if (Cudd_IsConstantInt(t) && (mpfr_cmp_si(t_abs->real, 0) <= 0)) {
 #ifdef DD_DEBUG

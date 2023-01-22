@@ -364,7 +364,8 @@ cuddInitTable(
     sentinel->next = NULL;
     // unique->epsilon = DD_EPSILON;
     mpfr_init_set_d(unique->epsilon.real, DD_EPSILON, RND_TYPE);
-	mpfr_init_set_d(unique->epsilon.imag, 0.0, RND_TYPE);
+	mpfr_init(unique->epsilon.imag); 
+    mpfr_set_zero(unique->epsilon.imag, RND_TYPE);
     mpfr_exp10(unique->epsilon.real, unique->epsilon.real, RND_TYPE);
     unique->size = numVars;
     unique->sizeZ = numVarsZ;
@@ -1586,8 +1587,8 @@ cuddUniqueConst(
 	mpfr_sqrt(val_abs->real, val_abs->real, RND_TYPE);
     if (mpfr_cmpabs(val_abs->real, unique->epsilon.real) < 0) {
 	// value = 0.0;
-    	mpfr_set_d(value.real, 0.0, RND_TYPE);
-		mpfr_set_d(value.imag, 0.0, RND_TYPE);
+    	mpfr_set_zero(value.real, RND_TYPE);
+		mpfr_set_zero(value.imag, RND_TYPE);
     }
 	mpfr_clear(val_abs->real);
 	mpfr_clear(val_abs->imag);
@@ -1605,31 +1606,19 @@ cuddUniqueConst(
      * every X.
      */
     while (looking != NULL) {
-    	int cmp_val;
-    	ddEqualVal(looking->type.value,value,unique->epsilon, cmp_val);
-		CUDD_VALUE_TYPE *a_abs, *b_abs;
-		a_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
-		b_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
-		mpfr_init(a_abs->real); mpfr_init(a_abs->imag);
-		mpfr_init(b_abs->real); mpfr_init(b_abs->imag);
-		getAbsValue(looking->type.value, a_abs);
-		getAbsValue(value, b_abs);
-	if ((mpfr_cmp(a_abs->real, b_abs->real) == 0) ||
-	 cmp_val < 0) {
-		// mpfr_printf("here: %.16Rf %.16Rf %.16Rf\n", value.t_val, looking->type.value.t_val, unique->epsilon.t_val);
+    	int cmp_val1, cmp_val2;
+    	ddEqualVal(looking->type.value,value,unique->epsilon, cmp_val1, cmp_val2);
+	if (((mpfr_cmp(looking->type.value.real, value.real) == 0) && ((mpfr_cmp(looking->type.value.imag, value.imag) == 0))) ||
+	 (cmp_val1 < 0 && cmp_val2 < 0)) {
 	    if (looking->ref == 0) {
 		cuddReclaim(unique,looking);
 	    }
-		mpfr_clear(a_abs->real); mpfr_clear(a_abs->imag);
-		mpfr_clear(b_abs->real); mpfr_clear(b_abs->imag);
 	    return(looking);
 	}
 	looking = looking->next;
 #ifdef DD_UNIQUE_PROFILE
 	unique->uniqueLinks++;
 #endif
-		mpfr_clear(a_abs->real); mpfr_clear(a_abs->imag);
-		mpfr_clear(b_abs->real); mpfr_clear(b_abs->imag);
     }
 
     unique->keys++;

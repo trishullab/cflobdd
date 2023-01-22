@@ -424,7 +424,8 @@ addMMRecur(
 	    cuddRef(res);
         CUDD_VALUE_TYPE tmp_scale;
         mpfr_init_set_d(tmp_scale.real, scale, RND_TYPE);
-        mpfr_init_set_d(tmp_scale.imag, 0.0, RND_TYPE);
+        mpfr_init(tmp_scale.imag); 
+        mpfr_set_zero(tmp_scale.imag, RND_TYPE);
 	    add_scale = cuddUniqueConst(dd,(CUDD_VALUE_TYPE)tmp_scale);
         mpfr_clear(tmp_scale.real);
         mpfr_clear(tmp_scale.imag);
@@ -536,7 +537,8 @@ addMMRecur(
 	if (scale > 1.0) {
         CUDD_VALUE_TYPE tmp_scale;
         mpfr_init_set_d(tmp_scale.real, scale, RND_TYPE);
-        mpfr_init_set_d(tmp_scale.imag, 0.0, RND_TYPE);
+        mpfr_init(tmp_scale.imag); 
+        mpfr_set_zero(tmp_scale.imag, RND_TYPE);
 	    add_scale = cuddUniqueConst(dd,(CUDD_VALUE_TYPE)tmp_scale);
         mpfr_clear(tmp_scale.real);
         mpfr_clear(tmp_scale.imag);

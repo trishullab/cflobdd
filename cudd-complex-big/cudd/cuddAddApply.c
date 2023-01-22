@@ -109,8 +109,6 @@ Cudd_addApply(
 
     do {
     	dd->reordered = 0;
-      // printf("apply %g %g\n", Cudd_V(f), Cudd_V(g));
-      // mpfr_printf("%.16Rf\n", Cudd_V(f).t_val);
         res = cuddAddApplyRecur(dd,op,f,g);
   } while (dd->reordered == 1);
     if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
@@ -247,9 +245,9 @@ Cudd_addSimonsRemoveMinusOne(
       CUDD_VALUE_TYPE value;
       mpfr_init(value.real);
       mpfr_init(value.imag);
-      mpfr_set_si(value.imag, 0, RND_TYPE); 
+      mpfr_set_zero(value.imag, RND_TYPE); 
       if (mpfr_cmp_si(cuddV(f).real, -1) == 0){
-        mpfr_set_si(value.real, 0, RND_TYPE); 
+        mpfr_set_zero(value.real, RND_TYPE); 
       }else{
         mpfr_set(value.real, cuddV(f).real, RND_TYPE);
       }
@@ -275,12 +273,12 @@ Cudd_addSimonsRemoveOne(
       CUDD_VALUE_TYPE value;
       mpfr_init(value.real);
       mpfr_init(value.imag);
-      mpfr_set_si(value.imag, 0, RND_TYPE); 
+      mpfr_set_zero(value.imag, RND_TYPE); 
       if (mpfr_cmp_si(cuddV(f).real, -1) == 0){
         mpfr_set_si(value.real, 1, RND_TYPE); 
       }
       else if (mpfr_cmp_si(cuddV(f).real, 1) == 0){
-        mpfr_set_si(value.real, 0, RND_TYPE); 
+        mpfr_set_zero(value.real, RND_TYPE); 
       }
       else{
         mpfr_set(value.real, cuddV(f).real, RND_TYPE);
@@ -305,13 +303,13 @@ Cudd_addSquareTerminalValues(
     if (cuddIsConstant(f)) {
       CUDD_VALUE_TYPE value;
       mpfr_init_set(value.real, cuddV(f).real, RND_TYPE);
-      mpfr_init_set_si(value.imag, 0, RND_TYPE); 
+      mpfr_init(value.imag); 
+      mpfr_set_zero(value.imag, RND_TYPE);
       mpfr_t tmp;
       mpfr_init_set(tmp, cuddV(f).imag, RND_TYPE);
       mpfr_mul(value.real, value.real, value.real, RND_TYPE);
       mpfr_mul(tmp, tmp, tmp, RND_TYPE);
       mpfr_add(value.real, value.real, tmp, RND_TYPE);
-      mpfr_printf("%.128Rf, %.128Rf\n", cuddV(f).real, value.real);
       DdNode *res = cuddUniqueConst(dd,value);
       mpfr_clear(value.real);
       mpfr_clear(value.imag);
@@ -1054,9 +1052,6 @@ cuddAddApplyRecur(
     } else {
 	gv = gvn = g;
     }
-    // printf("T\n");
-    // mpfr_printf("%.16Rf %.16Rf\n", Cudd_V(fv).t_val, Cudd_V(gv).t_val);
-    // mpfr_printf("%g %g\n", Cudd_V(f), Cudd_V(g));
     T = cuddAddApplyRecur(dd,op,fv,gv);
     if (T == NULL) return(NULL);
     cuddRef(T);
@@ -1193,13 +1188,16 @@ cuddAddPathCountsRecur(
     if (cuddIsConstant(f)){
       path_info* p = (path_info *)malloc(sizeof(path_info));
       mpfr_init_set(p->weight.real, cuddV(f).real, RND_TYPE);
-      mpfr_init_set_d(p->weight.imag, 0.0, RND_TYPE);
+      mpfr_init(p->weight.imag); 
+      mpfr_set_zero(p->weight.imag, RND_TYPE);
       mpfr_init_set_si(p->path_count, 1, RND_TYPE);
       p->index = 0;
       p->l_index = -1;
       p->r_index = -1;
-      mpfr_init_set_si(p->l_path_count, 0, RND_TYPE);
-      mpfr_init_set_si(p->r_path_count, 0, RND_TYPE);
+      mpfr_init(p->l_path_count); 
+      mpfr_set_zero(p->l_path_count, RND_TYPE);
+      mpfr_init(p->r_path_count); 
+      mpfr_set_zero(p->r_path_count, RND_TYPE);
 
       total_path_info* ps = (total_path_info *)malloc(sizeof(total_path_info));
       ps->info = p;
@@ -1207,7 +1205,8 @@ cuddAddPathCountsRecur(
 
       CUDD_VALUE_TYPE value;
       mpfr_init_set(value.real, cuddV(f).real, RND_TYPE);
-      mpfr_init_set_d(value.imag, 0.0, RND_TYPE);
+      mpfr_init(value.imag); 
+      mpfr_set_zero(value.imag, RND_TYPE);
       DdNode *res = cuddUniqueConst(dd,value);
       res->numPaths = ps;
       mpfr_clear(value.real);
@@ -1276,7 +1275,8 @@ cuddAddPathCountsRecur(
 
         path_info p;
         mpfr_init_set(p.weight.real, t_p[t_i].weight.real, RND_TYPE);
-        mpfr_init_set_d(p.weight.imag, 0.0, RND_TYPE);
+        mpfr_init(p.weight.imag); 
+        mpfr_set_zero(p.weight.imag, RND_TYPE);
         mpfr_init_set(p.path_count, t_p[t_i].path_count, RND_TYPE);
         mpfr_mul(p.path_count, p.path_count, left_mul, RND_TYPE);
         mpfr_t tmp;
@@ -1298,7 +1298,8 @@ cuddAddPathCountsRecur(
       } else if (cmp < 0){
         path_info p;
         mpfr_init_set(p.weight.real, t_p[t_i].weight.real, RND_TYPE);
-        mpfr_init_set_d(p.weight.imag, 0.0, RND_TYPE);
+        mpfr_init(p.weight.imag); 
+        mpfr_set_zero(p.weight.imag, RND_TYPE);
         mpfr_init_set(p.path_count, t_p[t_i].path_count, RND_TYPE);
         mpfr_mul(p.path_count, p.path_count, left_mul, RND_TYPE);
         p.index = size;
@@ -1306,20 +1307,23 @@ cuddAddPathCountsRecur(
         p.r_index = -1;
         mpfr_init_set(p.l_path_count, t_p[t_i].path_count, RND_TYPE);
         mpfr_mul(p.l_path_count, p.l_path_count, left_mul, RND_TYPE);
-        mpfr_init_set_si(p.r_path_count, 0, RND_TYPE);
+        mpfr_init(p.r_path_count); 
+        mpfr_set_zero(p.r_path_count, RND_TYPE);
 
         curr_node_path_info[size] = p;        
         t_i++;
       } else{
         path_info p;
         mpfr_init_set(p.weight.real, e_p[e_i].weight.real, RND_TYPE);
-        mpfr_init_set_d(p.weight.imag, 0.0, RND_TYPE);
+        mpfr_init(p.weight.imag); 
+        mpfr_set_zero(p.weight.imag, RND_TYPE);
         mpfr_init_set(p.path_count, e_p[e_i].path_count, RND_TYPE);
         mpfr_mul(p.path_count, p.path_count, right_mul, RND_TYPE);
         p.index = size;
         p.l_index = -1;
         p.r_index = e_p[e_i].index;
-        mpfr_init_set_si(p.l_path_count, 0, RND_TYPE);
+        mpfr_init(p.l_path_count); 
+        mpfr_set_zero(p.l_path_count, RND_TYPE);
         mpfr_init_set(p.r_path_count, e_p[e_i].path_count, RND_TYPE);
         mpfr_mul(p.r_path_count, p.r_path_count, right_mul, RND_TYPE);
 
@@ -1332,7 +1336,8 @@ cuddAddPathCountsRecur(
     while (t_i < t_ps->size){
       path_info p;
         mpfr_init_set(p.weight.real, t_p[t_i].weight.real, RND_TYPE);
-        mpfr_init_set_d(p.weight.imag, 0.0, RND_TYPE);
+        mpfr_init(p.weight.imag); 
+        mpfr_set_zero(p.weight.imag, RND_TYPE);
         mpfr_init_set(p.path_count, t_p[t_i].path_count, RND_TYPE);
         mpfr_mul(p.path_count, p.path_count, left_mul, RND_TYPE);
         p.index = size;
@@ -1340,7 +1345,8 @@ cuddAddPathCountsRecur(
         p.r_index = -1;
         mpfr_init_set(p.l_path_count, t_p[t_i].path_count, RND_TYPE);
         mpfr_mul(p.l_path_count, p.l_path_count, left_mul, RND_TYPE);
-        mpfr_init_set_si(p.r_path_count, 0, RND_TYPE);
+        mpfr_init(p.r_path_count); 
+        mpfr_set_zero(p.r_path_count, RND_TYPE);
 
         curr_node_path_info[size] = p;             
         t_i++;
@@ -1350,13 +1356,15 @@ cuddAddPathCountsRecur(
     while (e_i < e_ps->size){
       path_info p;
         mpfr_init_set(p.weight.real, e_p[e_i].weight.real, RND_TYPE);
-        mpfr_init_set_d(p.weight.imag, 0.0, RND_TYPE);
+        mpfr_init(p.weight.imag); 
+        mpfr_set_zero(p.weight.imag, RND_TYPE);
         mpfr_init_set(p.path_count, e_p[e_i].path_count, RND_TYPE);
         mpfr_mul(p.path_count, p.path_count, right_mul, RND_TYPE);
         p.index = size;
         p.l_index = -1;
         p.r_index = e_p[e_i].index;
-        mpfr_init_set_si(p.l_path_count, 0, RND_TYPE);
+        mpfr_init(p.l_path_count); 
+        mpfr_set_zero(p.l_path_count, RND_TYPE);
         mpfr_init_set(p.r_path_count, e_p[e_i].path_count, RND_TYPE);
         mpfr_mul(p.r_path_count, p.r_path_count, right_mul, RND_TYPE);
 

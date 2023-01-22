@@ -882,8 +882,10 @@ Cudd_CountMinterm(
     /* Temporarily set epsilon to 0 to avoid rounding errors. */
     epsilon = Cudd_ReadEpsilon(manager);
     CUDD_VALUE_TYPE tmp_zero;
-    mpfr_init_set_d(tmp_zero.real, 0.0, RND_TYPE);
-    mpfr_init_set_d(tmp_zero.imag, 0.0, RND_TYPE);
+    mpfr_init(tmp_zero.real);
+    mpfr_set_zero(tmp_zero.real, RND_TYPE);
+    mpfr_init(tmp_zero.imag);
+    mpfr_set_zero(tmp_zero.imag, RND_TYPE);
     Cudd_SetEpsilon(manager,(CUDD_VALUE_TYPE)tmp_zero);
     mpfr_clear(tmp_zero.real);
     mpfr_clear(tmp_zero.imag);
@@ -3828,7 +3830,8 @@ ddCountMintermAux(
 	cuddSatDec(fanout);
     CUDD_VALUE_TYPE min_val;
     mpfr_init_set_d(min_val.real, min, RND_TYPE);
-    mpfr_init_set_d(min_val.imag, 0.0, RND_TYPE);
+    mpfr_init(min_val.imag); 
+      mpfr_set_zero(min_val.imag, RND_TYPE);
 	res = cuddUniqueConst(table->manager,min_val);
     mpfr_clear(min_val.real);
     mpfr_clear(min_val.imag);

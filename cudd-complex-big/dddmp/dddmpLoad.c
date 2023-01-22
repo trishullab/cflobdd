@@ -925,7 +925,8 @@ DddmpCuddDdArrayLoad (
               addConstant = atof(buf);
               CUDD_VALUE_TYPE addConstant_val;
               mpfr_init_set_d(addConstant_val.real, addConstant, RND_TYPE);
-              mpfr_init_set_d(addConstant_val.imag, 0.0, RND_TYPE);
+              mpfr_init(addConstant_val.imag); 
+              mpfr_set_zero(addConstant_val.imag, RND_TYPE);
               pnodes[i] = Cudd_addConst (ddMgr,
                 (CUDD_VALUE_TYPE) addConstant_val);
               mpfr_clear(addConstant_val.real);

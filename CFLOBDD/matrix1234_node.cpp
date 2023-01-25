@@ -2040,7 +2040,7 @@ namespace CFL_OBDD {
 		if (level == 1)
 		{
 			// std::cout << "CaseBase" << std::endl;
-			if (case_num == -1 && controller == 0 && index1 == -1 && index2 == -1)
+			if (controller == 0 && index1 == -1 && index2 == -1)
 			{
 				CFLOBDDReturnMapHandle m01, m12;
 				m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();

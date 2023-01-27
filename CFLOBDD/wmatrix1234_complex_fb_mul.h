@@ -15,13 +15,13 @@ namespace CFL_OBDD {
 	typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
     // typedef double BIG_COMPLEX_FLOAT;
 	typedef WEIGHTED_CFLOBDD_T<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL;
-
+	// cflobdd_kind = 1 -> CFLOBDD, 0 -> BDD
 	namespace WeightedMatrix1234ComplexFloatBoostMul {
 		// Initialization routine
 		extern void Matrix1234Initializer();
 
-		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkIdRelationInterleaved(unsigned int i); // Representation of identity relation
-		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkWalshInterleaved(unsigned int i);              // Representation of Walsh matrix
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkIdRelationInterleaved(unsigned int i, int cflobdd_kind = 1); // Representation of identity relation
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkWalshInterleaved(unsigned int i, int cflobdd_kind = 1);              // Representation of Walsh matrix
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkNegationMatrixInterleaved(unsigned int i);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOTInterleaved(unsigned int i);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkExchangeInterleaved(unsigned int i); // Representation of exchange matrix

@@ -19,7 +19,7 @@ namespace CFL_OBDD {
     std::tuple<BIG_FLOAT, BIG_FLOAT, BIG_FLOAT> computeInverseValue<BIG_FLOAT, std::multiplies<BIG_FLOAT>>(BIG_FLOAT lw, BIG_FLOAT rw)
     {
         if (lw == 0.0)
-            return std::make_tuple(rw, 0.0, 1.0);
+            return std::make_tuple(rw, 0.0, (rw == 0.0) ? 0.0 : 1.0);
         if (rw == 0.0)
             return std::make_tuple(lw, 1.0, 0.0);
         return std::make_tuple(lw, 1.0, rw/lw);
@@ -54,7 +54,7 @@ namespace CFL_OBDD {
     std::tuple<BIG_COMPLEX_FLOAT, BIG_COMPLEX_FLOAT, BIG_COMPLEX_FLOAT> computeInverseValue<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>(BIG_COMPLEX_FLOAT lw, BIG_COMPLEX_FLOAT rw)
     {
         if (lw == 0.0)
-            return std::make_tuple(rw, 0.0, 1.0);
+            return std::make_tuple(rw, 0.0, (rw == 0.0) ? 0.0 : 1.0);
         if (rw == 0.0)
             return std::make_tuple(lw, 1.0, 0.0);
         return std::make_tuple(lw, 1.0, rw/lw);
@@ -89,7 +89,7 @@ namespace CFL_OBDD {
     std::tuple<fourierSemiring, fourierSemiring, fourierSemiring> computeInverseValue<fourierSemiring, std::multiplies<fourierSemiring>>(fourierSemiring lw, fourierSemiring rw)
     {
         if (lw == fourierSemiring(0, 1))
-            return std::make_tuple(rw, fourierSemiring(0, 1), fourierSemiring(1, 1)); 
+            return std::make_tuple(rw, fourierSemiring(0, 1), (rw == fourierSemiring(0, 1)) ? fourierSemiring(0, 1) : fourierSemiring(1, 1)); 
         if (rw == fourierSemiring(0, 1))
             return std::make_tuple(lw, fourierSemiring(1, 1), fourierSemiring(0, 1));
         return std::make_tuple(lw, fourierSemiring(1, 1), rw/lw);

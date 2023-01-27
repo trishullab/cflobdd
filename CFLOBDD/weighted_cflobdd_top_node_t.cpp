@@ -3,6 +3,7 @@
 #include "ref_ptr.h"
 #include "weighted_values_list.h"
 #include "weighted_cross_product.h"
+#include "weighted_cross_product_bdd.h"
 
 
 namespace CFL_OBDD {
@@ -402,6 +403,43 @@ namespace CFL_OBDD {
                 bool flag // False - Plus, True - Times
                 )
     {
+        if (n1->rootConnection.entryPointHandle->handleContents->NodeKind() == W_BDD_TOPNODE)
+        {
+            WeightedBDDTopNode<T,Op>* n1h = (WeightedBDDTopNode<T,Op> *) n1->rootConnection.entryPointHandle->handleContents;
+            WeightedBDDTopNode<T,Op>* n2h = (WeightedBDDTopNode<T,Op> *) n2->rootConnection.entryPointHandle->handleContents;
+            WeightedBDDTopNode<T,Op>* g = new WeightedBDDTopNode<T,Op>(n1h->numberOfVars);
+            if (flag)
+            {
+                WeightedBDDPairProductMapHandle<T> pairProductMapHandle;
+                auto ans = BDDPairProduct<T,Op>(n1h->bddContents, 
+                            n2h->bddContents, 
+                            n1h->numberOfVars,
+                            pairProductMapHandle,
+                            func);
+                g->bddContents = ans;
+                std::vector<T> v_ret = pairProductMapHandle.mapContents->mapArray;
+                ReturnMapHandle<T> ret_ans;
+                for (auto i : v_ret)
+                    ret_ans.AddToEnd(i);
+                return new WeightedCFLOBDDTopNodeT<T,Op>(g, ret_ans, pairProductMapHandle.mapContents->factor);
+            }
+            else {
+                WeightedBDDPairProductMapHandle<T> pairProductMapHandle;
+                auto ans = BDDPairProduct2<T,Op>(n1h->bddContents, 
+                            n2h->bddContents, 
+                            n1h->numberOfVars, 
+                            n1->rootConnection.factor,
+                            n2->rootConnection.factor,
+                            pairProductMapHandle,
+                            func);
+                g->bddContents = ans;
+                std::vector<T> v_ret = pairProductMapHandle.mapContents->mapArray;
+                ReturnMapHandle<T> ret_ans;
+                for (auto i : v_ret)
+                    ret_ans.AddToEnd(i);
+                return new WeightedCFLOBDDTopNodeT<T,Op>(g, ret_ans, pairProductMapHandle.mapContents->factor); 
+            }
+        }
         // Perform 2-way cross product of n1 and n2
         WeightedPairProductMapHandle<T> MapHandle;
         WeightedCFLOBDDNodeHandleT<T,Op> n;

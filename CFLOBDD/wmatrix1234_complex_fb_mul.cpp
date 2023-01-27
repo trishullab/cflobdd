@@ -22,10 +22,10 @@ namespace CFL_OBDD {
 		}
 
 		// Create representation of identity relation
-		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkIdRelationInterleaved(unsigned int i)
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkIdRelationInterleaved(unsigned int i, int cflobdd_kind)
 		{
 			// TODO: Check for error - "CodeConvert"
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr tmp = MkIdRelationInterleavedTop(i);
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr tmp = MkIdRelationInterleavedTop(i, cflobdd_kind);
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(tmp);
 		}
 
@@ -38,9 +38,9 @@ namespace CFL_OBDD {
 		// [i.e., a matrix of size 2**(2**(i-1))) x 2**(2**(i-1)))]
 		// with interleaved indexing of components: that is, input
 		// (x0,y0,x1,y1,...,xN,yN) yields W[(x0,x1,...,xN)][(y0,y1,...,yN)]
-		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkWalshInterleaved(unsigned int i)
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkWalshInterleaved(unsigned int i, int cflobdd_kind)
 		{
-			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkWalshInterleavedTop(i));
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkWalshInterleavedTop(i, cflobdd_kind));
 		}
 
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOTInterleaved(unsigned int i)

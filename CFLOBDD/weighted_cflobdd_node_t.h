@@ -21,6 +21,8 @@ template <typename, typename>
 class WeightedCFLOBDDDontCareNode;   //  : public CFLOBDDLeafNode
 template <typename, typename>
 class WeightedCFLOBDDNodeHandleT;
+template <typename, typename>
+class WeightedBDDTopNode;
 }
 
 #include <iostream>
@@ -52,6 +54,7 @@ namespace CFL_OBDD {
 #include "hashset.h"
 #include "ref_ptr.h"
 #include "weighted_values_list.h"
+#include "weighted_bdd_node_t.h"
 
 
 
@@ -196,7 +199,7 @@ namespace CFL_OBDD {
 namespace CFL_OBDD {
 
 // TODO: Change this during integration
-enum WCFLOBDD_NODEKIND { W_CFLOBDD_INTERNAL, W_CFLOBDD_FORK, W_CFLOBDD_DONTCARE };
+enum WCFLOBDD_NODEKIND { W_CFLOBDD_INTERNAL, W_CFLOBDD_FORK, W_CFLOBDD_DONTCARE, W_BDD_TOPNODE };
 
 template <typename T, typename Op>
 class WeightedCFLOBDDNode {
@@ -395,6 +398,34 @@ class WeightedCFLOBDDDontCareNode : public WeightedCFLOBDDLeafNode<T,Op> {
  private:
   WeightedCFLOBDDDontCareNode(const WeightedCFLOBDDDontCareNode &n);   // Copy constructor (hidden)
   WeightedCFLOBDDDontCareNode& operator= (const WeightedCFLOBDDDontCareNode &n); // Overloaded = (hidden)
+};
+
+template <typename T, typename Op>
+class WeightedBDDTopNode : public WeightedCFLOBDDNode<T,Op> {
+  public:
+    WeightedBDDTopNode(unsigned int numberOfVars);
+    ~WeightedBDDTopNode();
+    WCFLOBDD_NODEKIND NodeKind() const { return W_BDD_TOPNODE; }
+    bool operator!= (const WeightedCFLOBDDNode<T,Op> &n);
+    bool operator== (const WeightedCFLOBDDNode<T,Op> &n);
+    unsigned int Hash(unsigned int modsize);
+    void IncrRef();
+    void DecrRef();
+    WeightedBDDNodeHandle<T, Op> bddContents;
+    unsigned int numberOfVars;
+
+    void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
+    int Traverse(SH_OBDD::AssignmentIterator &ai);
+    std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, WeightedValuesListHandle<T>& valList, bool forceReduce = false);
+    void DumpConnections(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visited, std::ostream & out = std::cout);
+    void CountNodesAndEdges(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
+	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount);
+    void CountNodes(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes, unsigned int &nodeCount);
+    void CountPaths(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes);
+    void ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes);
+    
+    public:
+      std::ostream& print(std::ostream &out = std::cout) const;
 };
 
  } // namespace CFL_OBDD

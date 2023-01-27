@@ -21,13 +21,13 @@ namespace CFL_OBDD {
 		// Create representation of identity relation (with interleaved variable order).
 		// That is, input (x0,y0,x1,y1,...,xN,yN) yield Id[(x0,x1,...,xN)][(y0,y1,...,yN)]
 		// which equals 1 iff xi == yi, for 0 <= i <= N.
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkIdRelationInterleavedTop(unsigned int i)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkIdRelationInterleavedTop(unsigned int i, int cflobdd_kind)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m10;
 
-			tempHandle = MkIdRelationInterleavedNode(i);
+			tempHandle = MkIdRelationInterleavedNode(i, cflobdd_kind);
 			m10.AddToEnd(1);
 			m10.AddToEnd(0);
 			m10.Canonicalize();
@@ -81,13 +81,13 @@ namespace CFL_OBDD {
 		// [i.e., a matrix of size 2**(2**(i-1))) x 2**(2**(i-1)))]
 		// with interleaved indexing of components: that is, input
 		// (x0,y0,x1,y1,...,xN,yN) yields W[(x0,x1,...,xN)][(y0,y1,...,yN)]
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkWalshInterleavedTop(unsigned int i)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkWalshInterleavedTop(unsigned int i, int cflobdd_kind)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m;
 
-			tempHandle = MkWalshInterleavedNode(i);
+			tempHandle = MkWalshInterleavedNode(i, cflobdd_kind);
 			// auto val = boost::multiprecision::pow(BIG_COMPLEX_FLOAT(sqrt(2)), i).convert_to<BIG_COMPLEX_FLOAT>();
 			m.AddToEnd(1);
 			m.Canonicalize();
@@ -100,10 +100,17 @@ namespace CFL_OBDD {
             unsigned int level = m1->rootConnection.entryPointHandle->handleContents->level;
             if (m1->rootConnection.factor == 0 || m2->rootConnection.factor == 0)
             {
-                ComplexFloatBoostReturnMapHandle m;
+				ComplexFloatBoostReturnMapHandle m;
                 m.AddToEnd(0);
                 m.Canonicalize();
-                return new WeightedCFLOBDDTopNodeComplexFloatBoost(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level + 1], m);
+				if (m1->rootConnection.entryPointHandle->handleContents->NodeKind() != W_BDD_TOPNODE){
+     	           return new WeightedCFLOBDDTopNodeComplexFloatBoost(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level + 1], m, 0);
+				}
+				else
+				{
+					auto tmp = KroneckerProduct2VocsNode(*(m1->rootConnection.entryPointHandle), *(m2->rootConnection.entryPointHandle), 0, 0);
+					return new WeightedCFLOBDDTopNodeComplexFloatBoost(tmp, m, 0);
+				}
             }
             int zero_index_m1 = m1->rootConnection.returnMapHandle.LookupInv(0);
             int zero_index_m2 = m2->rootConnection.returnMapHandle.LookupInv(0);
@@ -250,6 +257,18 @@ namespace CFL_OBDD {
             zero_exit_1 = c1->rootConnection.returnMapHandle.LookupInv(0);
             zero_exit_2 = c2->rootConnection.returnMapHandle.LookupInv(0);
 			auto c = MatrixMultiplyV4Node(*(c1->rootConnection.entryPointHandle), *(c2->rootConnection.entryPointHandle), zero_exit_1, zero_exit_2);
+
+			if (c1->rootConnection.entryPointHandle->handleContents->NodeKind() == W_BDD_TOPNODE)
+			{
+				ComplexFloatBoostReturnMapHandle v_t;
+				auto ret_v = std::get<1>(c)[0];
+				for (auto it = ret_v.mapContents->map.begin(); it != ret_v.mapContents->map.end(); it++)
+					v_t.AddToEnd(it->second);
+				v_t.Canonicalize();
+				return new WeightedCFLOBDDTopNodeComplexFloatBoost(std::get<0>(c), v_t, std::get<2>(c) * c1->rootConnection.factor * c2->rootConnection.factor);
+			}
+
+
 			ComplexFloatBoostReturnMapHandle v;
 			boost::unordered_map<BIG_COMPLEX_FLOAT, unsigned int> reductionMap;
 			ReductionMapHandle reductionMapHandle;

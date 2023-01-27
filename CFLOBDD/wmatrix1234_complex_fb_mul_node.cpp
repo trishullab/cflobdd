@@ -14,6 +14,7 @@
 #include "weighted_cross_product.h"
 #include "return_map_T.h"
 #include "weighted_matmult_map.h"
+#include "wmatrix1234_complex_fb_mul_bdd_node.h"
 
 namespace CFL_OBDD {
 
@@ -50,8 +51,16 @@ namespace CFL_OBDD {
             return;
         }
 
-        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkIdRelationInterleavedNode(unsigned int level)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkIdRelationInterleavedNode(unsigned int level, int cflobdd_kind)
         {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkIdRelationInterleavedNode(bn->numberOfVars);
+                bn->numberOfVars = level;
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            }
+
             WeightedCFLOBDDComplexFloatBoostInternalNode *n;
 
             if (level == 0) {
@@ -88,9 +97,16 @@ namespace CFL_OBDD {
         } // MkIdRelationInterleavedNode
     
 
-        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkWalshInterleavedNode(unsigned int i)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkWalshInterleavedNode(unsigned int i, int cflobdd_kind)
         {
             assert(i >= 1);
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(i);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkWalshInterleavedNode(bn->numberOfVars);
+                bn->numberOfVars = i;
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            }
             WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(i);
             if (i == 1) {  // Base case
 
@@ -111,7 +127,7 @@ namespace CFL_OBDD {
                 n->BConnection[1] = Connection(b1, m0);
             }
             else {
-                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkWalshInterleavedNode(i - 1);
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkWalshInterleavedNode(i - 1, cflobdd_kind);
                 CFLOBDDReturnMapHandle m0;
                 m0.AddToEnd(0);
                 m0.Canonicalize();
@@ -131,6 +147,15 @@ namespace CFL_OBDD {
         WeightedCFLOBDDComplexFloatBoostMulNodeHandle KroneckerProduct2VocsNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle m1, WeightedCFLOBDDComplexFloatBoostMulNodeHandle m2, 
             int zero_index_m1, int zero_index_m2)
         {
+            if (m1.handleContents->NodeKind() == W_BDD_TOPNODE)
+            {
+                WeightedBDDComplexFloatBoostTopNode* c1 = (WeightedBDDComplexFloatBoostTopNode *)m1.handleContents;
+                WeightedBDDComplexFloatBoostTopNode* c2 = (WeightedBDDComplexFloatBoostTopNode *)m2.handleContents;
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(c1->numberOfVars + c2->numberOfVars);
+                std::unordered_map<WeightedMatrix1234BDDComplexFloatBoostMul::WeightedBDDComplexFloatBoostMulNodeHandle, WeightedMatrix1234BDDComplexFloatBoostMul::WeightedBDDComplexFloatBoostMulNodeHandle, WeightedMatrix1234BDDComplexFloatBoostMul::WeightedBDDComplexFloatBoostMulNodeHandle::WeightedBDDNodeHandle_Hash> hashMap;
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::KroneckerProduct2VocsNode(hashMap, c1->bddContents, c2->bddContents, c1->numberOfVars);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn); 
+            }
             int level = m1.handleContents->level;
             WeightedCFLOBDDComplexFloatBoostInternalNode* n = new WeightedCFLOBDDComplexFloatBoostInternalNode(level + 1);
             CFLOBDDReturnMapHandle m;
@@ -298,6 +323,27 @@ namespace CFL_OBDD {
         MatMultReturnT
 		MatrixMultiplyV4Node(WeightedCFLOBDDComplexFloatBoostMulNodeHandle c1, WeightedCFLOBDDComplexFloatBoostMulNodeHandle c2, int zero_exit_1, int zero_exit_2)
         {
+            if (c1.handleContents->NodeKind() == W_BDD_TOPNODE)
+            {
+                WeightedBDDComplexFloatBoostTopNode* m1 = (WeightedBDDComplexFloatBoostTopNode *)c1.handleContents;
+                WeightedBDDComplexFloatBoostTopNode* m2 = (WeightedBDDComplexFloatBoostTopNode *)c2.handleContents;
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(m1->numberOfVars);
+                auto tmp = WeightedMatrix1234BDDComplexFloatBoostMul::MatrixMultiplyV4Node(m1->bddContents, m2->bddContents, m1->numberOfVars);
+                bn->bddContents = std::get<0>(tmp);
+                CFLOBDDMatMultMapHandle mt;
+                WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT> m_tmp;
+                BIG_COMPLEX_FLOAT zero_0 = 0, one_1 = 1;
+                for (auto i : std::get<1>(tmp)){
+                    if (i == 0)
+                        m_tmp.Add(std::make_pair(0, 0), zero_0);
+                    else
+                        m_tmp.Add(std::make_pair(1, 1), one_1);
+                }
+                m_tmp.Canonicalize();
+                mt.AddToEnd(m_tmp);
+                mt.Canonicalize();
+                return std::make_tuple(WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn), mt, std::get<2>(tmp));
+            }
             auto mmp = WeightedMatMultPair(c1, c2);
             if (matmult_hash.find(mmp) != matmult_hash.end())
                 return matmult_hash[mmp];

@@ -82,6 +82,10 @@ namespace CFL_OBDD {
         int c, CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr g);
     template CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr MkLeftScalarTimesTopNode<double, double>(
         double c, CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr g);    
+    // template CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr ApplyAndReduce<double>(
+    //     CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr n1,
+    //     CFLOBDDTopNodeT<double>::CFLOBDDTopNodeTRefPtr n2,
+    //     double(*func)(double, double) op);
 
     template class CFLOBDDTopNodeT<fourierSemiring>;
     template CFLOBDDTopNodeT<fourierSemiring>::CFLOBDDTopNodeTRefPtr MkTimesTopNode<fourierSemiring>(
@@ -100,6 +104,7 @@ namespace CFL_OBDD {
     //     int c, CFLOBDDTopNodeT<std::complex<double>>::CFLOBDDTopNodeTRefPtr f);
     
     template class CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>;
+    template std::ostream& operator<< (std::ostream & out, const CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT> &d);
     template CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr MkTimesTopNode<BIG_COMPLEX_FLOAT>(
         CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr f,
         CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::CFLOBDDTopNodeTRefPtr g);

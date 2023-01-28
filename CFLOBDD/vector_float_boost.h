@@ -31,7 +31,7 @@ namespace CFL_OBDD {
 		extern CFLOBDD_FLOAT_BOOST NoDistinctionNode(unsigned int level, int val);
 		extern CFLOBDD_FLOAT_BOOST ConvertToDouble(CFLOBDD_FLOAT_BOOST n);
 //#ifdef PATH_COUNTING_ENABLED
-		extern std::string Sampling(CFLOBDD_FLOAT_BOOST c, bool voctwo);
+		extern std::string Sampling(CFLOBDD_FLOAT_BOOST c, bool voctwo, std::string = "");
 		extern std::string SamplingV2(CFLOBDD_FLOAT_BOOST c);
 //#endif
 		extern CFLOBDD_FLOAT_BOOST VectorWithAmplitude(CFLOBDD_FLOAT_BOOST c);

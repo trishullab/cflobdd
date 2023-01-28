@@ -1298,6 +1298,8 @@ namespace CFL_OBDD {
 			unsigned int level = ceil(log2(n));
 			CFLOBDD_FLOAT_BOOST I = KroneckerPower(Matrix1234FloatBoost::MkIdRelationInterleaved, n, 1);
 			CFLOBDD_FLOAT_BOOST F = VectorFloatBoost::MkBasisVector(level + 1, index);
+			// std::cout << index << std::endl;
+			// Matrix1234FloatBoost::MatrixPrintRowMajorInterleaved(F, std::cout);
 			F = -2 * F;
 			return I + F;
 		}
@@ -1365,8 +1367,8 @@ namespace CFL_OBDD {
 			mp::cpp_int half_iters = iters / 2;
 			auto F1 = MultiplyRec(M, half_iters, memo, n, level);
 			auto F2 = MultiplyRec(M, iters - half_iters, memo, n, level);
-			CFLOBDD_FLOAT_BOOST ans = Matrix1234FloatBoost::MatrixMultiplyV4(F1.first, F2.first);
-			CFLOBDD_FLOAT_BOOST true_ans = Matrix1234FloatBoost::MatrixMultiplyV4(F1.second, F2.second);
+			CFLOBDD_FLOAT_BOOST ans = Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(F1.first, F2.first);
+			CFLOBDD_FLOAT_BOOST true_ans = Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(F1.second, F2.second);
 			if ((*level) >= n) {
 				memo[iters] = true_ans;
 				//unsigned int nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount;
@@ -1386,7 +1388,10 @@ namespace CFL_OBDD {
 			std::cout << "U_w created" << std::endl;
 			CFLOBDD_FLOAT_BOOST U_s = MkU_s(n);
 			std::cout << "U_s created" << std::endl;
-			CFLOBDD_FLOAT_BOOST M = Matrix1234FloatBoost::MatrixMultiplyV4(U_s, U_w);
+			// Matrix1234FloatBoost::MatrixPrintRowMajorInterleaved(U_w, std::cout);
+			// Matrix1234FloatBoost::MatrixPrintRowMajorInterleaved(U_s, std::cout);
+			CFLOBDD_FLOAT_BOOST M = Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(U_s, U_w);
+			// Matrix1234FloatBoost::MatrixPrintRowMajorInterleaved(M, std::cout);
 			std::cout << "M created" << std::endl;
 			std::cout << "M leaves count: " << M.root->rootConnection.returnMapHandle.Size() << std::endl;
 			std::cout << "M leaves: " << M.root->rootConnection.returnMapHandle << std::endl;
@@ -1407,9 +1412,11 @@ namespace CFL_OBDD {
 			unsigned int ulevel = 0;
 			auto M_rec = MultiplyRec(M, iters, memo, n, &ulevel);
 			CFLOBDD_FLOAT_BOOST M_actual = M_rec.first;
+			// Matrix1234FloatBoost::MatrixPrintRowMajorInterleaved(M_actual, std::cout);
 			std::cout << ulevel << std::endl;
 			std::cout << M_actual.root->rootConnection.returnMapHandle << std::endl;
-			ans = Matrix1234FloatBoost::MatrixMultiplyV4(M_actual, ans);
+			ans = Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(M_actual, ans);
+			// Matrix1234FloatBoost::MatrixPrintRowMajorInterleaved(ans, std::cout);
 			//ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
 			//std::cout << "Step i : " << nodeCount << " " << edgeCount << " " << (nodeCount + edgeCount) << std::endl;
 
@@ -1420,7 +1427,14 @@ namespace CFL_OBDD {
 			ans.CountPaths();
 			std::cout << ans.root->rootConnection.returnMapHandle << std::endl;
 			std::cout << ans.root->rootConnection.entryPointHandle->handleContents->numPathsToExit[1] << std::endl;
-			std::string ans_s = VectorFloatBoost::Sampling(ans, true).substr(0, n);
+			// std::cout << ans << std::endl;
+			std::string ans_s = "";
+			int count = 0;
+			// while (s != ans_s){
+				ans_s = VectorFloatBoost::Sampling(ans, true, "Grovers").substr(0, n);
+			// 	count++;
+			// }
+			// std::cout << "count: " << count << std::endl;
 			return std::make_pair(ans_s, ans);
 		}
 

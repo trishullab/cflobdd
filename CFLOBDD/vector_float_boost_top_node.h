@@ -40,7 +40,7 @@ namespace CFL_OBDD {
 		extern CFLOBDDTopNodeFloatBoostRefPtr NoDistinctionNodeTop(unsigned int level, int val);
 		extern CFLOBDDTopNodeFloatBoostRefPtr ConvertToDoubleTop(CFLOBDDTopNodeFloatBoostRefPtr c);
 //#ifdef PATH_COUNTING_ENABLED
-		extern std::string SamplingTop(CFLOBDDTopNodeFloatBoostRefPtr n, bool voctwo = false);
+		extern std::string SamplingTop(CFLOBDDTopNodeFloatBoostRefPtr n, bool voctwo = false, std::string func = "");
 		extern std::string SamplingV2Top(CFLOBDDTopNodeFloatBoostRefPtr n);
 //#endif
 		extern CFLOBDDTopNodeFloatBoostRefPtr VectorWithAmplitudeTop(CFLOBDDTopNodeFloatBoostRefPtr n);

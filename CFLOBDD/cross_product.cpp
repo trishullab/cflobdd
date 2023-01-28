@@ -323,12 +323,12 @@ std::ostream& PairProductKey::print(std::ostream & out) const
   return out;
 }
 
+template <typename T>
 std::ostream& operator<< (std::ostream & out, const PairProductKey &p)
 {
   p.print(out);
   return(out);
 }
-
 
 PairProductKey& PairProductKey::operator= (const PairProductKey& i)
 {

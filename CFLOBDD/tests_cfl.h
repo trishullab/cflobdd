@@ -53,8 +53,17 @@ class CFLTests
         static void testXOR(int size);
         static void testMatMul(int size);
         static void testQFT(int size, int seed);
-	static void InitModules();
-	static void ClearModules();
+
+        static void testWeightedOps(unsigned int size);
+		static void testGHZAlgo_W(int size);
+		static void testBVAlgo_W(int size, int seed);
+		static void testDJAlgo_W(int size, int seed);
+        static void testGroversAlgo_W(int size, int seed);
+        static void testQFT_W(int size, int seed);
+		static void testShorsAlgo_W(int N, int a);
+	    
+        static void InitModules();
+	    static void ClearModules();
 		static bool runTests(const char *arg, int size = 0, int seed = 0);
 };
 }

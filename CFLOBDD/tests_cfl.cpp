@@ -29,6 +29,15 @@
 #include "matmult_map.h"
 // #include "matrix1234_node.h"
 #include "matrix1234_int.h"
+#include "wmatrix1234_fb_mul.h"
+#include "weighted_cross_product.h"
+#include "wvector_fb_mul.h"
+#include "weighted_quantum_algos.h"
+#include "wvector_complex_fb_mul.h"
+#include "wmatrix1234_fourier_mul.h"
+#include "wvector_fourier_mul.h"
+#include "weighted_bdd_node_t.h"
+#include "weighted_cross_product_bdd.h"
 using namespace CFL_OBDD;
 using namespace SH_OBDD;
 using namespace std::chrono;
@@ -1040,11 +1049,12 @@ void CFLTests::testGroversAlgo(int p, int seed){
 	int n = pow(2, p);
 	time_t t = time(NULL);
 	std::cout << "seed: " << seed << std::endl;
-	//srand(seed);
+	// srand(seed);
 	std::mt19937 mt(seed);
 	std::string s = "";
 	for (int i = 0; i < n; i++)
 	s += (mt() % 2 == 0) ? "0" : "1";
+	// s = "1000";
 	//std::cout << "string: " << s << std::endl;
 	auto start = high_resolution_clock::now();
 	auto ans = QuantumAlgos::GroversAlgoWithV4(n, s);
@@ -1053,7 +1063,7 @@ void CFLTests::testGroversAlgo(int p, int seed){
 	unsigned int returnEdgesCount, returnEdgesObjCount;
 	ans.second.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
 	auto duration = duration_cast<milliseconds>(end - start);
-	//std::cout << "s: " << s << " ans_s: " << ans.first << std::endl;
+	std::cout << "s: " << s << " ans_s: " << ans.first << std::endl;
 	std::cout << "equal: " << (s == ans.first) << std::endl;
 	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount <<
 		" edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
@@ -1291,6 +1301,187 @@ void CFLTests::testMatMul(int p)
 			<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
 }
 
+void CFLTests::testWeightedOps(unsigned int level)
+{
+	auto I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(4, 0);
+	auto H = WeightedMatrix1234ComplexFloatBoostMul::MkWalshInterleaved(4, 0);
+	I = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(I, H);
+	std::cout << (*(I.root->rootConnection.entryPointHandle) == *(H.root->rootConnection.entryPointHandle)) << std::endl;
+	I.print(std::cout);
+	H.print(std::cout);
+}
+
+void CFLTests::testGHZAlgo_W(int p){
+	unsigned long long int n = pow(2, p);
+	std::cout << "GHZ start..." << std::endl;
+	auto start = high_resolution_clock::now();
+	auto out = WeightedQuantumAlgos::GHZ(n);
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	std::string all_ones(n + 1, '1');
+	std::string all_zeros(n + 1, '0');
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	out.second.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "is same: " << ((out.first == all_ones) || (out.first == all_zeros)) << std::endl;
+	std::cout << "Duration: " << duration.count()
+		<< " nodeCount: " << nodeCount 
+		<< " egdeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
+		<< " returnEdgesObjCount/ " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+	// out.second.print(std::cout);
+}
+
+void CFLTests::testBVAlgo_W(int p, int seed){
+	long long int n = pow(2, p);
+	auto t = time(NULL);
+	std::cout << "n: " << n << " seed: " << seed << std::endl;
+	std::mt19937 mt(seed);
+	//srand(seed);
+	std::string s(n, '0');
+	for (long long int i = 0; i < n; i++)
+		s[i] = ((mt() % 2 == 0) ? '0' : '1');
+	// s = "11";
+	// std::cout << s << std::endl;
+	int index = -1;
+	for (long long int i = 0; i < s.length(); i++)
+	{
+		if (s[i] == '1'){
+			index = i;
+			break;
+		}
+	}
+	int level = ceil(log2(n)) + 2;
+	auto F = WeightedMatrix1234FloatBoostMul::MkIdRelationInterleaved(level);
+	if (index != -1){
+		F = WeightedMatrix1234FloatBoostMul::MkCNOT(level, 2*n, index, n);
+	}
+	std::cout << "Starting loop" << std::endl;
+	for (int i = index + 1; i < s.length() && index != -1; i++){
+		if (s[i] == '1'){
+			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL tmp = WeightedMatrix1234FloatBoostMul::MkCNOT(level, 2*n, i, n);
+			F = WeightedMatrix1234FloatBoostMul::MatrixMultiplyV4(F, tmp);
+		}
+	}
+	// F.print(std::cout);
+	//CFLOBDD_FLOAT_BOOST F = CreateBVInputMatrix(s, 0, level, n);
+	std::cout << "BV start..." << std::endl;
+	auto start = high_resolution_clock::now();
+	auto out_ans = WeightedQuantumAlgos::BV(n, F);
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	out_ans.second.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	//std::cout << out_ans.first << std::endl;
+	std::cout << out_ans.second.root->rootConnection.returnMapHandle << std::endl;
+	std::cout << "equal: " << (s == out_ans.first) << std::endl;
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount << 
+		" edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
+		<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+}
+
+void CFLTests::testDJAlgo_W(int p, int seed){
+	// DJ Algo 
+	long long int n = pow(2, p);
+	std::cout << "seed: " << seed << std::endl;
+	//srand(seed);
+	std::mt19937 mt(seed);
+	std::cout << "n: " << n << std::endl;
+	int level = ceil(log2(n));
+	WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL F = WeightedMatrix1234FloatBoostMul::MkIdRelationInterleaved(level + 2);
+	int rand_val = mt() % 2;
+	if (rand_val){
+		F = WeightedMatrix1234FloatBoostMul::CreateBalancedFn(n, mt);
+	}
+	std::cout << "DJ start..." << std::endl;
+	auto start = high_resolution_clock::now();
+	auto out_ans = WeightedQuantumAlgos::DeutschJozsaAlgo(n, F);
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	out_ans.second.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::string all_zeros(n, '0');
+	bool is_balanced = (out_ans.first != all_zeros);
+	std::cout << "is_correct: " << (is_balanced == rand_val) << std::endl;
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
+		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
+		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
+}
+
+void CFLTests::testGroversAlgo_W(int p, int seed){
+	int n = pow(2, p);
+	time_t t = time(NULL);
+	std::cout << "seed: " << seed << std::endl;
+	//srand(seed);
+	std::mt19937 mt(seed);
+	std::string s = "";
+	for (int i = 0; i < n; i++)
+		s += (mt() % 2 == 0) ? "0" : "1";
+	// std::cout << "string: " << s << std::endl;
+	// s = "1000";
+	auto start = high_resolution_clock::now();
+	auto ans = WeightedQuantumAlgos::GroversAlgoWithV4(n, s);
+	auto end = high_resolution_clock::now();
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	ans.second.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	auto duration = duration_cast<milliseconds>(end - start);
+	std::cout << "s: " << s << " ans_s: " << ans.first << std::endl;
+	std::cout << "equal: " << (s == ans.first) << std::endl;
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount <<
+		" edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
+		<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+}
+
+void CFLTests::testQFT_W(int p, int seed)
+{
+	long long int n = pow(2, p);
+	std::mt19937 mt(seed);
+	std::string s = "";
+	for (unsigned int i = 0; i < n; i++){
+		if (mt() % 2 == 0)
+			s += "0";
+		else
+			s += "1";
+	}
+	std::cout << "seed: " << seed << std::endl;
+	std::cout << "s: " << s << std::endl;
+	std::cout << "QFT start..." << std::endl;
+	auto start = high_resolution_clock::now();
+	auto out_ans = WeightedQuantumAlgos::QFT_fourier(n, s);
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	out_ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
+		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
+		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
+	out_ans.print(std::cout);
+}
+
+void CFLTests::testShorsAlgo_W(int N, int a)
+{
+	// srand(time(NULL));
+	auto start = high_resolution_clock::now();
+	auto out_ans = WeightedQuantumAlgos::ShorsFourier(a, N);
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount, returnEdgesObjCount;
+	auto ans = std::get<0>(out_ans);
+	ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
+		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
+		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
+	std::cout << "Sampled string: " << std::get<1>(out_ans) << std::endl;
+	std::cout << "Sampled number: " << (std::get<2>(out_ans)) % N << std::endl;
+	// ans.print(std::cout);
+	// out_ans.print(std::cout);
+}
+
+
 void CFLTests::InitModules()
 {
 
@@ -1301,6 +1492,34 @@ void CFLTests::InitModules()
 	InitTripleProductCache();
 	Matrix1234Int::Matrix1234Initializer();
 	VectorFloatBoost::VectorInitializer();
+
+	// typedef double BIG_FLOAT;
+	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitNoDistinctionTable();
+	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitNoDistinctionTable_Ann();
+	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitIdentityNodeTable();	
+	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitReduceCache();
+	WeightedMatrix1234FloatBoostMul::Matrix1234Initializer();
+	WeightedVectorFloatBoostMul::VectorInitializer();
+	InitWeightedPairProductCache<BIG_FLOAT, std::multiplies<BIG_FLOAT>>();
+
+	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitNoDistinctionTable();
+	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitNoDistinctionTable_Ann();
+	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitIdentityNodeTable();	
+	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitReduceCache();
+	WeightedMatrix1234ComplexFloatBoostMul::Matrix1234Initializer();
+	WeightedVectorComplexFloatBoostMul::VectorInitializer();
+	InitWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
+
+	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitNoDistinctionTable();
+	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitNoDistinctionTable_Ann();
+	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitIdentityNodeTable();	
+	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitReduceCache();
+	WeightedMatrix1234FourierMul::Matrix1234Initializer();
+	WeightedVectorFourierMul::VectorInitializer();
+	InitWeightedPairProductCache<fourierSemiring, std::multiplies<fourierSemiring>>();
+
+	WeightedBDDNodeHandle<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitLeafNodes();
+	InitWeightedBDDPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
 }
 
 void CFLTests::ClearModules()
@@ -1308,6 +1527,11 @@ void CFLTests::ClearModules()
 	DisposeOfTripleProductCache();
 	DisposeOfPairProductCache();
 	CFLOBDDNodeHandle::DisposeOfReduceCache();
+	DisposeOfWeightedPairProductCache<BIG_FLOAT, std::multiplies<BIG_FLOAT>>();
+	DisposeOfWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
+	DisposeOfWeightedPairProductCache<fourierSemiring, std::multiplies<fourierSemiring>>();
+
+	DisposeOfWeightedBDDPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
 }
 
 
@@ -1390,6 +1614,20 @@ bool CFLTests::runTests(const char *arg, int size, int seed){
 		CFLTests::testMatMul(size);
 	} else if (curTest == "testQFT") {
 		CFLTests::testQFT(size, seed);
+	} else if (curTest == "testWeightedOps") {
+		CFLTests::testWeightedOps(size);
+	} else if (curTest == "testGHZAlgo_W") {
+		CFLTests::testGHZAlgo_W(size);
+	} else if (curTest == "testBVAlgo_W") {
+		CFLTests::testBVAlgo_W(size, seed);
+	} else if (curTest == "testDJAlgo_W") {
+		CFLTests::testDJAlgo_W(size, seed);
+	} else if (curTest == "testGroversAlgo_W") {
+		CFLTests::testGroversAlgo_W(size, seed);
+	} else if (curTest == "testQFT_W") {
+		CFLTests::testQFT_W(size, seed);
+	} else if (curTest == "testShorsAlgo_W") {
+		CFLTests::testShorsAlgo_W(size, seed);
 	// }
 	// else {
 	// 	std::cout << "Unrecognized test name: " << curTest << std::endl;

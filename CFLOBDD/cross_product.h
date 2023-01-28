@@ -38,7 +38,7 @@
 namespace CFL_OBDD {
 class PairProductMapHandle;
 class PairProductMapBody;
-class PairProductKey;
+// class PairProductKey;
 }
 
 //***************************************************************
@@ -122,7 +122,6 @@ class PairProductKey {
   CFLOBDDNodeHandle nodeHandle2;
   PairProductKey();                                 // Default constructor (hidden)
 };
-
 
 std::ostream& operator<< (std::ostream & out, const PairProductKey &p);
 

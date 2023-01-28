@@ -708,8 +708,8 @@ namespace CFL_OBDD {
 		{
 			ComplexFloatBoostReturnMapHandle m;
 			for (int i = 0; i < c->rootConnection.returnMapHandle.Size(); i++){
-				double v = (((2 * c->rootConnection.returnMapHandle[i].GetVal()) % (c->rootConnection.returnMapHandle[i].GetRingSize())) 
-					/ static_cast<double>(c->rootConnection.returnMapHandle[i].GetRingSize()));
+				double v = (((2 * c->rootConnection.returnMapHandle[i].GetVal()) % (c->rootConnection.returnMapHandle[i].GetRingSize())).convert_to<double>() 
+					/ static_cast<double>(c->rootConnection.returnMapHandle[i].GetRingSize().convert_to<double>()));
 				double cos_v = boost::math::cos_pi(v);
 				double sin_v = boost::math::sin_pi(v);
 				BIG_COMPLEX_FLOAT w_jk(cos_v, sin_v);

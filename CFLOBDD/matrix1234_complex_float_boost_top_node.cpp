@@ -208,9 +208,9 @@ namespace CFL_OBDD {
 			assert(i <= CFLOBDDTopNodeComplexFloatBoost::maxLevel);
 
 			tempHandle = MkWalshInterleavedNode(i);
-			//auto val = boost::multiprecision::pow(sqrt(2), boost::multiprecision::pow(BIG_COMPLEX_FLOAT(2), i-1));
-			m.AddToEnd(1);
-			m.AddToEnd(-1);
+			auto val = boost::multiprecision::pow(sqrt(2), boost::multiprecision::pow(BIG_COMPLEX_FLOAT(2), i-1));
+			m.AddToEnd(1/val);
+			m.AddToEnd(-1/val);
 			m.Canonicalize();
 			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m);
 			return v;

@@ -10,7 +10,7 @@ namespace mp = boost::multiprecision;
 
 namespace CFL_OBDD {
 
-	typedef mp::cpp_complex_double BIG_COMPLEX_FLOAT;
+	typedef mp::cpp_complex_100 BIG_COMPLEX_FLOAT;
 	typedef CFLOBDD_T<BIG_COMPLEX_FLOAT> CFLOBDD_COMPLEX_BIG;
 
 	// CFLOBDD_FLOAT_BOOST-creation operations --------------------------------------

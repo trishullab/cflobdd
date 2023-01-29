@@ -11,7 +11,7 @@ namespace CFL_OBDD {
 
     namespace WeightedVectorComplexFloatBoostMul {
 
-	    typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
+	    typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX_FLOAT;
 
         typedef WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> WeightedCFLOBDDComplexFloatBoostMulNodeHandle;
         typedef WeightedCFLOBDDInternalNode<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> WeightedCFLOBDDComplexFloatBoostInternalNode;

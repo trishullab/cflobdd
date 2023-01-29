@@ -40,7 +40,7 @@
 #include <boost/multiprecision/cpp_complex.hpp>
 typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
 //typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<1000> > BIG_FLOAT;
-typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
+typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX_FLOAT;
 //typedef mp::number<mp::cpp_dec_float<200> > BIG_FLOAT;
 
 // Instantiation and specialization of class ReturnMapHandle<LinearMapHandle> ----------

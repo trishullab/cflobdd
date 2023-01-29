@@ -75,6 +75,6 @@ bool Pair_T<T,T1>::operator==(const Pair_T<T,T1>& p)
 typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
 template class Pair_T<BIG_FLOAT, BIG_FLOAT>;
 
-typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
+typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX_FLOAT;
 template class Pair_T<BIG_COMPLEX_FLOAT, BIG_COMPLEX_FLOAT>;
 template class Pair_T<fourierSemiring, fourierSemiring>;

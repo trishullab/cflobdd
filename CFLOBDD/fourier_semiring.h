@@ -34,7 +34,7 @@
 #include <boost/functional/hash.hpp>
 
 typedef boost::multiprecision::cpp_int BIG_INT;
-typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX;
+typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX;
 
 class fourierSemiring {
 public:

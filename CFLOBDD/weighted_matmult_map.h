@@ -17,7 +17,7 @@ class WeightedMatMultMapBody;
 
 
 typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
-typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
+typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX_FLOAT;
 // typedef double BIG_FLOAT;
 
 typedef std::pair<long int, long int> INT_PAIR;

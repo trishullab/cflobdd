@@ -38,7 +38,7 @@ namespace mp = boost::multiprecision;
 
 namespace CFL_OBDD {
 
-	typedef mp::cpp_complex_double BIG_COMPLEX_FLOAT;
+	typedef mp::cpp_complex_100 BIG_COMPLEX_FLOAT;
 	//typedef mp::number<mp::cpp_dec_float<200> > BIG_FLOAT;
 	typedef CFLOBDD_T<BIG_COMPLEX_FLOAT> CFLOBDD_COMPLEX_BIG;
 	typedef CFLOBDD_T<fourierSemiring> CFLOBDD_FOURIER;

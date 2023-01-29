@@ -62,6 +62,17 @@ void WeightedMatMultMapBody<T>::setHashCheck()
 }
 
 template <>
+void WeightedMatMultMapBody<BIG_COMPLEX_FLOAT>::setHashCheck()
+{
+	long int hvalue = 0;
+	boost::hash<BIG_COMPLEX_FLOAT> boost_hash;
+	for (auto &i : map) {
+		hvalue = (117 * (hvalue + 1) + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second)));
+	}
+	hashCheck = hvalue;
+}
+
+template <>
 void WeightedMatMultMapBody<fourierSemiring>::setHashCheck()
 {
 	long int hvalue = 0;

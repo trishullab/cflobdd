@@ -22,13 +22,19 @@ namespace CFL_OBDD {
         extern WeightedBDDComplexFloatBoostMulNodeHandle MkIdRelationInterleavedNode(unsigned int numVars, unsigned int index = 0);
         extern WeightedBDDComplexFloatBoostMulNodeHandle MkWalshInterleavedNode(unsigned int i, unsigned int index = 0);
         extern WeightedBDDComplexFloatBoostMulNodeHandle MkInverseReedMullerInterleavedNode(unsigned int i);
-        extern WeightedBDDComplexFloatBoostMulNodeHandle MkNegationMatrixInterleavedNode(unsigned int i);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkNegationMatrixInterleavedNode(unsigned int i, unsigned int index = 0);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkPauliYGateNode(unsigned int i, unsigned int index = 0);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkPauliZGateNode(unsigned int i, unsigned int index = 0);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkSGateNode(unsigned int i, unsigned int index = 0);
         extern WeightedBDDComplexFloatBoostMulNodeHandle MkCNOTInterleavedNode(unsigned int i);
         extern WeightedBDDComplexFloatBoostMulNodeHandle MkExchangeInterleavedNode(unsigned int i);
-        extern WeightedBDDComplexFloatBoostMulNodeHandle MkCNOTNode(unsigned int level, unsigned int n, long int controller, long int controlled);
-        extern WeightedBDDComplexFloatBoostMulNodeHandle MkCPGateNode(std::unordered_map<std::string, WeightedBDDComplexFloatBoostMulNodeHandle>& cp_hashMap, unsigned int level, long int controller, long int controlled, BIG_COMPLEX_FLOAT theta_val);
-        extern WeightedBDDComplexFloatBoostMulNodeHandle MkSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num);
-        extern WeightedBDDComplexFloatBoostMulNodeHandle MkCSwapGateNode(unsigned int level, long int controller, long int i, long int j, int case_num);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkCNOTNode(unsigned int numVars, unsigned int n, long int controller, long int controlled, unsigned int index = 0);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkCCNOTNode(unsigned int numVars, long int controller1, long int controller2, long int controlled, unsigned int index = 0);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkCPGateNode(unsigned int level, long int controller, long int controlled, BIG_COMPLEX_FLOAT theta_val, unsigned int index = 0);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkPhaseShiftGateNode(unsigned int level, BIG_COMPLEX_FLOAT theta_val, unsigned int index = 0);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num, unsigned int index = 0);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkiSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num, unsigned int index = 0);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkCSwapGateNode(unsigned int level, long int controller, long int i, long int j, int case_num, unsigned int index = 0);
 
         class RenamePair{
         public:

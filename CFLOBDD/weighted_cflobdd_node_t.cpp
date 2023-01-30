@@ -2591,6 +2591,8 @@ void WeightedBDDTopNode<T,Op>::CountNodes(Hashset<WeightedCFLOBDDNodeHandleT<T,O
 template <typename T, typename Op>
 void WeightedBDDTopNode<T,Op>::CountPaths(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes) {}
 template <typename T, typename Op>
-void WeightedBDDTopNode<T,Op>::ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes) {}
+void WeightedBDDTopNode<T,Op>::ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes) {
+  bddContents.ComputeWeightofPathsAsAmpsToExits();
+}
 
 }

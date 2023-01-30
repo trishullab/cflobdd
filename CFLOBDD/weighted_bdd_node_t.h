@@ -35,6 +35,7 @@ namespace CFL_OBDD {
             WeightedBDDNode<T,Op> *handleContents;
             static Hashset<WeightedBDDNode<T,Op>> *canonicalBDDNodeTable;
             void Canonicalize();
+            void ComputeWeightofPathsAsAmpsToExits();
 
             struct WeightedBDDNodeHandle_Hash {
             public:
@@ -67,6 +68,8 @@ namespace CFL_OBDD {
             void SetCanonical() { isCanonical = true;  }
             virtual std::ostream& print(std::ostream &out = std::cout) const = 0;
             virtual unsigned int Hash(unsigned int modsize) = 0;
+            virtual void ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedBDDNodeHandle<T,Op>>* visitedNodes);
+            long double weightOfPathsAsAmpsToExit;
             protected:
                 unsigned int refCount;
                 bool isCanonical;
@@ -89,8 +92,11 @@ namespace CFL_OBDD {
             WeightedBDDNodeHandle<T,Op> rightNode;
             T lweight;
             T rweight;
+            long double leftWeightOfPathsAsAmpsToExit;
+            long double rightWeightOfPathsAsAmpsToExit;
 
             unsigned int Hash(unsigned int modsize);
+            void ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedBDDNodeHandle<T,Op>>* visitedNodes);
 
             private:
                 long int index;
@@ -110,6 +116,7 @@ namespace CFL_OBDD {
             std::ostream& print(std::ostream &out = std::cout) const;
             T value;
             unsigned int Hash(unsigned int modsize);
+            void ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedBDDNodeHandle<T,Op>>* visitedNodes);
     };
 }
 

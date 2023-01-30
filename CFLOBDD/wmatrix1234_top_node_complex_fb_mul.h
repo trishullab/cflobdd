@@ -32,10 +32,13 @@ namespace CFL_OBDD {
 
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkIdRelationInterleavedTop(unsigned int i, int cflobdd_kind = 1); // Representation of identity relation
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkWalshInterleavedTop(unsigned int i, int cflobdd_kind = 1); // Representation of Walsh matrix
-		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkNegationMatrixInterleavedTop(unsigned int i);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkNegationMatrixInterleavedTop(unsigned int i, int cflobdd_kind = 1);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliYGateTop(unsigned int i, int cflobdd_kind = 1);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliZGateTop(unsigned int i, int cflobdd_kind = 1);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSGateTop(unsigned int i, int cflobdd_kind = 1);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTInterleavedTop(unsigned int i);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkExchangeInterleavedTop(unsigned int i); // Representation of exchange matrix
-		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled, int cflobdd_kind = 1);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr KroneckerProduct2VocsTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr m1, WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr m2);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled);
 
@@ -43,9 +46,12 @@ namespace CFL_OBDD {
 		extern void MatrixPrintRowMajorInterleavedTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out);
 
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MatrixMultiplyV4TopNode(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr c1, WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr c2);
-		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSwapGateTop(unsigned int level, long int i, long int j);
-		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int level, long int i, long int j, double theta);
-		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCSwapGateTop(unsigned int level, long int c, long int i, long int j);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSwapGateTop(unsigned int level, long int i, long int j, int cflobdd_kind = 1);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkiSwapGateTop(unsigned int level, long int i, long int j, int cflobdd_kind = 1);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int level, long int i, long int j, double theta, int cflobdd_kind = 1);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCZGateTop(unsigned int level, long int i, long int j, double theta, int cflobdd_kind = 1);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPhaseShiftGateTop(unsigned int level, double theta, int cflobdd_kind = 1);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCSwapGateTop(unsigned int level, long int c, long int i, long int j, int cflobdd_kind = 1);
 	}
 }
 

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <unordered_map>
+#include <vector>
 #include "weighted_bdd_node_t.h"
 #include "list_T.h"
 #include "list_TPtr.h"

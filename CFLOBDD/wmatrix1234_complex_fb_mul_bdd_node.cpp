@@ -28,7 +28,10 @@ namespace CFL_OBDD {
 
         WeightedBDDComplexFloatBoostMulNodeHandle MkIdRelationInterleavedNode(unsigned int numVars, unsigned int index)
         {
-            assert(numVars >= 2);
+            if (numVars == 1)
+            {
+                return WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode; 
+            }
             if (numVars == 2)
             {
 
@@ -185,13 +188,12 @@ namespace CFL_OBDD {
                 rNode_new = KroneckerProduct2VocsNode(hash_map, rNode, m2, numVars);
             }
 
-            if (lNode_new == rNode_new)
-                return lNode;
-            
             m1_new->leftNode = lNode_new;
             m1_new->rightNode = rNode_new;
             m1_new->lweight = m1_i->lweight;
             m1_new->rweight = m1_i->rweight;
+            if (m1_new->leftNode == m1_new->rightNode && m1_new->lweight == m1_new->rweight)
+                return m1_new->leftNode;
             WeightedBDDComplexFloatBoostMulNodeHandle m1h_new(m1_new);
             hash_map[m1] = m1h_new;
             return m1h_new;
@@ -269,6 +271,11 @@ namespace CFL_OBDD {
         BDDMatMultReturnT
             Add(WeightedBDDComplexFloatBoostMulNodeHandle m1, WeightedBDDComplexFloatBoostMulNodeHandle m2, BIG_COMPLEX_FLOAT f1, BIG_COMPLEX_FLOAT f2, unsigned int numVars)
         {
+            if (m1 == WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode && m2 == WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode)
+            {
+                std::vector<BIG_COMPLEX_FLOAT> v_ret;
+                return std::make_tuple(m2, v_ret, 0);
+            }
             if (m1 == WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode) {
                 // Incorrect. Need to fill this. But won't affect algorithm.
                 std::vector<BIG_COMPLEX_FLOAT> v_ret;
@@ -430,15 +437,18 @@ namespace CFL_OBDD {
                     lf1 = lf2 = lf3 = lf4 = 1;
                 }
             }
-
+            // std::cout << "count: " << prev_count << std::endl;
             // [[p1 p2] [p3 p4]] = [[m11 m12] [m13 m14]] * [[m21 m22] [m23 m24]]
             auto p1_1 = MatrixMultiplyV4Node(m11, m21, numVars, count);
             auto p1_2 = MatrixMultiplyV4Node(m12, m23, numVars, count);
 
             auto p1_t = Add(std::get<0>(p1_1), std::get<0>(p1_2), lf1 * rf1 * std::get<2>(p1_1), lf2 * rf3 * std::get<2>(p1_2), numVars);
             auto p1 = std::get<0>(p1_t);
+            // std::cout << "p1" << std::endl;
             // p1.print(std::cout);
             auto f_p1 = std::get<2>(p1_t);
+            // std::cout << "f_p1 " << f_p1 << std::endl;
+            // std::cout << std::endl;
             std::vector<BIG_COMPLEX_FLOAT> v_p1 = std::get<1>(p1_t);
 
             auto p2_1 = MatrixMultiplyV4Node(m11, m22, numVars, count);
@@ -446,8 +456,11 @@ namespace CFL_OBDD {
 
             auto p2_t = Add(std::get<0>(p2_1), std::get<0>(p2_2), lf1 * rf2 * std::get<2>(p2_1), lf2 * rf4 * std::get<2>(p2_2), numVars);
             auto p2 = std::get<0>(p2_t);
+            // std::cout << "p2" << std::endl;
             // p2.print(std::cout);
             auto f_p2 = std::get<2>(p2_t);
+            // std::cout << "f_p2 " << f_p2 << std::endl;
+            // std::cout << std::endl;
             std::vector<BIG_COMPLEX_FLOAT> v_p2 = std::get<1>(p2_t);
 
             auto p3_1 = MatrixMultiplyV4Node(m13, m21, numVars, count);
@@ -455,8 +468,11 @@ namespace CFL_OBDD {
 
             auto p3_t = Add(std::get<0>(p3_1), std::get<0>(p3_2), lf3 * rf1 * std::get<2>(p3_1), lf4 * rf3 * std::get<2>(p3_2), numVars);
             auto p3 = std::get<0>(p3_t);
+            // std::cout << "p3" << std::endl;
             // p3.print(std::cout);
             auto f_p3 = std::get<2>(p3_t);
+            // std::cout << "f_p3 " << f_p3 << std::endl;
+            // std::cout << std::endl;
             std::vector<BIG_COMPLEX_FLOAT> v_p3 = std::get<1>(p3_t);
 
             auto p4_1 = MatrixMultiplyV4Node(m13, m22, numVars, count);
@@ -464,8 +480,11 @@ namespace CFL_OBDD {
 
             auto p4_t = Add(std::get<0>(p4_1), std::get<0>(p4_2), lf3 * rf2 * std::get<2>(p4_1), lf4 * rf4 * std::get<2>(p4_2), numVars);
             auto p4 = std::get<0>(p4_t);
+            // std::cout << "p4" << std::endl;
             // p4.print(std::cout);
             auto f_p4 = std::get<2>(p4_t);
+            // std::cout << "f_p4 " << f_p4 << std::endl;
+            // std::cout << std::endl;
             std::vector<BIG_COMPLEX_FLOAT> v_p4 = std::get<1>(p4_t);
 
             WeightedBDDComplexFloatBoostMulNodeHandle yh1;
@@ -509,7 +528,7 @@ namespace CFL_OBDD {
             x->rightNode = yh2;
             auto w = computeInverseValue<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>(std::get<0>(w1), std::get<0>(w2));
             x->lweight = std::get<1>(w);
-            x->rweight = std::get<1>(w);
+            x->rweight = std::get<2>(w);
 
             if (x->leftNode == x->rightNode && x->lweight == x->rweight)
             {
@@ -553,9 +572,1085 @@ namespace CFL_OBDD {
                 if (j == ret_v.size())
                     ret_v.push_back(i);
             }
+            // std::cout << "xh" << std::endl;
+            // xh.print(std::cout);
             auto ret = std::make_tuple(xh, ret_v, std::get<0>(w));
             matmult_hash.insert(std::make_pair(mp, ret));
             return ret;
         }
+    
+    
+        WeightedBDDComplexFloatBoostMulNodeHandle MkCNOTNode(unsigned int numVars, unsigned int n, long int controller, long int controlled, unsigned int index)
+        {
+            // assuming controller < controlled
+            if (numVars == 4 && controller == 0 && controlled == 1)
+            {
+
+                WeightedBDDComplexFloatBoostMulNodeHandle z1 = MkIdRelationInterleavedNode(2, index + 2);
+                WeightedBDDComplexFloatBoostMulNodeHandle z2 = MkNegationMatrixInterleavedNode(2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = z1;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = z2;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2; 
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+
+            }
+            else if (index/2 == controlled && numVars == 2)
+            {
+                return MkNegationMatrixInterleavedNode(numVars, index);
+            }
+            else if (index/2 == controller) {
+                auto tmp = MkCNOTNode(numVars - 2, n - 1, -1, controlled, index + 2);
+                auto I = MkIdRelationInterleavedNode(numVars - 2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = MkIdRelationInterleavedNode(numVars - 2, index + 2);
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2; 
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);  
+            }
+            else if (index/2 == controlled)
+            {
+                auto tmp = MkIdRelationInterleavedNode(numVars - 2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->rightNode = tmp;
+                y1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->rweight = 1;
+                y1->lweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->leftNode = tmp;
+                y2->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->lweight = 1;
+                y2->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            }
+            else 
+            {
+                auto tmp = MkCNOTNode(numVars - 2, n - 1, controller, controlled, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            }
+        }
+
+        WeightedBDDComplexFloatBoostMulNodeHandle MkNegationMatrixInterleavedNode(unsigned int numVars, unsigned int index)
+        {
+            assert(numVars >= 2);
+            if (numVars == 2)
+            {
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh2;
+                x->rightNode = yh1;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+
+            }
+            else
+            {
+                auto tmp = MkNegationMatrixInterleavedNode(numVars - 2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh2;
+                x->rightNode = yh1;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            } 
+        }
+
+        WeightedBDDComplexFloatBoostMulNodeHandle MkPauliYGateNode(unsigned int numVars, unsigned int index)
+        {
+            assert(numVars >= 2);
+            if (numVars == 2)
+            {
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = -1;
+                x->leftNode = yh2;
+                x->rightNode = yh1;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+
+            }
+            else
+            {
+                auto tmp = MkPauliYGateNode(numVars - 2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = -1;
+                x->leftNode = yh2;
+                x->rightNode = yh1;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            }  
+        }
+
+        WeightedBDDComplexFloatBoostMulNodeHandle MkPauliZGateNode(unsigned int numVars, unsigned int index)
+        {
+            assert(numVars >= 2);
+            if (numVars == 2)
+            {
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = -1;
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+
+            }
+            else
+            {
+                auto tmp = MkPauliZGateNode(numVars - 2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = -1;
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            }  
+        }
+
+        WeightedBDDComplexFloatBoostMulNodeHandle MkSGateNode(unsigned int numVars, unsigned int index)
+        {
+            assert(numVars >= 2);
+            if (numVars == 2)
+            {
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = BIG_COMPLEX_FLOAT(0, 1);
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+
+            }
+            else
+            {
+                auto tmp = MkPauliYGateNode(numVars - 2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = BIG_COMPLEX_FLOAT(0, 1);
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            }  
+        }
+    
+    
+        WeightedBDDComplexFloatBoostMulNodeHandle MkSwapGateNode(unsigned int numVars, long int index1, long int index2, int case_num, unsigned int index)
+        {
+            if (numVars == 4 && index1 == 0 && index2 == 1)
+            {
+                WeightedBDDComplexFloatBoostMulInternalNode* m10 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 3);
+                m10->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                m10->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m10->lweight = 1;
+                m10->rweight = 0;
+                auto m10_h = WeightedBDDComplexFloatBoostMulNodeHandle(m10);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* m01 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 3);
+                m01->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m01->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                m01->lweight = 0;
+                m01->rweight = 1;
+                auto m01_h = WeightedBDDComplexFloatBoostMulNodeHandle(m01);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* m0010 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 2);
+                m0010->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m0010->rightNode = m10_h;
+                m0010->lweight = 0;
+                m0010->rweight = 1;
+                auto m0010_h = WeightedBDDComplexFloatBoostMulNodeHandle(m0010); 
+                
+                WeightedBDDComplexFloatBoostMulInternalNode* m0100 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 2);
+                m0100->leftNode = m01_h;
+                m0100->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m0100->lweight = 1;
+                m0100->rweight = 0;
+                auto m0100_h = WeightedBDDComplexFloatBoostMulNodeHandle(m0100);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* m0001 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 2);
+                m0001->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m0001->rightNode = m01_h;
+                m0001->lweight = 0;
+                m0001->rweight = 1;
+                auto m0001_h = WeightedBDDComplexFloatBoostMulNodeHandle(m0001);
+                
+                WeightedBDDComplexFloatBoostMulInternalNode* m1000 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 2);
+                m1000->leftNode = m10_h;
+                m1000->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m1000->lweight = 1;
+                m1000->rweight = 0;
+                auto m1000_h = WeightedBDDComplexFloatBoostMulNodeHandle(m1000);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = m1000;
+                y1->rightNode = m0010;
+                y1->lweight = 1;
+                y1->rweight = 1;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = m0001;
+                y2->leftNode = m0100;
+                y2->rweight = 1;
+                y2->lweight = 1;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2; 
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+
+            }
+            else if (index/2 == index1) {
+                auto tmp1 = MkSwapGateNode(numVars - 2, index1, index2, 0, index + 2);
+                auto tmp2 = MkSwapGateNode(numVars - 2, index1, index2, 1, index + 2);
+                auto tmp3 = MkSwapGateNode(numVars - 2, index1, index2, 2, index + 2);
+                auto tmp4 = MkSwapGateNode(numVars - 2, index1, index2, 3, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp1;
+                y1->rightNode = tmp2;
+                y1->lweight = 1;
+                y1->rweight = 1;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp4;
+                y2->leftNode = tmp3;
+                y2->rweight = 1;
+                y2->lweight = 1;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2; 
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);  
+            }
+            else if (index/2 == index2)
+            {
+                auto tmp = MkIdRelationInterleavedNode(numVars - 2, index + 2);
+
+                if (case_num == 0)
+                {
+                    // 1000
+                    WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                    y1->leftNode = tmp;
+                    y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    y1->rweight = 0;
+                    y1->lweight = 1;
+                    WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                    WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                    x->lweight = 1;
+                    x->rweight = 0;
+                    x->leftNode = yh1;
+                    x->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+
+                    return WeightedBDDComplexFloatBoostMulNodeHandle(x);    
+                }
+
+                if (case_num == 1)
+                {
+                    // 0010
+                    WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                    y1->leftNode = tmp;
+                    y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    y1->lweight = 1;
+                    y1->rweight = 0;
+                    WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                    WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                    x->lweight = 0;
+                    x->rweight = 1;
+                    x->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    x->rightNode = yh1;
+
+                    return WeightedBDDComplexFloatBoostMulNodeHandle(x);    
+                }
+
+                if (case_num == 2)
+                {
+                    // 0100
+                    WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                    y1->rightNode = tmp;
+                    y1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    y1->rweight = 1;
+                    y1->lweight = 0;
+                    WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                    WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                    x->lweight = 1;
+                    x->rweight = 0;
+                    x->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    x->leftNode = yh1;
+
+                    return WeightedBDDComplexFloatBoostMulNodeHandle(x);    
+                }
+
+                if (case_num == 3)
+                {
+                    // 0001
+                    WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                    y1->rightNode = tmp;
+                    y1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    y1->lweight = 0;
+                    y1->rweight = 1;
+                    WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                    WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                    x->lweight = 0;
+                    x->rweight = 1;
+                    x->rightNode = yh1;
+                    x->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+
+                    return WeightedBDDComplexFloatBoostMulNodeHandle(x);    
+                }
+
+            }
+            else 
+            {
+                auto tmp = MkSwapGateNode(numVars - 2, index1, index2, case_num, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            } 
+        }
+
+
+        WeightedBDDComplexFloatBoostMulNodeHandle MkiSwapGateNode(unsigned int numVars, long int index1, long int index2, int case_num, unsigned int index)
+        {
+            if (numVars == 4 && index1 == 0 && index2 == 1)
+            {
+                WeightedBDDComplexFloatBoostMulInternalNode* m10 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 3);
+                m10->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                m10->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m10->lweight = 1;
+                m10->rweight = 0;
+                auto m10_h = WeightedBDDComplexFloatBoostMulNodeHandle(m10);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* m01 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 3);
+                m01->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m01->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                m01->lweight = 0;
+                m01->rweight = 1;
+                auto m01_h = WeightedBDDComplexFloatBoostMulNodeHandle(m01);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* m0010 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 2);
+                m0010->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m0010->rightNode = m10_h;
+                m0010->lweight = 0;
+                m0010->rweight = 1;
+                auto m0010_h = WeightedBDDComplexFloatBoostMulNodeHandle(m0010); 
+                
+                WeightedBDDComplexFloatBoostMulInternalNode* m0100 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 2);
+                m0100->leftNode = m01_h;
+                m0100->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m0100->lweight = 1;
+                m0100->rweight = 0;
+                auto m0100_h = WeightedBDDComplexFloatBoostMulNodeHandle(m0100);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* m0001 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 2);
+                m0001->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m0001->rightNode = m01_h;
+                m0001->lweight = 0;
+                m0001->rweight = 1;
+                auto m0001_h = WeightedBDDComplexFloatBoostMulNodeHandle(m0001);
+                
+                WeightedBDDComplexFloatBoostMulInternalNode* m1000 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 2);
+                m1000->leftNode = m10_h;
+                m1000->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                m1000->lweight = 1;
+                m1000->rweight = 0;
+                auto m1000_h = WeightedBDDComplexFloatBoostMulNodeHandle(m1000);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = m1000;
+                y1->rightNode = m0010;
+                y1->lweight = 1;
+                y1->rweight = BIG_COMPLEX_FLOAT(0, -1);
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = m0001;
+                y2->leftNode = m0100;
+                y2->rweight = BIG_COMPLEX_FLOAT(0, 1);
+                y2->lweight = 1;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = BIG_COMPLEX_FLOAT(0, 1);
+                x->leftNode = yh1;
+                x->rightNode = yh2; 
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+
+            }
+            else if (index/2 == index1) {
+                auto tmp1 = MkSwapGateNode(numVars - 2, index1, index2, 0, index + 2);
+                auto tmp2 = MkSwapGateNode(numVars - 2, index1, index2, 1, index + 2);
+                auto tmp3 = MkSwapGateNode(numVars - 2, index1, index2, 2, index + 2);
+                auto tmp4 = MkSwapGateNode(numVars - 2, index1, index2, 3, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp1;
+                y1->rightNode = tmp2;
+                y1->lweight = 1;
+                y1->rweight = BIG_COMPLEX_FLOAT(0, 1);
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp4;
+                y2->leftNode = tmp3;
+                y2->rweight = BIG_COMPLEX_FLOAT(0, -1);
+                y2->lweight = 1;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = BIG_COMPLEX_FLOAT(0, 1);
+                x->leftNode = yh1;
+                x->rightNode = yh2; 
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);  
+            }
+            else if (index/2 == index2)
+            {
+                auto tmp = MkIdRelationInterleavedNode(numVars - 2, index + 2);
+
+                if (case_num == 0)
+                {
+                    // 1000
+                    WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                    y1->leftNode = tmp;
+                    y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    y1->rweight = 0;
+                    y1->lweight = 1;
+                    WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                    WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                    x->lweight = 1;
+                    x->rweight = 0;
+                    x->leftNode = yh1;
+                    x->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+
+                    return WeightedBDDComplexFloatBoostMulNodeHandle(x);    
+                }
+
+                if (case_num == 1)
+                {
+                    // 0010
+                    WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                    y1->leftNode = tmp;
+                    y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    y1->lweight = 1;
+                    y1->rweight = 0;
+                    WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                    WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                    x->lweight = 0;
+                    x->rweight = 1;
+                    x->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    x->rightNode = yh1;
+
+                    return WeightedBDDComplexFloatBoostMulNodeHandle(x);    
+                }
+
+                if (case_num == 2)
+                {
+                    // 0100
+                    WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                    y1->rightNode = tmp;
+                    y1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    y1->rweight = 1;
+                    y1->lweight = 0;
+                    WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                    WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                    x->lweight = 1;
+                    x->rweight = 0;
+                    x->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    x->leftNode = yh1;
+
+                    return WeightedBDDComplexFloatBoostMulNodeHandle(x);    
+                }
+
+                if (case_num == 3)
+                {
+                    // 0001
+                    WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                    y1->rightNode = tmp;
+                    y1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                    y1->lweight = 0;
+                    y1->rweight = 1;
+                    WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                    WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                    x->lweight = 0;
+                    x->rweight = 1;
+                    x->rightNode = yh1;
+                    x->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+
+                    return WeightedBDDComplexFloatBoostMulNodeHandle(x);    
+                }
+
+            }
+            else 
+            {
+                auto tmp = MkSwapGateNode(numVars - 2, index1, index2, case_num, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            } 
+        }
+
+        WeightedBDDComplexFloatBoostMulNodeHandle MkCPGateNode(unsigned int numVars, long int controller, long int controlled, BIG_COMPLEX_FLOAT theta_val, unsigned int index)
+        {
+            // assuming controller < controlled
+            if (numVars == 4 && controller == 0 && controlled == 1)
+            {
+
+                WeightedBDDComplexFloatBoostMulNodeHandle z1 = MkIdRelationInterleavedNode(2, index + 2);
+                WeightedBDDComplexFloatBoostMulInternalNode* t1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 3);
+                t1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                t1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                t1->lweight = 1;
+                t1->rweight = 0;
+                auto t1_h = WeightedBDDComplexFloatBoostMulNodeHandle(t1);
+                WeightedBDDComplexFloatBoostMulInternalNode* t2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 3);
+                t2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                t2->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+                t2->lweight = 0;
+                t2->rweight = 1;
+                auto t2_h = WeightedBDDComplexFloatBoostMulNodeHandle(t2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* z2_i = new WeightedBDDComplexFloatBoostMulInternalNode(index + 2);
+                z2_i->leftNode = t1_h;
+                z2_i->rightNode = t2_h;
+                z2_i->lweight = 1;
+                z2_i->rweight = theta_val;
+                WeightedBDDComplexFloatBoostMulNodeHandle z2 = WeightedBDDComplexFloatBoostMulNodeHandle(z2_i);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = z1;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = z2;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2; 
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+
+            }
+            else if (index/2 == controller) {
+                auto tmp = MkCPGateNode(numVars - 2, -1, controlled, theta_val, index + 2);
+                auto I = MkIdRelationInterleavedNode(numVars - 2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = MkIdRelationInterleavedNode(numVars - 2, index + 2);
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2; 
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);  
+            }
+            else if (index/2 == controlled)
+            {
+                auto tmp = MkIdRelationInterleavedNode(numVars - 2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = theta_val;
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            }
+            else 
+            {
+                auto tmp = MkCPGateNode(numVars - 2, controller, controlled, theta_val, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            }
+        }
+
+        WeightedBDDComplexFloatBoostMulNodeHandle MkPhaseShiftGateNode(unsigned int numVars, BIG_COMPLEX_FLOAT theta_val, unsigned int index)
+        {
+            assert (numVars == 2);
+
+
+            WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+            y1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+            y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+            y1->lweight = 1;
+            y1->rweight = 0;
+
+            WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+            WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+            y2->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+            y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+            y2->rweight = 1;
+            y2->lweight = 0;
+            WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+            WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+            x->lweight = 1;
+            x->rweight = theta_val;
+            x->leftNode = yh1;
+            x->rightNode = yh2;
+
+            return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+
+        }
+
+        WeightedBDDComplexFloatBoostMulNodeHandle MkCCNOTNode(unsigned int numVars, long int controller1, long int controller2, long int controlled, unsigned int index)
+        {
+            // assuming controller < controlled
+            if (index/2 == controller1 || index/2 == controller2) {
+                auto tmp = MkCCNOTNode(numVars - 2, controller1, controller2, controlled, index + 2);
+                auto I = MkIdRelationInterleavedNode(numVars - 2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = I;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2; 
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);  
+            }
+            else if (index/2 == controlled)
+            {
+                auto tmp = MkIdRelationInterleavedNode(numVars - 2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->rightNode = tmp;
+                y1->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->rweight = 1;
+                y1->lweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->leftNode = tmp;
+                y2->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->lweight = 1;
+                y2->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            }
+            else 
+            {
+                auto tmp = MkCCNOTNode(numVars - 2, controller1, controller2, controlled, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            }
+        }
+
+        WeightedBDDComplexFloatBoostMulNodeHandle MkCSwapGateNode(unsigned int numVars, long int controller, long int index1, long int index2, int case_num, unsigned int index)
+        {
+            
+            if (index/2 == controller)
+            {
+                auto tmp = MkSwapGateNode(numVars - 2, index1, index2, case_num, index + 2);
+                auto I = MkIdRelationInterleavedNode(numVars - 2, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = I;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2; 
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);   
+            }
+            else 
+            {
+                auto tmp = MkCSwapGateNode(numVars - 2, controller, index1, index2, case_num, index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y2->rightNode = tmp;
+                y2->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y2->rweight = 1;
+                y2->lweight = 0;
+                WeightedBDDComplexFloatBoostMulNodeHandle yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            } 
+        }
+
+    
     }
 }

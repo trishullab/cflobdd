@@ -4,6 +4,41 @@
 namespace CFL_OBDD {
 
     template <>
+    long double getIdentityValue<long double, std::multiplies<long double>>()
+    {
+        return 1.0;
+    }
+
+    template <>
+    long double getAnnhilatorValue<long double, std::multiplies<long double>>()
+    {
+        return 0.0;
+    }
+
+    template <>
+    std::tuple<long double, long double, long double> computeInverseValue<long double, std::multiplies<long double>>(long double lw, long double rw)
+    {
+        if (lw == 0.0)
+            return std::make_tuple(rw, 0.0, (rw == 0.0) ? 0.0 : 1.0);
+        if (rw == 0.0)
+            return std::make_tuple(lw, 1.0, 0.0);
+        return std::make_tuple(lw, 1.0, rw/lw);
+    }
+
+    template <>
+    long double computeComposition<long double, std::multiplies<long double>>(long double c, long double w)
+    {
+        return c * w;
+    }
+
+    template <>
+    long double computeProbabilityFromAmplitude<long double,std::multiplies<long double>>(long double w)
+    {
+        long double ans = (w * w);
+        return ans;
+    }
+
+    template <>
     BIG_FLOAT getIdentityValue<BIG_FLOAT, std::multiplies<BIG_FLOAT>>()
     {
         return 1.0;

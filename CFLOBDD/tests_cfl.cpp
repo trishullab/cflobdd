@@ -38,6 +38,7 @@
 #include "wvector_fourier_mul.h"
 #include "weighted_bdd_node_t.h"
 #include "weighted_cross_product_bdd.h"
+#include "wvector_complex_fb_mul_bdd_node.h"
 using namespace CFL_OBDD;
 using namespace SH_OBDD;
 using namespace std::chrono;
@@ -1303,12 +1304,23 @@ void CFLTests::testMatMul(int p)
 
 void CFLTests::testWeightedOps(unsigned int level)
 {
+	auto e = WeightedVectorComplexFloatBoostMul::MkBasisVector(6, 0, 0);
+	auto H = WeightedMatrix1234ComplexFloatBoostMul::MkWalshInterleaved(2, 0);
 	auto I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(4, 0);
-	auto H = WeightedMatrix1234ComplexFloatBoostMul::MkWalshInterleaved(4, 0);
-	I = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(I, H);
-	std::cout << (*(I.root->rootConnection.entryPointHandle) == *(H.root->rootConnection.entryPointHandle)) << std::endl;
-	I.print(std::cout);
-	H.print(std::cout);
+	auto HI = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I);
+	e = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(HI, e);
+	auto c1 = WeightedMatrix1234ComplexFloatBoostMul::MkCNOT(6, 3, 0, 1, 0);
+	e = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(c1, e);
+	// e.print(std::cout);
+	auto c2 = WeightedMatrix1234ComplexFloatBoostMul::MkCNOT(6, 3, 0, 2, 0);
+	e = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(c2, e);
+	e.ComputeWeightOfPathsAsAmpsToExits();
+	// e.print(std::cout);
+	srand(time(NULL));
+	std::mt19937 mt(time(NULL));
+	std::uniform_real_distribution<double> dis(0.0, 1.0);
+	auto s = WeightedVectorComplexFloatBoostMul::Sampling(e, true, mt, dis);
+	std::cout << s.substr(0, 3) << std::endl;
 }
 
 void CFLTests::testGHZAlgo_W(int p){

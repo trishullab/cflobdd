@@ -108,6 +108,15 @@ void WeightedBDDNodeHandle<T,Op>::Canonicalize()
   }
 }
 
+template <typename T, typename Op> 
+void WeightedBDDNodeHandle<T,Op>::ComputeWeightofPathsAsAmpsToExits()
+{
+    Hashset<WeightedBDDNodeHandle<T,Op>> *visitedNodes = new Hashset<WeightedBDDNodeHandle<T,Op>>;
+    handleContents->ComputeWeightOfPathsAsAmpsToExits(visitedNodes);
+    delete visitedNodes;
+}
+
+
 // print
 template <typename T, typename Op> 
 std::ostream& WeightedBDDNodeHandle<T,Op>::print(std::ostream & out) const
@@ -132,6 +141,9 @@ WeightedBDDNode<T,Op>::WeightedBDDNode() {}
 
 template <typename T, typename Op>
 WeightedBDDNode<T,Op>::~WeightedBDDNode() {}
+
+template <typename T, typename Op>
+void WeightedBDDNode<T,Op>::ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedBDDNodeHandle<T,Op>>* visitedNodes) {}
 
 // ************
 // WeightedBDDInternalNode
@@ -187,6 +199,35 @@ unsigned int WeightedBDDInternalNode<T,Op>::Hash(unsigned int modsize)
 
     boost::hash<T> boost_hash;
     return (997 * boost_hash(lweight) + 97 * boost_hash(rweight) + 117 * (l_hvalue) + r_hvalue) % modsize;
+}
+
+template <typename T, typename Op>
+void WeightedBDDInternalNode<T,Op>::ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedBDDNodeHandle<T,Op>>* visitedNodes)
+{
+    WeightedBDDNodeHandle<T,Op>* handle = new WeightedBDDNodeHandle<T,Op>(this);
+	if (visitedNodes->Lookup(handle) == NULL) {
+		visitedNodes->Insert(handle);
+        leftNode.handleContents->ComputeWeightOfPathsAsAmpsToExits(visitedNodes);
+        long double lp_weight = leftNode.handleContents->weightOfPathsAsAmpsToExit;
+        if (leftNode.handleContents->NodeKind() == INTERNAL)
+        {
+            long double skip_l = std::pow(2, leftNode.handleContents->GetIndex() - GetIndex() - 1);
+            lp_weight = computeComposition<long double,std::multiplies<long double>>(lp_weight, skip_l);
+        }
+        rightNode.handleContents->ComputeWeightOfPathsAsAmpsToExits(visitedNodes);
+        long double rp_weight = rightNode.handleContents->weightOfPathsAsAmpsToExit;
+        if (rightNode.handleContents->NodeKind() == INTERNAL)
+        {
+            long double skip_l = std::pow(2, rightNode.handleContents->GetIndex() - GetIndex() - 1);
+            rp_weight = computeComposition<long double,std::multiplies<long double>>(rp_weight, skip_l);
+        }
+        long double l_weight = computeComposition<long double,std::multiplies<long double>>(computeProbabilityFromAmplitude<T,Op>(lweight), lp_weight);
+        long double r_weight = computeComposition<long double,std::multiplies<long double>>(computeProbabilityFromAmplitude<T,Op>(rweight), rp_weight);
+		long double weight = l_weight + r_weight;
+        this->weightOfPathsAsAmpsToExit = weight;
+        leftWeightOfPathsAsAmpsToExit = l_weight;
+        rightWeightOfPathsAsAmpsToExit = r_weight;
+	}
 }
 
 template <typename T, typename Op>
@@ -285,6 +326,16 @@ std::ostream& WeightedBDDLeafNode<T,Op>::print(std::ostream & out) const
 {
     out << "value: " << value << std::endl;
     return (out);
+}
+
+template <typename T, typename Op>
+void WeightedBDDLeafNode<T,Op>::ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedBDDNodeHandle<T,Op>>* visitedNodes)
+{
+    WeightedBDDNodeHandle<T,Op>* handle = new WeightedBDDNodeHandle<T,Op>(this);
+	if (visitedNodes->Lookup(handle) == NULL) {
+		visitedNodes->Insert(handle);
+        this->weightOfPathsAsAmpsToExit = computeProbabilityFromAmplitude<T,Op>(value);
+	}
 }
 
 

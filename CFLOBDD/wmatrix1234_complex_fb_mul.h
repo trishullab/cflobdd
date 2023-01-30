@@ -22,10 +22,14 @@ namespace CFL_OBDD {
 
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkIdRelationInterleaved(unsigned int i, int cflobdd_kind = 1); // Representation of identity relation
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkWalshInterleaved(unsigned int i, int cflobdd_kind = 1);              // Representation of Walsh matrix
-		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkNegationMatrixInterleaved(unsigned int i);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkNegationMatrixInterleaved(unsigned int i, int cflobdd_kind = 1);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPauliYGate(unsigned int i, int cflobdd_kind = 1);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPauliZGate(unsigned int i, int cflobdd_kind = 1);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSGate(unsigned int i, int cflobdd_kind = 1);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOTInterleaved(unsigned int i);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkExchangeInterleaved(unsigned int i); // Representation of exchange matrix
-		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOT(unsigned int level, unsigned int n, long int controller, long int controlled); // Representation of CNOT matrix with index1 as controller and index2 as controlled bits
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOT(unsigned int level, unsigned int n, long int controller, long int controlled, int cflobdd_kind = 1); // Representation of CNOT matrix with index1 as controller and index2 as controlled bits
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCNOT(unsigned int level, long int controller, long int controlled, int cflobdd_kind = 1); // Representation of CNOT matrix with index1 as controller and index2 as controlled bits
 
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL KroneckerProduct2Vocs(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m2);
 
@@ -35,9 +39,12 @@ namespace CFL_OBDD {
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MatrixMultiplyV4(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m2);
         extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CreateBalancedFn(int n, std::mt19937 mt);
 
-		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSwapGate(unsigned int i, long int c1, long int c2);
-		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCPGate(unsigned int i, long int c1, long int c2, double theta);
-		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSwapGate(unsigned int i, long int c1, long int c2, int cflobdd_kind = 1);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkiSwapGate(unsigned int i, long int c1, long int c2, int cflobdd_kind = 1);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCPGate(unsigned int i, long int c1, long int c2, double theta, int cflobdd_kind = 1);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPhaseShiftGate(unsigned int i, double theta, int cflobdd_kind = 1);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCZGate(unsigned int i, long int c1, long int c2, double theta, int cflobdd_kind = 1);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2, int cflobdd_kind = 1);
 	}
 }
 

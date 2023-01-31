@@ -278,7 +278,7 @@ template <typename T, typename Op>
 WeightedBDDLeafNode<T,Op>::WeightedBDDLeafNode(T v) : WeightedBDDNode<T,Op>()
 {
     value = v;
-    refCount = 1;
+    this->refCount = 1;
 }
 
 template <typename T, typename Op>

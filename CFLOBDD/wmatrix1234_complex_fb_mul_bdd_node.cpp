@@ -28,7 +28,7 @@ namespace CFL_OBDD {
 
         WeightedBDDComplexFloatBoostMulNodeHandle MkIdRelationInterleavedNode(unsigned int numVars, unsigned int index)
         {
-            if (numVars == 1)
+            if (numVars == 0)
             {
                 return WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode; 
             }
@@ -403,7 +403,7 @@ namespace CFL_OBDD {
                 auto t1 = FillEntries(m1);
                 m11 = t1.first[0]; m12 = t1.first[1]; m13 = t1.first[2]; m14 = t1.first[3];
                 lf1 = t1.second[0]; lf2 = t1.second[1]; lf3 = t1.second[2]; lf4 = t1.second[3];
-                if (m2.handleContents->GetIndex() == m1.handleContents->GetIndex() + 1){
+                if (m2.handleContents->GetIndex() + 1 == m1.handleContents->GetIndex()){
                     auto t2 = FillEntries(m2);
                     m21 = t2.first[0]; m22 = t2.first[1]; m23 = t2.first[2]; m24 = t2.first[3];
                     rf1 = t2.second[0]; rf2 = t2.second[1]; rf3 = t2.second[2]; rf4 = t2.second[3]; 
@@ -427,9 +427,9 @@ namespace CFL_OBDD {
                 auto t1 = FillEntries(m2);
                 m21 = t1.first[0]; m22 = t1.first[1]; m23 = t1.first[2]; m24 = t1.first[3];
                 rf1 = t1.second[0]; rf2 = t1.second[1]; rf3 = t1.second[2]; rf4 = t1.second[3];
-                if (m1.handleContents->GetIndex() == m2.handleContents->GetIndex() + 1){
+                if (m1.handleContents->GetIndex() + 1 == m2.handleContents->GetIndex()){
                     auto t2 = FillEntries(m1);
-                    m11 = t2.first[0]; m12 = t2.first[1]; m13 = t2.first[2]; m24 = t2.first[3];
+                    m11 = t2.first[0]; m12 = t2.first[1]; m13 = t2.first[2]; m14 = t2.first[3];
                     lf1 = t2.second[0]; lf2 = t2.second[1]; lf3 = t2.second[2]; lf4 = t2.second[3]; 
                 }
                 else {
@@ -535,7 +535,6 @@ namespace CFL_OBDD {
                 xh = x->leftNode;
             }
             else {
-                MkWalshInterleavedNode(4);
                 xh = WeightedBDDComplexFloatBoostMulNodeHandle(x);
             }
 

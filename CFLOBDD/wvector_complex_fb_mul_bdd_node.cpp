@@ -40,8 +40,8 @@ namespace CFL_OBDD {
 
             WeightedBDDComplexFloatBoostInternalNode *n = new WeightedBDDComplexFloatBoostInternalNode(id);
 
-            unsigned int mid = std::pow(2, numVars-1);
-            if (index < mid)
+            unsigned int mid = index & (1UL << (numVars-1));
+            if (mid == 0)
             {
                 auto tmp = MkBasisVectorNode(numVars-1, index, id + 1);
                 n->leftNode = tmp;
@@ -86,7 +86,6 @@ namespace CFL_OBDD {
 
             WeightedBDDComplexFloatBoostInternalNode *n = new WeightedBDDComplexFloatBoostInternalNode(id);
 
-            unsigned int mid = std::pow(2, numVars-1);
             if (s[0] == '0')
             {
                 auto tmp = MkBasisVectorNode(numVars-1, s.substr(1), id + 1);

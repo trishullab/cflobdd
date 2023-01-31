@@ -1722,6 +1722,21 @@ namespace CFL_OBDD {
                 return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
             } 
         }
+        
+	    std::pair<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, int> MkRestrictNode(unsigned int level, std::string s, int cflobdd_kind)
+        {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkRestrictNode(bn->numberOfVars, s);
+                int val = 1;
+                if (s.find('1') == std::string::npos)
+                    val = 0;
+                return std::make_pair(WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn), val);
+            } 
+        }
+
+
 
     }
 

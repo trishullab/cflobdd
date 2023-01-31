@@ -1651,6 +1651,71 @@ namespace CFL_OBDD {
             } 
         }
 
+        WeightedBDDComplexFloatBoostMulNodeHandle MkRestrictNode(unsigned int numVars, std::string s, unsigned int index)
+        {
+            if (numVars == 0)
+                return WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
+            if (s[0] == 'X')
+            {
+                auto tmp = MkRestrictNode(numVars - 2, s.substr(1), index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 1;
+                x->leftNode = yh1;
+                x->rightNode = yh1;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            }
+            else if (s[0] == '0')
+            {
+                auto tmp = MkRestrictNode(numVars - 2, s.substr(1), index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 1;
+                x->rweight = 0;
+                x->leftNode = yh1;
+                x->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+            }
+            else if (s[0] == '1')
+            {
+                auto tmp = MkRestrictNode(numVars - 2, s.substr(1), index + 2);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(index + 1);
+                y1->leftNode = tmp;
+                y1->rightNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+                y1->lweight = 1;
+                y1->rweight = 0;
+
+                WeightedBDDComplexFloatBoostMulNodeHandle yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
+
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(index);
+                x->lweight = 0;
+                x->rweight = 1;
+                x->rightNode = yh1;
+                x->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode;
+
+                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+            }
+        }
     
     }
 }

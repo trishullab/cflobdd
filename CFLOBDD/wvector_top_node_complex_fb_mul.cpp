@@ -201,6 +201,13 @@ namespace CFL_OBDD {
 			// 	std::cerr << "Cannot print matrix: level must be in [1 .. 4]" << std::endl;
 			// }
 		}
+
+		long double getNonZeroProbabilityTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n)
+		{
+			BIG_COMPLEX_FLOAT factor = n->rootConnection.factor * n->rootConnection.factor;
+			long double prob = getNonZeroProbabilityNode(*(n->rootConnection.entryPointHandle));
+			return prob / factor.convert_to<long double>();
+		}
 	}
 }
 

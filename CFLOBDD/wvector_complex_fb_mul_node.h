@@ -27,7 +27,8 @@ namespace CFL_OBDD {
 
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, unsigned int index, int cflobdd_kind = 1);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, std::string s, int cflobdd_kind = 1);
-        
+        extern long double getNonZeroProbabilityNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh);
+
         extern void VectorInitializerNode();  // Empty for now
 
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle VectorToMatrixInterleavedNode(std::unordered_map<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, WeightedCFLOBDDComplexFloatBoostMulNodeHandle, WeightedCFLOBDDComplexFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap,

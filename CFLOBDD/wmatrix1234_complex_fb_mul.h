@@ -29,7 +29,9 @@ namespace CFL_OBDD {
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOTInterleaved(unsigned int i);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkExchangeInterleaved(unsigned int i); // Representation of exchange matrix
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOT(unsigned int level, unsigned int n, long int controller, long int controlled, int cflobdd_kind = 1); // Representation of CNOT matrix with index1 as controller and index2 as controlled bits
-		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCNOT(unsigned int level, long int controller, long int controlled, int cflobdd_kind = 1); // Representation of CNOT matrix with index1 as controller and index2 as controlled bits
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCNOT(unsigned int level, long int controller1, long int controller2, long int controlled, int cflobdd_kind = 1); // Representation of CNOT matrix with index1 as controller and index2 as controlled bits
+		
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkRestrictMatrix(unsigned int level, std::string s, int cflobdd_kind = 1); 
 
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL KroneckerProduct2Vocs(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m2);
 

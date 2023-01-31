@@ -126,6 +126,31 @@ namespace CFL_OBDD {
 			return v;
 		}
 
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkRestrictTop(unsigned int level, std::string s, int cflobdd_kind)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+			auto tmp = MkRestrictNode(level, s, cflobdd_kind);
+			if (tmp.second == 0)
+			{
+				m01.AddToEnd(0);
+				m01.AddToEnd(1);
+			}
+			else if (tmp.second == 1)
+			{
+				m01.AddToEnd(1);
+				m01.AddToEnd(0);
+			}
+			else if (tmp.second == -1)
+			{
+				m01.AddToEnd(1);
+			}
+			m01.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tmp.first, m01);
+			return v;
+		}
+
 		// Create representation of the Walsh matrix W(2**(i-1))
 		// [i.e., a matrix of size 2**(2**(i-1))) x 2**(2**(i-1)))]
 		// with interleaved indexing of components: that is, input

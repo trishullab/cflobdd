@@ -49,6 +49,11 @@ namespace CFL_OBDD {
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkSGateTop(i, cflobdd_kind));
 		}
 
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkRestrictMatrix(unsigned int level, std::string s, int cflobdd_kind)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkRestrictTop(level, s, cflobdd_kind));	
+		}
+
 		// Create representation of the Walsh matrix W(2**(i-1))
 		// [i.e., a matrix of size 2**(2**(i-1))) x 2**(2**(i-1)))]
 		// with interleaved indexing of components: that is, input

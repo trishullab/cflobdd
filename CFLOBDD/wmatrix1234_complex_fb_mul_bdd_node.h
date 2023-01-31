@@ -35,6 +35,7 @@ namespace CFL_OBDD {
         extern WeightedBDDComplexFloatBoostMulNodeHandle MkSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num, unsigned int index = 0);
         extern WeightedBDDComplexFloatBoostMulNodeHandle MkiSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num, unsigned int index = 0);
         extern WeightedBDDComplexFloatBoostMulNodeHandle MkCSwapGateNode(unsigned int level, long int controller, long int i, long int j, int case_num, unsigned int index = 0);
+        extern WeightedBDDComplexFloatBoostMulNodeHandle MkRestrictNode(unsigned int level, std::string s, unsigned int index = 0);
 
         class RenamePair{
         public:

@@ -70,6 +70,11 @@ namespace CFL_OBDD {
 			VectorPrintColumnMajorInterleavedTop(c.root, out);
 			return;
 		}
+
+		long double getNonZeroProbability(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL n)
+		{
+			return getNonZeroProbabilityTop(n.root);
+		}
 	}
 }
 

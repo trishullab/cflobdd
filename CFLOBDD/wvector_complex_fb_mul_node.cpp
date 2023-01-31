@@ -394,6 +394,16 @@ namespace CFL_OBDD {
             return std::make_pair(AString.first + BString.first, AString.second + BString.second);
             //return std::make_pair(AString.first + BString.first + AString.second + BString.second, "");
         }
+
+        long double getNonZeroProbabilityNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh)
+        {
+            if (nh.handleContents->NodeKind() == W_BDD_TOPNODE)
+            {
+                WeightedBDDComplexFloatBoostTopNode* nNode = (WeightedBDDComplexFloatBoostTopNode *)nh.handleContents;
+                return nNode->bddContents.handleContents->weightOfPathsAsAmpsToExit;
+            }
+            return 0;
+        }
     }
 //#endif
 }  // namespace CFL_OBDD

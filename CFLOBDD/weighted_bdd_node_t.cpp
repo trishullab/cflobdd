@@ -137,7 +137,8 @@ std::ostream& operator<< (std::ostream & out, const WeightedBDDNodeHandle<T, Op>
 // ***********
 
 template <typename T, typename Op>
-WeightedBDDNode<T,Op>::WeightedBDDNode() {}
+WeightedBDDNode<T,Op>::WeightedBDDNode() : refCount(0), isCanonical(false)
+{}
 
 template <typename T, typename Op>
 WeightedBDDNode<T,Op>::~WeightedBDDNode() {}
@@ -150,8 +151,9 @@ void WeightedBDDNode<T,Op>::ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedBD
 // ************
 
 template <typename T, typename Op>
-WeightedBDDInternalNode<T,Op>::WeightedBDDInternalNode(long int index) : index(index)
+WeightedBDDInternalNode<T,Op>::WeightedBDDInternalNode(long int i) : WeightedBDDNode<T,Op>()
 {
+    index = i;
 }
 
 template <typename T, typename Op>
@@ -273,8 +275,10 @@ std::ostream& WeightedBDDInternalNode<T,Op>::print(std::ostream & out) const
 // ************
 
 template <typename T, typename Op>
-WeightedBDDLeafNode<T,Op>::WeightedBDDLeafNode(T value) : value(value)
+WeightedBDDLeafNode<T,Op>::WeightedBDDLeafNode(T v) : WeightedBDDNode<T,Op>()
 {
+    value = v;
+    refCount = 1;
 }
 
 template <typename T, typename Op>
@@ -300,18 +304,11 @@ bool WeightedBDDLeafNode<T,Op>::operator== (const WeightedBDDNode<T,Op> &n)
 template <typename T, typename Op>
 void WeightedBDDLeafNode<T,Op>::IncrRef()
 {
-    this->refCount++;
 }
 
 template <typename T, typename Op>
 void WeightedBDDLeafNode<T,Op>::DecrRef()
 {
-    if (--this->refCount == 0) {    // Warning: Saturation not checked
-        if (this->isCanonical) {
-            WeightedBDDNodeHandle<T,Op>::canonicalBDDNodeTable->DeleteEq(this);
-        }
-        delete this;
-    }
 }
 
 template <typename T, typename Op>

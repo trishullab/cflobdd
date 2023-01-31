@@ -53,6 +53,7 @@ namespace CFL_OBDD {
 
     template <typename T, typename Op>
     class WeightedBDDNode {
+        friend void WeightedBDDNodeHandle<T,Op>::InitLeafNodes();
         public:
             WeightedBDDNode();
             WeightedBDDNode(long int i);
@@ -77,6 +78,7 @@ namespace CFL_OBDD {
 
     template <typename T, typename Op>
     class WeightedBDDInternalNode : public WeightedBDDNode<T,Op> {
+        friend void WeightedBDDNodeHandle<T,Op>::InitLeafNodes();
         public:
             WeightedBDDInternalNode(long int index);
             ~WeightedBDDInternalNode();
@@ -104,6 +106,7 @@ namespace CFL_OBDD {
 
     template <typename T, typename Op>
     class WeightedBDDLeafNode : public WeightedBDDNode<T,Op> {
+        friend void WeightedBDDNodeHandle<T,Op>::InitLeafNodes();
         public:
             WeightedBDDLeafNode(T value);
             ~WeightedBDDLeafNode();

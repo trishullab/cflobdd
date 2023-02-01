@@ -90,7 +90,7 @@ namespace CFL_OBDD {
 		}
 
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCNOT(unsigned int level, long int controller1, long int controller2, long int controlled, int cflobdd_kind){
-			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCNOTTopNode(level, controller1, controller2, controlled, cflobdd_kind));
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCCNOTTop(level, controller1, controller2, controlled, cflobdd_kind));
 		}
 
 		void MatrixPrintRowMajor(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, std::ostream & out)

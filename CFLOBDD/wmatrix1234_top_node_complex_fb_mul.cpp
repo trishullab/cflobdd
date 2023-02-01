@@ -409,7 +409,7 @@ namespace CFL_OBDD {
 			return new WeightedCFLOBDDTopNodeComplexFloatBoost(c, m, 1.0);
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCCNOTTopNode(unsigned int level, long int controller1, long int controller2, long int controlled, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCCNOTTop(unsigned int level, long int controller1, long int controller2, long int controlled, int cflobdd_kind)
 		{
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle c = MkCCNOTNode(level, controller1, controller2, controlled, cflobdd_kind);
 			ComplexFloatBoostReturnMapHandle m;

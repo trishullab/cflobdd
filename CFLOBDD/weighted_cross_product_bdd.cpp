@@ -849,7 +849,7 @@ namespace CFL_OBDD {
                     std::vector<T> ret_ans;
                     // TODO: Incorrect but doesn't affect the algorithm
                     ret_ans.push_back(getIdentityValue<T,Op>());
-                    pairProductMapHandle.AddToEnd(ret_ans);
+                    pairProductMapHandle.AddToEnd(ret_ans, factor1);
                 }
                 else {
                     WeightedBDDInternalNode<T,Op>* n1_i = (WeightedBDDInternalNode<T,Op> *)n1.handleContents;
@@ -909,7 +909,7 @@ namespace CFL_OBDD {
                     std::vector<T> ret_ans;
                     // TODO: Incorrect but doesn't affect the algorithm
                     ret_ans.push_back(getIdentityValue<T,Op>());
-                    pairProductMapHandle.AddToEnd(ret_ans);
+                    pairProductMapHandle.AddToEnd(ret_ans, factor2);
                 }
                 else {
                     /* n2.handleContents->NodeKind() == CFLOBDD_DONTCARE */       // W_CFLOBDD_FORK, CFLOBDD_DONTCARE

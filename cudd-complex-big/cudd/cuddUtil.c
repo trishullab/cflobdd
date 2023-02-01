@@ -372,11 +372,18 @@ Cudd_addSamplePath(
 
     // printf("%d\n", k);
 
-    for (unsigned int i = 0; i < (f->index)/period; i++){
-        sampled_path[i] = (rand() % 2);
-    }
+    if (f->index != CUDD_CONST_INDEX){
+        for (unsigned int i = 0; i < (f->index)/period; i++){
+            sampled_path[i] = (rand() % 2);
+        }
 
-    Cudd_addSamplePathRecur(f, period, (f->index)/period, &sampled_path, k, N);
+        Cudd_addSamplePathRecur(f, period, (f->index)/period, &sampled_path, k, N);
+    }
+    else {
+        for (unsigned int i = 0; i < N; i++){
+            sampled_path[i] = (rand() % 2);
+        } 
+    }
 
 
     for (unsigned int i = 0; i < f->numPaths->size; i++)

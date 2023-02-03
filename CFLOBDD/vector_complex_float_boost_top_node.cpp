@@ -165,10 +165,26 @@ namespace CFL_OBDD {
 				if (n->rootConnection.returnMapHandle.Lookup(i) != 0){
 					long double v = n->rootConnection.returnMapHandle.Lookup(i).real().convert_to<long double>();
 					long double logNumPaths = n->rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
-					prob += v * std::pow(2, logNumPaths);
+					prob += v * std::powl(2, logNumPaths);
 				}
 			}
 			return prob;
+		}
+
+		unsigned long long int GetPathCountTop(CFLOBDDTopNodeComplexFloatBoostRefPtr n, long double p)
+		{
+			for (unsigned int i = 0; i < n->rootConnection.returnMapHandle.Size(); i++)
+			{
+				if (n->rootConnection.returnMapHandle.Lookup(i) != 0){
+					long double v = n->rootConnection.returnMapHandle.Lookup(i).real().convert_to<long double>();
+					if (abs(v - p) < DBL_MIN)
+					{
+						long double logNumPaths = n->rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
+						return std::powl(2, logNumPaths);
+					}
+				}
+			}
+			return 0;
 		}
 
 		//#ifdef PATH_COUNTING_ENABLED

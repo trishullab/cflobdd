@@ -98,6 +98,11 @@ namespace CFL_OBDD {
 		{
 			return getNonZeroProbabilityTop(n.root);
 		}
+
+		unsigned long long int GetPathCount(CFLOBDD_COMPLEX_BIG n, long double p)
+		{
+			return GetPathCountTop(n.root, p);
+		}
 	}
 }
 

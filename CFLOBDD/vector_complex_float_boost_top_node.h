@@ -39,6 +39,7 @@ namespace CFL_OBDD {
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr NoDistinctionNodeTop(unsigned int level, BIG_COMPLEX_FLOAT val);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr ConvertToDoubleTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);
 		extern long double getNonZeroProbabilityTop(CFLOBDDTopNodeComplexFloatBoostRefPtr n);
+		extern unsigned long long int GetPathCountTop(CFLOBDDTopNodeComplexFloatBoostRefPtr n, long double p);
 		//ifdef PATH_COUNTING_ENABLED
 		extern std::string SamplingTop(CFLOBDDTopNodeComplexFloatBoostRefPtr n, bool voctwo = false);
 		extern std::string SamplingV2Top(CFLOBDDTopNodeComplexFloatBoostRefPtr n);

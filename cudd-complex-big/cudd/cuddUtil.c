@@ -437,6 +437,40 @@ Cudd_addGetProbability(
     return prob;
 }
 
+unsigned long long int
+Cudd_addGetPathCount(
+    DdManager* dd,
+    DdNode* f, 
+    unsigned int N,
+    unsigned int period,
+    long double p)
+{
+
+    for (unsigned int i = 0; i < f->numPaths->size; i++){
+        CUDD_VALUE_TYPE* w_abs;
+        w_abs = (CUDD_VALUE_TYPE *)malloc(sizeof(CUDD_VALUE_TYPE));
+        mpfr_init(w_abs->real); mpfr_init(w_abs->imag);
+        getAbsValue(f->numPaths->info[i].weight, w_abs);
+        mpfr_sqrt(w_abs->real, w_abs->real, RND_TYPE);
+        mpfr_t tmp;
+        mpfr_init(tmp);
+        mpfr_sub_d(tmp, w_abs->real, p, RND_TYPE);
+        mpfr_abs(tmp, tmp, RND_TYPE);
+        double tmp_d = mpfr_get_ld(tmp, RND_TYPE);
+        mpfr_clear(tmp);
+        mpfr_clear(w_abs->real);
+        mpfr_clear(w_abs->imag);
+        free(w_abs);
+        if (tmp_d < DBL_MIN)
+        {
+            unsigned long long int path_count = mpfr_get_ui(f->numPaths->info[i].path_count, RND_TYPE);
+            return path_count;
+        } 
+    }
+
+    return 0;
+}
+
 /**
   @brief Prints a sum of prime implicants of a %BDD.
 

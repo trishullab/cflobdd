@@ -961,6 +961,12 @@ ADD::GetProbability(unsigned int N, unsigned int period) const
     return Cudd_addGetProbability(p->manager, node, N, period);
 }
 
+unsigned long long int
+ADD::GetPathCount(unsigned int N, unsigned int period, long double prob) const
+{
+    return Cudd_addGetPathCount(p->manager, node, N, period, prob);
+}
+
 std::string
 ADD::SamplePath(unsigned int N, unsigned int period, std::string fn_name) const
 {

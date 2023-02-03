@@ -380,6 +380,7 @@ public:
     void PrintPathInfo() const;
     std::string SamplePath(unsigned int N, unsigned int period, std::string fn_name) const;
     long double GetProbability(unsigned int N, unsigned int period) const;
+    unsigned long long int GetPathCount(unsigned int N, unsigned int period, long double prob) const;
 
 }; // ADD
 

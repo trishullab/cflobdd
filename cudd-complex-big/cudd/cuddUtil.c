@@ -461,7 +461,7 @@ Cudd_addGetPathCount(
         mpfr_clear(w_abs->real);
         mpfr_clear(w_abs->imag);
         free(w_abs);
-        if (tmp_d < DBL_MIN)
+        if (tmp_d < 1e-10)
         {
             unsigned long long int path_count = mpfr_get_ui(f->numPaths->info[i].path_count, RND_TYPE);
             return path_count;

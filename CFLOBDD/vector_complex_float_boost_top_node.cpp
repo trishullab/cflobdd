@@ -177,7 +177,7 @@ namespace CFL_OBDD {
 			{
 				if (n->rootConnection.returnMapHandle.Lookup(i) != 0){
 					long double v = n->rootConnection.returnMapHandle.Lookup(i).real().convert_to<long double>();
-					if (abs(v - p) < DBL_MIN)
+					if (abs(v - p) < std::numeric_limits<double>::epsilon())
 					{
 						long double logNumPaths = n->rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
 						return std::pow(2, logNumPaths);

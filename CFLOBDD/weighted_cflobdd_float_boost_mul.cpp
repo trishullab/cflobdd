@@ -27,7 +27,7 @@ namespace CFL_OBDD	{
 template<>
 WEIGHTED_CFLOBDD_T<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::WEIGHTED_CFLOBDD_T()
 {
-	root = MkTrueFloatMulTop();
+	root = NULL;//MkTrueFloatMulTop();
 }
 
 

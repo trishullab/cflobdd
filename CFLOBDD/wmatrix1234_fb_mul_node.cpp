@@ -127,6 +127,44 @@ namespace CFL_OBDD {
             return WeightedCFLOBDDFloatBoostMulNodeHandle(n);
         } // MkWalshInterleavedNode
 
+
+        WeightedCFLOBDDFloatBoostMulNodeHandle MkNegationMatrixInterleavedNode(unsigned int level)
+        {
+            WeightedCFLOBDDFloatBoostInternalNode *n;
+
+            if (level == 0) {
+                return WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle;
+            }
+            else if (level == 1) {
+                n = new WeightedCFLOBDDFloatBoostInternalNode(level);
+
+                WeightedCFLOBDDFloatBoostMulNodeHandle temp = WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle;
+                n->AConnection = Connection(temp, commonly_used_return_maps[2]);//m01
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                n->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, commonly_used_return_maps[2]);//m01
+                n->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, commonly_used_return_maps[3]);//m10
+            }
+            else {  // Create an appropriate CFLOBDDInternalNode
+                n = new WeightedCFLOBDDFloatBoostInternalNode(level);
+
+                WeightedCFLOBDDFloatBoostMulNodeHandle temp = MkNegationMatrixInterleavedNode(level - 1);
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                n->AConnection = Connection(temp, m01);//m01
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                n->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], m0);
+                n->BConnection[1] = Connection(temp, m01);
+            }
+            n->numExits = 2;
+    #ifdef PATH_COUNTING_ENABLED
+            n->InstallPathCounts();
+    #endif
+            return WeightedCFLOBDDFloatBoostMulNodeHandle(n);
+        } // MkIdRelationInterleavedNode
+
         WeightedCFLOBDDFloatBoostMulNodeHandle KroneckerProduct2VocsNode(WeightedCFLOBDDFloatBoostMulNodeHandle m1, WeightedCFLOBDDFloatBoostMulNodeHandle m2, 
             int zero_index_m1, int zero_index_m2)
         {

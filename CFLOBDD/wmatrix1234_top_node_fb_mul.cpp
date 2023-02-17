@@ -294,11 +294,7 @@ namespace CFL_OBDD {
 			v.Canonicalize();
 			reductionMapHandle.Canonicalize();
             valList.Canonicalize();
-            // n.print(std::cout);
-            // std::cout << valList << std::endl;
 			auto g = n.Reduce(reductionMapHandle, v.Size(), valList, true);
-			// Create and return CFLOBDDTopNode
-			//return(new CFLOBDDTopNodeFloatBoost(reduced_tempHandle, inducedReturnMap));
 			return(new WeightedCFLOBDDTopNodeFloatBoost(g.first, v, g.second * common_f * c1->rootConnection.factor * c2->rootConnection.factor));
 		}
 

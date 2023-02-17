@@ -309,8 +309,10 @@ void WeightedMatMultMapHandle<T>::Canonicalize()
     //         ++it;
     // }
 
-    if (mapContents->map.empty())
+    if (mapContents->map.empty()){
         mapContents->map.insert(std::make_pair(std::make_pair(-1, -1), 0));
+		mapContents->contains_zero_val = true;
+	}
 
 	WeightedMatMultMapBody<T> *answerContents;
 	mapContents->setHashCheck();
@@ -355,6 +357,7 @@ void WeightedMatMultMapHandle<fourierSemiring>::Canonicalize()
 		}
 	}
 }
+
 
 template <typename T>
 size_t WeightedMatMultMapHandle<T>::getHashCheck()

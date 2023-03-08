@@ -1475,11 +1475,11 @@ void CFLTests::testShorsAlgo_W(int N, int a)
 	auto duration = duration_cast<milliseconds>(end - start);
 	unsigned int nodeCount = 0, edgeCount = 0;
 	unsigned int returnEdgesCount, returnEdgesObjCount;
-	out_ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
-	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
-		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
-		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
-	out_ans.print(std::cout);
+	// out_ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	// std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
+	// 	<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
+	// 	" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
+	// out_ans.print(std::cout);
 }
 
 

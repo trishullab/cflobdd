@@ -358,6 +358,30 @@ namespace CFL_OBDD {
 			return v;
 		}
 
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCCNOTTop(unsigned int level, unsigned int n, long int c1, long int c2, long int x)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+			tempHandle = MkCCNOTNode(level, n, c1, c2, x);
+			m01.AddToEnd(1);
+			m01.AddToEnd(0);
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliZGateTop(unsigned int i)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+			tempHandle = MkPauliZGateNode(i);
+			m01.AddToEnd(1);
+			m01.AddToEnd(0);
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			return v;
+		}
+
 	}
 }
 

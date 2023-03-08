@@ -34,6 +34,8 @@ namespace CFL_OBDD {
 
 		extern WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL MatrixMultiplyV4(WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL m2);
         extern WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL CreateBalancedFn(int n, std::mt19937 mt);
+		extern WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL MkCCNOT(unsigned int i, unsigned int n, long int c1, long int c2, long int x);
+		extern WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL MkPauliZGate(unsigned int level);
 	}
 }
 

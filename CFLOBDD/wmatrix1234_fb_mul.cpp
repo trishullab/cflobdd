@@ -110,6 +110,16 @@ namespace CFL_OBDD {
 			ans = WeightedMatrix1234FloatBoostMul::MatrixMultiplyV4(F, ans);
 			return ans;
 		}
+
+		WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL MkCCNOT(unsigned int i, unsigned int n, long int c1, long int c2, long int x)
+		{
+			return WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL(MkCCNOTTop(i, n, c1, c2, x));
+		}
+
+		WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL MkPauliZGate(unsigned int level)
+		{
+			return WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL(MkPauliZGateTop(level));
+		}
 	}
 }
 

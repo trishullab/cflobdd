@@ -38,6 +38,8 @@ namespace CFL_OBDD {
 		extern WeightedCFLOBDDTopNodeFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled);
 		extern WeightedCFLOBDDTopNodeFloatBoostRefPtr KroneckerProduct2VocsTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr m1, WeightedCFLOBDDTopNodeFloatBoostRefPtr m2);
 		extern WeightedCFLOBDDTopNodeFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled);
+		extern WeightedCFLOBDDTopNodeFloatBoostRefPtr MkCCNOTTop(unsigned int level, unsigned int n, long int c1, long int i, long int j);
+		extern WeightedCFLOBDDTopNodeFloatBoostRefPtr MkPauliZGateTop(unsigned int i);
 
 		extern void MatrixPrintRowMajorTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n, std::ostream & out);
 		extern void MatrixPrintRowMajorInterleavedTop(WeightedCFLOBDDTopNodeFloatBoostRefPtr n, std::ostream & out);

@@ -326,6 +326,20 @@ namespace CFL_OBDD {
 			return v;
 		}
 
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkiSwapGateTop(unsigned int i, long int c1, long int c2)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+
+			tempHandle = MkiSwapGateNode(i, c1, c2, -1);
+			m01.AddToEnd(1);
+			m01.AddToEnd(0);
+			m01.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			return v;
+		}
+
 		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int i, long int c1, long int c2, double theta)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
@@ -354,6 +368,20 @@ namespace CFL_OBDD {
 			tempHandle = MkCSwapGateNode(level, c, i, j, 1);
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
+			m01.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCSwapGate2Top(unsigned int level, long int c, long int i, long int j)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+			tempHandle = MkCSwapGate2Node(level, c, i, j, 1);
+			m01.AddToEnd(1);
+			m01.AddToEnd(0);
+			m01.Canonicalize();
 			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
 			return v;
 		}
@@ -366,6 +394,7 @@ namespace CFL_OBDD {
 			tempHandle = MkCCNOTNode(level, n, c1, c2, x);
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
+			m01.Canonicalize();
 			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
 			return v;
 		}
@@ -378,6 +407,51 @@ namespace CFL_OBDD {
 			tempHandle = MkPauliZGateNode(i);
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
+			m01.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliYGateTop(unsigned int i)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+			tempHandle = MkPauliYGateNode(i);
+			m01.AddToEnd(0);
+			m01.AddToEnd(1);
+			m01.Canonicalize();
+			BIG_COMPLEX_FLOAT factor(0, -1);
+			factor = boost::multiprecision::pow(factor, std::pow(2, i));
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01, factor);
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSGateTop(unsigned int i)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+			tempHandle = MkSGateNode(i);
+			m01.AddToEnd(1);
+			m01.AddToEnd(0);
+			m01.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPhaseShiftGateTop(unsigned int i, double theta)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+			auto cos_v = boost::math::cos_pi(theta);
+			auto sin_v = boost::math::sin_pi(theta);
+			BIG_COMPLEX_FLOAT theta_val (cos_v, sin_v);
+			tempHandle = MkPhaseShiftGateNode(i, theta_val);
+			m01.AddToEnd(1);
+			m01.AddToEnd(0);
+			m01.Canonicalize();
 			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
 			return v;
 		}

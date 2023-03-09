@@ -299,7 +299,7 @@ namespace CFL_OBDD {
 			auto g = n.Reduce(reductionMapHandle, v.Size(), valList, true);
 			// Create and return CFLOBDDTopNode
 			//return(new CFLOBDDTopNodeFloatBoost(reduced_tempHandle, inducedReturnMap));
-			return(new WeightedCFLOBDDTopNodeComplexFloatBoost(g.first, v, g.second * common_f * c1->rootConnection.factor * c2->rootConnection.factor));
+			return(new WeightedCFLOBDDTopNodeComplexFloatBoost(g.first, v, g.second * common_f * c1->rootConnection.factor * c2->rootConnection.factor * n_factor));
 		}
 
 		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled)

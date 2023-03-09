@@ -88,10 +88,10 @@ namespace CFL_OBDD {
 			ComplexFloatBoostReturnMapHandle m;
 
 			tempHandle = MkWalshInterleavedNode(i);
-			// auto val = boost::multiprecision::pow(BIG_COMPLEX_FLOAT(sqrt(2)), i).convert_to<BIG_COMPLEX_FLOAT>();
+			auto val = boost::multiprecision::pow(BIG_COMPLEX_FLOAT(sqrt(2)), i).convert_to<BIG_COMPLEX_FLOAT>();
 			m.AddToEnd(1);
 			m.Canonicalize();
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m, 1.0);
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m, 1.0/val);
 			return v;
 		}
 

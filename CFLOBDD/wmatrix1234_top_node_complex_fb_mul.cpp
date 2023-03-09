@@ -38,14 +38,14 @@ namespace CFL_OBDD {
 		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkNegationMatrixInterleavedTop(unsigned int i)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			// WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			// ComplexFloatBoostReturnMapHandle m01;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
 
-			// tempHandle = MkNegationMatrixInterleavedNode(i);
-			// m01.AddToEnd(0);
-			// m01.AddToEnd(1);
-			// m01.Canonicalize();
-			// v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			tempHandle = MkNegationMatrixInterleavedNode(i);
+			m01.AddToEnd(0);
+			m01.AddToEnd(1);
+			m01.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
 			return v;
 		}
 

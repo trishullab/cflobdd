@@ -2270,8 +2270,8 @@ namespace CFL_OBDD {
                 m10.AddToEnd(1);
                 m10.AddToEnd(0);
                 m10.Canonicalize();
-                n->BConnection[0] = Connection(b0, m10);
-                n->BConnection[1] = Connection(b1, m01);
+                n->BConnection[0] = Connection(b0, m01);
+                n->BConnection[1] = Connection(b1, m10);
             }
             else {
                 WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkPauliZGateNode(i - 1);
@@ -2316,8 +2316,8 @@ namespace CFL_OBDD {
                 m10.AddToEnd(1);
                 m10.AddToEnd(0);
                 m10.Canonicalize();
-                n->BConnection[0] = Connection(b0, m10);
-                n->BConnection[1] = Connection(b1, m01);
+                n->BConnection[0] = Connection(b0, m01);
+                n->BConnection[1] = Connection(b1, m10);
             }
             else {
                 WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkPauliYGateNode(i - 1);
@@ -2362,8 +2362,8 @@ namespace CFL_OBDD {
                 m10.AddToEnd(1);
                 m10.AddToEnd(0);
                 m10.Canonicalize();
-                n->BConnection[0] = Connection(b0, m10);
-                n->BConnection[1] = Connection(b1, m01);
+                n->BConnection[0] = Connection(b0, m01);
+                n->BConnection[1] = Connection(b1, m10);
             }
             else {
                 WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkSGateNode(i - 1);
@@ -2408,8 +2408,8 @@ namespace CFL_OBDD {
                 m10.AddToEnd(1);
                 m10.AddToEnd(0);
                 m10.Canonicalize();
-                n->BConnection[0] = Connection(b0, m10);
-                n->BConnection[1] = Connection(b1, m01);
+                n->BConnection[0] = Connection(b0, m01);
+                n->BConnection[1] = Connection(b1, m10);
             }
             else {
                 WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkPhaseShiftGateNode(i - 1, theta_val);

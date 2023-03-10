@@ -2199,8 +2199,9 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDForkNode<T,Op>::Red
 {
     // std::cout << "Fork " << replacementNumExits << " " << valList << std::endl;
     if (replacementNumExits == 1) {
-        if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>())
+        if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>() && this->lweight == this->rweight && this->lweight == getIdentityValue<T,Op>()){
             return std::make_pair(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDDontCareNodeHandle, getIdentityValue<T,Op>());
+        }
         else if (valList[0] == valList[1] && valList[0] == getAnnhilatorValue<T,Op>())
             return std::make_pair(WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0], valList[0]);
         else{
@@ -2214,7 +2215,7 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDForkNode<T,Op>::Red
         }
     }
     else {
-        if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>())
+        if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>() && this->lweight == this->rweight && this->lweight == getIdentityValue<T,Op>())
             return std::make_pair(WeightedCFLOBDDNodeHandleT(this), getIdentityValue<T,Op>());
         else{
             T lw = valList[0] * this->lweight;
@@ -2330,7 +2331,7 @@ int WeightedCFLOBDDDontCareNode<T,Op>::Traverse(SH_OBDD::AssignmentIterator &ai)
 template <typename T, typename Op>
 std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDDontCareNode<T,Op>::Reduce(ReductionMapHandle&, unsigned int, WeightedValuesListHandle<T>& valList, bool)
 {
-    if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>())
+    if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>() && this->lweight == this->rweight && this->lweight == getIdentityValue<T,Op>())
         return std::make_pair(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDDontCareNodeHandle, getIdentityValue<T,Op>());
     else if (valList[0] == valList[1] && valList[0] == getAnnhilatorValue<T,Op>())
         return std::make_pair(WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0], valList[0]);

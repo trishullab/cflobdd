@@ -965,7 +965,7 @@ namespace CFL_OBDD {
             }
             else { /* n2.handleContents->NodeKind() == CFLOBDD_DONTCARE */       // W_CFLOBDD_FORK, CFLOBDD_DONTCARE
                 WeightedCFLOBDDForkNode<T,Op>* c1 = (WeightedCFLOBDDForkNode<T,Op> *)(n1.handleContents);
-                WeightedCFLOBDDForkNode<T,Op>* c2 = (WeightedCFLOBDDForkNode<T,Op> *)(n2.handleContents);
+                WeightedCFLOBDDDontCareNode<T,Op>* c2 = (WeightedCFLOBDDDontCareNode<T,Op> *)(n2.handleContents);
                 T lw1 = computeComposition<T,Op>(factor1, c1->lweight);
                 T lw2 = computeComposition<T,Op>(factor2, c2->lweight);
                 T rw1 = computeComposition<T,Op>(factor1, c1->rweight);
@@ -1003,7 +1003,7 @@ namespace CFL_OBDD {
             }
             else { /* n1.handleContents->NodeKind() == CFLOBDD_DONTCARE */
             if (n2.handleContents->NodeKind() == W_CFLOBDD_FORK) {                 // CFLOBDD_DONTCARE, W_CFLOBDD_FORK
-                WeightedCFLOBDDForkNode<T,Op>* c1 = (WeightedCFLOBDDForkNode<T,Op> *)(n1.handleContents);
+                WeightedCFLOBDDDontCareNode<T,Op>* c1 = (WeightedCFLOBDDDontCareNode<T,Op> *)(n1.handleContents);
                 WeightedCFLOBDDForkNode<T,Op>* c2 = (WeightedCFLOBDDForkNode<T,Op> *)(n2.handleContents);
                 T lw1 = computeComposition<T,Op>(factor1, c1->lweight);
                 T lw2 = computeComposition<T,Op>(factor2, c2->lweight);
@@ -1041,8 +1041,8 @@ namespace CFL_OBDD {
             }
             else { /* n2.handleContents->NodeKind() == CFLOBDD_DONTCARE */       // CFLOBDD_DONTCARE, CFLOBDD_DONTCARE
                 // TODO: To optimize
-                WeightedCFLOBDDForkNode<T,Op>* c1 = (WeightedCFLOBDDForkNode<T,Op> *)(n1.handleContents);
-                WeightedCFLOBDDForkNode<T,Op>* c2 = (WeightedCFLOBDDForkNode<T,Op> *)(n2.handleContents);
+                WeightedCFLOBDDDontCareNode<T,Op>* c1 = (WeightedCFLOBDDDontCareNode<T,Op> *)(n1.handleContents);
+                WeightedCFLOBDDDontCareNode<T,Op>* c2 = (WeightedCFLOBDDDontCareNode<T,Op> *)(n2.handleContents);
                 T lw1 = computeComposition<T,Op>(factor1, c1->lweight);
                 T lw2 = computeComposition<T,Op>(factor2, c2->lweight);
                 T rw1 = computeComposition<T,Op>(factor1, c1->rweight);

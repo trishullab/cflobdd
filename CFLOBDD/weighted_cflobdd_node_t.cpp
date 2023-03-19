@@ -1689,15 +1689,29 @@ inline CFLOBDDReturnMapHandle ComposeAndReduce(CFLOBDDReturnMapHandle& mapHandle
 	return answer;
 }
 
-template <typename T>
-WeightedValuesListHandle<T> ComposeValueList(CFLOBDDReturnMapHandle& returnMap, WeightedValuesListHandle<T>& valList)
+template <typename T, typename Op>
+std::pair<WeightedValuesListHandle<T>, T> ComposeValueList(CFLOBDDReturnMapHandle& returnMap, WeightedValuesListHandle<T>& valList)
 {
     WeightedValuesListHandle<T> answerList;
+    T factor = getIdentityValue<T,Op>();
+    bool found = false;
     for (unsigned int i = 0; i < returnMap.Size(); i++)
     {
-        answerList.AddToEnd(valList[returnMap[i]]);
+      auto v = valList[returnMap[i]];
+      if (!found && v != getAnnhilatorValue<T,Op>())
+      {
+        factor = v;
+        v = getIdentityValue<T,Op>();
+        found = true; 
+      }
+      else
+      {
+        auto x = computeInverseValue<T,Op>(factor, v); // factor, 1, v/factor
+        v = std::get<2>(x);
+      }
+      answerList.AddToEnd(v);
     }
-    return answerList;
+    return std::make_pair(answerList, factor);
 }
 
 // Check this
@@ -1714,13 +1728,13 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
      for (unsigned int i = 0; i < numBConnections; i++) {
         ReductionMapHandle inducedReductionMapHandle(redMapHandle.Size());
         CFLOBDDReturnMapHandle inducedReturnMap;
-		inducedReturnMap = ComposeAndReduce(BConnection[i].returnMapHandle, redMapHandle, inducedReductionMapHandle);
-        WeightedValuesListHandle<T> inducedValueList = ComposeValueList(BConnection[i].returnMapHandle, valList);
-        std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> temp = BConnection[i].entryPointHandle->Reduce(inducedReductionMapHandle, inducedReturnMap.Size(), inducedValueList, forceReduce);
+		    inducedReturnMap = ComposeAndReduce(BConnection[i].returnMapHandle, redMapHandle, inducedReductionMapHandle);
+        auto inducedValueList = ComposeValueList<T,Op>(BConnection[i].returnMapHandle, valList);
+        std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> temp = BConnection[i].entryPointHandle->Reduce(inducedReductionMapHandle, inducedReturnMap.Size(), inducedValueList.first, forceReduce);
         WConnection<T,Op> c(temp.first, inducedReturnMap);
         unsigned int position = n->InsertBConnection(n->numBConnections, c);
         AReductionMapHandle.AddToEnd(position);
-        AValueList.AddToEnd(temp.second);
+        AValueList.AddToEnd(computeComposition<T,Op>(temp.second, inducedValueList.second));
      }
      AReductionMapHandle.Canonicalize();
      AValueList.Canonicalize();
@@ -1735,10 +1749,10 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
 
   // Reduce the A connection
      ReductionMapHandle inducedAReductionMapHandle;
-	 CFLOBDDReturnMapHandle inducedAReturnMap;
-	 inducedAReturnMap = ComposeAndReduce(AConnection.returnMapHandle, AReductionMapHandle, inducedAReductionMapHandle);
-     WeightedValuesListHandle<T> inducedAValueList = ComposeValueList(AConnection.returnMapHandle, AValueList);
-     std::pair<WeightedCFLOBDDNodeHandleT<T,Op>, T> tempHandle = AConnection.entryPointHandle->Reduce(inducedAReductionMapHandle, inducedAReturnMap.Size(), inducedAValueList, forceReduce);
+	   CFLOBDDReturnMapHandle inducedAReturnMap;
+	   inducedAReturnMap = ComposeAndReduce(AConnection.returnMapHandle, AReductionMapHandle, inducedAReductionMapHandle);
+     auto inducedAValueList = ComposeValueList<T,Op>(AConnection.returnMapHandle, AValueList);
+     std::pair<WeightedCFLOBDDNodeHandleT<T,Op>, T> tempHandle = AConnection.entryPointHandle->Reduce(inducedAReductionMapHandle, inducedAReturnMap.Size(), inducedAValueList.first, forceReduce);
      n->AConnection = WConnection<T,Op>(tempHandle.first, inducedAReturnMap);
 
   // Other material that has to be filled in
@@ -1746,7 +1760,7 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
 #ifdef PATH_COUNTING_ENABLED
      n->InstallPathCounts();
 #endif
-    return std::make_pair(WeightedCFLOBDDNodeHandleT(n), tempHandle.second);
+    return std::make_pair(WeightedCFLOBDDNodeHandleT(n), computeComposition<T,Op>(tempHandle.second, inducedAValueList.second));
 } // CFLOBDDInternalNode::Reduce
 
 template <typename T, typename Op>

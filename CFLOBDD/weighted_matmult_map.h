@@ -51,6 +51,13 @@ public:
 	static Hashset<WeightedMatMultMapBody<T>> *canonicalWeightedMatMultMapBodySet;
 	std::ostream& print(std::ostream & out = std::cout) const;
 	WeightedMatMultMapHandle<T> operator+ (const WeightedMatMultMapHandle<T>&) const; // map concatenation with summation as merge operation
+
+	struct mapHash {
+	 public:
+		 size_t operator()(const WeightedMatMultMapHandle<T>& c) const {
+			 return c.mapContents->Hash(UINT64_MAX);
+		 }
+	 };
 };
 
 template <typename T>

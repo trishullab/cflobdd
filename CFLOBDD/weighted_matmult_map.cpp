@@ -224,6 +224,25 @@ void WeightedMatMultMapHandle<T>::Add(const INT_PAIR& p, T& v)
 }
 
 template <>
+void WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>::Add(const INT_PAIR& p, BIG_COMPLEX_FLOAT& v)
+{
+	assert(mapContents->refCount <= 1);
+	auto it = mapContents->map.find(p);
+    if (it == mapContents->map.end()){
+        mapContents->map.emplace(p, v);
+    }
+    else{
+        it->second += v;
+		if (boost::multiprecision::abs(it->second.real()) < FLT_EPSILON)
+			it->second = BIG_COMPLEX_FLOAT(0, it->second.imag());
+		// if (boost::multiprecision::abs(it->second.imag()) < FLT_EPSILON)
+		// 	it->second = BIG_COMPLEX_FLOAT(it->second.real(), 0);
+        if (it->second == 0)
+            mapContents->map.erase(it);
+    }
+}
+
+template <>
 void WeightedMatMultMapHandle<fourierSemiring>::Add(const INT_PAIR& p, fourierSemiring& v)
 {
 	assert(mapContents->refCount <= 1);

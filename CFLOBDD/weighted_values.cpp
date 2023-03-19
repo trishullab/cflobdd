@@ -57,13 +57,23 @@ namespace CFL_OBDD {
             return std::make_tuple(rw, 0.0, 1.0);
         if (rw == 0.0)
             return std::make_tuple(lw, 1.0, 0.0);
-        return std::make_tuple(lw, 1.0, rw/lw);
+        auto v = rw/lw;
+        if (boost::multiprecision::abs(v.real()) < FLT_EPSILON)
+            v = BIG_COMPLEX_FLOAT(0, v.imag());
+        // if (boost::multiprecision::abs(v.imag()) < FLT_EPSILON)
+        //     v = BIG_COMPLEX_FLOAT(v.real(), 0);
+        return std::make_tuple(lw, 1.0, v);
     }
 
     template <>
     BIG_COMPLEX_FLOAT computeComposition<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>(BIG_COMPLEX_FLOAT c, BIG_COMPLEX_FLOAT w)
     {
-        return c * w;
+        auto v = c * w;
+        if (boost::multiprecision::abs(v.real()) < FLT_EPSILON)
+            v = BIG_COMPLEX_FLOAT(0, v.imag());
+        // if (boost::multiprecision::abs(v.imag()) < FLT_EPSILON)
+        //     v = BIG_COMPLEX_FLOAT(v.real(), 0);
+        return v;
     }
 
     template <>

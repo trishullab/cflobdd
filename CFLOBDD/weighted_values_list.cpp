@@ -309,7 +309,7 @@ template class WeightedValuesListHandle<BIG_FLOAT>;
 template std::ostream& operator<< (std::ostream & out, const WeightedValuesListHandle<BIG_FLOAT> &r);
 
 
-typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
+typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX_FLOAT;
 template class WeightedValuesListHandle<BIG_COMPLEX_FLOAT>;
 template std::ostream& operator<< (std::ostream & out, const WeightedValuesListHandle<BIG_COMPLEX_FLOAT> &r);
 

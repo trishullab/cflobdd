@@ -50,11 +50,47 @@ unsigned int WeightedMatMultMapBody<T>::Hash(unsigned int modsize)
 	return hvalue;
 }
 
+template <>
+unsigned int WeightedMatMultMapBody<BIG_COMPLEX_FLOAT>::Hash(unsigned int modsize)
+{
+	/*if (modsize == HASHSETBASE)
+		return hashCheck;*/
+	unsigned int hvalue = 0;
+	boost::hash<BIG_COMPLEX_FLOAT> boost_hash;
+	for (auto &i : map)
+	{
+		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second))) % modsize;
+	}
+	return hvalue;
+}
+
 template <typename T>
 void WeightedMatMultMapBody<T>::setHashCheck()
 {
 	long int hvalue = 0;
 	boost::hash<T> boost_hash;
+	for (auto &i : map) {
+		hvalue = (117 * (hvalue + 1) + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second)));
+	}
+	hashCheck = hvalue;
+}
+
+template <>
+void WeightedMatMultMapBody<BIG_FLOAT>::setHashCheck()
+{
+	long int hvalue = 0;
+	boost::hash<BIG_FLOAT> boost_hash;
+	for (auto &i : map) {
+		hvalue = (117 * (hvalue + 1) + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second)));
+	}
+	hashCheck = hvalue;
+}
+
+template <>
+void WeightedMatMultMapBody<BIG_COMPLEX_FLOAT>::setHashCheck()
+{
+	long int hvalue = 0;
+	boost::hash<BIG_COMPLEX_FLOAT> boost_hash;
 	for (auto &i : map) {
 		hvalue = (117 * (hvalue + 1) + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second)));
 	}

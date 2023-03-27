@@ -10,7 +10,7 @@
 namespace mp = boost::multiprecision;
 
 namespace CFL_OBDD {
-	typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
+	typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX_FLOAT;
     // typedef double BIG_COMPLEX_FLOAT;
 	//typedef mp::number<mp::cpp_dec_float<1000> > BIG_COMPLEX_FLOAT;
 	typedef ReturnMapBody<BIG_COMPLEX_FLOAT> ComplexFloatBoostReturnMapBody;

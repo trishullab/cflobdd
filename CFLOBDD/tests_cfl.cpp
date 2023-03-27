@@ -1464,7 +1464,7 @@ void CFLTests::testQFT_W(int p, int seed)
 	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
 		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
 		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
-	out_ans.print(std::cout);
+	// out_ans.print(std::cout);
 }
 
 void CFLTests::testShorsAlgo_W(int N, int a)

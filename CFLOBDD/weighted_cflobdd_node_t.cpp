@@ -527,6 +527,7 @@ std::ostream& WeightedCFLOBDDNodeHandleT<T,Op>::print(std::ostream & out) const
   return out;
 }
 
+
 // template <typename T, typename Op> 
 // bool WeightedCFLOBDDNodeHandleT<T,Op>::IsValid()
 // {
@@ -1692,6 +1693,7 @@ inline CFLOBDDReturnMapHandle ComposeAndReduce(CFLOBDDReturnMapHandle& mapHandle
 template <typename T, typename Op>
 std::pair<WeightedValuesListHandle<T>, T> ComposeValueList(CFLOBDDReturnMapHandle& returnMap, WeightedValuesListHandle<T>& valList)
 {
+    std::ostream& os = std::cout;
     WeightedValuesListHandle<T> answerList;
     T factor = getIdentityValue<T,Op>();
     bool found = false;
@@ -2259,14 +2261,20 @@ unsigned int WeightedCFLOBDDForkNode<T,Op>::Hash(unsigned int modsize)
 template <typename T, typename Op>
 bool WeightedCFLOBDDForkNode<T,Op>::operator!= (const WeightedCFLOBDDNode<T,Op> & n)
 {
-  return n.NodeKind() != W_CFLOBDD_FORK;
+  return !(*this == n);
 }
 
 // Overloaded ==
 template <typename T, typename Op>
 bool WeightedCFLOBDDForkNode<T,Op>::operator== (const WeightedCFLOBDDNode<T,Op> & n)
 {
-  return n.NodeKind() == W_CFLOBDD_FORK;
+  if (NodeKind() != n.NodeKind())
+    return false;
+
+  WeightedCFLOBDDLeafNode<T,Op>& nh = (WeightedCFLOBDDLeafNode<T,Op> &)n;
+  if (this->lweight == nh.lweight && this->rweight == nh.rweight)
+    return true;
+  return false;
 }
 
 //********************************************************************
@@ -2374,14 +2382,20 @@ unsigned int WeightedCFLOBDDDontCareNode<T,Op>::Hash(unsigned int modsize)
 template <typename T, typename Op>
 bool WeightedCFLOBDDDontCareNode<T,Op>::operator!= (const WeightedCFLOBDDNode<T,Op> & n)
 {
-  return n.NodeKind() != W_CFLOBDD_DONTCARE;
+  return !(*this == n);
 }
 
 // Overloaded ==
 template <typename T, typename Op>
 bool WeightedCFLOBDDDontCareNode<T,Op>::operator== (const WeightedCFLOBDDNode<T,Op> & n)
 {
-  return n.NodeKind() == W_CFLOBDD_DONTCARE;
+  if (NodeKind() != n.NodeKind())
+    return false;
+
+  WeightedCFLOBDDDontCareNode<T,Op>& nh = (WeightedCFLOBDDDontCareNode<T,Op> &)n;
+  if (this->lweight == nh.lweight && this->rweight == nh.rweight)
+    return true;
+  return false;
 }
 
 // Restrict -----------------------------------------------------------

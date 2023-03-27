@@ -1103,7 +1103,7 @@ namespace CFL_OBDD {
 
 
     typedef boost::multiprecision::cpp_dec_float_100 BIG_FLOAT;
-	typedef boost::multiprecision::cpp_complex_double BIG_COMPLEX_FLOAT;
+	typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX_FLOAT;
     // typedef double BIG_FLOAT;
     template class WeightedPairProductMapHandle<BIG_FLOAT>;
     template WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>> 

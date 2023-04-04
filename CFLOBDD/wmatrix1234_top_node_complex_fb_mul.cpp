@@ -464,7 +464,7 @@ namespace CFL_OBDD {
 			tempHandle = MkSXGateNode(i);
 			m01.AddToEnd(1);
 			m01.Canonicalize();
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01, BIG_COMPLEX_FLOAT(1, 1));
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01, BIG_COMPLEX_FLOAT(0.5, 0.5));
 			return v;
 		}
 
@@ -476,7 +476,7 @@ namespace CFL_OBDD {
 			tempHandle = MkSYGateNode(i);
 			m01.AddToEnd(1);
 			m01.Canonicalize();
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01, BIG_COMPLEX_FLOAT(1, 1));
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01, BIG_COMPLEX_FLOAT(0.5, 0.5));
 			return v;
 		}
 

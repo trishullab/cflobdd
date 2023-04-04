@@ -3118,6 +3118,58 @@ namespace CFL_OBDD {
             return gHandle;
         }
 
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSXGateNode(unsigned int i)
+        {
+            assert(i == 1);
+            WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(i);
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1, -1));
+            CFLOBDDReturnMapHandle m01;
+            m01.AddToEnd(0);
+            m01.AddToEnd(1);
+            m01.Canonicalize();
+            n->AConnection = Connection(temp, m01);
+            n->numBConnections = 2;
+            n->BConnection = new Connection[n->numBConnections];
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle b0 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, -1));
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle b1 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle;
+            CFLOBDDReturnMapHandle m0;
+            m0.AddToEnd(0);
+            m0.Canonicalize();
+            n->BConnection[0] = Connection(b0, m0);
+            n->BConnection[1] = Connection(b1, m0);
+            
+            n->numExits = 1;
+    #ifdef PATH_COUNTING_ENABLED
+            n->InstallPathCounts();
+    #endif
+            return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
+        }
 
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSYGateNode(unsigned int i)
+        {
+            assert(i == 1);
+            WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(i);
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle;
+            CFLOBDDReturnMapHandle m01;
+            m01.AddToEnd(0);
+            m01.AddToEnd(1);
+            m01.Canonicalize();
+            n->AConnection = Connection(temp, m01);
+            n->numBConnections = 2;
+            n->BConnection = new Connection[n->numBConnections];
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle b0 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, -1));
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle b1 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle;
+            CFLOBDDReturnMapHandle m0;
+            m0.AddToEnd(0);
+            m0.Canonicalize();
+            n->BConnection[0] = Connection(b0, m0);
+            n->BConnection[1] = Connection(b1, m0);
+            
+            n->numExits = 1;
+    #ifdef PATH_COUNTING_ENABLED
+            n->InstallPathCounts();
+    #endif
+            return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
+        }
     }
 }

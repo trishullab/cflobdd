@@ -53,6 +53,8 @@ namespace CFL_OBDD {
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliYGateTop(unsigned int i);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSGateTop(unsigned int i);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPhaseShiftGateTop(unsigned int i, double theta);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSXGateTop(unsigned int i);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSYGateTop(unsigned int i);
 	}
 }
 

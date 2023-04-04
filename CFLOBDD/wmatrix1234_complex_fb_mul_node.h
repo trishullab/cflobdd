@@ -72,6 +72,8 @@ namespace CFL_OBDD {
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkPauliYGateNode(unsigned int level);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSGateNode(unsigned int level);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkPhaseShiftGateNode(unsigned int level, BIG_COMPLEX_FLOAT theta_val);
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSXGateNode(unsigned int level);
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSYGateNode(unsigned int level);
 
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle KroneckerProduct2VocsNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle m1, WeightedCFLOBDDComplexFloatBoostMulNodeHandle m2, int zero_index_m1, int zero_index_m2); 
         extern std::tuple<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, CFLOBDDMatMultMapHandle, BIG_COMPLEX_FLOAT>

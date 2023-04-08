@@ -48,9 +48,9 @@ namespace CFL_OBDD {
             {
                 assert(index < 2);
                 if (index == 0)
-                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
                 else
-                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
             }
 
             WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(level);
@@ -91,9 +91,9 @@ namespace CFL_OBDD {
             {
                 assert(s.length() == 1);
                 if (s[0] == '0')
-                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
                 else
-                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
             }
 
             WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(level);
@@ -251,7 +251,7 @@ namespace CFL_OBDD {
                 n->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m1);
                 n->numBConnections = 1;
                 n->BConnection = new Connection[1];
-                WeightedCFLOBDDComplexFloatBoostMulNodeHandle t = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0));
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle t = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
                 n->BConnection[0] = Connection(t, m2);
             }
             else

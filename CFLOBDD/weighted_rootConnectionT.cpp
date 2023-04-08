@@ -29,6 +29,8 @@ WRootConnection<Handle, T, Op>::WRootConnection(WeightedCFLOBDDNode<T,Op> *entry
 template <typename Handle, typename T, typename Op>
 WRootConnection<Handle, T, Op>::~WRootConnection()
 {
+	delete entryPointHandle;
+	entryPointHandle = NULL;
 }
 
 // Hash

@@ -105,7 +105,7 @@ namespace CFL_OBDD {
                 n->AConnection = Connection(temp, m01);
                 n->numBConnections = 2;
                 n->BConnection = new Connection[n->numBConnections];
-                WeightedCFLOBDDFourierMulNodeHandle b0 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierDontCareNode(one, one));
+                WeightedCFLOBDDFourierMulNodeHandle b0 = WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDDontCareNodeHandle;
                 WeightedCFLOBDDFourierMulNodeHandle b1 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierDontCareNode(one, fourierSemiring(1, 2)));
                 CFLOBDDReturnMapHandle m0;
                 m0.AddToEnd(0);
@@ -971,8 +971,8 @@ namespace CFL_OBDD {
                     g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
                     g->numBConnections = 2;
                     g->BConnection = new Connection[g->numBConnections];
-                    auto b0 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(one,zero));
-                    auto b1 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(zero,one));
+                    auto b0 = WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle10;
+                    auto b1 = WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle01;
                     g->BConnection[0] = Connection(b0, m01);
                     CFLOBDDReturnMapHandle m12;
                     m12.AddToEnd(1); m12.AddToEnd(2); m12.Canonicalize();
@@ -986,8 +986,8 @@ namespace CFL_OBDD {
                     g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
                     g->numBConnections = 2;
                     g->BConnection = new Connection[g->numBConnections];
-                    auto b0 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(one,zero));
-                    auto b1 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(zero,one));
+                    auto b0 = WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle10;
+                    auto b1 = WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle01;
                     g->BConnection[0] = Connection(b1, m01);
                     CFLOBDDReturnMapHandle m10;
                     m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();

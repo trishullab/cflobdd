@@ -132,7 +132,7 @@ namespace CFL_OBDD {
             WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(i);
             if (i == 1) {  // Base case
 
-                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 1));
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle;
                 CFLOBDDReturnMapHandle m01;
                 m01.AddToEnd(0);
                 m01.AddToEnd(1);
@@ -140,7 +140,7 @@ namespace CFL_OBDD {
                 n->AConnection = Connection(temp, m01);
                 n->numBConnections = 2;
                 n->BConnection = new Connection[n->numBConnections];
-                WeightedCFLOBDDComplexFloatBoostMulNodeHandle b0 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, 1));
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle b0 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle;
                 WeightedCFLOBDDComplexFloatBoostMulNodeHandle b1 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, -1));
                 CFLOBDDReturnMapHandle m0;
                 m0.AddToEnd(0);
@@ -1175,8 +1175,8 @@ namespace CFL_OBDD {
                     g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
                     g->numBConnections = 2;
                     g->BConnection = new Connection[g->numBConnections];
-                    auto b0 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1.0,0.0));
-                    auto b1 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(0.0,1.0));
+                    auto b0 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
+                    auto b1 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
                     g->BConnection[0] = Connection(b0, m01);
                     CFLOBDDReturnMapHandle m12;
                     m12.AddToEnd(1); m12.AddToEnd(2); m12.Canonicalize();
@@ -1190,8 +1190,8 @@ namespace CFL_OBDD {
                     g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
                     g->numBConnections = 2;
                     g->BConnection = new Connection[g->numBConnections];
-                    auto b0 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1.0,0.0));
-                    auto b1 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(0.0,1.0));
+                    auto b0 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
+                    auto b1 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
                     g->BConnection[0] = Connection(b1, m01);
                     CFLOBDDReturnMapHandle m10;
                     m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();

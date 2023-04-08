@@ -40,7 +40,7 @@ namespace CFL_OBDD {
 		bool operator!= (const WRootConnection & C);        // Overloaded !=
 		bool operator== (const WRootConnection & C);        // Overloaded ==
 
-		WeightedCFLOBDDNodeHandleT<T, Op>* entryPointHandle;
+		WeightedCFLOBDDNodeHandleT<T, Op>* entryPointHandle = NULL;
 		Handle returnMapHandle;
 		T factor;
 

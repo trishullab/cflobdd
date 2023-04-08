@@ -60,7 +60,7 @@ namespace CFL_OBDD {
 		bool operator!= (const ConnectionT & C);        // Overloaded !=
 		bool operator== (const ConnectionT & C);        // Overloaded ==
 
-		CFLOBDDNodeHandle* entryPointHandle;
+		CFLOBDDNodeHandle* entryPointHandle = NULL;
 		Handle returnMapHandle;
 
 	public:

@@ -151,12 +151,17 @@ void WeightedCFLOBDDNodeHandleT<T, Op>::InitIdentityNodeTable()
         CFLOBDDReturnMapHandle m01, m10;
         m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
         m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
-        n->AConnection = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle, m01);
+        n->AConnection.entryPointHandle = &WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle;
+        n->AConnection.returnMapHandle = m01;
+        // n->AConnection = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle, m01);
         n->numBConnections = 2;
         n->BConnection = new WConnection<T,Op>[n->numBConnections];
-        WeightedCFLOBDDNodeHandleT<T,Op> f10, f01;
-        n->BConnection[0] = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10, m01);
-        n->BConnection[1] = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01, m10);
+        n->BConnection[0].entryPointHandle = &WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10;
+        n->BConnection[0].returnMapHandle = m01;
+        n->BConnection[1].entryPointHandle = &WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01;
+        n->BConnection[1].returnMapHandle = m10;
+        // n->BConnection[0] = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10, m01);
+        // n->BConnection[1] = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01, m10);
         n->numExits = 2;
         IdentityNode[1] = WeightedCFLOBDDNodeHandleT<T, Op>(n);
     }
@@ -169,15 +174,17 @@ void WeightedCFLOBDDNodeHandleT<T, Op>::InitIdentityNodeTable()
       m1.AddToEnd(0);
       m1.AddToEnd(1);
       m1.Canonicalize();
-	  n->AConnection.returnMapHandle = m1;//m1
+	    n->AConnection.returnMapHandle = m1;//m1
   
       n->numBConnections = 2;
       n->BConnection = new WConnection<T,Op>[2];
       n->BConnection[0].entryPointHandle = &(IdentityNode[i-1]);
       m2.AddToEnd(1);
       m2.Canonicalize();
-	  n->BConnection[0].returnMapHandle = m1;
-      n->BConnection[1] = WConnection<T,Op>(NoDistinctionNode_Ann[i-1], m2);
+	    n->BConnection[0].returnMapHandle = m1;
+      n->BConnection[1].entryPointHandle = &NoDistinctionNode_Ann[i-1];
+      n->BConnection[1].returnMapHandle = m2;
+      // n->BConnection[1] = WConnection<T,Op>(NoDistinctionNode_Ann[i-1], m2);
       n->numExits = 2;
 //#ifdef PATH_COUNTING_ENABLED
     //   n->InstallPathCounts();

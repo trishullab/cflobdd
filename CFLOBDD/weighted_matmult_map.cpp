@@ -64,6 +64,20 @@ unsigned int WeightedMatMultMapBody<BIG_COMPLEX_FLOAT>::Hash(unsigned int modsiz
 	return hvalue;
 }
 
+template <>
+unsigned int WeightedMatMultMapBody<fourierSemiring>::Hash(unsigned int modsize)
+{
+	/*if (modsize == HASHSETBASE)
+		return hashCheck;*/
+	unsigned int hvalue = 0;
+	boost::hash<fourierSemiring> boost_hash;
+	for (auto &i : map)
+	{
+		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second))) % modsize;
+	}
+	return hvalue;
+}
+
 template <typename T>
 void WeightedMatMultMapBody<T>::setHashCheck()
 {

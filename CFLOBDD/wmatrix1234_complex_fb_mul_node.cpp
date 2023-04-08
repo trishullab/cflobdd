@@ -937,7 +937,7 @@ namespace CFL_OBDD {
                 auto aHandle = std::get<0>(aa);
                 g->numExits = 0;
                 std::unordered_multimap<WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>, unsigned int, WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>::mapHash> mapFromHandleToIndex;
-                std::vector<Connection> nodeHandles;
+                std::vector<Connection*> nodeHandles;
                 BIG_COMPLEX_FLOAT factor = 1;
                 bool factor_first = true;
                 for (unsigned int i = 0; i < mI.Size(); i++){
@@ -1076,11 +1076,11 @@ namespace CFL_OBDD {
                         }
                     }
                     ans_return_map.Canonicalize();
-                    auto c = Connection(ans, ans_return_map);
+                    auto c = new Connection(ans, ans_return_map);
                     unsigned int k = 0;
                     for (k = 0; k < nodeHandles.size(); k++)
                     {
-                        if (nodeHandles[k] == c)
+                        if (*(nodeHandles[k]) == *c)
                             break;
                     }
                     if (k == nodeHandles.size())
@@ -1112,7 +1112,7 @@ namespace CFL_OBDD {
                 g->BConnection = new Connection[g->numBConnections];
                 for (unsigned int i = 0; i < nodeHandles.size(); i++)
                 {
-                    g->BConnection[i] = nodeHandles[i];
+                    g->BConnection[i] = *nodeHandles[i];
                 }
                 auto tmp = aHandle.Reduce(reductionMapHandle, g->numBConnections, valList, true);
                 CFLOBDDReturnMapHandle mA;
@@ -1123,6 +1123,8 @@ namespace CFL_OBDD {
                 WeightedCFLOBDDComplexFloatBoostMulNodeHandle gHandle(g);
                 ret = std::make_tuple(gHandle, g_return_map, tmp.second * top_factor * factor);
                 matmult_hash.insert(std::make_pair(mmp, ret));
+                for (unsigned int k = 0; k < nodeHandles.size(); k++)
+                    delete nodeHandles[k];
                 return ret;
 
             }

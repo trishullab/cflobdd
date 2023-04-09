@@ -1091,6 +1091,7 @@ namespace CFL_OBDD {
                     else
                     {
                         reductionMapHandle.AddToEnd(k);
+                        delete c;
                     }
                     
                     valList.AddToEnd(ans_factor);

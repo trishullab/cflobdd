@@ -2059,7 +2059,7 @@ template <typename T, typename Op>
 WeightedCFLOBDDLeafNode<T, Op>::WeightedCFLOBDDLeafNode(bool flag)
   :  WeightedCFLOBDDNode<T,Op>(0)
 {
-  this->refCount = 1;
+  // this->refCount = 1;
   if (flag)
     lweight = rweight = getIdentityValue<T, Op>();
   else
@@ -2070,7 +2070,7 @@ template <typename T, typename Op>
 WeightedCFLOBDDLeafNode<T, Op>::WeightedCFLOBDDLeafNode(T lw, T rw)
   :  WeightedCFLOBDDNode<T,Op>(0)
 {
-  this->refCount = 1;
+  // this->refCount = 1;
   lweight = lw;
   rweight = rw;
 }
@@ -2154,6 +2154,7 @@ WeightedCFLOBDDForkNode<T,Op>::WeightedCFLOBDDForkNode(bool flag)
   this->numPathsToExit = new long double[2];
   this->numPathsToExit[0] = 0;
   this->numPathsToExit[1] = 0;
+  this->isNumPathsMemAllocated = true;
 }
 
 template <typename T, typename Op>
@@ -2164,13 +2165,16 @@ WeightedCFLOBDDForkNode<T,Op>::WeightedCFLOBDDForkNode(T lweight, T rweight)
   this->numPathsToExit = new long double[2];
   this->numPathsToExit[0] = 0;
   this->numPathsToExit[1] = 0;
+  this->isNumPathsMemAllocated = true;
 }
 
 template <typename T, typename Op>
 WeightedCFLOBDDForkNode<T,Op>::~WeightedCFLOBDDForkNode()
 {
     if (this->isWeightsOfPathsMemAllocated)
-        delete [] this->numWeightsOfPathsAsAmpsToExit;
+      delete [] this->numWeightsOfPathsAsAmpsToExit;
+    if (this->isNumPathsMemAllocated)
+      delete [] this->numPathsToExit;
 }
 
 template <typename T, typename Op>
@@ -2298,6 +2302,7 @@ WeightedCFLOBDDDontCareNode<T, Op>::WeightedCFLOBDDDontCareNode(bool flag)
   this->numExits = 1;
   this->numPathsToExit = new long double[1];
   this->numPathsToExit[0] = 1;
+  this->isNumPathsMemAllocated = true;
 }
 
 template <typename T, typename Op>
@@ -2307,6 +2312,7 @@ WeightedCFLOBDDDontCareNode<T, Op>::WeightedCFLOBDDDontCareNode(T lweight, T rwe
   this->numExits = 1;
   this->numPathsToExit = new long double[1];
   this->numPathsToExit[0] = 1;
+  this->isNumPathsMemAllocated = true;
 }
 
 template <typename T, typename Op>
@@ -2314,6 +2320,8 @@ WeightedCFLOBDDDontCareNode<T,Op>::~WeightedCFLOBDDDontCareNode()
 {
     if (this->isWeightsOfPathsMemAllocated)
         delete [] this->numWeightsOfPathsAsAmpsToExit;
+    if (this->isNumPathsMemAllocated)
+      delete [] this->numPathsToExit;
 }
 
 template <typename T, typename Op>

@@ -25,12 +25,22 @@ namespace CFL_OBDD {
 
         std::unordered_map<RenamePair, WeightedBDDComplexFloatBoostMulNodeHandle, RenamePair::RenamePairHash> rename_map;
         std::unordered_map<WeightedBDDMatMultPair, BDDMatMultReturnT, WeightedBDDMatMultPair::MatMultPairHash> matmult_hash;
+        std::unordered_map<WeightedBDDKronProdPair, WeightedBDDComplexFloatBoostMulNodeHandle, WeightedBDDKronProdPair::KronProdPairHash> hashMap;
+        std::unordered_map<std::string, WeightedBDDComplexFloatBoostMulNodeHandle> id_map;
+        std::unordered_map<std::string, WeightedBDDComplexFloatBoostMulNodeHandle> hadamard_map;
+        std::unordered_map<std::string, WeightedBDDComplexFloatBoostMulNodeHandle> cnot_map;
+        std::unordered_map<std::string, WeightedBDDComplexFloatBoostMulNodeHandle> not_map;
 
         WeightedBDDComplexFloatBoostMulNodeHandle MkIdRelationInterleavedNode(unsigned int numVars, unsigned int index)
         {
+            std::string s = std::to_string(numVars) + ";" + std::to_string(index);
+            if (id_map.find(s) != id_map.end())
+                return id_map[s];
             if (numVars == 0)
             {
-                return WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode; 
+                auto v = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode; 
+                id_map[s] = v;
+                return v;
             }
             if (numVars == 2)
             {
@@ -55,7 +65,9 @@ namespace CFL_OBDD {
                 x->leftNode = yh1;
                 x->rightNode = yh2;
 
-                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+                auto v = WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+                id_map[s] = v;
+                return v;
 
             }
             else
@@ -83,13 +95,18 @@ namespace CFL_OBDD {
                 x->leftNode = yh1;
                 x->rightNode = yh2;
 
-                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                auto v = WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                id_map[s] = v;
+                return v;
             }
         }
 
         WeightedBDDComplexFloatBoostMulNodeHandle MkWalshInterleavedNode(unsigned int numVars, unsigned int index)
         {
             assert(numVars >= 2);
+            std::string s = std::to_string(numVars) + ";" + std::to_string(index);
+            if (hadamard_map.find(s) != hadamard_map.end())
+                return hadamard_map[s];
             if (numVars == 2)
             {
 
@@ -106,7 +123,9 @@ namespace CFL_OBDD {
                 x->leftNode = WeightedBDDComplexFloatBoostMulNodeHandle::IdentityLeafNode;
                 x->rightNode = yh2;
 
-                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                auto v = WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                hadamard_map[s] = v;
+                return v;
 
             }
             else
@@ -126,7 +145,9 @@ namespace CFL_OBDD {
                 x->leftNode = tmp;
                 x->rightNode = yh2;
 
-                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                auto v = WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                hadamard_map[s] = v;
+                return v;
             } 
         }
 
@@ -148,54 +169,40 @@ namespace CFL_OBDD {
             return t;
         }
 
-        WeightedBDDComplexFloatBoostMulNodeHandle KroneckerProduct2VocsNode(std::unordered_map<WeightedBDDComplexFloatBoostMulNodeHandle, WeightedBDDComplexFloatBoostMulNodeHandle, WeightedBDDComplexFloatBoostMulNodeHandle::WeightedBDDNodeHandle_Hash>& hash_map, WeightedBDDComplexFloatBoostMulNodeHandle m1, WeightedBDDComplexFloatBoostMulNodeHandle m2, long int numVars)
+        WeightedBDDComplexFloatBoostMulNodeHandle KroneckerProduct2VocsNode(std::unordered_map<WeightedBDDComplexFloatBoostMulNodeHandle, WeightedBDDComplexFloatBoostMulNodeHandle, WeightedBDDComplexFloatBoostMulNodeHandle::WeightedBDDNodeHandle_Hash>& hash_map, WeightedBDDComplexFloatBoostMulNodeHandle m1, WeightedBDDComplexFloatBoostMulNodeHandle m2, long int numVars, bool rename)
         {
-            if (hash_map.find(m1) != hash_map.end())
-                return hash_map[m1];
+            // if (hash_map.find(m1) != hash_map.end())
+            //     return hash_map[m1];
+            WeightedBDDKronProdPair p(m1, m2, rename);
+            if (hashMap.find(p) != hashMap.end())
+                return hashMap[p];
             if (m1.handleContents->NodeKind() == LEAF){
                 if (m1 == WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode)
                     return m1;
-                else
+                else {
+                    if (rename)
+                        return RenameNodes(m2, numVars);
                     return m2;
+                }
             }
             WeightedBDDComplexFloatBoostMulInternalNode* m1_i = (WeightedBDDComplexFloatBoostMulInternalNode *)m1.handleContents;
+            auto lNode = KroneckerProduct2VocsNode(hash_map, m1_i->leftNode, m2, numVars, rename);
+            auto rNode = KroneckerProduct2VocsNode(hash_map, m1_i->rightNode, m2, numVars, rename);
+
+            if (lNode == rNode && m1_i->lweight == m1_i->rweight)
+            {
+                hash_map[m1] = lNode;
+                return lNode;
+            }
+
             WeightedBDDComplexFloatBoostMulInternalNode* m1_new = new WeightedBDDComplexFloatBoostMulInternalNode(m1_i->GetIndex());
-            auto lNode = m1_i->leftNode;
-            auto rNode = m1_i->rightNode;
-            WeightedBDDComplexFloatBoostMulNodeHandle lNode_new;
-            if (lNode.handleContents->NodeKind() == LEAF)
-            {
-                WeightedBDDComplexFloatBoostMulLeafNode* lNode_leaf = (WeightedBDDComplexFloatBoostMulLeafNode *)lNode.handleContents;
-                if (lNode_leaf->value == getAnnhilatorValue<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>())
-                    lNode_new = lNode;
-                else {
-                    lNode_new = RenameNodes(m2, numVars);
-                }
-            } else {
-                lNode_new = KroneckerProduct2VocsNode(hash_map, lNode, m2, numVars);
-            }
-
-            WeightedBDDComplexFloatBoostMulNodeHandle rNode_new;
-            if (rNode.handleContents->NodeKind() == LEAF)
-            {
-                WeightedBDDComplexFloatBoostMulLeafNode* rNode_leaf = (WeightedBDDComplexFloatBoostMulLeafNode *)rNode.handleContents;
-                if (rNode_leaf->value == getAnnhilatorValue<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>())
-                    rNode_new = rNode;
-                else {
-                    rNode_new = RenameNodes(m2, numVars);
-                }
-            } else {
-                rNode_new = KroneckerProduct2VocsNode(hash_map, rNode, m2, numVars);
-            }
-
-            m1_new->leftNode = lNode_new;
-            m1_new->rightNode = rNode_new;
+            m1_new->leftNode = lNode;
+            m1_new->rightNode = rNode;
             m1_new->lweight = m1_i->lweight;
             m1_new->rweight = m1_i->rweight;
-            if (m1_new->leftNode == m1_new->rightNode && m1_new->lweight == m1_new->rweight)
-                return m1_new->leftNode;
             WeightedBDDComplexFloatBoostMulNodeHandle m1h_new(m1_new);
-            hash_map[m1] = m1h_new;
+            // hash_map[m1] = m1h_new;
+            hashMap[p] = m1h_new;
             return m1h_new;
         }
 
@@ -271,6 +278,10 @@ namespace CFL_OBDD {
         BDDMatMultReturnT
             Add(WeightedBDDComplexFloatBoostMulNodeHandle m1, WeightedBDDComplexFloatBoostMulNodeHandle m2, BIG_COMPLEX_FLOAT f1, BIG_COMPLEX_FLOAT f2, unsigned int numVars)
         {
+            // m1.print(std::cout);
+            // std::cout << f1 << std::endl;
+            // m2.print(std::cout);
+            // std::cout << f2 << std::endl;
             if (m1 == WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode && m2 == WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode)
             {
                 std::vector<BIG_COMPLEX_FLOAT> v_ret;
@@ -284,6 +295,13 @@ namespace CFL_OBDD {
             else if (m2 == WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode) {
                 std::vector<BIG_COMPLEX_FLOAT> v_ret;
                 return std::make_tuple(m1, v_ret, f1);  
+            }
+            else if (m1 == m2)
+            {
+                std::vector<BIG_COMPLEX_FLOAT> v_ret;
+                if (f1 + f2 != 0)
+                    return std::make_tuple(m1, v_ret, f1 + f2);
+                return std::make_tuple(WeightedBDDComplexFloatBoostMulNodeHandle::AnnhilatorLeafNode, v_ret, 0);
             }
                 WeightedBDDPairProductMapHandle<BIG_COMPLEX_FLOAT> pairProductMapHandle;
                 auto ans = BDDPairProduct2(m1, 
@@ -350,9 +368,19 @@ namespace CFL_OBDD {
                 m11 = t1.first[0]; m12 = t1.first[1]; m13 = t1.first[2]; m14 = t1.first[3];
                 lf1 = t1.second[0]; lf2 = t1.second[1]; lf3 = t1.second[2]; lf4 = t1.second[3];
 
+                // m11.print(std::cout);
+                // m12.print(std::cout);
+                // m13.print(std::cout);
+                // m14.print(std::cout);
+
                 auto t2 = FillEntries(m2);
                 m21 = t2.first[0]; m22 = t2.first[1]; m23 = t2.first[2]; m24 = t2.first[3];
                 rf1 = t2.second[0]; rf2 = t2.second[1]; rf3 = t2.second[2]; rf4 = t2.second[3];
+
+                // m21.print(std::cout);
+                // m22.print(std::cout);
+                // m23.print(std::cout);
+                // m24.print(std::cout);
             }
 
             else if (m1.handleContents->GetIndex() > m2.handleContents->GetIndex() && m2.handleContents->NodeKind() == LEAF)
@@ -385,7 +413,7 @@ namespace CFL_OBDD {
 
                 auto t1 = FillEntries(m2);
                 m21 = t1.first[0]; m22 = t1.first[1]; m23 = t1.first[2]; m24 = t1.first[3];
-                lf1 = t1.second[0]; lf2 = t1.second[1]; lf3 = t1.second[2]; lf4 = t1.second[3]; 
+                rf1 = t1.second[0]; rf2 = t1.second[1]; rf3 = t1.second[2]; rf4 = t1.second[3]; 
                 WeightedBDDComplexFloatBoostMulLeafNode* m1_x = (WeightedBDDComplexFloatBoostMulLeafNode *)m1.handleContents;
                 m11 = m12 = m13 = m14 = m1;
                 lf1 = lf2 = lf3 = lf4 = m1_x->value; 
@@ -400,17 +428,17 @@ namespace CFL_OBDD {
                 else {
                     count += 2;
                 }
-                auto t1 = FillEntries(m1);
-                m11 = t1.first[0]; m12 = t1.first[1]; m13 = t1.first[2]; m14 = t1.first[3];
-                lf1 = t1.second[0]; lf2 = t1.second[1]; lf3 = t1.second[2]; lf4 = t1.second[3];
+                auto t1 = FillEntries(m2);
+                m21 = t1.first[0]; m22 = t1.first[1]; m23 = t1.first[2]; m24 = t1.first[3];
+                rf1 = t1.second[0]; rf2 = t1.second[1]; rf3 = t1.second[2]; rf4 = t1.second[3];
                 if (m2.handleContents->GetIndex() + 1 == m1.handleContents->GetIndex()){
-                    auto t2 = FillEntries(m2);
-                    m21 = t2.first[0]; m22 = t2.first[1]; m23 = t2.first[2]; m24 = t2.first[3];
-                    rf1 = t2.second[0]; rf2 = t2.second[1]; rf3 = t2.second[2]; rf4 = t2.second[3]; 
+                    auto t2 = FillEntries(m1);
+                    m11 = t2.first[0]; m12 = t2.first[1]; m13 = t2.first[2]; m14 = t2.first[3];
+                    lf1 = t2.second[0]; lf2 = t2.second[1]; lf3 = t2.second[2]; lf4 = t2.second[3]; 
                 }
                 else {
-                    m21 = m22 = m23 = m24 = m2;
-                    rf1 = rf2 = rf3 = rf4 = 1;
+                    m11 = m12 = m13 = m14 = m1;
+                    lf1 = lf2 = lf3 = lf4 = 1;
                 }
             }
 
@@ -424,24 +452,23 @@ namespace CFL_OBDD {
                     count += 2;
                 }
 
-                auto t1 = FillEntries(m2);
-                m21 = t1.first[0]; m22 = t1.first[1]; m23 = t1.first[2]; m24 = t1.first[3];
-                rf1 = t1.second[0]; rf2 = t1.second[1]; rf3 = t1.second[2]; rf4 = t1.second[3];
+                auto t1 = FillEntries(m1);
+                m11 = t1.first[0]; m12 = t1.first[1]; m13 = t1.first[2]; m14 = t1.first[3];
+                lf1 = t1.second[0]; lf2 = t1.second[1]; lf3 = t1.second[2]; lf4 = t1.second[3];
                 if (m1.handleContents->GetIndex() + 1 == m2.handleContents->GetIndex()){
-                    auto t2 = FillEntries(m1);
-                    m11 = t2.first[0]; m12 = t2.first[1]; m13 = t2.first[2]; m14 = t2.first[3];
-                    lf1 = t2.second[0]; lf2 = t2.second[1]; lf3 = t2.second[2]; lf4 = t2.second[3]; 
+                    auto t2 = FillEntries(m2);
+                    m21 = t2.first[0]; m22 = t2.first[1]; m23 = t2.first[2]; m24 = t2.first[3];
+                    rf1 = t2.second[0]; rf2 = t2.second[1]; rf3 = t2.second[2]; rf4 = t2.second[3]; 
                 }
                 else {
-                    m11 = m12 = m13 = m14 = m1;
-                    lf1 = lf2 = lf3 = lf4 = 1;
+                    m21 = m22 = m23 = m24 = m2;
+                    rf1 = rf2 = rf3 = rf4 = 1;
                 }
             }
             // std::cout << "count: " << prev_count << std::endl;
             // [[p1 p2] [p3 p4]] = [[m11 m12] [m13 m14]] * [[m21 m22] [m23 m24]]
             auto p1_1 = MatrixMultiplyV4Node(m11, m21, numVars, count);
             auto p1_2 = MatrixMultiplyV4Node(m12, m23, numVars, count);
-
             auto p1_t = Add(std::get<0>(p1_1), std::get<0>(p1_2), lf1 * rf1 * std::get<2>(p1_1), lf2 * rf3 * std::get<2>(p1_2), numVars);
             auto p1 = std::get<0>(p1_t);
             // std::cout << "p1" << std::endl;
@@ -465,6 +492,10 @@ namespace CFL_OBDD {
 
             auto p3_1 = MatrixMultiplyV4Node(m13, m21, numVars, count);
             auto p3_2 = MatrixMultiplyV4Node(m14, m23, numVars, count);
+            // std::get<0>(p3_1).print(std::cout);
+            // std::cout << lf3 << " " << rf1 << " " << std::get<2>(p3_1) << std::endl;
+            // std::get<0>(p3_2).print(std::cout);
+            // std::cout << lf4 << " " << rf3 << " " << std::get<2>(p3_2) << std::endl;
 
             auto p3_t = Add(std::get<0>(p3_1), std::get<0>(p3_2), lf3 * rf1 * std::get<2>(p3_1), lf4 * rf3 * std::get<2>(p3_2), numVars);
             auto p3 = std::get<0>(p3_t);
@@ -488,89 +519,88 @@ namespace CFL_OBDD {
             std::vector<BIG_COMPLEX_FLOAT> v_p4 = std::get<1>(p4_t);
 
             WeightedBDDComplexFloatBoostMulNodeHandle yh1;
-            WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(prev_count + 1);
-            y1->leftNode = p1;
-            y1->rightNode = p2;
             auto w1 = computeInverseValue<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>(f_p1, f_p2);
-            y1->lweight = std::get<1>(w1);
-            y1->rweight = std::get<2>(w1);
 
-            if (y1->leftNode == y1->rightNode && y1->lweight == y1->rweight)
+            if (p1 == p2 && std::get<1>(w1) == std::get<2>(w1)) // y1->leftNode == y1->rightNode && y1->lweight == y1->rweight
             {
-                yh1 = y1->leftNode;
+                yh1 = p1;
             }
             else {
+                WeightedBDDComplexFloatBoostMulInternalNode* y1 = new WeightedBDDComplexFloatBoostMulInternalNode(prev_count + 1);
+                y1->leftNode = p1;
+                y1->rightNode = p2;
+                y1->lweight = std::get<1>(w1);
+                y1->rweight = std::get<2>(w1);
                 yh1 = WeightedBDDComplexFloatBoostMulNodeHandle(y1);
             }
 
 
             WeightedBDDComplexFloatBoostMulNodeHandle yh2;
-            WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(prev_count + 1);
-            y2->leftNode = p3;
-            y2->rightNode = p4;
             auto w2 = computeInverseValue<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>(f_p3, f_p4);
-            y2->lweight = std::get<1>(w2);
-            y2->rweight = std::get<2>(w2);
 
-            if (y2->leftNode == y2->rightNode && y2->lweight == y2->rweight)
+            if (p3 == p4 && std::get<1>(w2) == std::get<2>(w2))
             {
-                yh2 = y2->leftNode;
+                yh2 = p3;
             }
             else {
+                WeightedBDDComplexFloatBoostMulInternalNode* y2 = new WeightedBDDComplexFloatBoostMulInternalNode(prev_count + 1);
+                y2->leftNode = p3;
+                y2->rightNode = p4;
+                y2->lweight = std::get<1>(w2);
+                y2->rweight = std::get<2>(w2);
                 yh2 = WeightedBDDComplexFloatBoostMulNodeHandle(y2);
             }
 
 
             WeightedBDDComplexFloatBoostMulNodeHandle xh;
-            WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(prev_count);
-
-            x->leftNode = yh1;
-            x->rightNode = yh2;
             auto w = computeInverseValue<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>(std::get<0>(w1), std::get<0>(w2));
-            x->lweight = std::get<1>(w);
-            x->rweight = std::get<2>(w);
 
-            if (x->leftNode == x->rightNode && x->lweight == x->rweight)
+            if (yh1 == yh2 && std::get<1>(w) == std::get<2>(w))
             {
-                xh = x->leftNode;
+                xh = yh1;
             }
             else {
+                WeightedBDDComplexFloatBoostMulInternalNode* x = new WeightedBDDComplexFloatBoostMulInternalNode(prev_count);
+                x->leftNode = yh1;
+                x->rightNode = yh2;
+                x->lweight = std::get<1>(w);
+                x->rweight = std::get<2>(w);
                 xh = WeightedBDDComplexFloatBoostMulNodeHandle(x);
             }
 
             std::vector<BIG_COMPLEX_FLOAT> ret_v;
-            for (auto i : v_p1)
-                ret_v.push_back(i);
+            // for (auto i : v_p1)
+            //     ret_v.push_back(i);
 
-            for (auto i : v_p2){
-                int j = 0;
-                for (j = 0; j < ret_v.size(); j++){
-                    if (ret_v[j] == i)
-                        break;
-                }
-                if (j == ret_v.size())
-                    ret_v.push_back(i);
-            }
+            // for (auto i : v_p2){
+            //     int j = 0;
+            //     for (j = 0; j < ret_v.size(); j++){
+            //         if (ret_v[j] == i)
+            //             break;
+            //     }
+            //     if (j == ret_v.size())
+            //         ret_v.push_back(i);
+            // }
 
-            for (auto i : v_p3){
-                int j = 0;
-                for (j = 0; j < ret_v.size(); j++){
-                    if (ret_v[j] == i)
-                        break;
-                }
-                if (j == ret_v.size())
-                    ret_v.push_back(i);
-            }
+            // for (auto i : v_p3){
+            //     int j = 0;
+            //     for (j = 0; j < ret_v.size(); j++){
+            //         if (ret_v[j] == i)
+            //             break;
+            //     }
+            //     if (j == ret_v.size())
+            //         ret_v.push_back(i);
+            // }
 
-            for (auto i : v_p4){
-                int j = 0;
-                for (j = 0; j < ret_v.size(); j++){
-                    if (ret_v[j] == i)
-                        break;
-                }
-                if (j == ret_v.size())
-                    ret_v.push_back(i);
-            }
+            // for (auto i : v_p4){
+            //     int j = 0;
+            //     for (j = 0; j < ret_v.size(); j++){
+            //         if (ret_v[j] == i)
+            //             break;
+            //     }
+            //     if (j == ret_v.size())
+            //         ret_v.push_back(i);
+            // }
             // std::cout << "xh" << std::endl;
             // xh.print(std::cout);
             auto ret = std::make_tuple(xh, ret_v, std::get<0>(w));
@@ -582,6 +612,9 @@ namespace CFL_OBDD {
         WeightedBDDComplexFloatBoostMulNodeHandle MkCNOTNode(unsigned int numVars, unsigned int n, long int controller, long int controlled, unsigned int index)
         {
             // assuming controller < controlled
+            std::string s = std::to_string(numVars) + ";" + std::to_string(index) + ";" + std::to_string(controller) + ";" + std::to_string(controlled);
+            if (cnot_map.find(s) != cnot_map.end())
+                return cnot_map[s]; 
             if (numVars == 4 && controller == 0 && controlled == 1)
             {
 
@@ -608,12 +641,16 @@ namespace CFL_OBDD {
                 x->leftNode = yh1;
                 x->rightNode = yh2; 
 
-                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+                auto v = WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+                cnot_map[s] = v;
+                return v;
 
             }
             else if (index/2 == controlled && numVars == 2)
             {
-                return MkNegationMatrixInterleavedNode(numVars, index);
+                auto v = MkNegationMatrixInterleavedNode(numVars, index);
+                cnot_map[s] = v;
+                return v;
             }
             else if (index/2 == controller) {
                 auto tmp = MkCNOTNode(numVars - 2, n - 1, -1, controlled, index + 2);
@@ -639,7 +676,9 @@ namespace CFL_OBDD {
                 x->leftNode = yh1;
                 x->rightNode = yh2; 
 
-                return WeightedBDDComplexFloatBoostMulNodeHandle(x);  
+                auto v = WeightedBDDComplexFloatBoostMulNodeHandle(x);  
+                cnot_map[s] = v;
+                return v;
             }
             else if (index/2 == controlled)
             {
@@ -666,7 +705,9 @@ namespace CFL_OBDD {
                 x->leftNode = yh1;
                 x->rightNode = yh2;
 
-                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                auto v = WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                cnot_map[s] = v;
+                return v;
             }
             else 
             {
@@ -693,13 +734,18 @@ namespace CFL_OBDD {
                 x->leftNode = yh1;
                 x->rightNode = yh2;
 
-                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                auto v = WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                cnot_map[s] = v;
+                return v;
             }
         }
 
         WeightedBDDComplexFloatBoostMulNodeHandle MkNegationMatrixInterleavedNode(unsigned int numVars, unsigned int index)
         {
             assert(numVars >= 2);
+            std::string s = std::to_string(numVars) + ";" + std::to_string(index);
+            if (not_map.find(s) != not_map.end())
+                return not_map[s];
             if (numVars == 2)
             {
 
@@ -723,7 +769,9 @@ namespace CFL_OBDD {
                 x->leftNode = yh2;
                 x->rightNode = yh1;
 
-                return WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+                auto v = WeightedBDDComplexFloatBoostMulNodeHandle(x); 
+                not_map[s] = v;
+                return v;
 
             }
             else
@@ -751,7 +799,9 @@ namespace CFL_OBDD {
                 x->leftNode = yh2;
                 x->rightNode = yh1;
 
-                return WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                auto v = WeightedBDDComplexFloatBoostMulNodeHandle(x);
+                not_map[s] = v;
+                return v;
             } 
         }
 

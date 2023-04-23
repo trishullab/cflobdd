@@ -15,7 +15,7 @@ WRootConnection<Handle, T, Op>::WRootConnection()
 // Constructor
 template <typename Handle, typename T, typename Op>
 WRootConnection<Handle, T, Op>::WRootConnection(WeightedCFLOBDDNodeHandleT<T,Op> &entryPointHandle, Handle &returnMapHandle, T factor)
-	: entryPointHandle(new WeightedCFLOBDDNodeHandleT<T,Op>(entryPointHandle.handleContents)), returnMapHandle(returnMapHandle), factor(factor)
+	: entryPointHandle(new WeightedCFLOBDDNodeHandleT<T,Op>(entryPointHandle)), returnMapHandle(returnMapHandle), factor(factor)
 {
 }
 
@@ -29,6 +29,8 @@ WRootConnection<Handle, T, Op>::WRootConnection(WeightedCFLOBDDNode<T,Op> *entry
 template <typename Handle, typename T, typename Op>
 WRootConnection<Handle, T, Op>::~WRootConnection()
 {
+	delete entryPointHandle;
+	entryPointHandle = NULL;
 }
 
 // Hash
@@ -47,7 +49,7 @@ WRootConnection<Handle, T, Op>& WRootConnection<Handle, T, Op>::operator= (const
 {
 	if (this != &C)      // don't assign to self!
 	{
-		entryPointHandle = C.entryPointHandle;
+		entryPointHandle = new WeightedCFLOBDDNodeHandleT<T,Op>(*(C.entryPointHandle));
 		returnMapHandle = C.returnMapHandle;
         factor = C.factor;
 	}

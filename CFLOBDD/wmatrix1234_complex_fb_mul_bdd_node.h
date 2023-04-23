@@ -99,7 +99,47 @@ namespace CFL_OBDD {
             }
         };
 
-        extern WeightedBDDComplexFloatBoostMulNodeHandle KroneckerProduct2VocsNode(std::unordered_map<WeightedBDDComplexFloatBoostMulNodeHandle, WeightedBDDComplexFloatBoostMulNodeHandle, WeightedBDDComplexFloatBoostMulNodeHandle::WeightedBDDNodeHandle_Hash>& hashMap, WeightedBDDComplexFloatBoostMulNodeHandle m1, WeightedBDDComplexFloatBoostMulNodeHandle m2, long int numVars); 
+        class WeightedBDDKronProdPair{
+        public:
+            WeightedBDDComplexFloatBoostMulNodeHandle m1;
+            WeightedBDDComplexFloatBoostMulNodeHandle m2;
+            bool rename;
+            WeightedBDDKronProdPair(WeightedBDDComplexFloatBoostMulNodeHandle p1, WeightedBDDComplexFloatBoostMulNodeHandle p2)
+            {
+                m1 = p1;
+                m2 = p2;
+                rename = true;
+            }
+
+            WeightedBDDKronProdPair(WeightedBDDComplexFloatBoostMulNodeHandle p1, WeightedBDDComplexFloatBoostMulNodeHandle p2, bool r)
+            {
+                m1 = p1;
+                m2 = p2;
+                rename = r;
+            }
+
+            struct KronProdPairHash {
+                size_t operator()(const WeightedBDDKronProdPair& p) const
+                {
+                    WeightedBDDComplexFloatBoostMulNodeHandle t1 = p.m1;
+                    WeightedBDDComplexFloatBoostMulNodeHandle t2 = p.m2;
+                    auto hash1 = t1.Hash(997);
+                    auto hash2 = t2.Hash(997);
+                    return 117 * (hash1 + 1) + hash2;// + (p.rename == false) ? 1 : 0;
+                }
+            };
+
+            bool operator==(const WeightedBDDKronProdPair& p) const
+            {
+                WeightedBDDComplexFloatBoostMulNodeHandle m11 = m1;
+                WeightedBDDComplexFloatBoostMulNodeHandle m12 = m2;
+                WeightedBDDComplexFloatBoostMulNodeHandle m21 = p.m1;
+                WeightedBDDComplexFloatBoostMulNodeHandle m22 = p.m2;
+                return (m11 == m21) && (m12 == m22);// && (rename == p.rename);
+            }
+        };
+
+        extern WeightedBDDComplexFloatBoostMulNodeHandle KroneckerProduct2VocsNode(std::unordered_map<WeightedBDDComplexFloatBoostMulNodeHandle, WeightedBDDComplexFloatBoostMulNodeHandle, WeightedBDDComplexFloatBoostMulNodeHandle::WeightedBDDNodeHandle_Hash>& hashMap, WeightedBDDComplexFloatBoostMulNodeHandle m1, WeightedBDDComplexFloatBoostMulNodeHandle m2, long int numVars, bool rename = true); 
         
         extern std::tuple<WeightedBDDComplexFloatBoostMulNodeHandle, std::vector<BIG_COMPLEX_FLOAT>, BIG_COMPLEX_FLOAT>
          MatrixMultiplyV4Node(WeightedBDDComplexFloatBoostMulNodeHandle m1, WeightedBDDComplexFloatBoostMulNodeHandle m2, long int numVars, long int count = 0);

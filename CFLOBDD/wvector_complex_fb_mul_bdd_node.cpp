@@ -120,7 +120,7 @@ namespace CFL_OBDD {
             return weights[weights.size()-1].second;
         }
 
-        std::pair<std::string,std::string> SamplingNode(WeightedBDDComplexFloatBoostMulNodeHandle nh, unsigned int numVars, std::mt19937 mt,            std::uniform_real_distribution<double> dis, long int count)
+        std::pair<std::string,std::string> SamplingNode(WeightedBDDComplexFloatBoostMulNodeHandle nh, unsigned int numVars, std::mt19937 mt, std::uniform_real_distribution<double> dis, long int count)
         {
             if (nh.handleContents->NodeKind() == LEAF){
                 std::string add_string1 = "", add_string2 = "";
@@ -172,8 +172,9 @@ namespace CFL_OBDD {
             double random_value = dis(mt);
             int chosen_index = -1;
             chosen_index = chooseIndexRandomly(weights, random_value);
+
             if (chosen_index == 0)
-            {
+            {   
                 auto s = SamplingNode(nNode->leftNode, numVars - 1, mt, dis, count + 1);
                 if (nNode->GetIndex() % 2 == 0)
                 {

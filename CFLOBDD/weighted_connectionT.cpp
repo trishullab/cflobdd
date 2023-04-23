@@ -15,7 +15,7 @@ WConnection<T, Op>::WConnection()
 // Constructor
 template <typename T, typename Op>
 WConnection<T, Op>::WConnection(WeightedCFLOBDDNodeHandleT<T,Op> &entryPointHandle, CFLOBDDReturnMapHandle &returnMapHandle)
-	: entryPointHandle(new WeightedCFLOBDDNodeHandleT<T,Op>(entryPointHandle.handleContents)), returnMapHandle(returnMapHandle)
+	: entryPointHandle(new WeightedCFLOBDDNodeHandleT<T,Op>(entryPointHandle)), returnMapHandle(returnMapHandle)
 {
 }
 
@@ -29,6 +29,8 @@ WConnection<T, Op>::WConnection(WeightedCFLOBDDNode<T,Op> *entryPoint, CFLOBDDRe
 template <typename T, typename Op>
 WConnection<T, Op>::~WConnection()
 {
+	delete entryPointHandle;
+	entryPointHandle = NULL;
 }
 
 // Hash
@@ -46,7 +48,7 @@ WConnection<T, Op>& WConnection<T, Op>::operator= (const WConnection<T, Op>& C)
 {
 	if (this != &C)      // don't assign to self!
 	{
-		entryPointHandle = C.entryPointHandle;
+		entryPointHandle = new WeightedCFLOBDDNodeHandleT<T,Op>(*(C.entryPointHandle));
 		returnMapHandle = C.returnMapHandle;
 	}
 	return *this;

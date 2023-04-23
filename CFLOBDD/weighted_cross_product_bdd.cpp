@@ -514,17 +514,17 @@ namespace CFL_OBDD {
                                     numVars,
                                     rpairProductMapHandle,
                                     func); 
-        WeightedBDDInternalNode<T,Op>* g = new WeightedBDDInternalNode<T,Op>(index);
         lweight = computeComposition<T,Op>(lweight, lpairProductMapHandle.mapContents->factor);
         rweight = computeComposition<T,Op>(rweight, rpairProductMapHandle.mapContents->factor);
+        if (lvalue == rvalue && lweight == rweight){
+            pairProductMapHandle = lpairProductMapHandle;
+            return lvalue;
+        }
+        WeightedBDDInternalNode<T,Op>* g = new WeightedBDDInternalNode<T,Op>(index);
         g->lweight = lweight;
         g->rweight = rweight;
         g->leftNode = lvalue;
         g->rightNode = rvalue;
-        if (g->leftNode == g->rightNode && g->lweight == g->rweight){
-            pairProductMapHandle = lpairProductMapHandle;
-            return g->leftNode;
-        }
         std::vector<T> ret_ans;
         auto lvector = lpairProductMapHandle.mapContents->mapArray;
         auto rvector = rpairProductMapHandle.mapContents->mapArray;
@@ -600,17 +600,17 @@ namespace CFL_OBDD {
                     WeightedBDDPairProductMapHandle<T> rpairProductMapHandle;
                     auto lvalue = BDDPairProduct<T,Op>(n1_i->leftNode, n2, numVars, lpairProductMapHandle, func);
                     auto rvalue = BDDPairProduct<T,Op>(n1_i->rightNode, n2, numVars, rpairProductMapHandle, func); 
-                    WeightedBDDInternalNode<T,Op>* g = new WeightedBDDInternalNode<T,Op>(n1_i->GetIndex());
                     lweight = computeComposition<T,Op>(lweight, lpairProductMapHandle.mapContents->factor);
                     rweight = computeComposition<T,Op>(rweight, rpairProductMapHandle.mapContents->factor);
+                    if (lvalue == rvalue && lweight == rweight){
+                        answer = lvalue;
+                        pairProductMapHandle = lpairProductMapHandle;
+                    }
+                    WeightedBDDInternalNode<T,Op>* g = new WeightedBDDInternalNode<T,Op>(n1_i->GetIndex());
                     g->lweight = lweight;
                     g->rweight = rweight;
                     g->leftNode = lvalue;
                     g->rightNode = rvalue;
-                    if (g->leftNode == g->rightNode && g->lweight == g->rweight){
-                        answer = lvalue;
-                        pairProductMapHandle = lpairProductMapHandle;
-                    }
                     std::vector<T> ret_ans;
                     auto lvector = lpairProductMapHandle.mapContents->mapArray;
                     auto rvector = rpairProductMapHandle.mapContents->mapArray;
@@ -757,6 +757,34 @@ namespace CFL_OBDD {
         }
         WeightedBDDPairProductMapHandle<T> lpairProductMapHandle;
         WeightedBDDPairProductMapHandle<T> rpairProductMapHandle;
+        // if (leftNode1.handleContents != NULL)
+        // {
+        //     std::cout << "leftNode1" << " " << leftNode1.handleContents->GetIndex() << std::endl;
+        //     std::cout << n1->GetIndex() << " " << n2->GetIndex() << std::endl;
+        //     std::cout << n1->lweight << " " << n1->rweight << " " << n2->lweight << " " << n2->rweight << std::endl;
+        //     std::cout << factor1 << " " << factor2 << std::endl;
+        // }
+        // if (rightNode1.handleContents != NULL)
+        // {
+        //     std::cout << "rightNode1" << " " << rightNode1.handleContents->GetIndex() << std::endl;
+        //     std::cout << n1->GetIndex() << " " << n2->GetIndex() << std::endl;
+        //     std::cout << n1->lweight << " " << n1->rweight << " " << n2->lweight << " " << n2->rweight << std::endl;
+        //     std::cout << factor1 << " " << factor2 << std::endl;
+        // }
+        // if (leftNode2.handleContents != NULL)
+        // {
+        //     std::cout << "leftNode2" << " " << leftNode2.handleContents->GetIndex() << std::endl;
+        //     std::cout << n1->GetIndex() << " " << n2->GetIndex() << std::endl;
+        //     std::cout << n1->lweight << " " << n1->rweight << " " << n2->lweight << " " << n2->rweight << std::endl;
+        //     std::cout << factor1 << " " << factor2 << std::endl;
+        // }
+        // if (rightNode2.handleContents != NULL)
+        // {
+        //     std::cout << "rightNode2" << " " << rightNode2.handleContents->GetIndex() << std::endl;
+        //     std::cout << n1->GetIndex() << " " << n2->GetIndex() << std::endl;
+        //     std::cout << n1->lweight << " " << n1->rweight << " " << n2->lweight << " " << n2->rweight << std::endl;
+        //     std::cout << factor1 << " " << factor2 << std::endl;
+        // }
         auto lvalue = BDDPairProduct2<T,Op>(leftNode1,
                                     leftNode2,
                                     numVars,
@@ -771,38 +799,38 @@ namespace CFL_OBDD {
                                     r2,
                                     rpairProductMapHandle,
                                     func); 
-        WeightedBDDInternalNode<T,Op>* g = new WeightedBDDInternalNode<T,Op>(index);
         T lweight = lpairProductMapHandle.mapContents->factor;
         T rweight = rpairProductMapHandle.mapContents->factor;
         auto w = computeInverseValue<T, Op>(lweight, rweight);
+        if (lvalue == rvalue && std::get<1>(w) == std::get<2>(w)){
+            pairProductMapHandle = lpairProductMapHandle;
+            return lvalue;
+        }
+        WeightedBDDInternalNode<T,Op>* g = new WeightedBDDInternalNode<T,Op>(index);
         g->lweight = std::get<1>(w);
         g->rweight = std::get<2>(w);
         g->leftNode = lvalue;
         g->rightNode = rvalue;
-        if (g->leftNode == g->rightNode && g->lweight == g->rweight){
-            pairProductMapHandle = lpairProductMapHandle;
-            return g->leftNode;
-        }
-        std::vector<T> ret_ans;
-        auto lvector = lpairProductMapHandle.mapContents->mapArray;
-        auto rvector = rpairProductMapHandle.mapContents->mapArray;
-        for (auto i : lvector)
-            ret_ans.push_back(i);
+        // std::vector<T> ret_ans;
+        // auto lvector = lpairProductMapHandle.mapContents->mapArray;
+        // auto rvector = rpairProductMapHandle.mapContents->mapArray;
+        // for (auto i : lvector)
+        //     ret_ans.push_back(i);
         
-        if (lvector.size() == 1 && rvector.size() == 1)
-        {
-            if (ret_ans[0] != rvector[0])
-                ret_ans.push_back(rvector[0]);
-        }
-        else if (lvector.size() == 1 && rvector.size() == 2)
-        {
-            for (auto i : rvector)
-            {
-                if (ret_ans[0] != i)
-                    ret_ans.push_back(i);
-            }
-        }
-        pairProductMapHandle.AddToEnd(ret_ans, std::get<0>(w));
+        // if (lvector.size() == 1 && rvector.size() == 1)
+        // {
+        //     if (ret_ans[0] != rvector[0])
+        //         ret_ans.push_back(rvector[0]);
+        // }
+        // else if (lvector.size() == 1 && rvector.size() == 2)
+        // {
+        //     for (auto i : rvector)
+        //     {
+        //         if (ret_ans[0] != i)
+        //             ret_ans.push_back(i);
+        //     }
+        // }
+        // pairProductMapHandle.AddToEnd(ret_ans, std::get<0>(w));
         // std::cout << "hey " << g->GetIndex() << std::endl;
         // g->print(std::cout);
         return WeightedBDDNodeHandle<T,Op>(g);
@@ -832,8 +860,15 @@ namespace CFL_OBDD {
         }
         else {
             WeightedBDDNodeHandle<T,Op> answer;
-        
-            if (n1.handleContents->NodeKind() == INTERNAL && n2.handleContents->NodeKind() == INTERNAL) {
+            if (n1 == n2)
+            {
+                auto func_factor = func(factor1, factor2);
+                if (func_factor == getAnnhilatorValue<T,Op>())
+                    answer = WeightedBDDNodeHandle<T,Op>::AnnhilatorLeafNode;
+                else
+                    answer = n1;
+            }
+            else if (n1.handleContents->NodeKind() == INTERNAL && n2.handleContents->NodeKind() == INTERNAL) {
                 answer = BDDPairProduct2<T,Op>((WeightedBDDInternalNode<T,Op> *)n1.handleContents,
                                 (WeightedBDDInternalNode<T,Op> *)n2.handleContents,
                                 numVars,
@@ -846,10 +881,10 @@ namespace CFL_OBDD {
             else if (n1.handleContents->NodeKind() == INTERNAL && n2.handleContents->NodeKind() == LEAF) {
                 if (n2 == WeightedBDDNodeHandle<T,Op>::AnnhilatorLeafNode) {
                     answer = n1;
-                    std::vector<T> ret_ans;
+                    // std::vector<T> ret_ans;
                     // TODO: Incorrect but doesn't affect the algorithm
-                    ret_ans.push_back(getIdentityValue<T,Op>());
-                    pairProductMapHandle.AddToEnd(ret_ans, factor1);
+                    // ret_ans.push_back(getIdentityValue<T,Op>());
+                    // pairProductMapHandle.AddToEnd(ret_ans, factor1);
                 }
                 else {
                     WeightedBDDInternalNode<T,Op>* n1_i = (WeightedBDDInternalNode<T,Op> *)n1.handleContents;
@@ -880,36 +915,36 @@ namespace CFL_OBDD {
                         answer = g->leftNode;
                         pairProductMapHandle = lpairProductMapHandle;
                     }
-                    std::vector<T> ret_ans;
-                    auto lvector = lpairProductMapHandle.mapContents->mapArray;
-                    auto rvector = rpairProductMapHandle.mapContents->mapArray;
-                    for (auto i : lvector)
-                        ret_ans.push_back(i);
+                    // std::vector<T> ret_ans;
+                    // auto lvector = lpairProductMapHandle.mapContents->mapArray;
+                    // auto rvector = rpairProductMapHandle.mapContents->mapArray;
+                    // for (auto i : lvector)
+                    //     ret_ans.push_back(i);
                     
-                    if (lvector.size() == 1 && rvector.size() == 1)
-                    {
-                        if (ret_ans[0] != rvector[0])
-                            ret_ans.push_back(rvector[0]);
-                    }
-                    else if (lvector.size() == 1 && rvector.size() == 2)
-                    {
-                        for (auto i : rvector)
-                        {
-                            if (ret_ans[0] != i)
-                                ret_ans.push_back(i);
-                        }
-                    }
+                    // if (lvector.size() == 1 && rvector.size() == 1)
+                    // {
+                    //     if (ret_ans[0] != rvector[0])
+                    //         ret_ans.push_back(rvector[0]);
+                    // }
+                    // else if (lvector.size() == 1 && rvector.size() == 2)
+                    // {
+                    //     for (auto i : rvector)
+                    //     {
+                    //         if (ret_ans[0] != i)
+                    //             ret_ans.push_back(i);
+                    //     }
+                    // }
                     answer = WeightedBDDNodeHandle<T,Op>(g);
-                    pairProductMapHandle.AddToEnd(ret_ans, std::get<0>(w));
+                    // pairProductMapHandle.AddToEnd(ret_ans, std::get<0>(w));
                 }
             }
             else if (n1.handleContents->NodeKind() == LEAF && n2.handleContents->NodeKind() == INTERNAL) { 
                 if (n1 == WeightedBDDNodeHandle<T,Op>::AnnhilatorLeafNode) {
                     answer = n2;
-                    std::vector<T> ret_ans;
+                    // std::vector<T> ret_ans;
                     // TODO: Incorrect but doesn't affect the algorithm
-                    ret_ans.push_back(getIdentityValue<T,Op>());
-                    pairProductMapHandle.AddToEnd(ret_ans, factor2);
+                    // ret_ans.push_back(getIdentityValue<T,Op>());
+                    // pairProductMapHandle.AddToEnd(ret_ans, factor2);
                 }
                 else {
                     /* n2.handleContents->NodeKind() == CFLOBDD_DONTCARE */       // W_CFLOBDD_FORK, CFLOBDD_DONTCARE
@@ -941,27 +976,27 @@ namespace CFL_OBDD {
                         answer = lvalue;
                         pairProductMapHandle = lpairProductMapHandle;
                     }
-                    std::vector<T> ret_ans;
-                    auto lvector = lpairProductMapHandle.mapContents->mapArray;
-                    auto rvector = rpairProductMapHandle.mapContents->mapArray;
-                    for (auto i : lvector)
-                        ret_ans.push_back(i);
+                    // std::vector<T> ret_ans;
+                    // auto lvector = lpairProductMapHandle.mapContents->mapArray;
+                    // auto rvector = rpairProductMapHandle.mapContents->mapArray;
+                    // for (auto i : lvector)
+                    //     ret_ans.push_back(i);
                     
-                    if (lvector.size() == 1 && rvector.size() == 1)
-                    {
-                        if (ret_ans[0] != rvector[0])
-                            ret_ans.push_back(rvector[0]);
-                    }
-                    else if (lvector.size() == 1 && rvector.size() == 2)
-                    {
-                        for (auto i : rvector)
-                        {
-                            if (ret_ans[0] != i)
-                                ret_ans.push_back(i);
-                        }
-                    }
+                    // if (lvector.size() == 1 && rvector.size() == 1)
+                    // {
+                    //     if (ret_ans[0] != rvector[0])
+                    //         ret_ans.push_back(rvector[0]);
+                    // }
+                    // else if (lvector.size() == 1 && rvector.size() == 2)
+                    // {
+                    //     for (auto i : rvector)
+                    //     {
+                    //         if (ret_ans[0] != i)
+                    //             ret_ans.push_back(i);
+                    //     }
+                    // }
                     answer = WeightedBDDNodeHandle<T,Op>(g);
-                    pairProductMapHandle.AddToEnd(ret_ans, std::get<0>(w));
+                    // pairProductMapHandle.AddToEnd(ret_ans, std::get<0>(w));
                 }
             }
             else { /* n1.handleContents->NodeKind() == CFLOBDD_DONTCARE */
@@ -973,19 +1008,19 @@ namespace CFL_OBDD {
                 if (weight == getAnnhilatorValue<T,Op>())
                 {
                     answer = WeightedBDDNodeHandle<T,Op>::AnnhilatorLeafNode;
-                    std::vector<T> ret_ans;
-                    ret_ans.push_back(weight);
-                    pairProductMapHandle.AddToEnd(ret_ans, weight);
+                    // std::vector<T> ret_ans;
+                    // ret_ans.push_back(weight);
+                    // pairProductMapHandle.AddToEnd(ret_ans, weight);
                 }
                 else {
                     answer = WeightedBDDNodeHandle<T,Op>::IdentityLeafNode;
-                    std::vector<T> ret_ans;
-                    ret_ans.push_back(getIdentityValue<T,Op>());
-                    pairProductMapHandle.AddToEnd(ret_ans, weight); 
+                    // std::vector<T> ret_ans;
+                    // ret_ans.push_back(getIdentityValue<T,Op>());
+                    // pairProductMapHandle.AddToEnd(ret_ans, weight); 
                 }
             }
             
-            pairProductCache<T,Op>->Insert(WeightedBDDPairProductKey(n1, n2),
+            pairProduct2Cache<T,Op>->Insert(WeightedBDDPairProductKey(n1, n2, factor1, factor2),
                 WeightedBDDPairProductMemo(answer, pairProductMapHandle));
             // std::cout << "hey " << answer.handleContents->GetIndex() << std::endl;
             // answer.print(std::cout);

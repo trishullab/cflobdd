@@ -21,13 +21,13 @@ namespace CFL_OBDD {
 		// Create representation of identity relation (with interleaved variable order).
 		// That is, input (x0,y0,x1,y1,...,xN,yN) yield Id[(x0,x1,...,xN)][(y0,y1,...,yN)]
 		// which equals 1 iff xi == yi, for 0 <= i <= N.
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkIdRelationInterleavedTop(unsigned int i, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkIdRelationInterleavedTop(unsigned int i, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m10;
 
-			tempHandle = MkIdRelationInterleavedNode(i, cflobdd_kind);
+			tempHandle = MkIdRelationInterleavedNode(i, cflobdd_kind, offset);
 			m10.AddToEnd(1);
 			m10.AddToEnd(0);
 			m10.Canonicalize();
@@ -35,13 +35,13 @@ namespace CFL_OBDD {
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkNegationMatrixInterleavedTop(unsigned int i, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkNegationMatrixInterleavedTop(unsigned int i, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m01;
 
-			tempHandle = MkNegationMatrixInterleavedNode(i, cflobdd_kind);
+			tempHandle = MkNegationMatrixInterleavedNode(i, cflobdd_kind, offset);
 			m01.AddToEnd(0);
 			m01.AddToEnd(1);
 			m01.Canonicalize();
@@ -49,13 +49,13 @@ namespace CFL_OBDD {
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliYGateTop(unsigned int i, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliYGateTop(unsigned int i, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m01;
 
-			tempHandle = MkPauliYGateNode(i, cflobdd_kind);
+			tempHandle = MkPauliYGateNode(i, cflobdd_kind, offset);
 			m01.AddToEnd(0);
 			m01.AddToEnd(1);
 			m01.Canonicalize();
@@ -70,13 +70,13 @@ namespace CFL_OBDD {
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliZGateTop(unsigned int i, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliZGateTop(unsigned int i, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m10;
 
-			tempHandle = MkPauliZGateNode(i, cflobdd_kind);
+			tempHandle = MkPauliZGateNode(i, cflobdd_kind, offset);
 			m10.AddToEnd(1);
 			m10.AddToEnd(0);
 			m10.Canonicalize();
@@ -84,13 +84,13 @@ namespace CFL_OBDD {
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSGateTop(unsigned int i, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSGateTop(unsigned int i, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m10;
 
-			tempHandle = MkSGateNode(i, cflobdd_kind);
+			tempHandle = MkSGateNode(i, cflobdd_kind, offset);
 			m10.AddToEnd(1);
 			m10.AddToEnd(0);
 			m10.Canonicalize();
@@ -155,13 +155,13 @@ namespace CFL_OBDD {
 		// [i.e., a matrix of size 2**(2**(i-1))) x 2**(2**(i-1)))]
 		// with interleaved indexing of components: that is, input
 		// (x0,y0,x1,y1,...,xN,yN) yields W[(x0,x1,...,xN)][(y0,y1,...,yN)]
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkWalshInterleavedTop(unsigned int i, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkWalshInterleavedTop(unsigned int i, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m;
 
-			tempHandle = MkWalshInterleavedNode(i, cflobdd_kind);
+			tempHandle = MkWalshInterleavedNode(i, cflobdd_kind, offset);
 			BIG_COMPLEX_FLOAT val;
 			if (cflobdd_kind == 0)
 				val = boost::multiprecision::pow(BIG_COMPLEX_FLOAT(sqrt(2)), i/2).convert_to<BIG_COMPLEX_FLOAT>(); 
@@ -173,7 +173,7 @@ namespace CFL_OBDD {
 			return v;
 		}
 
-        WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr KroneckerProduct2VocsTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr m1, WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr m2)
+        WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr KroneckerProduct2VocsTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr m1, WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr m2, bool rename)
         {
             unsigned int level = m1->rootConnection.entryPointHandle->handleContents->level;
             if (m1->rootConnection.factor == 0 || m2->rootConnection.factor == 0)
@@ -196,7 +196,7 @@ namespace CFL_OBDD {
             WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
             WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle; 
             ComplexFloatBoostReturnMapHandle m;
-            tempHandle = KroneckerProduct2VocsNode(*(m1->rootConnection.entryPointHandle), *(m2->rootConnection.entryPointHandle), zero_index_m1, zero_index_m2);
+            tempHandle = KroneckerProduct2VocsNode(*(m1->rootConnection.entryPointHandle), *(m2->rootConnection.entryPointHandle), zero_index_m1, zero_index_m2, rename);
             ComplexFloatBoostReturnMapHandle m01, m10, m_1;
             m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
             m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
@@ -399,9 +399,9 @@ namespace CFL_OBDD {
 			return(new WeightedCFLOBDDTopNodeComplexFloatBoost(g.first, v, g.second * common_f * c1->rootConnection.factor * c2->rootConnection.factor));
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled, int cflobdd_kind, unsigned int offset)
 		{
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle c = MkCNOTNode(level, n, controller, controlled, cflobdd_kind);
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle c = MkCNOTNode(level, n, controller, controlled, cflobdd_kind, offset);
 			ComplexFloatBoostReturnMapHandle m;
 			m.AddToEnd(1);
 			m.AddToEnd(0);
@@ -409,9 +409,9 @@ namespace CFL_OBDD {
 			return new WeightedCFLOBDDTopNodeComplexFloatBoost(c, m, 1.0);
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCCNOTTop(unsigned int level, long int controller1, long int controller2, long int controlled, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCCNOTTop(unsigned int level, long int controller1, long int controller2, long int controlled, int cflobdd_kind, unsigned int offset)
 		{
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle c = MkCCNOTNode(level, controller1, controller2, controlled, cflobdd_kind);
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle c = MkCCNOTNode(level, controller1, controller2, controlled, cflobdd_kind, offset);
 			ComplexFloatBoostReturnMapHandle m;
 			m.AddToEnd(1);
 			m.AddToEnd(0);
@@ -419,13 +419,13 @@ namespace CFL_OBDD {
 			return new WeightedCFLOBDDTopNodeComplexFloatBoost(c, m, 1.0);
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSwapGateTop(unsigned int i, long int c1, long int c2, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSwapGateTop(unsigned int i, long int c1, long int c2, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m01;
 
-			tempHandle = MkSwapGateNode(i, c1, c2, -1, cflobdd_kind);
+			tempHandle = MkSwapGateNode(i, c1, c2, -1, cflobdd_kind, offset);
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
 			m01.Canonicalize();
@@ -433,13 +433,13 @@ namespace CFL_OBDD {
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkiSwapGateTop(unsigned int i, long int c1, long int c2, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkiSwapGateTop(unsigned int i, long int c1, long int c2, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m01;
 
-			tempHandle = MkiSwapGateNode(i, c1, c2, -1, cflobdd_kind);
+			tempHandle = MkiSwapGateNode(i, c1, c2, -1, cflobdd_kind, offset);
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
 			m01.Canonicalize();
@@ -449,7 +449,7 @@ namespace CFL_OBDD {
 
 
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int i, long int c1, long int c2, double theta, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int i, long int c1, long int c2, double theta, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
@@ -461,7 +461,7 @@ namespace CFL_OBDD {
 
 			// std::unordered_map<std::string, CFLOBDDNodeHandle> cp_hashMap;
 			std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle> cp_hashMap;
-			tempHandle = MkCPGateNode(cp_hashMap, i, c1, c2, val, cflobdd_kind);
+			tempHandle = MkCPGateNode(cp_hashMap, i, c1, c2, val, cflobdd_kind, offset);
 			m10.AddToEnd(1);
 			m10.AddToEnd(0);
 			m10.Canonicalize();
@@ -469,7 +469,7 @@ namespace CFL_OBDD {
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPhaseShiftGateTop(unsigned int level, double theta, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPhaseShiftGateTop(unsigned int level, double theta, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
@@ -484,7 +484,7 @@ namespace CFL_OBDD {
 				assert (level == 2);
 			// std::unordered_map<std::string, CFLOBDDNodeHandle> cp_hashMap;
 			std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle> cp_hashMap;
-			tempHandle = MkPhaseShiftGateNode(level, val, cflobdd_kind);
+			tempHandle = MkPhaseShiftGateNode(level, val, cflobdd_kind, offset);
 			m10.AddToEnd(1);
 			m10.AddToEnd(0);
 			m10.Canonicalize();
@@ -492,7 +492,7 @@ namespace CFL_OBDD {
 			return v;	
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCZGateTop(unsigned int i, long int c1, long int c2, double theta, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCZGateTop(unsigned int i, long int c1, long int c2, double theta, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
@@ -502,7 +502,7 @@ namespace CFL_OBDD {
 
 			// std::unordered_map<std::string, CFLOBDDNodeHandle> cp_hashMap;
 			std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle> cp_hashMap;
-			tempHandle = MkCPGateNode(cp_hashMap, i, c1, c2, val, cflobdd_kind);
+			tempHandle = MkCPGateNode(cp_hashMap, i, c1, c2, val, cflobdd_kind, offset);
 			m10.AddToEnd(1);
 			m10.AddToEnd(0);
 			m10.Canonicalize();
@@ -510,12 +510,12 @@ namespace CFL_OBDD {
 			return v;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCSwapGateTop(unsigned int level, long int c, long int i, long int j, int cflobdd_kind)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCSwapGateTop(unsigned int level, long int c, long int i, long int j, int cflobdd_kind, unsigned int offset)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m01;
-			tempHandle = MkCSwapGate2Node(level, c, i, j, 1, cflobdd_kind);
+			tempHandle = MkCSwapGate2Node(level, c, i, j, 1, cflobdd_kind, offset);
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
 			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);

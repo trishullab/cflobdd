@@ -201,6 +201,27 @@ namespace CFL_OBDD {
 			// 	std::cerr << "Cannot print matrix: level must be in [1 .. 4]" << std::endl;
 			// }
 		}
+
+		void PrintVectorTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out, unsigned int vars_count)
+		{
+			Hashtable<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, std::vector<std::vector<std::pair<std::pair<std::string, std::string>, BIG_COMPLEX_FLOAT>>>> hashMap;
+			auto ans = PrintVectorNode(hashMap, n->rootConnection.entryPointHandle->handleContents);
+			std::map<std::string, BIG_COMPLEX_FLOAT> info;
+			for (unsigned int i = 0; i < ans.size(); i++)
+			{
+				for (unsigned int j = 0; j < ans[i].size(); j++)
+				{
+					if (ans[i][j].first.first.substr(vars_count).find('1') == std::string::npos)
+						info.insert(std::make_pair(ans[i][j].first.first.substr(0, vars_count), ans[i][j].second * n->rootConnection.factor));
+					// info.insert(std::make_pair(ans[i][j].first, ans[i][j].second * n->rootConnection.factor));
+				}
+			}
+
+			for (auto it = info.begin(); it != info.end(); it++)
+			{
+				std::cout << it->first << " " << it->second << std::endl;
+			}
+		}
 	}
 }
 

@@ -68,12 +68,15 @@ namespace CFL_OBDD {
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCSwapGateNode(unsigned int level, long int controller, long int i, long int j, int case_num);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCSwapGate2Node(unsigned int level, long int controller, long int i, long int j, int case_num);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCCNOTNode(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled);
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCCPNode(std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle>& cp_hashMap, unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled, BIG_COMPLEX_FLOAT theta);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkPauliZGateNode(unsigned int level);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkPauliYGateNode(unsigned int level);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSGateNode(unsigned int level);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkPhaseShiftGateNode(unsigned int level, BIG_COMPLEX_FLOAT theta_val);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSXGateNode(unsigned int level);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSYGateNode(unsigned int level);
+
+        extern std::pair<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, int> MkRestrictNode(unsigned int level, std::string s);
 
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle KroneckerProduct2VocsNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle m1, WeightedCFLOBDDComplexFloatBoostMulNodeHandle m2, int zero_index_m1, int zero_index_m2); 
         extern std::tuple<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, CFLOBDDMatMultMapHandle, BIG_COMPLEX_FLOAT>

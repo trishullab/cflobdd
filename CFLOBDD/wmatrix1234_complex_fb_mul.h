@@ -35,12 +35,15 @@ namespace CFL_OBDD {
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MatrixMultiplyV4(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m2);
         extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CreateBalancedFn(int n, std::mt19937 mt);
 
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkRestrictMatrix(unsigned int level, std::string s);
+
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSwapGate(unsigned int i, long int c1, long int c2);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkiSwapGate(unsigned int i, long int c1, long int c2);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCPGate(unsigned int i, long int c1, long int c2, double theta);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCSwapGate2(unsigned int i, long int c1, long int x1, long int x2);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCNOT(unsigned int i, unsigned int n, long int c1, long int c2, long int x);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCP(unsigned int i, unsigned int n, long int c1, long int c2, long int x, double theta);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPauliZGate(unsigned int level);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPauliYGate(unsigned int level);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSGate(unsigned int level);

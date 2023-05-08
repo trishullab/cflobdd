@@ -70,6 +70,11 @@ namespace CFL_OBDD {
 			VectorPrintColumnMajorInterleavedTop(c.root, out);
 			return;
 		}
+
+		void PrintVector(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, std::ostream & out, unsigned int vars_count)
+		{
+			PrintVectorTop(c.root, out, vars_count);
+		}
 	}
 }
 

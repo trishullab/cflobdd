@@ -36,6 +36,7 @@ namespace CFL_OBDD {
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr VectorWithAmplitudeTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n);
 		extern void VectorPrintColumnMajorTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out);
 		extern void VectorPrintColumnMajorInterleavedTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out);
+		extern void PrintVectorTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out, unsigned int vars_count);
 	}
 }
 

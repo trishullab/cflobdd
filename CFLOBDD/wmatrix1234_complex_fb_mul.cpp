@@ -141,6 +141,11 @@ namespace CFL_OBDD {
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCCNOTTop(i, n, c1, c2, x));
 		}
 
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCP(unsigned int i, unsigned int n, long int c1, long int c2, long int x, double theta)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCCPTop(i, n, c1, c2, x, theta));
+		}
+
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPauliZGate(unsigned int level)
 		{
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkPauliZGateTop(level));
@@ -169,6 +174,11 @@ namespace CFL_OBDD {
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSYGate(unsigned int level) // sqrt Y gate 
 		{
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkSYGateTop(level));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkRestrictMatrix(unsigned int level, std::string s)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkRestrictTop(level, s));	
 		}
 	}
 }

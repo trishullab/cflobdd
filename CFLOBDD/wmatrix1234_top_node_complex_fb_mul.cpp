@@ -378,7 +378,7 @@ namespace CFL_OBDD {
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m01;
-			tempHandle = MkCSwapGate2Node(level, c, i, j, 1);
+			tempHandle = MkCSwapGate2Node(level, c, i, j, -1);
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
 			m01.Canonicalize();
@@ -392,6 +392,23 @@ namespace CFL_OBDD {
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m01;
 			tempHandle = MkCCNOTNode(level, n, c1, c2, x);
+			m01.AddToEnd(1);
+			m01.AddToEnd(0);
+			m01.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCCPTop(unsigned int level, unsigned int n, long int c1, long int c2, long int x, double theta)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+			double cos_v = boost::math::cos_pi(theta);
+			double sin_v = boost::math::sin_pi(theta);
+			BIG_COMPLEX_FLOAT val(cos_v, sin_v);
+			std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle> cp_hashMap;
+			tempHandle = MkCCPNode(cp_hashMap, level, n, c1, c2, x, val);
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
 			m01.Canonicalize();
@@ -477,6 +494,31 @@ namespace CFL_OBDD {
 			m01.AddToEnd(1);
 			m01.Canonicalize();
 			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01, BIG_COMPLEX_FLOAT(0.5, 0.5));
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkRestrictTop(unsigned int level, std::string s)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m01;
+			auto tmp = MkRestrictNode(level, s);
+			if (tmp.second == 0)
+			{
+				m01.AddToEnd(0);
+				m01.AddToEnd(1);
+			}
+			else if (tmp.second == 1)
+			{
+				m01.AddToEnd(1);
+				m01.AddToEnd(0);
+			}
+			else if (tmp.second == -1)
+			{
+				m01.AddToEnd(1);
+			}
+			m01.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tmp.first, m01);
 			return v;
 		}
 

@@ -38,6 +38,7 @@ namespace CFL_OBDD {
         extern BIG_COMPLEX_FLOAT addNumPathsToExit(std::vector<BIG_COMPLEX_FLOAT>& paths);
         long double getLogSumNumPaths(std::vector<std::pair<long double, unsigned int>>& numBPaths, unsigned int size);
         BIG_COMPLEX_FLOAT getLogSumNumPaths(std::vector<std::pair<BIG_COMPLEX_FLOAT, unsigned int>>& numBPaths, unsigned int size);
+        extern std::vector<std::vector<std::pair<std::pair<std::string, std::string>, BIG_COMPLEX_FLOAT>>> PrintVectorNode(Hashtable<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, std::vector<std::vector<std::pair<std::pair<std::string, std::string>, BIG_COMPLEX_FLOAT>>>>& hashMap, WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh);
         
         template <typename T>
         bool sortNumPathPairs(const std::pair<T, unsigned int>& p1, const std::pair<T, unsigned int> &p2){

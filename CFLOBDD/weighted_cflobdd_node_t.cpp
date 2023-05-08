@@ -2073,6 +2073,17 @@ WeightedCFLOBDDLeafNode<T, Op>::WeightedCFLOBDDLeafNode(T lw, T rw)
   // this->refCount = 1;
   lweight = lw;
   rweight = rw;
+
+  if constexpr (std::is_same_v<T, BIG_COMPLEX_FLOAT>) {
+    if (boost::multiprecision::abs(lweight.real()) < FLT_EPSILON)
+        lweight = BIG_COMPLEX_FLOAT(0, lweight.imag());
+    if (boost::multiprecision::abs(lweight.imag()) < FLT_EPSILON)
+        lweight = BIG_COMPLEX_FLOAT(lweight.real(), 0.0);
+    if (boost::multiprecision::abs(rweight.real()) < FLT_EPSILON)
+        rweight = BIG_COMPLEX_FLOAT(0, rweight.imag());
+    if (boost::multiprecision::abs(rweight.imag()) < FLT_EPSILON)
+        rweight = BIG_COMPLEX_FLOAT(rweight.real(), 0.0);
+  } 
 }
 
 template <typename T, typename Op>

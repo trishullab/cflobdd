@@ -25,6 +25,7 @@ namespace CFL_OBDD {
 	    std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle> swap_hashMap;
 	    std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle> cswap_hashMap;
 	    std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle> ccnot_hashMap;
+	    std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle> ccp_hashMap;
 
         void InitReturnMapHandles(){
             ReturnMapHandle<int> m0, m1, m01, m10;
@@ -927,7 +928,8 @@ namespace CFL_OBDD {
                 auto aa = MatrixMultiplyV4Node(*(c1_internal->AConnection.entryPointHandle),
                     *(c2_internal->AConnection.entryPointHandle), a_zero_exit_1, a_zero_exit_2);
                 CFLOBDDReturnMapHandle mI;
-                for (unsigned int i = 0; i < std::get<1>(aa).Size(); i++)
+                auto aMap = std::get<1>(aa);
+                for (unsigned int i = 0; i < aMap.Size(); i++)
                     mI.AddToEnd(i);
                 mI.Canonicalize();
                 top_factor = std::get<2>(aa);
@@ -2278,6 +2280,323 @@ namespace CFL_OBDD {
             return gHandle;
         }
 
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCCPNode(std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle>& cp_hashMap, unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled, BIG_COMPLEX_FLOAT theta)
+        {
+            std::string p = std::to_string(level) + ";" + std::to_string(controller1) + ";" + std::to_string(controller2) + ";" + std::to_string(controlled) + ";";
+            if (cp_hashMap.find(p) != cp_hashMap.end()){
+                return cp_hashMap[p];
+            }    
+            WeightedCFLOBDDComplexFloatBoostInternalNode *g = new WeightedCFLOBDDComplexFloatBoostInternalNode(level);
+
+            if (level == 1)
+            {
+                if (controller1 == 0 || controller2 == 0)
+                {
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[g->numBConnections];
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
+                    CFLOBDDReturnMapHandle m12;
+                    m12.AddToEnd(1); m12.AddToEnd(2); m12.Canonicalize();
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m12);
+                    g->numExits = 3;
+                }
+                else if (controlled == 0)
+                {
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    auto aa = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1, theta));
+                    g->AConnection = Connection(aa, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[g->numBConnections];
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
+                    CFLOBDDReturnMapHandle m10;
+                    m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m10);
+                    g->numExits = 2;
+                }
+            }
+            else
+            {
+                if (controller1 < n/2 && controller2 < n/2 && controlled < n/2 && controlled >= 0 && controller1 >= 0 && controller2 >= 0)
+                {
+                    // Case 1: CR1, CR2 and CD in A Connection
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    auto aa = MkCCPNode(cp_hashMap, level-1, n/2, controller1, controller2, controlled, theta);
+                    g->AConnection = Connection(aa, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    CFLOBDDReturnMapHandle m1;
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 2;
+                }
+                else if (controller1 >= n/2 && controller2 >= n/2 && controlled >= n/2 && controller1 >= 0 && controller2 >= 0 && controlled >= 0)
+                {
+                    // Case 2: CR1, CR2 and CD in B Connection
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    auto bb = MkCCPNode(cp_hashMap, level-1, n/2, controller1 - n/2, controller2 - n/2, controlled - n/2, theta);
+                    g->BConnection[0] = Connection(bb, m01);
+                    CFLOBDDReturnMapHandle m1;
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 2;
+                }
+                else if (controller1 < n/2 && controller2 >= n/2 && controlled >= n/2 && controller1 >= 0 && controlled >= 0 && controller2 >= 0)
+                {
+                    // Case 3: CR1 in A, CR2 and CD in B
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    auto aa = MkCCPNode(cp_hashMap, level-1, n/2, controller1, -1, -1, theta);
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1, m10;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                    auto bb = MkCCPNode(cp_hashMap, level-1, n/2, -1, controller2 - n/2, controlled - n/2, theta);
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(bb, m01);
+                    g->numExits = 2;
+                }
+                else if (controlled == -1 && controller1 < n/2 && controller1 >= 0 && controller2 == -1)
+                {
+                    // Case 4: CR1 in A and CR2 == -1 and CD == -1
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    auto aa = MkCCPNode(cp_hashMap, level-1, n/2, controller1, -1, -1, theta);
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[g->numBConnections];
+                    CFLOBDDReturnMapHandle m01, m1, m21;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m21.AddToEnd(2); m21.AddToEnd(1); m21.Canonicalize();
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m21);
+                    g->numExits = 3;
+                }
+                else if (controlled == -1 && controller1 >= n/2 && controller2 == -1)
+                {
+                    // Case 5: CR1 in B and CR2 == -1 and CD == -1
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    auto bb = MkCCPNode(cp_hashMap, level-1, n/2, controller1 - n/2, -1, -1, theta);
+                    CFLOBDDReturnMapHandle m012, m1;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[0] = Connection(bb, m012);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 3;
+                }
+                else if (controller1 == -1 && controlled >= 0 && controlled < n/2 && controller2 == -1)
+                {
+                    // Case 6: controller == -1 and controlled in A
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    auto aa = MkCCPNode(cp_hashMap, level-1, n/2, -1, -1, controlled, theta);
+                    g->AConnection = Connection(aa, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    CFLOBDDReturnMapHandle m1;
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    auto Id = MkIdRelationInterleavedNode(level - 1);
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->numExits = 2;
+                }
+                else if (controller1 == -1 && controlled >= n/2 && controller2 == -1)
+                {
+                    // Case 7: controller == -1 and controlled in B
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    auto bb = MkCCPNode(cp_hashMap, level-1, n/2, -1, -1, controlled - n/2, theta);
+                    CFLOBDDReturnMapHandle m1;
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[0] = Connection(bb, m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 2;
+                }
+                else if (controller1 < n/2 && controller2 < n/2 && controlled >= n/2 && controller1 >= 0 && controlled >= 0 && controller2 >= 0)
+                {
+                    // Case 8: CR1 and CR2 in A, CD in B
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    auto aa = MkCCPNode(cp_hashMap, level-1, n/2, controller1, controller2, -1, theta);
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    auto bb = MkCCPNode(cp_hashMap, level-1, n/2, -1, -1, controlled - n/2, theta);
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(bb, m01);
+                    g->numExits = 2;
+                }
+                else if (controller1 < n/2 && controller2 < n/2 && controlled == -1 && controller1 >= 0 && controller2 >= 0)
+                {
+                    // Case 9: CR1 and CR2 in A, CD == -1
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    auto aa = MkCCPNode(cp_hashMap, level-1, n/2, controller1, controller2, -1, theta);
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1, m21;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m21.AddToEnd(2); m21.AddToEnd(1); m21.Canonicalize();
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m21);
+                    g->numExits = 3;
+                }
+                else if (controller1 >= n/2 && controller2 >= n/2 && controlled == -1 && controller1 >= 0 && controller2 >= 0)
+                {
+                    // Case 10: CR1 and CR2 in B, CD == -1
+                    auto Id = MkIdRelationInterleavedNode(level - 1);
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(Id, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    CFLOBDDReturnMapHandle m012, m1;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    auto bb = MkCCPNode(cp_hashMap, level-1, n/2, controller1 - n/2, controller2 - n/2, -1, theta);
+                    g->BConnection[0] = Connection(bb, m012);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 3;
+                }
+                else if (controller1 < n/2 && controller2 >= n/2 && controlled == -1 && controller1 >= 0 && controller2 >= 0)
+                {
+                    // Case 11: CR1 in A, CR2 in B, CD == -1
+                    auto aa = MkCCPNode(cp_hashMap, level-1, n/2, controller1, -1, -1, theta);
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    auto bb = MkCCPNode(cp_hashMap, level-1, n/2, -1, controller2 - n/2, -1, theta);
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(bb, m012);
+                    g->numExits = 3;
+                }
+                else if (controller1 == -1 && controller2 < n/2 && controlled == -1 && controller2 >= 0)
+                {
+                    // Case 12: CR1 == -1, CR2 in A, CD == -1
+                    auto aa = MkCCPNode(cp_hashMap, level-1, n/2, -1, controller2, -1, theta);
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1, m21;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m21.AddToEnd(2); m21.AddToEnd(1); m21.Canonicalize();
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m21);
+                    g->numExits = 3;
+                }
+                else if (controller1 == -1 && controller2 >= n/2 && controlled == -1 && controller2 >= 0)
+                {
+                    // Case 12: CR1 == -1, CR2 in B, CD == -1
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    CFLOBDDReturnMapHandle m012, m1;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    auto bb = MkCCPNode(cp_hashMap, level-1, n/2, -1, controller2 - n/2, -1, theta);
+                    g->BConnection[0] = Connection(bb, m012);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 3;
+                }
+                else if (controller1 == -1 && controller2 < n/2 && controlled < n/2 && controller2 >= 0 && controlled >= 0)
+                {
+                    // Case 13: CR1 == -1, CR2 and CD in A
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    auto aa = MkCCPNode(cp_hashMap, level-1, n/2, -1, controller2, controlled, theta);
+                    g->AConnection = Connection(aa, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    CFLOBDDReturnMapHandle m1;
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 2;
+                }
+                else if (controller1 == -1 && controller2 >= n/2 && controlled >= n/2 && controller2 >= 0 && controlled >= 0)
+                {
+                    // Case 14: CR1 == -1, CR2 and CD in B
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    CFLOBDDReturnMapHandle m1;
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    auto bb = MkCCPNode(cp_hashMap, level-1, n/2, -1, controller2 - n/2, controlled - n/2, theta);
+                    g->BConnection[0] = Connection(bb, m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 2;
+                }
+                else if (controller1 == -1 && controller2 < n/2 && controlled >= n/2 && controller2 >= 0 && controlled >= 0)
+                {
+                    // Case 15: CR1 == -1, CR2 in A and CD in B
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    auto aa = MkCCPNode(cp_hashMap, level-1, n/2, -1, controller2, -1, theta);
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    auto bb = MkCCPNode(cp_hashMap, level-1, n/2, -1, -1, controlled - n/2, theta);
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(bb, m01);
+                    g->numExits = 2;
+                }
+            }
+
+    #ifdef PATH_COUNTING_ENABLED
+            g->InstallPathCounts();
+    #endif
+            WeightedCFLOBDDComplexFloatBoostMulNodeHandle gHandle = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(g);
+            cp_hashMap.insert(std::make_pair(p, gHandle));
+            return gHandle;
+        }
+
         WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkPauliZGateNode(unsigned int i)
         {
             assert(i >= 1);
@@ -3048,9 +3367,9 @@ namespace CFL_OBDD {
                     m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
                     m1.AddToEnd(1); m1.Canonicalize();
                     m21.AddToEnd(2); m21.AddToEnd(1); m21.Canonicalize();
-                    m31.AddToEnd(2); m31.AddToEnd(1); m31.Canonicalize();
-                    m41.AddToEnd(2); m41.AddToEnd(1); m41.Canonicalize();
-                    m51.AddToEnd(2); m51.AddToEnd(1); m51.Canonicalize();
+                    m31.AddToEnd(3); m31.AddToEnd(1); m31.Canonicalize();
+                    m41.AddToEnd(4); m41.AddToEnd(1); m41.Canonicalize();
+                    m51.AddToEnd(5); m51.AddToEnd(1); m51.Canonicalize();
                     g->BConnection[0] = Connection(Id, m01);
                     g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
                     g->BConnection[2] = Connection(Id, m21);
@@ -3101,14 +3420,39 @@ namespace CFL_OBDD {
                     g->BConnection[0] = Connection(Id, m01);
                     g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
                     auto bb = MkSwapGateNode(level-1, index1 - n/2, -1, case_num);
-                    CFLOBDDReturnMapHandle m21345;
-                    m21345.AddToEnd(2);
-                    m21345.AddToEnd(1);
-                    m21345.AddToEnd(3);
-                    m21345.AddToEnd(4);
-                    m21345.AddToEnd(5);
-                    m21345.Canonicalize();
-                    g->BConnection[2] = Connection(bb, m21345);
+                    if (bb.handleContents->numExits == 4){
+                        CFLOBDDReturnMapHandle m2345;
+                        m2345.AddToEnd(2);
+                        m2345.AddToEnd(3);
+                        m2345.AddToEnd(4);
+                        m2345.AddToEnd(5);
+                        m2345.Canonicalize();
+                        g->BConnection[2] = Connection(bb, m2345); 
+                    }
+                    else
+                    {
+                        if (index1 == n-1){
+                            CFLOBDDReturnMapHandle m23451;
+                            m23451.AddToEnd(2);
+                            m23451.AddToEnd(3);
+                            m23451.AddToEnd(4);
+                            m23451.AddToEnd(5);
+                            m23451.AddToEnd(1);
+                            m23451.Canonicalize();
+                            g->BConnection[2] = Connection(bb, m23451);
+                        }
+                        else
+                        {
+                            CFLOBDDReturnMapHandle m21345;
+                            m21345.AddToEnd(2);
+                            m21345.AddToEnd(1);
+                            m21345.AddToEnd(3);
+                            m21345.AddToEnd(4);
+                            m21345.AddToEnd(5);
+                            m21345.Canonicalize();
+                            g->BConnection[2] = Connection(bb, m21345);
+                        }
+                    }
                     g->numExits = 6;
                 }
                 
@@ -3173,6 +3517,119 @@ namespace CFL_OBDD {
             n->InstallPathCounts();
     #endif
             return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
+        }
+
+        std::pair<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, int> MkRestrictNode(unsigned int level, std::string s)
+        {
+            WeightedCFLOBDDComplexFloatBoostInternalNode* g = new WeightedCFLOBDDComplexFloatBoostInternalNode(level);
+            if (s.find('0') == std::string::npos && s.find('1') == std::string::npos)
+            {
+                return std::make_pair(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode[level], -1);
+            }
+            int index = -1;
+            if (level == 1)
+            {
+                
+                if (s[0] == '0')
+                {
+                    CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
+                    CFLOBDDReturnMapHandle m1; m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m1);
+                    g->numExits = 2;
+                    index = 1;
+                }
+                if (s[0] == '1')
+                {
+                    CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    CFLOBDDReturnMapHandle m10; m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                    g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m10);
+                    CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
+                    g->numExits = 2;
+                    index = 0;
+                }
+            }
+            else
+            {
+                auto aa = MkRestrictNode(level-1, s.substr(0, s.length()/2));
+                CFLOBDDReturnMapHandle m;
+                for (int i = 0; i < aa.first.handleContents->numExits; i++)
+                    m.AddToEnd(i);
+                m.Canonicalize();
+                g->AConnection = Connection(aa.first, m);
+                g->numBConnections = m.Size();
+                g->BConnection = new Connection[g->numBConnections];
+                auto bb = MkRestrictNode(level-1, s.substr(s.length()/2));
+                if (aa.second == -1)
+                {
+                    CFLOBDDReturnMapHandle m_bb;
+                    for (int i = 0; i < bb.first.handleContents->numExits; i++)
+                        m_bb.AddToEnd(i);
+                    m_bb.Canonicalize();
+                    g->BConnection[0] = Connection(bb.first, m_bb);
+                    g->numExits = m_bb.Size();
+                    index = bb.second;
+                }
+                else if (aa.second == 0)
+                {
+                    CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                    g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m0);
+                    CFLOBDDReturnMapHandle m_bb;
+                    if (bb.second == 0)
+                    {
+                        m_bb.AddToEnd(0); m_bb.AddToEnd(1); 
+                    }
+                    else if (bb.second == 1)
+                    {
+                        m_bb.AddToEnd(1); m_bb.AddToEnd(0);
+                    }
+                    else if (bb.second == -1)
+                    {
+                        m_bb.AddToEnd(1);
+                    }
+                    m_bb.Canonicalize();
+                    g->BConnection[1] = Connection(bb.first, m_bb);
+                    g->numExits = 2;
+                    index = 0;
+                }
+                else if (aa.second == 1)
+                {
+                    CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); 
+                    if (bb.second != -1)
+                        m01.AddToEnd(1); 
+                    m01.Canonicalize();
+                    g->BConnection[0] = Connection(bb.first, m01);
+                    if (bb.second == 0)
+                    {
+                        CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                        g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m0);
+                        index = 0;
+                    }
+                    else if (bb.second == 1)
+                    {
+                        CFLOBDDReturnMapHandle m1; m1.AddToEnd(1); m1.Canonicalize();
+                        g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                        index = 1;
+                    }
+                    else if (bb.second == -1)
+                    {
+                        CFLOBDDReturnMapHandle m1; m1.AddToEnd(1); m1.Canonicalize();
+                        g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                        index = 1;
+                    }
+                    g->numExits = 2;
+                }
+            }
+
+            return std::make_pair(WeightedCFLOBDDComplexFloatBoostMulNodeHandle(g), index);
+             
         }
     }
 }

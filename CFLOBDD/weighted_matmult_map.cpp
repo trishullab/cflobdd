@@ -406,8 +406,10 @@ template <>
 void WeightedMatMultMapHandle<fourierSemiring>::Canonicalize()
 {
 
-    if (mapContents->map.empty())
+    if (mapContents->map.empty()){
         mapContents->map.insert(std::make_pair(std::make_pair(-1, -1), fourierSemiring(0, 1)));
+		mapContents->contains_zero_val = true;
+	}
 
 	WeightedMatMultMapBody<fourierSemiring> *answerContents;
 	mapContents->setHashCheck();

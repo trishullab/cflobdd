@@ -211,6 +211,8 @@ namespace CFL_OBDD {
 			auto val = boost::multiprecision::pow(sqrt(2), boost::multiprecision::pow(BIG_COMPLEX_FLOAT(2), i-1));
 			m.AddToEnd(1/val);
 			m.AddToEnd(-1/val);
+			// m.AddToEnd(1);
+			// m.AddToEnd(-1);
 			m.Canonicalize();
 			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m);
 			return v;
@@ -568,7 +570,7 @@ namespace CFL_OBDD {
 			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			CFLOBDDNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m01;
-			tempHandle = MkCSwapGate2Node(level, c, i, j, 1);
+			tempHandle = MkCSwapGate2Node(level, c, i, j, -1);
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
 			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
@@ -767,6 +769,22 @@ namespace CFL_OBDD {
 			return new CFLOBDDTopNodeComplexFloatBoost(c, m);
 		}
 
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkCCPTopNode(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled, double theta)
+		{
+			
+			double cos_v = boost::math::cos_pi(theta);
+			double sin_v = boost::math::sin_pi(theta);
+			BIG_COMPLEX_FLOAT val(cos_v, sin_v);
+
+			CFLOBDDNodeHandle c = MkCCPNode(level, n, controller1, controller2, controlled);
+			ComplexFloatBoostReturnMapHandle m;
+			m.AddToEnd(1);
+			m.AddToEnd(0);
+			m.AddToEnd(val);
+			m.Canonicalize();
+			return new CFLOBDDTopNodeComplexFloatBoost(c, m);
+		}
+
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixMultiplyV4TopNode(CFLOBDDTopNodeComplexFloatBoostRefPtr c1, CFLOBDDTopNodeComplexFloatBoostRefPtr c2)
 		{
 			std::unordered_map<MatMultPair, CFLOBDDTopNodeMatMultMapRefPtr, MatMultPair::MatMultPairHash> hashMap;
@@ -774,25 +792,42 @@ namespace CFL_OBDD {
 			// 	clearMultMap();
 			CFLOBDDTopNodeMatMultMapRefPtr c = MatrixMultiplyV4Node(hashMap, *(c1->rootConnection.entryPointHandle),*(c2->rootConnection.entryPointHandle));
 			ComplexFloatBoostReturnMapHandle v;
-			boost::unordered_map<std::complex<double>, unsigned int> reductionMap;
+			// boost::unordered_map<std::complex<double>, unsigned int> reductionMap;
 			ReductionMapHandle reductionMapHandle;
 			for (unsigned int i = 0; i < c->rootConnection.returnMapHandle.Size(); i++){
 				MatMultMapHandle r = c->rootConnection.returnMapHandle[i];
-				std::complex<double> val = 0;
+				BIG_COMPLEX_FLOAT val = 0;
 				for (auto &j : r.mapContents->map){
 					unsigned int index1 = j.first.first;
 					unsigned int index2 = j.first.second;
 					auto factor = j.second.convert_to<unsigned long long int>();
-					val = val + (factor * (c1->rootConnection.returnMapHandle[index1] * c2->rootConnection.returnMapHandle[index2])).convert_to<std::complex<double>>();
+					val = val + (factor * (c1->rootConnection.returnMapHandle[index1] * c2->rootConnection.returnMapHandle[index2]));
 				}
-				if (reductionMap.find(val) == reductionMap.end()){
-					v.AddToEnd(BIG_COMPLEX_FLOAT(val));
-					reductionMap.insert(std::make_pair(val, v.Size() - 1));
-					reductionMapHandle.AddToEnd(v.Size() - 1);
+				unsigned int k = v.Size();
+				for (k = 0; k < v.Size(); k++)
+				{
+					if (v[k] == val)
+					{
+						break;
+					}
 				}
-				else{
-					reductionMapHandle.AddToEnd(reductionMap[val]);
+				if (k < v.Size())
+				{
+					reductionMapHandle.AddToEnd(k);
 				}
+				else
+				{
+					v.AddToEnd(val);
+					reductionMapHandle.AddToEnd(v.Size()-1);
+				}
+				// if (reductionMap.find(val) == reductionMap.end()){
+				// 	v.AddToEnd(BIG_COMPLEX_FLOAT(val));
+				// 	reductionMap.insert(std::make_pair(val, v.Size() - 1));
+				// 	reductionMapHandle.AddToEnd(v.Size() - 1);
+				// }
+				// else{
+				// 	reductionMapHandle.AddToEnd(reductionMap[val]);
+				// }
 			}
 
 			v.Canonicalize();
@@ -830,7 +865,8 @@ namespace CFL_OBDD {
 					unsigned int index1 = j.first.first;
 					unsigned int index2 = j.first.second;
 					if (index1 != -1 && index2 != -1){
-						auto factor = j.second.convert_to<unsigned long long int>();
+						auto factor = BIG_COMPLEX_FLOAT(j.second, 0);
+						// auto factor = j.second.convert_to<BIG_COMPLEX_FLOAT>();
 						val = val + (factor * (c1->rootConnection.returnMapHandle[index1] * c2->rootConnection.returnMapHandle[index2]));
 					}
 				}

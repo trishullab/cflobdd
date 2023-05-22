@@ -428,6 +428,10 @@ namespace CFL_OBDD {
 		CFLOBDD_COMPLEX_BIG MkCCNOT(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled){
 			return CFLOBDD_COMPLEX_BIG(MkCCNOTTopNode(level, n, controller1, controller2, controlled));
 		}
+
+		CFLOBDD_COMPLEX_BIG MkCCP(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled, double theta){
+			return CFLOBDD_COMPLEX_BIG(MkCCPTopNode(level, n, controller1, controller2, controlled, theta));
+		}
 		
 		CFLOBDD_COMPLEX_BIG MkSwapGate(unsigned int i, long c1, long c2)
 		{

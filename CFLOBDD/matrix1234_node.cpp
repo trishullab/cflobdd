@@ -2638,7 +2638,7 @@ namespace CFL_OBDD {
 				g->AConnection = Connection(Id, m01);
 				g->numBConnections = 2;
 				g->BConnection = new Connection[2];
-				auto aa = MkCSwapGate2Node(level - 1, controller, index1, -1, case_num);
+				auto aa = MkCSwapGate2Node(level - 1, controller - n/2, index1 - n/2, -1, case_num);
 				g->BConnection[0] = Connection(aa, m012345);
 				g->BConnection[1] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m1);
 				g->numExits = 2;

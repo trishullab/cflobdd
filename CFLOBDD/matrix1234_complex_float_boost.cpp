@@ -429,6 +429,10 @@ namespace CFL_OBDD {
 			return CFLOBDD_COMPLEX_BIG(MkCCNOTTopNode(level, n, controller1, controller2, controlled));
 		}
 
+		CFLOBDD_COMPLEX_BIG MkMCX(unsigned int level, unsigned int n, std::vector<long int>& controllers, long int controlled){
+			return CFLOBDD_COMPLEX_BIG(MkMCXTopNode(level, n, controllers, controlled));
+		}
+
 		CFLOBDD_COMPLEX_BIG MkCCP(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled, double theta){
 			return CFLOBDD_COMPLEX_BIG(MkCCPTopNode(level, n, controller1, controller2, controlled, theta));
 		}

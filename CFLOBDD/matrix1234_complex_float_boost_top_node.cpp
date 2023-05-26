@@ -769,6 +769,16 @@ namespace CFL_OBDD {
 			return new CFLOBDDTopNodeComplexFloatBoost(c, m);
 		}
 
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkMCXTopNode(unsigned int level, unsigned int n, std::vector<long int>& controllers, long int controlled)
+		{
+			CFLOBDDNodeHandle c = MkMCXNode(level, n, controllers, controlled);
+			ComplexFloatBoostReturnMapHandle m;
+			m.AddToEnd(1);
+			m.AddToEnd(0);
+			m.Canonicalize();
+			return new CFLOBDDTopNodeComplexFloatBoost(c, m);
+		}
+
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MkCCPTopNode(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled, double theta)
 		{
 			

@@ -53,6 +53,7 @@ namespace CFL_OBDD {
 	extern CFLOBDDNodeHandle MkCNOTNode(unsigned int level, unsigned int n, long int controller, long int controlled);
 	extern CFLOBDDNodeHandle MkCNOT2Node(unsigned int level, unsigned int n, long int controller, long int controlled);
 	extern CFLOBDDNodeHandle MkCCNOTNode(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled);
+	extern CFLOBDDNodeHandle MkMCXNode(unsigned int level, unsigned int n, std::vector<long int>& controllers, long int controlled);
 	extern CFLOBDDNodeHandle MkCPGateNode(unsigned int level, long int controller, long int controlled);
 	extern CFLOBDDNodeHandle MkSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num);
 	extern CFLOBDDNodeHandle MkiSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num);

@@ -44,6 +44,7 @@ class CFLOBDDNodeHandle;
 
 #include <iostream>
 #include <fstream>
+#include <cstdint>
 //#include <mpirxx.h>
 //#include <boost/multiprecision/cpp_int.hpp>
 

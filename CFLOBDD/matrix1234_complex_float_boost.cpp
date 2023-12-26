@@ -73,6 +73,30 @@ namespace CFL_OBDD {
 			return CFLOBDD_COMPLEX_BIG(MkWalshInterleavedTop(i));
 		}
 
+		CFLOBDD_COMPLEX_BIG MkPauliYMatrixInterleaved(unsigned int i)
+		{
+			assert(i <= CFLOBDD_COMPLEX_BIG::maxLevel);
+			return CFLOBDD_COMPLEX_BIG(MkPauliYMatrixInterleavedTop(i));
+		}
+
+		CFLOBDD_COMPLEX_BIG MkPauliZMatrixInterleaved(unsigned int i)
+		{
+			assert(i <= CFLOBDD_COMPLEX_BIG::maxLevel);
+			return CFLOBDD_COMPLEX_BIG(MkPauliZMatrixInterleavedTop(i));
+		}
+
+		CFLOBDD_COMPLEX_BIG MkSGateInterleaved(unsigned int i)
+		{
+			assert(i <= CFLOBDD_COMPLEX_BIG::maxLevel);
+			return CFLOBDD_COMPLEX_BIG(MkSGateInterleavedTop(i));
+		}
+
+		CFLOBDD_COMPLEX_BIG MkPhaseShiftGateInterleaved(unsigned int i, double theta)
+		{
+			assert(i == 1);
+			return CFLOBDD_COMPLEX_BIG(MkPhaseShiftGateInterleavedTop(i, theta));
+		}
+
 		CFLOBDD_COMPLEX_BIG MkCNOTInterleaved(unsigned int i)
 		{
 			return CFLOBDD_COMPLEX_BIG(Matrix1234ComplexFloatBoost::MkCNOTInterleavedTop(i));
@@ -392,15 +416,45 @@ namespace CFL_OBDD {
 			return CFLOBDD_COMPLEX_BIG(MkExchangeInterleavedTop(i));
 		}
 
+		CFLOBDD_COMPLEX_BIG MkNegationMatrixInterleaved(unsigned int i)
+		{
+			return CFLOBDD_COMPLEX_BIG(MkNegationMatrixInterleavedTop(i));
+		}
+
+		CFLOBDD_COMPLEX_BIG MkCNOT(unsigned int level, unsigned int n, long int controller, long int controlled){
+			return CFLOBDD_COMPLEX_BIG(MkCNOTTopNode(level, n, controller, controlled));
+		}
+
+		CFLOBDD_COMPLEX_BIG MkCCNOT(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled){
+			return CFLOBDD_COMPLEX_BIG(MkCCNOTTopNode(level, n, controller1, controller2, controlled));
+		}
+
+		CFLOBDD_COMPLEX_BIG MkMCX(unsigned int level, unsigned int n, std::vector<long int>& controllers, long int controlled){
+			return CFLOBDD_COMPLEX_BIG(MkMCXTopNode(level, n, controllers, controlled));
+		}
+
+		CFLOBDD_COMPLEX_BIG MkCCP(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled, double theta){
+			return CFLOBDD_COMPLEX_BIG(MkCCPTopNode(level, n, controller1, controller2, controlled, theta));
+		}
 		
 		CFLOBDD_COMPLEX_BIG MkSwapGate(unsigned int i, long c1, long c2)
 		{
 			return CFLOBDD_COMPLEX_BIG(MkSwapGateTop(i, c1, c2));
 		}
 
+		CFLOBDD_COMPLEX_BIG MkiSwapGate(unsigned int i, long c1, long c2)
+		{
+			return CFLOBDD_COMPLEX_BIG(MkiSwapGateTop(i, c1, c2));
+		}
+
 		CFLOBDD_COMPLEX_BIG MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2)
 		{
 			return CFLOBDD_COMPLEX_BIG(MkCSwapGateTop(i, c1, x1, x2));
+		}
+
+		CFLOBDD_COMPLEX_BIG MkRestrictMatrix(unsigned int level, std::string s)
+		{
+			return CFLOBDD_COMPLEX_BIG(MkRestrictTop(level, s));	
 		}
 
 		CFLOBDD_COMPLEX_BIG MatrixShiftToAConnection(CFLOBDD_COMPLEX_BIG c)

@@ -45,12 +45,22 @@ namespace CFL_OBDD {
 	extern CFLOBDDNodeHandle MkWalshInterleavedNode(unsigned int i);
 	extern CFLOBDDNodeHandle MkInverseReedMullerInterleavedNode(unsigned int i);
 	extern CFLOBDDNodeHandle MkNegationMatrixInterleavedNode(unsigned int i);
+	extern CFLOBDDNodeHandle MkPauliYInterleavedNode(unsigned int i);
+	extern CFLOBDDNodeHandle MkPauliZInterleavedNode(unsigned int i);
+	extern CFLOBDDNodeHandle MkSGateInterleavedNode(unsigned int i);
 	extern CFLOBDDNodeHandle MkCNOTInterleavedNode(unsigned int i);
 	extern CFLOBDDNodeHandle MkExchangeInterleavedNode(unsigned int i);
 	extern CFLOBDDNodeHandle MkCNOTNode(unsigned int level, unsigned int n, long int controller, long int controlled);
+	extern CFLOBDDNodeHandle MkCNOT2Node(unsigned int level, unsigned int n, long int controller, long int controlled);
+	extern CFLOBDDNodeHandle MkCCNOTNode(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled);
+	extern CFLOBDDNodeHandle MkMCXNode(unsigned int level, unsigned int n, std::vector<long int>& controllers, long int controlled);
 	extern CFLOBDDNodeHandle MkCPGateNode(unsigned int level, long int controller, long int controlled);
 	extern CFLOBDDNodeHandle MkSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num);
+	extern CFLOBDDNodeHandle MkiSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num);
 	extern CFLOBDDNodeHandle MkCSwapGateNode(unsigned int level, long int controller, long int i, long int j, int case_num);
+	extern CFLOBDDNodeHandle MkCSwapGate2Node(unsigned int level, long int controller, long int i, long int j, int case_num);
+	extern CFLOBDDNodeHandle MkCCPNode(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled);
+	extern std::pair<CFLOBDDNodeHandle, int> MkRestrictNode(unsigned int level, std::string s);
 	
 	// Initialization routine that needs to be called before any call to MatrixProjectVoc23Node
 	extern void Matrix1234InitializerNode();  // Empty for now

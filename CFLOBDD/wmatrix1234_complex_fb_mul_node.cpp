@@ -14,6 +14,7 @@
 #include "weighted_cross_product.h"
 #include "return_map_T.h"
 #include "weighted_matmult_map.h"
+#include "wmatrix1234_complex_fb_mul_bdd_node.h"
 
 namespace CFL_OBDD {
 
@@ -53,8 +54,16 @@ namespace CFL_OBDD {
             return;
         }
 
-        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkIdRelationInterleavedNode(unsigned int level)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkIdRelationInterleavedNode(unsigned int level, int cflobdd_kind, unsigned int offset)
         {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkIdRelationInterleavedNode(bn->numberOfVars, offset);
+                bn->numberOfVars = level;
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            }
+
             WeightedCFLOBDDComplexFloatBoostInternalNode *n;
 
             if (level == 0) {
@@ -127,9 +136,16 @@ namespace CFL_OBDD {
         }
     
 
-        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkWalshInterleavedNode(unsigned int i)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkWalshInterleavedNode(unsigned int i, int cflobdd_kind, unsigned int offset)
         {
             assert(i >= 1);
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(i);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkWalshInterleavedNode(bn->numberOfVars, offset);
+                bn->numberOfVars = i;
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            }
             WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(i);
             if (i == 1) {  // Base case
 
@@ -150,7 +166,7 @@ namespace CFL_OBDD {
                 n->BConnection[1] = Connection(b1, m0);
             }
             else {
-                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkWalshInterleavedNode(i - 1);
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkWalshInterleavedNode(i - 1, cflobdd_kind);
                 CFLOBDDReturnMapHandle m0;
                 m0.AddToEnd(0);
                 m0.Canonicalize();
@@ -168,8 +184,17 @@ namespace CFL_OBDD {
         } // MkWalshInterleavedNode
 
         WeightedCFLOBDDComplexFloatBoostMulNodeHandle KroneckerProduct2VocsNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle m1, WeightedCFLOBDDComplexFloatBoostMulNodeHandle m2, 
-            int zero_index_m1, int zero_index_m2)
+            int zero_index_m1, int zero_index_m2, bool rename)
         {
+            if (m1.handleContents->NodeKind() == W_BDD_TOPNODE)
+            {
+                WeightedBDDComplexFloatBoostTopNode* c1 = (WeightedBDDComplexFloatBoostTopNode *)m1.handleContents;
+                WeightedBDDComplexFloatBoostTopNode* c2 = (WeightedBDDComplexFloatBoostTopNode *)m2.handleContents;
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(c1->numberOfVars + c2->numberOfVars);
+                std::unordered_map<WeightedMatrix1234BDDComplexFloatBoostMul::WeightedBDDComplexFloatBoostMulNodeHandle, WeightedMatrix1234BDDComplexFloatBoostMul::WeightedBDDComplexFloatBoostMulNodeHandle, WeightedMatrix1234BDDComplexFloatBoostMul::WeightedBDDComplexFloatBoostMulNodeHandle::WeightedBDDNodeHandle_Hash> hashMap;
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::KroneckerProduct2VocsNode(hashMap, c1->bddContents, c2->bddContents, c1->numberOfVars, rename);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn); 
+            }
             int level = m1.handleContents->level;
             WeightedCFLOBDDComplexFloatBoostInternalNode* n = new WeightedCFLOBDDComplexFloatBoostInternalNode(level + 1);
             CFLOBDDReturnMapHandle m;
@@ -268,6 +293,17 @@ namespace CFL_OBDD {
             n->InstallPathCounts();
     #endif
             return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
+        } // MkIdRelationInterleavedNode
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkNegationMatrixInterleavedNode(unsigned int level, int cflobdd_kind, unsigned int offset)
+        {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkNegationMatrixInterleavedNode(bn->numberOfVars, offset);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            }
+            // ADD code for Weighted CFLOBDD 
         } // MkIdRelationInterleavedNode
     
 
@@ -393,6 +429,27 @@ namespace CFL_OBDD {
         MatMultReturnT
 		MatrixMultiplyV4Node(WeightedCFLOBDDComplexFloatBoostMulNodeHandle c1, WeightedCFLOBDDComplexFloatBoostMulNodeHandle c2, int zero_exit_1, int zero_exit_2)
         {
+            if (c1.handleContents->NodeKind() == W_BDD_TOPNODE)
+            {
+                WeightedBDDComplexFloatBoostTopNode* m1 = (WeightedBDDComplexFloatBoostTopNode *)c1.handleContents;
+                WeightedBDDComplexFloatBoostTopNode* m2 = (WeightedBDDComplexFloatBoostTopNode *)c2.handleContents;
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(m1->numberOfVars);
+                auto tmp = WeightedMatrix1234BDDComplexFloatBoostMul::MatrixMultiplyV4Node(m1->bddContents, m2->bddContents, m1->numberOfVars);
+                bn->bddContents = std::get<0>(tmp);
+                CFLOBDDMatMultMapHandle mt;
+                WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT> m_tmp;
+                BIG_COMPLEX_FLOAT zero_0 = 0, one_1 = 1;
+                for (auto i : std::get<1>(tmp)){
+                    if (i == 0)
+                        m_tmp.Add(std::make_pair(0, 0), zero_0);
+                    else
+                        m_tmp.Add(std::make_pair(1, 1), one_1);
+                }
+                m_tmp.Canonicalize();
+                mt.AddToEnd(m_tmp);
+                mt.Canonicalize();
+                return std::make_tuple(WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn), mt, std::get<2>(tmp));
+            }
             auto mmp = WeightedMatMultPair(c1, c2);
             if (matmult_hash.find(mmp) != matmult_hash.end())
                 return matmult_hash[mmp];
@@ -1161,8 +1218,14 @@ namespace CFL_OBDD {
         }
 
 
-        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCNOTNode(unsigned int level, unsigned int n, long int controller, long int controlled)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCNOTNode(unsigned int level, unsigned int n, long int controller, long int controlled, int cflobdd_kind, unsigned int offset)
         {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkCNOTNode(bn->numberOfVars, n, controller, controlled, offset);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            }
             std::string p = std::to_string(level) + ";" + std::to_string(controller) + ";" + std::to_string(controlled);
             if (cnot_hashMap.find(p) != cnot_hashMap.end()){
                 return cnot_hashMap[p];
@@ -1329,8 +1392,15 @@ namespace CFL_OBDD {
         }
 
     
-        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSwapGateNode(unsigned int level, long int controller, long int controlled, int case_num, int cflobdd_kind, unsigned int offset)
         {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkSwapGateNode(bn->numberOfVars, controller, controlled, -1, offset);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            }
+
             std::string p = std::to_string(level) + ";" + std::to_string(controller) + ";" + std::to_string(controlled) + ";" + std::to_string(case_num);
             if (swap_hashMap.find(p) != swap_hashMap.end()){
                 return swap_hashMap[p];
@@ -1689,8 +1759,16 @@ namespace CFL_OBDD {
             return gHandle;
         }
 
-        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCPGateNode(std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle>& cp_hashMap, unsigned int level, long int controller, long int controlled, BIG_COMPLEX_FLOAT theta_val)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCPGateNode(std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle>& cp_hashMap, unsigned int level, long int controller, long int controlled, BIG_COMPLEX_FLOAT theta_val, int cflobdd_kind, unsigned int offset)
         {
+
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkCPGateNode(bn->numberOfVars, controller, controlled, theta_val, offset);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            }
+
             std::string p = std::to_string(level) + ";" + std::to_string(controller) + ";" + std::to_string(controlled);
             if (cp_hashMap.find(p) != cp_hashMap.end()){
                 return cp_hashMap[p];
@@ -1960,6 +2038,96 @@ namespace CFL_OBDD {
         }
 
 
+<<<<<<< HEAD
+=======
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkPauliYGateNode(unsigned int level, int cflobdd_kind, unsigned int offset)
+        {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkPauliYGateNode(bn->numberOfVars, offset);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            } 
+        }
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkPauliZGateNode(unsigned int level, int cflobdd_kind, unsigned int offset)
+        {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkPauliZGateNode(bn->numberOfVars, offset);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            } 
+        }
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSGateNode(unsigned int level, int cflobdd_kind, unsigned int offset)
+        {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkSGateNode(bn->numberOfVars, offset);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            } 
+        }
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkiSwapGateNode(unsigned int level, long int index1, long int index2, int case_num, int cflobdd_kind, unsigned int offset)
+        {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkiSwapGateNode(bn->numberOfVars, index1, index2, case_num, offset);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            } 
+        }
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkPhaseShiftGateNode(unsigned int level, BIG_COMPLEX_FLOAT theta_val, int cflobdd_kind, unsigned int offset)
+        {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkPhaseShiftGateNode(bn->numberOfVars, theta_val, offset);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            } 
+        }
+
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCCNOTNode(unsigned int level, long int controller1, long int controller2, long int controlled, int cflobdd_kind, unsigned int offset)
+        {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkCCNOTNode(bn->numberOfVars, controller1, controller2, controlled, offset);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            } 
+        }
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCSwapGate2Node(unsigned int level, long int controller, long int index1, long int index2, int case_num, int cflobdd_kind, unsigned int offset)
+        {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkCSwapGateNode(bn->numberOfVars, controller, index1, index2, -1, offset);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
+            } 
+        }
+        
+	    std::pair<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, int> MkRestrictNode(unsigned int level, std::string s, int cflobdd_kind)
+        {
+            if (cflobdd_kind == 0)
+            {
+                WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
+                bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkRestrictNode(bn->numberOfVars, s);
+                int val = 1;
+                if (s.find('1') == std::string::npos)
+                    val = 0;
+                return std::make_pair(WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn), val);
+            } 
+        }
+
+
+
+    }
+>>>>>>> 743c414798e265174b6d0bfcd4c102fdf3305205
 
         WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCCNOTNode(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled)
         {

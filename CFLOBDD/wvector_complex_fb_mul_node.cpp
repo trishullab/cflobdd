@@ -42,8 +42,13 @@ namespace CFL_OBDD {
             return;
         }
 
-        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, unsigned int index)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, unsigned int index, int cflobdd_kind)
         {
+            if (cflobdd_kind == 0){
+                WeightedBDDComplexFloatBoostTopNode *n = new WeightedBDDComplexFloatBoostTopNode(level); 
+                n->bddContents = WeightedVectorBDDComplexFloatBoostMul::MkBasisVectorNode(level, index);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
+            }
             if (level == 0)
             {
                 assert(index < 2);
@@ -85,8 +90,15 @@ namespace CFL_OBDD {
             return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
         }
 
-        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, std::string s)
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, std::string s, int cflobdd_kind)
         {
+
+            if (cflobdd_kind == 0){
+                WeightedBDDComplexFloatBoostTopNode *n = new WeightedBDDComplexFloatBoostTopNode(level); 
+                n->bddContents = WeightedVectorBDDComplexFloatBoostMul::MkBasisVectorNode(level, s);
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
+            }
+
             if (level == 0)
             {
                 assert(s.length() == 1);
@@ -293,8 +305,13 @@ namespace CFL_OBDD {
         
 
     //#ifdef PATH_COUNTING_ENABLED
-        std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh, unsigned int index, bool VocTwo, std::string func)
+        std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh, unsigned int index, std::mt19937 mt, std::uniform_real_distribution<double> dis, bool VocTwo,  std::string func)
         {
+            if (nh.handleContents->NodeKind() == W_BDD_TOPNODE)
+            {
+                WeightedBDDComplexFloatBoostTopNode* node = (WeightedBDDComplexFloatBoostTopNode *)nh.handleContents;
+                return WeightedVectorBDDComplexFloatBoostMul::SamplingNode(node->bddContents, node->numberOfVars, mt, dis);
+            }
             WeightedCFLOBDDComplexFloatBoostInternalNode *nhNode = (WeightedCFLOBDDComplexFloatBoostInternalNode *)nh.handleContents;
 
             if (nhNode->level == 0)
@@ -368,8 +385,8 @@ namespace CFL_OBDD {
             assert(nhNode->BConnection[BConnectionIndex].returnMapHandle.LookupInv(index) != -1);
             assert(BConnectionIndex < nhNode->numBConnections);
             assert(nhNode->BConnection[BConnectionIndex].returnMapHandle.LookupInv(index) < nhNode->BConnection[BConnectionIndex].returnMapHandle.mapContents->mapArray.size());
-            std::pair<std::string,std::string> AString = SamplingNode(*(nhNode->AConnection.entryPointHandle), BConnectionIndex, VocTwo, func);
-            std::pair<std::string, std::string> BString = SamplingNode(*(nhNode->BConnection[BConnectionIndex].entryPointHandle), nhNode->BConnection[BConnectionIndex].returnMapHandle.LookupInv(index), VocTwo, func);
+            std::pair<std::string,std::string> AString = SamplingNode(*(nhNode->AConnection.entryPointHandle), BConnectionIndex, mt, dis, VocTwo, func);
+            std::pair<std::string, std::string> BString = SamplingNode(*(nhNode->BConnection[BConnectionIndex].entryPointHandle), nhNode->BConnection[BConnectionIndex].returnMapHandle.LookupInv(index), mt, dis, VocTwo, func);
             if (nhNode->level == 1)
                 return std::make_pair(AString.first, BString.first);
             if (nhNode->level == 2 && !VocTwo)
@@ -455,6 +472,16 @@ namespace CFL_OBDD {
             return ans;
         }
         
+
+        long double getNonZeroProbabilityNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh)
+        {
+            if (nh.handleContents->NodeKind() == W_BDD_TOPNODE)
+            {
+                WeightedBDDComplexFloatBoostTopNode* nNode = (WeightedBDDComplexFloatBoostTopNode *)nh.handleContents;
+                return nNode->bddContents.handleContents->weightOfPathsAsAmpsToExit;
+            }
+            return 0;
+        }
     }
 //#endif
 }  // namespace CFL_OBDD

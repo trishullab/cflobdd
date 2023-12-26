@@ -20,17 +20,18 @@ namespace CFL_OBDD {
 		// Initialization routine
 		extern void VectorInitializer();
 
-		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkBasisVector(unsigned int level, unsigned int index);         // Representation of basis vector with index i
-		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkBasisVector(unsigned int level, std::string s); // index i represented as string
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkBasisVector(unsigned int level, unsigned int index, int cflobdd_kind = 1);         // Representation of basis vector with index i
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkBasisVector(unsigned int level, std::string s, int cflobdd_kind = 1); // index i represented as string
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL VectorToMatrixInterleaved(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c); // Convert vector to matrix with variables interleaved
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkColumn1Matrix(unsigned int level);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL KroneckerProduct(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m2);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL NoDistinctionNode(unsigned int level, BIG_COMPLEX_FLOAT val);
-		extern std::string Sampling(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, bool voctwo, std::string = "");
+		extern std::string Sampling(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, bool voctwo, std::mt19937 mt, std::uniform_real_distribution<double> dis, std::string = "");
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL VectorWithAmplitude(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c);
 		extern void VectorPrintColumnMajor(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, std::ostream & out);
 		extern void VectorPrintColumnMajorInterleaved(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, std::ostream & out);
 		extern void PrintVector(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, std::ostream & out, unsigned int vars_count);
+		extern long double getNonZeroProbability(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL n);
 	}
 }
 

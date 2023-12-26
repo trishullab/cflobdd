@@ -419,19 +419,37 @@ namespace CFL_OBDD{
             c1 = n1->rootConnection.returnMapHandle.Lookup(first);
             c2 = n2->rootConnection.returnMapHandle.Lookup(second);
             T val = (*func)(c1, c2);
-            if (reductionMap.find(val) == reductionMap.end()){
+            unsigned int k = returnMapHandle.Size();
+            for ( k = 0; k < returnMapHandle.Size(); k++)
+            {
+                if (returnMapHandle[k] == val)
+                {
+                    break;
+                }
+            }
+            if (k < returnMapHandle.Size())
+            {
+                reductionMapHandle.AddToEnd(k);
+            }
+            else
+            {
                 returnMapHandle.AddToEnd(val);
-                reductionMap.insert(std::make_pair(val, returnMapHandle.Size() - 1));
                 reductionMapHandle.AddToEnd(returnMapHandle.Size() - 1);
             }
-            else{
-                reductionMapHandle.AddToEnd(reductionMap[val]);
-            }
+            // if (reductionMap.find(val) == reductionMap.end()){
+            //     returnMapHandle.AddToEnd(val);
+            //     reductionMap.insert(std::make_pair(val, returnMapHandle.Size() - 1));
+            //     reductionMapHandle.AddToEnd(returnMapHandle.Size() - 1);
+            // }
+            // else{
+            //     reductionMapHandle.AddToEnd(reductionMap[val]);
+            // }
             //MapIterator.Next();
             iterator++;
         }
 
             returnMapHandle.Canonicalize();
+            reductionMapHandle.Canonicalize();
 
             // Perform reduction on n, with respect to the common elements that returnMapHandle maps together
             //ReductionMapHandle inducedReductionMapHandle;

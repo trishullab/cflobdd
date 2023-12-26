@@ -36,6 +36,9 @@
 #include "wvector_complex_fb_mul.h"
 #include "wmatrix1234_fourier_mul.h"
 #include "wvector_fourier_mul.h"
+#include "weighted_bdd_node_t.h"
+#include "weighted_cross_product_bdd.h"
+#include "wvector_complex_fb_mul_bdd_node.h"
 using namespace CFL_OBDD;
 using namespace SH_OBDD;
 using namespace std::chrono;
@@ -1301,20 +1304,23 @@ void CFLTests::testMatMul(int p)
 
 void CFLTests::testWeightedOps(unsigned int level)
 {
-	// int n = std::pow(2, level-2);
-	// WEIGHTED_CFLOBDD_FOURIER_MUL F = WeightedMatrix1234FourierMul::MkCNOT(level, 2*n, 0, n);
-	// WEIGHTED_CFLOBDD_FOURIER_MUL tmp = WeightedMatrix1234FourierMul::MkCNOT(level, 2*n, 1, n);
-    // auto y = high_resolution_clock::now(); 
-	// F.print(std::cout);
-	// tmp.print(std::cout);
-	// WEIGHTED_CFLOBDD_FOURIER_MUL C = WeightedMatrix1234FourierMul::MatrixMultiplyV4(F, tmp);
-	// auto x = high_resolution_clock::now(); 
-	// auto duration = duration_cast<milliseconds>(x - y);
-	// std::cout << duration.count() << std::endl;
-	// C.print(std::cout);
-	auto H = WeightedMatrix1234FourierMul::MkWalshInterleaved(level);
-	H = WeightedMatrix1234FourierMul::MatrixMultiplyV4(H, H);
-	H.print(std::cout);
+	auto e = WeightedVectorComplexFloatBoostMul::MkBasisVector(6, 0, 0);
+	auto H = WeightedMatrix1234ComplexFloatBoostMul::MkWalshInterleaved(2, 0);
+	auto I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(4, 0);
+	auto HI = WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(H, I);
+	e = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(HI, e);
+	auto c1 = WeightedMatrix1234ComplexFloatBoostMul::MkCNOT(6, 3, 0, 1, 0);
+	e = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(c1, e);
+	// e.print(std::cout);
+	auto c2 = WeightedMatrix1234ComplexFloatBoostMul::MkCNOT(6, 3, 0, 2, 0);
+	e = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(c2, e);
+	e.ComputeWeightOfPathsAsAmpsToExits();
+	// e.print(std::cout);
+	srand(time(NULL));
+	std::mt19937 mt(time(NULL));
+	std::uniform_real_distribution<double> dis(0.0, 1.0);
+	auto s = WeightedVectorComplexFloatBoostMul::Sampling(e, true, mt, dis);
+	std::cout << s.substr(0, 3) << std::endl;
 }
 
 void CFLTests::testGHZAlgo_W(int p){
@@ -1469,6 +1475,7 @@ void CFLTests::testQFT_W(int p, int seed)
 
 void CFLTests::testShorsAlgo_W(int N, int a)
 {
+	// srand(time(NULL));
 	auto start = high_resolution_clock::now();
 	auto out_ans = WeightedQuantumAlgos::ShorsFourier(a, N);
 	auto end = high_resolution_clock::now();
@@ -1479,6 +1486,14 @@ void CFLTests::testShorsAlgo_W(int N, int a)
 	// std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
 	// 	<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
 	// 	" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
+	auto ans = std::get<0>(out_ans);
+	ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "Duration: " << duration.count() << " nodeCount: " << nodeCount
+		<< " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount <<
+		" returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std:: endl;
+	std::cout << "Sampled string: " << std::get<1>(out_ans) << std::endl;
+	std::cout << "Sampled number: " << (std::get<2>(out_ans)) % N << std::endl;
+	// ans.print(std::cout);
 	// out_ans.print(std::cout);
 }
 
@@ -1518,6 +1533,9 @@ void CFLTests::InitModules()
 	WeightedMatrix1234FourierMul::Matrix1234Initializer();
 	WeightedVectorFourierMul::VectorInitializer();
 	InitWeightedPairProductCache<fourierSemiring, std::multiplies<fourierSemiring>>();
+
+	WeightedBDDNodeHandle<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitLeafNodes();
+	InitWeightedBDDPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
 }
 
 void CFLTests::ClearModules()
@@ -1528,6 +1546,8 @@ void CFLTests::ClearModules()
 	DisposeOfWeightedPairProductCache<BIG_FLOAT, std::multiplies<BIG_FLOAT>>();
 	DisposeOfWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
 	DisposeOfWeightedPairProductCache<fourierSemiring, std::multiplies<fourierSemiring>>();
+
+	DisposeOfWeightedBDDPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
 }
 
 

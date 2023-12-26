@@ -93,7 +93,7 @@ namespace CFL_OBDD {
 			return v;
 		}
 
-		CFLOBDDTopNodeComplexFloatBoostRefPtr NoDistinctionNodeTop(unsigned int level, int val)
+		CFLOBDDTopNodeComplexFloatBoostRefPtr NoDistinctionNodeTop(unsigned int level, BIG_COMPLEX_FLOAT val)
 		{
 			ComplexFloatBoostReturnMapHandle m1;
 			m1.AddToEnd(val);
@@ -143,8 +143,8 @@ namespace CFL_OBDD {
 			for (unsigned int i = 0; i < n->rootConnection.returnMapHandle.Size(); i++)
 			{
 				BIG_COMPLEX_FLOAT val = n->rootConnection.returnMapHandle[i];
-				BIG_COMPLEX_FLOAT real_val = val.real(); BIG_COMPLEX_FLOAT imag_val = val.imag();
-				BIG_COMPLEX_FLOAT abs_val = mp::pow(BIG_COMPLEX_FLOAT(2), real_val) + mp::pow(BIG_COMPLEX_FLOAT(2), imag_val);
+				auto real_val = val.real(); auto imag_val = val.imag();
+				auto abs_val = real_val * real_val + imag_val * imag_val;
 				rhandle.AddToEnd(abs_val);
 			}
 
@@ -154,6 +154,37 @@ namespace CFL_OBDD {
 			//     CFLOBDDNodeHandle::InitReduceCache();
 			CFLOBDDNodeHandle reduced_n = n->rootConnection.entryPointHandle->Reduce(inducedReductionMapHandle, inducedReturnMap.Size());
 			return (new CFLOBDDTopNodeComplexFloatBoost(reduced_n, inducedReturnMap));
+		}
+
+		long double getNonZeroProbabilityTop(CFLOBDDTopNodeComplexFloatBoostRefPtr n)
+		{
+			long double prob = 0;
+
+			for (unsigned int i = 0; i < n->rootConnection.returnMapHandle.Size(); i++)
+			{
+				if (n->rootConnection.returnMapHandle.Lookup(i) != 0){
+					long double v = n->rootConnection.returnMapHandle.Lookup(i).real().convert_to<long double>();
+					long double logNumPaths = n->rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
+					prob += v * std::pow(2, logNumPaths);
+				}
+			}
+			return prob;
+		}
+
+		unsigned long long int GetPathCountTop(CFLOBDDTopNodeComplexFloatBoostRefPtr n, long double p)
+		{
+			for (unsigned int i = 0; i < n->rootConnection.returnMapHandle.Size(); i++)
+			{
+				if (n->rootConnection.returnMapHandle.Lookup(i) != 0){
+					long double v = n->rootConnection.returnMapHandle.Lookup(i).real().convert_to<long double>();
+					if (abs(v - p) < std::numeric_limits<double>::epsilon())
+					{
+						long double logNumPaths = n->rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
+						return std::pow(2, logNumPaths);
+					}
+				}
+			}
+			return 0;
 		}
 
 		//#ifdef PATH_COUNTING_ENABLED

@@ -1593,7 +1593,7 @@ namespace CFL_OBDD {
 			CFLOBDD_COMPLEX_BIG QF = Matrix1234ComplexFloatBoost::KroneckerProduct(QP, F);
 			std::cout << "HF matrix created..." << std::endl;
 
-			CFLOBDD_COMPLEX_BIG SumEx = VectorComplexFloatBoost::NoDistinctionNode(level, 1);
+			CFLOBDD_COMPLEX_BIG SumEx = VectorComplexFloatBoost::NoDistinctionNode(level, BIG_COMPLEX_FLOAT(1));
 			CFLOBDD_COMPLEX_BIG e0 = VectorComplexFloatBoost::MkBasisVector(level, 0);
 			SumEx = VectorComplexFloatBoost::VectorToMatrixInterleaved(SumEx);
 			SumEx = Matrix1234ComplexFloatBoost::PromoteInterleavedTo12(SumEx);

@@ -15,14 +15,14 @@ namespace CFL_OBDD {
 			return;
 		}
 
-		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkBasisVector(unsigned int level, unsigned int index)
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkBasisVector(unsigned int level, unsigned int index, int cflobdd_kind)
 		{
-			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkBasisVectorTop(level, index));
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkBasisVectorTop(level, index, cflobdd_kind));
 		}
 
-		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkBasisVector(unsigned int level, std::string s)
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkBasisVector(unsigned int level, std::string s, int cflobdd_kind)
 		{
-			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkBasisVectorTop(level, s));
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkBasisVectorTop(level, s, cflobdd_kind));
 		}
 
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkColumn1Matrix(unsigned int level)
@@ -49,9 +49,9 @@ namespace CFL_OBDD {
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(NoDistinctionNodeTop(level, val));
 		}
 
-		std::string Sampling(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, bool isTwoVoc, std::string func)
+		std::string Sampling(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, bool isTwoVoc, std::mt19937 mt, std::uniform_real_distribution<double> dis, std::string func)
 		{
-			return SamplingTop(c.root, isTwoVoc, func);
+			return SamplingTop(c.root, mt, dis, isTwoVoc, func);
 		}
 
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL VectorWithAmplitude(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c)
@@ -74,6 +74,11 @@ namespace CFL_OBDD {
 		void PrintVector(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, std::ostream & out, unsigned int vars_count)
 		{
 			PrintVectorTop(c.root, out, vars_count);
+		}
+
+		long double getNonZeroProbability(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL n)
+		{
+			return getNonZeroProbabilityTop(n.root);
 		}
 	}
 }

@@ -4,6 +4,41 @@
 namespace CFL_OBDD {
 
     template <>
+    long double getIdentityValue<long double, std::multiplies<long double>>()
+    {
+        return 1.0;
+    }
+
+    template <>
+    long double getAnnhilatorValue<long double, std::multiplies<long double>>()
+    {
+        return 0.0;
+    }
+
+    template <>
+    std::tuple<long double, long double, long double> computeInverseValue<long double, std::multiplies<long double>>(long double lw, long double rw)
+    {
+        if (lw == 0.0)
+            return std::make_tuple(rw, 0.0, (rw == 0.0) ? 0.0 : 1.0);
+        if (rw == 0.0)
+            return std::make_tuple(lw, 1.0, 0.0);
+        return std::make_tuple(lw, 1.0, rw/lw);
+    }
+
+    template <>
+    long double computeComposition<long double, std::multiplies<long double>>(long double c, long double w)
+    {
+        return c * w;
+    }
+
+    template <>
+    long double computeProbabilityFromAmplitude<long double,std::multiplies<long double>>(long double w)
+    {
+        long double ans = (w * w);
+        return ans;
+    }
+
+    template <>
     BIG_FLOAT getIdentityValue<BIG_FLOAT, std::multiplies<BIG_FLOAT>>()
     {
         return 1.0;
@@ -19,7 +54,7 @@ namespace CFL_OBDD {
     std::tuple<BIG_FLOAT, BIG_FLOAT, BIG_FLOAT> computeInverseValue<BIG_FLOAT, std::multiplies<BIG_FLOAT>>(BIG_FLOAT lw, BIG_FLOAT rw)
     {
         if (lw == 0.0)
-            return std::make_tuple(rw, 0.0, 1.0);
+            return std::make_tuple(rw, 0.0, (rw == 0.0) ? 0.0 : 1.0);
         if (rw == 0.0)
             return std::make_tuple(lw, 1.0, 0.0);
         return std::make_tuple(lw, 1.0, rw/lw);
@@ -54,7 +89,7 @@ namespace CFL_OBDD {
     std::tuple<BIG_COMPLEX_FLOAT, BIG_COMPLEX_FLOAT, BIG_COMPLEX_FLOAT> computeInverseValue<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>(BIG_COMPLEX_FLOAT lw, BIG_COMPLEX_FLOAT rw)
     {
         if (lw == 0.0)
-            return std::make_tuple(rw, 0.0, 1.0);
+            return std::make_tuple(rw, 0.0, (rw == 0.0) ? 0.0 : 1.0);
         if (rw == 0.0)
             return std::make_tuple(lw, 1.0, 0.0);
         auto v = rw/lw;
@@ -99,7 +134,7 @@ namespace CFL_OBDD {
     std::tuple<fourierSemiring, fourierSemiring, fourierSemiring> computeInverseValue<fourierSemiring, std::multiplies<fourierSemiring>>(fourierSemiring lw, fourierSemiring rw)
     {
         if (lw == fourierSemiring(0, 1))
-            return std::make_tuple(rw, fourierSemiring(0, 1), fourierSemiring(1, 1)); 
+            return std::make_tuple(rw, fourierSemiring(0, 1), (rw == fourierSemiring(0, 1)) ? fourierSemiring(0, 1) : fourierSemiring(1, 1)); 
         if (rw == fourierSemiring(0, 1))
             return std::make_tuple(lw, fourierSemiring(1, 1), fourierSemiring(0, 1));
         return std::make_tuple(lw, fourierSemiring(1, 1), rw/lw);

@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cstdarg>
 #include <chrono>
+#include <map>
 #include <random>
 #include <unordered_map>
 #include "wvector_top_node_complex_fb_mul.h"
@@ -19,13 +20,13 @@ namespace CFL_OBDD {
 			return;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkBasisVectorTop(unsigned int level, unsigned int index)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkBasisVectorTop(unsigned int level, unsigned int index, int cflobdd_kind)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr ptr;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle rhandle;
 
-			tempHandle = MkBasisVectorNode(level, index);
+			tempHandle = MkBasisVectorNode(level, index, cflobdd_kind);
 			if (index == 0)
 			{
 				rhandle.AddToEnd(1);
@@ -42,13 +43,13 @@ namespace CFL_OBDD {
 			return ptr;
 		}
 
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkBasisVectorTop(unsigned int level, std::string s)
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkBasisVectorTop(unsigned int level, std::string s, int cflobdd_kind)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr ptr;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle rhandle;
 
-			tempHandle = MkBasisVectorNode(level, s);
+			tempHandle = MkBasisVectorNode(level, s, cflobdd_kind);
 			if (s.find('1') == std::string::npos)
 			{
 				rhandle.AddToEnd(1);
@@ -124,12 +125,12 @@ namespace CFL_OBDD {
 		}
 
 //#ifdef PATH_COUNTING_ENABLED
-		std::string SamplingTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, bool VocTwo, std::string func)
+		std::string SamplingTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::mt19937 mt, std::uniform_real_distribution<double> dis, bool VocTwo, std::string func)
 		{
 			if (n->rootConnection.factor == 0)
 				return "";
 			int index = n->rootConnection.returnMapHandle.LookupInv(1);
-			std::pair<std::string, std::string> stringPair = SamplingNode(*(n->rootConnection.entryPointHandle), index, VocTwo, func);
+			std::pair<std::string, std::string> stringPair = SamplingNode(*(n->rootConnection.entryPointHandle), index, mt, dis, VocTwo, func);
 			//std::cout << stringPair.first << " " << stringPair.second << std::endl;
 			return stringPair.first + stringPair.second;
 		}
@@ -221,6 +222,14 @@ namespace CFL_OBDD {
 			{
 				std::cout << it->first << " " << it->second << std::endl;
 			}
+
+		}
+
+		long double getNonZeroProbabilityTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n)
+		{
+			BIG_COMPLEX_FLOAT factor = n->rootConnection.factor * n->rootConnection.factor;
+			long double prob = getNonZeroProbabilityNode(*(n->rootConnection.entryPointHandle));
+			return prob / factor.convert_to<long double>();
 		}
 	}
 }

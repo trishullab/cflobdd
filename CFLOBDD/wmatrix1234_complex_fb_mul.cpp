@@ -22,25 +22,45 @@ namespace CFL_OBDD {
 		}
 
 		// Create representation of identity relation
-		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkIdRelationInterleaved(unsigned int i)
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkIdRelationInterleaved(unsigned int i, int cflobdd_kind, unsigned int offset)
 		{
 			// TODO: Check for error - "CodeConvert"
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr tmp = MkIdRelationInterleavedTop(i);
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr tmp = MkIdRelationInterleavedTop(i, cflobdd_kind, offset);
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(tmp);
 		}
 
-		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkNegationMatrixInterleaved(unsigned int i)
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkNegationMatrixInterleaved(unsigned int i, int cflobdd_kind, unsigned int offset)
 		{
-			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkNegationMatrixInterleavedTop(i));
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkNegationMatrixInterleavedTop(i, cflobdd_kind, offset));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPauliYGate(unsigned int i, int cflobdd_kind, unsigned int offset)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkPauliYGateTop(i, cflobdd_kind, offset));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPauliZGate(unsigned int i, int cflobdd_kind, unsigned int offset)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkPauliZGateTop(i, cflobdd_kind, offset));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSGate(unsigned int i, int cflobdd_kind, unsigned int offset)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkSGateTop(i, cflobdd_kind, offset));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkRestrictMatrix(unsigned int level, std::string s, int cflobdd_kind)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkRestrictTop(level, s, cflobdd_kind));	
 		}
 
 		// Create representation of the Walsh matrix W(2**(i-1))
 		// [i.e., a matrix of size 2**(2**(i-1))) x 2**(2**(i-1)))]
 		// with interleaved indexing of components: that is, input
 		// (x0,y0,x1,y1,...,xN,yN) yields W[(x0,x1,...,xN)][(y0,y1,...,yN)]
-		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkWalshInterleaved(unsigned int i)
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkWalshInterleaved(unsigned int i, int cflobdd_kind, unsigned int offset)
 		{
-			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkWalshInterleavedTop(i));
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkWalshInterleavedTop(i, cflobdd_kind, offset));
 		}
 
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOTInterleaved(unsigned int i)
@@ -54,9 +74,9 @@ namespace CFL_OBDD {
 		}
 
 		// Return the Kronecker product of two matrices
-		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL KroneckerProduct2Vocs(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m2)
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL KroneckerProduct2Vocs(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m2, bool rename)
 		{
-			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(KroneckerProduct2VocsTop(m1.root, m2.root)); 
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(KroneckerProduct2VocsTop(m1.root, m2.root, rename)); 
 		}
 
 		// Naive matrix multiplication
@@ -65,8 +85,12 @@ namespace CFL_OBDD {
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MatrixMultiplyV4TopNode(m1.root, m2.root));
 		}
 
-        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOT(unsigned int level, unsigned int n, long int controller, long int controlled){
-			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCNOTTopNode(level, n, controller, controlled));
+        WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOT(unsigned int level, unsigned int n, long int controller, long int controlled, int cflobdd_kind, unsigned int offset){
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCNOTTopNode(level, n, controller, controlled, cflobdd_kind, offset));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCNOT(unsigned int level, long int controller1, long int controller2, long int controlled, int cflobdd_kind, unsigned int offset){
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCCNOTTop(level, controller1, controller2, controlled, cflobdd_kind, offset));
 		}
 
 		void MatrixPrintRowMajor(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, std::ostream & out)
@@ -111,8 +135,9 @@ namespace CFL_OBDD {
 			return ans;
 		}
 
-		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSwapGate(unsigned int i, long c1, long c2)
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSwapGate(unsigned int i, long c1, long c2, int cflobdd_kind, unsigned int offset)
 		{
+<<<<<<< HEAD
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkSwapGateTop(i, c1, c2));
 		}
 		
@@ -124,11 +149,34 @@ namespace CFL_OBDD {
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCPGate(unsigned int i, long c1, long c2, double theta)
 		{
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCPGateTop(i, c1, c2, theta));
+=======
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkSwapGateTop(i, c1, c2, cflobdd_kind, offset));
+>>>>>>> 743c414798e265174b6d0bfcd4c102fdf3305205
 		}
 
-		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2)
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkiSwapGate(unsigned int i, long c1, long c2, int cflobdd_kind, unsigned int offset)
 		{
-			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCSwapGateTop(i, c1, x1, x2));
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkiSwapGateTop(i, c1, c2, cflobdd_kind, offset));
+		}
+		
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCPGate(unsigned int i, long c1, long c2, double theta, int cflobdd_kind, unsigned int offset)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCPGateTop(i, c1, c2, theta, cflobdd_kind, offset));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPhaseShiftGate(unsigned int i, double theta, int cflobdd_kind, unsigned int offset)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkPhaseShiftGateTop(i, theta, cflobdd_kind, offset));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCZGate(unsigned int i, long c1, long c2, double theta, int cflobdd_kind, unsigned int offset)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCZGateTop(i, c1, c2, theta, cflobdd_kind, offset));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2, int cflobdd_kind, unsigned int offset)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCSwapGateTop(i, c1, x1, x2, cflobdd_kind, offset));
 		}
 
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCSwapGate2(unsigned int i, long int c1, long int x1, long int x2)

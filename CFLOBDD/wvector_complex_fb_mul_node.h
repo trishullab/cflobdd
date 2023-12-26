@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <boost/multiprecision/cpp_complex.hpp>
 #include "weighted_cflobdd_node_t.h"
+#include "wvector_complex_fb_mul_bdd_node.h"
 
 namespace CFL_OBDD {
 	
@@ -15,6 +16,7 @@ namespace CFL_OBDD {
 
         typedef WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> WeightedCFLOBDDComplexFloatBoostMulNodeHandle;
         typedef WeightedCFLOBDDInternalNode<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> WeightedCFLOBDDComplexFloatBoostInternalNode;
+        typedef WeightedBDDTopNode<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> WeightedBDDComplexFloatBoostTopNode;
         typedef WeightedCFLOBDDDontCareNode<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> WeightedCFLOBDDComplexFloatBoostDontCareNode;
         typedef WeightedCFLOBDDForkNode<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> WeightedCFLOBDDComplexFloatBoostForkNode;
         typedef WeightedCFLOBDDLeafNode<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> WeightedCFLOBDDComplexFloatBoostLeafNode;
@@ -23,15 +25,16 @@ namespace CFL_OBDD {
         typedef WeightedCFLOBDDNodeMemoTableRefPtr<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> WeightedCFLOBDDComplexFloatBoostMulNodeMemoTableRefPtr;
 
 
-        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, unsigned int index);
-        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, std::string s);
-        
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, unsigned int index, int cflobdd_kind = 1);
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, std::string s, int cflobdd_kind = 1);
+        extern long double getNonZeroProbabilityNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh);
+
         extern void VectorInitializerNode();  // Empty for now
 
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle VectorToMatrixInterleavedNode(std::unordered_map<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, WeightedCFLOBDDComplexFloatBoostMulNodeHandle, WeightedCFLOBDDComplexFloatBoostMulNodeHandle::WeightedCFLOBDDNodeHandleT_Hash> hashMap,
                                                         WeightedCFLOBDDComplexFloatBoostMulNodeHandle& nh);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkColumn1MatrixNode(unsigned int level);
-        extern std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh, unsigned int index, bool voctwo = false, std::string = "");
+        extern std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh, unsigned int index, std::mt19937 mt, std::uniform_real_distribution<double> dis, bool voctwo = false, std::string = "");
         // needs to be removed and linked to the one in cflobdd_node.cpp
         extern long double addNumPathsToExit(long double path1, long double path2);
         extern long double addNumPathsToExit(std::vector<long double>& paths);

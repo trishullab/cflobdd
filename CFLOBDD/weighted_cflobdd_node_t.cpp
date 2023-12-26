@@ -2574,4 +2574,80 @@ WeightedCFLOBDDNodeHandleT<T,Op> Restrict(WeightedCFLOBDDInternalNode<T,Op> *g, 
   return WeightedCFLOBDDNodeHandleT<T,Op>(n);
 }
 
+template <typename T, typename Op>
+WeightedBDDTopNode<T,Op>::WeightedBDDTopNode(unsigned int numberOfVars) : numberOfVars(numberOfVars)
+{
+}
+
+template <typename T, typename Op>
+WeightedBDDTopNode<T,Op>::~WeightedBDDTopNode()
+{
+}
+
+template <typename T, typename Op>
+bool WeightedBDDTopNode<T,Op>::operator!= (const WeightedCFLOBDDNode<T,Op> &n)
+{
+  if (n.NodeKind() != W_BDD_TOPNODE)
+    return true;
+  WeightedBDDTopNode& nh = (WeightedBDDTopNode&)n;
+  return bddContents != nh.bddContents;
+}
+
+template <typename T, typename Op>
+bool WeightedBDDTopNode<T,Op>::operator== (const WeightedCFLOBDDNode<T,Op> &n)
+{
+  if (n.NodeKind() != W_BDD_TOPNODE)
+    return false;
+  WeightedBDDTopNode& nh = (WeightedBDDTopNode&)n;
+  return bddContents == nh.bddContents;
+}
+template <typename T, typename Op>
+void WeightedBDDTopNode<T,Op>::IncrRef()
+{
+  this->refCount++;
+}
+template <typename T, typename Op>
+void WeightedBDDTopNode<T,Op>::DecrRef()
+{
+  if (--this->refCount == 0) {    // Warning: Saturation not checked
+    if (this->isCanonical) {
+      WeightedCFLOBDDNodeHandleT<T,Op>::canonicalNodeTable->DeleteEq(this);
+    }
+    delete this;
+  }  
+}
+
+template <typename T, typename Op>
+unsigned int WeightedBDDTopNode<T,Op>::Hash(unsigned int modsize)
+{
+  return (117 * bddContents.Hash(modsize) + 1) % modsize;
+}
+
+template <typename T, typename Op>
+std::ostream& WeightedBDDTopNode<T,Op>::print(std::ostream &out) const
+{
+  bddContents.print(out);
+  return (out);
+}
+
+template <typename T, typename Op>
+void WeightedBDDTopNode<T,Op>::FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index) {}
+template <typename T, typename Op>
+int WeightedBDDTopNode<T,Op>::Traverse(SH_OBDD::AssignmentIterator &ai) {}
+template <typename T, typename Op>
+std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedBDDTopNode<T,Op>::Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, WeightedValuesListHandle<T>& valList, bool forceReduce) {}
+template <typename T, typename Op>
+void WeightedBDDTopNode<T,Op>::DumpConnections(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visited, std::ostream & out) {}
+template <typename T, typename Op>
+void WeightedBDDTopNode<T,Op>::CountNodesAndEdges(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
+unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount) {}
+template <typename T, typename Op>
+void WeightedBDDTopNode<T,Op>::CountNodes(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes, unsigned int &nodeCount) {}
+template <typename T, typename Op>
+void WeightedBDDTopNode<T,Op>::CountPaths(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes) {}
+template <typename T, typename Op>
+void WeightedBDDTopNode<T,Op>::ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes) {
+  bddContents.ComputeWeightofPathsAsAmpsToExits();
+}
+
 }

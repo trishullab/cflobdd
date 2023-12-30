@@ -6,7 +6,7 @@
 #include "assignment.h"
 #include "bool_op.h"
 #include "weighted_cflobdd_t.h"
-#include "wmatrix1234_fb_mul.h"
+#include "wmatrix1234_complex_fb_mul.h"
 
 using namespace CFL_OBDD;
 
@@ -15,17 +15,17 @@ using namespace CFL_OBDD;
 //********************************************************************
 
 namespace CFL_OBDD	{
-	template class WEIGHTED_CFLOBDD_T<BIG_FLOAT, std::multiplies<BIG_FLOAT>>;    // aka CFLOBDD
+	template class WEIGHTED_CFLOBDD_T<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>;    // aka CFLOBDD
 }
 
 #include "weighted_cflobdd_t.h"
-#include "weighted_cflobdd_top_node_float_boost_mul.h"
+#include "weighted_cflobdd_top_node_complex_float_boost_mul.h""
 
 // Constructors/Destructor -------------------------------------------
 
 // Default constructor
 template<>
-WEIGHTED_CFLOBDD_T<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::WEIGHTED_CFLOBDD_T()
+WEIGHTED_CFLOBDD_T<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::WEIGHTED_CFLOBDD_T()
 {
 	root = NULL;//MkTrueFloatMulTop();
 }

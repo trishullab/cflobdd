@@ -105,7 +105,7 @@ namespace CFL_OBDD {
                 n->AConnection = Connection(temp, m01);
                 n->numBConnections = 2;
                 n->BConnection = new Connection[n->numBConnections];
-                WeightedCFLOBDDFourierMulNodeHandle b0 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierDontCareNode(one, one));
+                WeightedCFLOBDDFourierMulNodeHandle b0 = WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDDontCareNodeHandle;
                 WeightedCFLOBDDFourierMulNodeHandle b1 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierDontCareNode(one, fourierSemiring(1, 2)));
                 CFLOBDDReturnMapHandle m0;
                 m0.AddToEnd(0);
@@ -236,6 +236,51 @@ namespace CFL_OBDD {
     
 
 
+        std::pair<bool, fourierSemiring> compare(WeightedMatMultMapHandle<fourierSemiring>& r1, WeightedMatMultMapHandle<fourierSemiring>& r2)
+        {
+            fourierSemiring factor = fourierSemiring(1, 1);
+            bool first = true;
+            fourierSemiring zero(0, 1);
+            if (r1.mapContents->contains_zero_val == true && r2.mapContents->contains_zero_val == true)
+            {
+                return std::make_pair(true, fourierSemiring(0, 1));
+            }
+            else if (r1.mapContents->contains_zero_val == true || r2.mapContents->contains_zero_val == true)
+            {
+                return std::make_pair(false, fourierSemiring(1, 1));
+            }
+            else
+            {
+                auto it1 = r1.mapContents->map.begin();
+                auto it2 = r2.mapContents->map.begin();
+                for (it1 = r1.mapContents->map.begin(), it2 = r2.mapContents->map.begin();
+                        it1 != r1.mapContents->map.end() && it2 != r2.mapContents->map.end();
+                        it1++, it2++)
+                {
+                    if (it1->first == it2->first)
+                    {
+                        if (it1->second == zero || it2->second == zero)
+                            continue;
+                        if (first)
+                            factor = it2->second / it1->second;
+                        else{
+                            fourierSemiring f = it2->second / it1->second;
+                            if (f != factor)
+                                return std::make_pair(false, fourierSemiring(1, 1));
+                        }
+                        first = false;
+                    }
+                    else
+                    {
+                        return std::make_pair(false, fourierSemiring(1, 1));
+                    }
+                }
+                if (it1 != r1.mapContents->map.end() || it2 != r2.mapContents->map.end())
+                    return std::make_pair(false, fourierSemiring(1, 1));
+                return std::make_pair(true, factor);
+            }
+        }
+
         std::tuple<WeightedCFLOBDDFourierMulNodeHandle, CFLOBDDMatMultMapHandle, fourierSemiring>
         Add(WeightedCFLOBDDFourierMulNodeHandle b1, WeightedCFLOBDDFourierMulNodeHandle b2,
             CFLOBDDMatMultMapHandle b1_m, CFLOBDDMatMultMapHandle b2_m, fourierSemiring b_f1, fourierSemiring b_f2)
@@ -255,24 +300,38 @@ namespace CFL_OBDD {
                 first = MapHandle[iterator].first.First();
                 second = MapHandle[iterator].first.Second();
                 WeightedMatMultMapHandle<fourierSemiring> val;
+                fourierSemiring v1 = fourierSemiring(0, 1), v2 = fourierSemiring(0, 1);
                 if (first == -1 && second == -1){
                     val = WeightedMatMultMapHandle<fourierSemiring>();
-                    fourierSemiring v(0, 1);
+                    fourierSemiring v = fourierSemiring(0, 1);
                     val.Add(std::make_pair(-1,-1), v);
                     val.mapContents->contains_zero_val = true;
                 }
                 else {
                     c1 = b1_m.Lookup(first);
                     c2 = b2_m.Lookup(second);
-                    fourierSemiring v1, v2;
                     v1 = MapHandle[iterator].second.First();
                     v2 = MapHandle[iterator].second.Second();
                     val = v1 * c1 + v2 * c2;
                 }
                 val.Canonicalize();
-                if (reductionMap.find(val.getHashCheck()) == reductionMap.end()){
+                bool found = false;
+                fourierSemiring factor_c = fourierSemiring(1, 1);
+                unsigned int index = returnMapHandle.Size();
+                for (unsigned int k = 0; k < returnMapHandle.Size(); k++)
+                {
+                    auto val_c = compare(returnMapHandle[k], val);
+                    if (val_c.first == true)
+                    {
+                        found = true;
+                        factor_c = val_c.second;
+                        index = k;
+                        break;
+                    }
+                }
+                if (found == false){
                     returnMapHandle.AddToEnd(val);
-                    reductionMap.insert(std::make_pair(val.getHashCheck(), returnMapHandle.Size() - 1)); 
+                    // reductionMap.insert(std::make_pair(val.getHashCheck(), returnMapHandle.Size() - 1)); 
                     reductionMapHandle.AddToEnd(returnMapHandle.Size() - 1);
                     if (val.mapContents->contains_zero_val == false)
                         valList.AddToEnd(fourierSemiring(1, 1));
@@ -280,9 +339,10 @@ namespace CFL_OBDD {
                         valList.AddToEnd(fourierSemiring(0, 1));
                 }
                 else{
-                    reductionMapHandle.AddToEnd(reductionMap[val.getHashCheck()]);
+                    // reductionMapHandle.AddToEnd(reductionMap[val.getHashCheck()]);
+                    reductionMapHandle.AddToEnd(index);
                     if (val.mapContents->contains_zero_val == false)
-                        valList.AddToEnd(fourierSemiring(1, 1));
+                        valList.AddToEnd(factor_c);
                     else
                         valList.AddToEnd(fourierSemiring(0, 1));
                 }
@@ -294,9 +354,9 @@ namespace CFL_OBDD {
             valList.Canonicalize();
             auto reduced_n = tmp.Reduce(reductionMapHandle, returnMapHandle.Size(), valList, false);
             fourierSemiring factor = reduced_n.second;
-
             return std::make_tuple(reduced_n.first, returnMapHandle, factor);
         }
+
 
         MatMultReturnT
 		MatrixMultiplyV4Node(WeightedCFLOBDDFourierMulNodeHandle c1, WeightedCFLOBDDFourierMulNodeHandle c2, int zero_exit_1, int zero_exit_2)
@@ -305,7 +365,7 @@ namespace CFL_OBDD {
             if (matmult_hash.find(mmp) != matmult_hash.end())
                 return matmult_hash[mmp];
             
-            fourierSemiring zero(0, 1);
+            fourierSemiring zero = fourierSemiring(0, 1);
             if (c1 == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[c1.handleContents->level] || c2 == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[c2.handleContents->level])
             {
                 CFLOBDDMatMultMapHandle m;
@@ -351,7 +411,7 @@ namespace CFL_OBDD {
             if (c2 == WeightedCFLOBDDFourierMulNodeHandle::IdentityNode[c1.handleContents->level])
             {
                 CFLOBDDMatMultMapHandle m;
-                fourierSemiring one(1, 1);
+                fourierSemiring one = fourierSemiring(1, 1);
                 for (int i = 0; i < c1.handleContents->numExits; i++)
                 {
                     WeightedMatMultMapHandle<fourierSemiring> tmp;
@@ -372,7 +432,8 @@ namespace CFL_OBDD {
             WeightedValuesListHandle<fourierSemiring> valList;
             WeightedCFLOBDDFourierInternalNode* g = new WeightedCFLOBDDFourierInternalNode(c1.handleContents->level);
             ReductionMapHandle reductionMapHandle;
-            fourierSemiring top_factor(1, 1);
+            fourierSemiring top_factor = fourierSemiring(1, 1);
+            fourierSemiring one = fourierSemiring(1, 1);
             
             if (c1.handleContents->level == 1){
                 WeightedCFLOBDDFourierInternalNode* c1_internal = (WeightedCFLOBDDFourierInternalNode *)c1.handleContents;
@@ -462,150 +523,200 @@ namespace CFL_OBDD {
                     v4.Add(std::make_pair(c1_internal->BConnection[M1_numB-1].returnMapHandle[0], c2_internal->BConnection[0].returnMapHandle[M2_b0_numE-1]), c0b1);
                 v4.Canonicalize();
 
-                if (v1 == v3 && v2 == v4){
-                    CFLOBDDReturnMapHandle m0;
-                    m0.AddToEnd(0); m0.Canonicalize();
-                    if (v1 == v2){
-                        g->numBConnections = 1;
-                        g->BConnection = new Connection[g->numBConnections];
-                        // if (v1.mapContents->contains_zero_val == true){
-                        //     g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[0], m0);
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[0], m0);
-                        // }
-                        // else {
-                            g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
-                            g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDDontCareNodeHandle, m0); 
-                        // }
-                        reductionMapHandle.AddToEnd(0);
-                        valList.AddToEnd(v1.mapContents->contains_zero_val ? zero : fourierSemiring(1, 1));
-                        g_return_map.AddToEnd(v1);
-                    }
-                    else{
-                        g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
-                        g->numBConnections = 1;
-                        g->BConnection = new Connection[g->numBConnections];
-                        CFLOBDDReturnMapHandle m01;
-                        m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                        // if (v1.mapContents->contains_zero_val == true)
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle01, m01);
-                        // else if (v2.mapContents->contains_zero_val == true)
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
-                        // else
-                            g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01); 
-                        reductionMapHandle.AddToEnd(0);
-                        reductionMapHandle.AddToEnd(1);
-                        valList.AddToEnd(v1.mapContents->contains_zero_val ? zero : fourierSemiring(1, 1));
-                        valList.AddToEnd(v2.mapContents->contains_zero_val ? zero : fourierSemiring(1, 1));
-                        g_return_map.AddToEnd(v1); 
-                        g_return_map.AddToEnd(v2); 
+                g_return_map.AddToEnd(v1);
+                valList.AddToEnd(v1.mapContents->contains_zero_val ? zero : one);
+                reductionMapHandle.AddToEnd(0);
+
+                auto v2_c = compare(v1, v2);
+                Connection B1;
+
+                if (v2_c.first == true)
+                {
+                    CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                    if (valList[0] == zero)
+                        B1 = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[0], m0);
+                    else
+                    {
+                        auto x = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierDontCareNode(one, v2_c.second));
+                        B1 = Connection(x, m0);
                     }
                 }
                 else
                 {
-                    CFLOBDDReturnMapHandle m01;
-                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                    g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
-                    int la = 1, ra = 1;
-                    g->numBConnections = 2;
-                    g->BConnection = new Connection[2];
-                    if (v1 == v2)
+                    g_return_map.AddToEnd(v2);
+                    valList.AddToEnd(v2.mapContents->contains_zero_val ? zero : one);
+                    reductionMapHandle.AddToEnd(1);
+                    CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    B1 = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                }
+
+                auto v3_c = compare(v1, v3);
+                Connection B2;
+
+                if (v3_c.first == true)
+                {
+                    if (v3.mapContents->contains_zero_val == true)
                     {
-                        CFLOBDDReturnMapHandle m0;
-                        m0.AddToEnd(0); m0.Canonicalize();
-                        // if (v1.mapContents->contains_zero_val == true){
-                        //     la = 0;
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[0], m0);
-                        // }
-                        // else{
-                        //     la = 1;
-                            g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
-                        // }
-                        g_return_map.AddToEnd(v1);
-                        reductionMapHandle.AddToEnd(0);
-                        valList.AddToEnd(v1.mapContents->contains_zero_val ? zero : fourierSemiring(1, 1));
-                    }
-                    else{
-                        la = 1;
-                        // if (v1.mapContents->contains_zero_val == true)
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle01, m01);
-                        // else if (v2.mapContents->contains_zero_val == true)
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
-                        // else
-                            g->BConnection[0] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
-                        g_return_map.AddToEnd(v1);
-                        g_return_map.AddToEnd(v2);
-                        reductionMapHandle.AddToEnd(0);
-                        reductionMapHandle.AddToEnd(1);
-                        valList.AddToEnd(v1.mapContents->contains_zero_val ? zero : fourierSemiring(1, 1));
-                        valList.AddToEnd(v2.mapContents->contains_zero_val ? zero : fourierSemiring(1, 1));
-                    }
-                    if (v3 == v4)
-                    {
-                        int k = 0;
-                        for (k = 0; k < g_return_map.Size(); k++)
+                        if (v3 == v4)
                         {
-                            if (g_return_map[k] == v3)
-                                break;
+                            CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[0], m0);
                         }
-                        CFLOBDDReturnMapHandle m;
-                        m.AddToEnd(k); m.Canonicalize();
-                        // if (v3.mapContents->contains_zero_val == true)
-                        // {
-                        //     ra = 0;
-                        //     g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[0], m);
-                        // }
-                        // else {
-                        //     ra = 1;
-                            g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDDontCareNodeHandle, m);
-                        // }
-                        if (k >= g_return_map.Size()){
-                            g_return_map.AddToEnd(v3);
-                            reductionMapHandle.AddToEnd(k);
-                            valList.AddToEnd(v3.mapContents->contains_zero_val ? zero : fourierSemiring(1, 1));
+                        else if (v2 == v4)
+                        {
+                            CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                        }
+                        else 
+                        {
+                            CFLOBDDReturnMapHandle m02; m02.AddToEnd(0); m02.AddToEnd(g_return_map.Size()); m02.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m02);
+                            g_return_map.AddToEnd(v4);
+                            valList.AddToEnd(v4.mapContents->contains_zero_val ? zero : one);
+                            reductionMapHandle.AddToEnd(g_return_map.Size()-1);
+                        }
+                    }
+                    else if (v4.mapContents->contains_zero_val == true)
+                    {
+                        if (v2 == v4)
+                        {
+                            CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                            auto x = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(v3_c.second, zero));
+                            B2 = Connection(x, m01);
+                        }
+                        else 
+                        {
+                            CFLOBDDReturnMapHandle m02; m02.AddToEnd(0); m02.AddToEnd(g_return_map.Size()); m02.Canonicalize();
+                            auto x = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(v3_c.second, zero));
+                            B2 = Connection(x, m02);
+                            g_return_map.AddToEnd(v4);
+                            valList.AddToEnd(v4.mapContents->contains_zero_val ? zero : one);
+                            reductionMapHandle.AddToEnd(g_return_map.Size()-1);
                         }
                     }
                     else
                     {
-                        ra = 1;
-                        int k1 = g_return_map.Size(), k2 = -1, k = 0;
-                        for (k = 0; k < g_return_map.Size(); k++)
+                        auto v4_c = compare(v1, v4);
+                        if (v4_c.first == true)
                         {
-                            if (g_return_map[k] == v3){
-                                k1 = k;
+                            CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                            auto x = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(v3_c.second, v4_c.second));
+                            B2 = Connection(x, m0);
+                        }
+                        else
+                        {
+                            if (v2 == v4)
+                            {
+                                CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                                B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01); 
                             }
-                            else if (g_return_map[k] == v4){
-                                k2 = k;
+                            else 
+                            {
+                                CFLOBDDReturnMapHandle m02; m02.AddToEnd(0); m02.AddToEnd(g_return_map.Size()); m02.Canonicalize();
+                                B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m02);
+                                g_return_map.AddToEnd(v4);
+                                valList.AddToEnd(v4.mapContents->contains_zero_val ? zero : one);
+                                reductionMapHandle.AddToEnd(g_return_map.Size()-1);
                             }
-                        }
-                        if (k2 == -1){
-                            k2 = std::max(k1, k-1) + 1;
-                        }
-                        CFLOBDDReturnMapHandle m1;
-                        m1.AddToEnd(k1); m1.AddToEnd(k2); m1.Canonicalize();
-                        // if (v3.mapContents->contains_zero_val == true)
-                        //     g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle01, m1);
-                        // else if (v4.mapContents->contains_zero_val == true)
-                        //     g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle10, m1);
-                        // else
-                            g->BConnection[1] = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m1);
-                        if (k1 >= k){
-                            g_return_map.AddToEnd(v3);
-                            reductionMapHandle.AddToEnd(k1);
-                            valList.AddToEnd(v3.mapContents->contains_zero_val ? zero : fourierSemiring(1, 1));
-                        }
-                        if (k2 >= k){
-                            g_return_map.AddToEnd(v4);
-                            reductionMapHandle.AddToEnd(k2);
-                            valList.AddToEnd(v4.mapContents->contains_zero_val ? zero : fourierSemiring(1, 1));
                         }
                     }
-                    // if (la == 1 && ra == 1)
-                    //     g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
-                    // else if (la == 1 && ra == 0)
-                    //     g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
-                    // else if (la == 0 && ra == 1)
-                    //     g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle01, m01);
-                    // assert(!(la == 0 && ra == 0));
+                }
+                else 
+                {
+                    if (v2 == v3)
+                    {
+                        if (v2 == v4)
+                        {
+                            CFLOBDDReturnMapHandle mk; mk.AddToEnd(g_return_map.Size()-1); mk.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDDontCareNodeHandle, mk);
+                        }
+                        else if (v1 == v4)
+                        {
+                            CFLOBDDReturnMapHandle mk; mk.AddToEnd(1); mk.AddToEnd(0); mk.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, mk);
+                        }
+                        else
+                        {
+                            auto v4_c = compare(v3, v4);
+                            if (v4_c.first == true)
+                            {
+                                CFLOBDDReturnMapHandle m2; m2.AddToEnd(g_return_map.Size()-1); m2.Canonicalize();
+                                if (valList[valList.Size()-1] == zero)
+                                    B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[0], m2);
+                                else
+                                {
+                                    auto x = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierDontCareNode(one, v4_c.second));
+                                    B2 = Connection(x, m2);
+                                } 
+                            }
+                            else
+                            {
+                                valList.AddToEnd(v4.mapContents->contains_zero_val ? zero : one);
+                                reductionMapHandle.AddToEnd(g_return_map.Size());
+                                CFLOBDDReturnMapHandle m23; m23.AddToEnd(g_return_map.Size()-1); m23.AddToEnd(g_return_map.Size()); m23.Canonicalize();
+                                B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m23);
+                                g_return_map.AddToEnd(v4);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        g_return_map.AddToEnd(v3);
+                        reductionMapHandle.AddToEnd(g_return_map.Size()-1);
+                        valList.AddToEnd(v3.mapContents->contains_zero_val ? zero : one);
+                        if (v1 == v4)
+                        {
+                            CFLOBDDReturnMapHandle m20; m20.AddToEnd(g_return_map.Size()-1); m20.AddToEnd(0); m20.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m20);
+                        }
+                        else if (v2 == v4)
+                        {
+                            CFLOBDDReturnMapHandle m21; m21.AddToEnd(g_return_map.Size()-1); m21.AddToEnd(g_return_map.Size()-2); m21.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m21); 
+                        }
+                        else
+                        {
+                            auto v4_c = compare(v3, v4);
+                            if (v4_c.first == true)
+                            {
+                                CFLOBDDReturnMapHandle m2; m2.AddToEnd(g_return_map.Size()-1); m2.Canonicalize();
+                                if (valList[valList.Size()-1] == zero)
+                                    B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[0], m2);
+                                else
+                                {
+                                    auto x = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierDontCareNode(one, v4_c.second));
+                                    B2 = Connection(x, m2);
+                                } 
+                            }
+                            else
+                            {
+                                g_return_map.AddToEnd(v4);
+                                valList.AddToEnd(v4.mapContents->contains_zero_val ? zero : one);
+                                reductionMapHandle.AddToEnd(g_return_map.Size()-1);
+                                CFLOBDDReturnMapHandle m23; m23.AddToEnd(g_return_map.Size()-2); m23.AddToEnd(g_return_map.Size()-1); m23.Canonicalize();
+                                B2 = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m23);
+                            }
+                        }
+                    }
+                }
+
+            
+                if (B1 == B2)
+                {
+                    CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
+                    g->numBConnections = 1;
+                    g->BConnection = new Connection[1];
+                    g->BConnection[0] = B1;
+                }
+                else
+                {
+                    CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    g->BConnection[0] = B1; 
+                    g->BConnection[1] = B2;
                 }
 
             }
@@ -644,16 +755,20 @@ namespace CFL_OBDD {
                     mI.AddToEnd(i);
                 mI.Canonicalize();
                 top_factor = std::get<2>(aa);
-                g->AConnection = Connection(std::get<0>(aa), mI);
-                g->numBConnections = mI.Size();
-                g->BConnection = new Connection[g->numBConnections];
+                // g->AConnection = Connection(std::get<0>(aa), mI);
+                // g->numBConnections = mI.Size();
+                // g->BConnection = new Connection[g->numBConnections];
+                auto aHandle = std::get<0>(aa);
                 g->numExits = 0;
-                std::unordered_map<unsigned int, unsigned int> mapFromHandleToIndex;
-                for (unsigned int i = 0; i < g->numBConnections; i++){
+                std::unordered_multimap<WeightedMatMultMapHandle<fourierSemiring>, unsigned int, WeightedMatMultMapHandle<fourierSemiring>::mapHash> mapFromHandleToIndex;
+                std::vector<Connection*> nodeHandles;
+                fourierSemiring factor = one;
+                bool factor_first = true;
+                for (unsigned int i = 0; i < mI.Size(); i++){
                     WeightedMatMultMapHandle<fourierSemiring> matmult_returnmap = std::get<1>(aa)[i];
                     WeightedCFLOBDDFourierMulNodeHandle ans;
                     CFLOBDDMatMultMapHandle ans_matmult_map;
-                    fourierSemiring ans_factor(1, 1);
+                    fourierSemiring ans_factor = one;
                     bool first = true;
                     // Consider Multiplication of M1 and M2
                     for (auto &v : matmult_returnmap.mapContents->map){
@@ -719,33 +834,96 @@ namespace CFL_OBDD {
                         }
                     }
 
+                    if (ans == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[ans.handleContents->level])
+                        ans_factor = zero;
+
+                    if (factor_first && ans_factor != zero)
+                    {
+                        factor = ans_factor;
+                        ans_factor = one;
+                        factor_first = false;
+                    }
+                    else
+                    {
+                        ans_factor = ans_factor/factor;
+                    }
+
                     CFLOBDDReturnMapHandle ans_return_map;
                     for (unsigned int j = 0; j < ans_matmult_map.Size(); j++){
-                        unsigned int map_hash_check = ans_matmult_map[j].getHashCheck();
-                        if (mapFromHandleToIndex.find(map_hash_check) == mapFromHandleToIndex.end()){
+                        auto range = mapFromHandleToIndex.equal_range(ans_matmult_map[j]);
+                        unsigned int index_range = 0;
+                        bool found = 0;
+                        for (auto it = range.first; it != range.second; it++)
+                        {
+                            if (it->first == ans_matmult_map[j])
+                            {
+                                found = 1;
+                                index_range = it->second;
+                                break;
+                            }
+                        }
+                        if (!found){
                             ans_return_map.AddToEnd(g->numExits++);
                             g_return_map.AddToEnd(ans_matmult_map[j]);
-                            reductionMapHandle.AddToEnd(g_return_map.Size() - 1);
-                            mapFromHandleToIndex[map_hash_check] = g_return_map.Size() - 1;
-                            if (ans_matmult_map[j].mapContents->contains_zero_val == true)
-                                valList.AddToEnd(zero);
-                            else
-                                valList.AddToEnd(ans_factor);
+                            mapFromHandleToIndex.insert(std::make_pair(ans_matmult_map[j], g_return_map.Size() - 1));
                         }
                         else{
-                            unsigned int index = mapFromHandleToIndex[map_hash_check];
-                            ans_return_map.AddToEnd(g->numExits++);
-                            // ans_return_map.AddToEnd(index);
-                            reductionMapHandle.AddToEnd(index);
-                            if (ans_matmult_map[j].mapContents->contains_zero_val == true)
-                                valList.AddToEnd(zero);
-                            else
-                                valList.AddToEnd(ans_factor); 
+                            unsigned int index = index_range;
+                            ans_return_map.AddToEnd(index);
                         }
                     }
                     ans_return_map.Canonicalize();
-                    g->BConnection[i] = Connection(ans, ans_return_map);
+                    auto c = new Connection(ans, ans_return_map);
+                    unsigned int k = 0;
+                    for (k = 0; k < nodeHandles.size(); k++)
+                    {
+                        if (*(nodeHandles[k]) == *c)
+                            break;
+                    }
+                    if (k == nodeHandles.size())
+                    {
+                        reductionMapHandle.AddToEnd(nodeHandles.size());
+                        nodeHandles.push_back(c);
+                    }
+                    else
+                    {
+                        reductionMapHandle.AddToEnd(k);
+                        delete c;
+                    }
+                    
+                    valList.AddToEnd(ans_factor);
+                    
                 }
+
+
+                g_return_map.Canonicalize();
+                reductionMapHandle.Canonicalize();
+                valList.Canonicalize();
+                g->numExits = g_return_map.Size();
+
+        #ifdef PATH_COUNTING_ENABLED
+                g->InstallPathCounts();
+        #endif
+
+                MatMultReturnT ret;
+                g->numBConnections = nodeHandles.size();
+                g->BConnection = new Connection[g->numBConnections];
+                for (unsigned int i = 0; i < nodeHandles.size(); i++)
+                {
+                    g->BConnection[i] = *nodeHandles[i];
+                }
+                auto tmp = aHandle.Reduce(reductionMapHandle, g->numBConnections, valList, true);
+                CFLOBDDReturnMapHandle mA;
+                for (unsigned int i = 0; i < nodeHandles.size(); i++)
+                    mA.AddToEnd(i);
+                mA.Canonicalize();
+                g->AConnection = Connection(tmp.first, mA);
+                WeightedCFLOBDDFourierMulNodeHandle gHandle(g);
+                ret = std::make_tuple(gHandle, g_return_map, tmp.second * top_factor * factor);
+                matmult_hash.insert(std::make_pair(mmp, ret));
+                for (unsigned int k = 0; k < nodeHandles.size(); k++)
+                    delete nodeHandles[k];
+                return ret;
 
             }
             
@@ -759,23 +937,22 @@ namespace CFL_OBDD {
     #endif
 
             WeightedCFLOBDDFourierMulNodeHandle gHandle(g);
+            MatMultReturnT ret;
 
             if (c1.handleContents->level == 1)
             {
                 auto tmp = gHandle.Reduce(reductionMapHandle, g_return_map.Size(), valList, false);
-                MatMultReturnT ret = std::make_tuple(tmp.first, g_return_map, tmp.second * top_factor);
+                ret = std::make_tuple(tmp.first, g_return_map, tmp.second * top_factor);
                 // ret = std::make_tuple(gHandle, g_return_map, top_factor);
-                matmult_hash.insert(std::make_pair(mmp, ret));
-                return ret;
             }
             else
             {
                 auto tmp = gHandle.Reduce(reductionMapHandle, g_return_map.Size(), valList, true);
-                MatMultReturnT ret = std::make_tuple(tmp.first, g_return_map, tmp.second * top_factor);
+                ret = std::make_tuple(tmp.first, g_return_map, tmp.second * top_factor);
                 // ret = std::make_tuple(gHandle, g_return_map, top_factor);
-                matmult_hash.insert(std::make_pair(mmp, ret));
-                return ret;
             }
+            matmult_hash.insert(std::make_pair(mmp, ret));
+            return ret;
         }
 
 
@@ -798,8 +975,8 @@ namespace CFL_OBDD {
                     g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
                     g->numBConnections = 2;
                     g->BConnection = new Connection[g->numBConnections];
-                    auto b0 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(one,zero));
-                    auto b1 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(zero,one));
+                    auto b0 = WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle10;
+                    auto b1 = WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle01;
                     g->BConnection[0] = Connection(b0, m01);
                     CFLOBDDReturnMapHandle m12;
                     m12.AddToEnd(1); m12.AddToEnd(2); m12.Canonicalize();
@@ -813,8 +990,8 @@ namespace CFL_OBDD {
                     g->AConnection = Connection(WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle, m01);
                     g->numBConnections = 2;
                     g->BConnection = new Connection[g->numBConnections];
-                    auto b0 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(one,zero));
-                    auto b1 = WeightedCFLOBDDFourierMulNodeHandle(new WeightedCFLOBDDFourierForkNode(zero,one));
+                    auto b0 = WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle10;
+                    auto b1 = WeightedCFLOBDDFourierMulNodeHandle::CFLOBDDForkNodeHandle01;
                     g->BConnection[0] = Connection(b1, m01);
                     CFLOBDDReturnMapHandle m10;
                     m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
@@ -1947,16 +2124,23 @@ namespace CFL_OBDD {
 
         std::string convert_to_bitstring(BIG_INT N, int len, int b_vars)
         {
+            // std::cout << N << " " << len << " " << b_vars << std::endl;
             std::string s(len, '0');
             int i = 2*b_vars-1;
-            while (N != 0)
+            bool one_exists = false;
+            BIG_INT original_N = N;
+            while (N != 0 && i >= 1)
             {
                 i--;
                 int c = (N % 2).convert_to<int>();
                 s[i] = (c == 0 ? '0' : '1');
                 N = N/2;
                 i = i-1;
+                if (c == 1)
+                    one_exists = true;
             }
+            if (!one_exists && original_N != 0)
+                s[i] = '1';
             return s;
         }
 
@@ -1964,69 +2148,269 @@ namespace CFL_OBDD {
         {
             if (f == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level])
                 return std::make_pair(f, 0);
-            WeightedCFLOBDDFourierInternalNode *g = new WeightedCFLOBDDFourierInternalNode(level);
-            ReductionMapHandle redMapHandle;
-            WeightedValuesListHandle<fourierSemiring> valList;
+            int zero_index = -1;
             if (flag == 1)
             {
+                WeightedCFLOBDDFourierInternalNode *g = new WeightedCFLOBDDFourierInternalNode(level);
+                ReductionMapHandle redMapHandle;
+                WeightedValuesListHandle<fourierSemiring> valList;
                 WeightedCFLOBDDFourierInternalNode* fh = (WeightedCFLOBDDFourierInternalNode *)f.handleContents; 
-                g->AConnection.entryPointHandle = fh->AConnection.entryPointHandle;
-                g->AConnection.returnMapHandle = fh->AConnection.returnMapHandle;
+                g->AConnection = Connection(fh->AConnection.entryPointHandle->handleContents, fh->AConnection.returnMapHandle);
                 g->numBConnections = fh->numBConnections;
                 g->BConnection = new Connection[g->numBConnections];
                 for (unsigned int i = 0; i < g->numBConnections; i++)
                 {
-                    auto tmp = ComputeIQFTNode(level-1, *(fh->BConnection[i].entryPointHandle), N,n, 2, b_vars, actual_level-1).first;
-                    if (tmp == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1]){
-                        CFLOBDDReturnMapHandle m0;
-                        m0.AddToEnd(0); m0.Canonicalize();
-                        g->BConnection[i] = Connection(tmp, m0);
-                        valList.AddToEnd(fourierSemiring(0,1));
+                    auto tmp = ComputeIQFTNode(level-1, *(fh->BConnection[i].entryPointHandle), N,n, 2, b_vars, actual_level-1);
+                    if (i == 0)
+                    {
+                        CFLOBDDReturnMapHandle m;
+                        for (unsigned int k = 0; k < tmp.first.handleContents->numExits; k++)
+                            m.AddToEnd(k);
+                        m.Canonicalize();
+                        g->BConnection[0] = Connection(tmp.first, m);
+                        zero_index = tmp.second;
+                        if (tmp.first == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                            valList.AddToEnd(fourierSemiring(0,1));
+                        else
+                            valList.AddToEnd(fourierSemiring(1,1));
                     }
                     else
                     {
-                        CFLOBDDReturnMapHandle m01;
-                        m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                        g->BConnection[i] = Connection(tmp, m01); 
-                        valList.AddToEnd(fourierSemiring(1,1));
+                        if (zero_index == -1)
+                        {
+                            if (tmp.first == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                            {
+                                CFLOBDDReturnMapHandle m1; m1.AddToEnd(1); m1.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m1);
+                                valList.AddToEnd(fourierSemiring(0,1)); 
+                                zero_index = 1;
+                            }
+                            if (tmp.second == -1)
+                            {
+                                CFLOBDDReturnMapHandle m;
+                                m.AddToEnd(0);
+                                m.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m);
+                                valList.AddToEnd(fourierSemiring(1,1));
+                            }
+                            else if (tmp.second == 0)
+                            {
+                                CFLOBDDReturnMapHandle m10; m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m10);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                                zero_index = 1;
+                            }
+                            else if (tmp.second == 1)
+                            {
+                                CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m01);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                                zero_index = 1;
+                            }
+                        }
+                        else if (zero_index == 0)
+                        {
+                            if (tmp.first == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                            {
+                                CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m0);
+                                valList.AddToEnd(fourierSemiring(0,1)); 
+                                zero_index = 0;
+                            }
+                            else if (tmp.second == -1)
+                            {
+                                CFLOBDDReturnMapHandle m;
+                                m.AddToEnd(1);
+                                m.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m);
+                                valList.AddToEnd(fourierSemiring(1,1));
+                            }
+                            else if (tmp.second == 0)
+                            {
+                                CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m01);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                                zero_index = 0;
+                            }
+                            else if (tmp.second == 1)
+                            {
+                                CFLOBDDReturnMapHandle m10; m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m10);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                            }
+                        }
+                        else if (zero_index == 1)
+                        {
+                            if (tmp.first == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                            {
+                                CFLOBDDReturnMapHandle m1; m1.AddToEnd(1); m1.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m1);
+                                valList.AddToEnd(fourierSemiring(0,1)); 
+                                zero_index = 1;
+                            }
+                            if (tmp.second == -1)
+                            {
+                                CFLOBDDReturnMapHandle m;
+                                m.AddToEnd(0);
+                                m.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m);
+                                valList.AddToEnd(fourierSemiring(1,1));
+                            }
+                            else if (tmp.second == 0)
+                            {
+                                CFLOBDDReturnMapHandle m10; m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m10);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                            }
+                            else if (tmp.second == 1)
+                            {
+                                CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m01);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                                zero_index = 1;
+                            }
+                        }
                     }
                     redMapHandle.AddToEnd(i);
                 }
                 g->numExits = 2;
+                redMapHandle.Canonicalize();
+                valList.Canonicalize();
+                WeightedCFLOBDDFourierMulNodeHandle gHandle = WeightedCFLOBDDFourierMulNodeHandle(g);
+                // auto t = gHandle.Reduce(redMapHandle, g->numExits, valList, false);
+                return std::make_pair(gHandle, zero_index);
             }
             else if (flag == 2)
             {
+                WeightedCFLOBDDFourierInternalNode *g = new WeightedCFLOBDDFourierInternalNode(level);
+                ReductionMapHandle redMapHandle;
+                WeightedValuesListHandle<fourierSemiring> valList;
                 WeightedCFLOBDDFourierInternalNode* fh = (WeightedCFLOBDDFourierInternalNode *)f.handleContents; 
-                g->AConnection.entryPointHandle = fh->AConnection.entryPointHandle;
-                g->AConnection.returnMapHandle = fh->AConnection.returnMapHandle;
+                g->AConnection = Connection(fh->AConnection.entryPointHandle->handleContents, fh->AConnection.returnMapHandle);
                 g->numBConnections = fh->numBConnections;
                 g->BConnection = new Connection[g->numBConnections];
                 for (unsigned int i = 0; i < g->numBConnections; i++)
                 {
                     auto tmp = ComputeIQFTNode(level-1, *(fh->BConnection[i].entryPointHandle), N, n, 3, b_vars, actual_level-1);
-                    if (tmp.first == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1]){
-                        CFLOBDDReturnMapHandle m0;
-                        m0.AddToEnd(0); m0.Canonicalize();
-                        g->BConnection[i] = Connection(tmp.first, m0);
-                        valList.AddToEnd(fourierSemiring(0,1));
+                    if (i == 0)
+                    {
+                        CFLOBDDReturnMapHandle m;
+                        for (unsigned int k = 0; k < tmp.first.handleContents->numExits; k++)
+                            m.AddToEnd(k);
+                        m.Canonicalize();
+                        g->BConnection[0] = Connection(tmp.first, m);
+                        zero_index = tmp.second;
+                        if (tmp.first == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                            valList.AddToEnd(fourierSemiring(0,1));
+                        else
+                            valList.AddToEnd(fourierSemiring(1,1));
                     }
                     else
                     {
-                        if (tmp.second == 1){
-                            CFLOBDDReturnMapHandle m10;
-                            m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
-                            g->BConnection[i] = Connection(tmp.first, m10); 
+                        if (zero_index == -1)
+                        {
+                            if (tmp.first == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                            {
+                                CFLOBDDReturnMapHandle m1; m1.AddToEnd(1); m1.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m1);
+                                valList.AddToEnd(fourierSemiring(0,1)); 
+                                zero_index = 1;
+                            }
+                            if (tmp.second == -1)
+                            {
+                                CFLOBDDReturnMapHandle m;
+                                m.AddToEnd(0);
+                                m.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m);
+                                valList.AddToEnd(fourierSemiring(1,1));
+                            }
+                            else if (tmp.second == 0)
+                            {
+                                CFLOBDDReturnMapHandle m10; m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m10);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                                zero_index = 1;
+                            }
+                            else if (tmp.second == 1)
+                            {
+                                CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m01);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                                zero_index = 1;
+                            }
                         }
-                        else if (tmp.second == 0){
-                            CFLOBDDReturnMapHandle m01;
-                            m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                            g->BConnection[i] = Connection(tmp.first, m01); 
+                        else if (zero_index == 0)
+                        {
+                            if (tmp.first == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                            {
+                                CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m0);
+                                valList.AddToEnd(fourierSemiring(0,1)); 
+                                zero_index = 0;
+                            }
+                            else if (tmp.second == -1)
+                            {
+                                CFLOBDDReturnMapHandle m;
+                                m.AddToEnd(1);
+                                m.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m);
+                                valList.AddToEnd(fourierSemiring(1,1));
+                            }
+                            else if (tmp.second == 0)
+                            {
+                                CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m01);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                                zero_index = 0;
+                            }
+                            else if (tmp.second == 1)
+                            {
+                                tmp.first.print(std::cout);
+                                CFLOBDDReturnMapHandle m10; m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m10);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                            }
                         }
-                        valList.AddToEnd(fourierSemiring(1,1));
+                        else if (zero_index == 1)
+                        {
+                            if (tmp.first == WeightedCFLOBDDFourierMulNodeHandle::NoDistinctionNode_Ann[level-1])
+                            {
+                                CFLOBDDReturnMapHandle m1; m1.AddToEnd(1); m1.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m1);
+                                valList.AddToEnd(fourierSemiring(0,1)); 
+                                zero_index = 1;
+                            }
+                            if (tmp.second == -1)
+                            {
+                                CFLOBDDReturnMapHandle m;
+                                m.AddToEnd(0);
+                                m.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m);
+                                valList.AddToEnd(fourierSemiring(1,1));
+                            }
+                            else if (tmp.second == 0)
+                            {
+                                CFLOBDDReturnMapHandle m10; m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m10);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                            }
+                            else if (tmp.second == 1)
+                            {
+                                CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                                g->BConnection[i] = Connection(tmp.first, m01);
+                                valList.AddToEnd(fourierSemiring(1,1)); 
+                                zero_index = 1;
+                            }
+                        }
                     }
                     redMapHandle.AddToEnd(i);
                 }
                 g->numExits = 2;
+                redMapHandle.Canonicalize();
+                valList.Canonicalize();
+                WeightedCFLOBDDFourierMulNodeHandle gHandle = WeightedCFLOBDDFourierMulNodeHandle(g);
+                // auto t = gHandle.Reduce(redMapHandle, g->numExits, valList, false);
+                return std::make_pair(gHandle, zero_index);
             }
             else if (flag == 3)
             {
@@ -2036,8 +2420,8 @@ namespace CFL_OBDD {
                     WeightedCFLOBDDFourierLeafNode* lfh = (WeightedCFLOBDDFourierLeafNode *)fh->AConnection.entryPointHandle->handleContents;
                     fourierSemiring rw = lfh->rweight;
                     BIG_INT v = (N / rw.GetRingSize()) * rw.GetVal();
-                    // std::cout << N << " " << rw << " " << v << std::endl;
                     auto s = convert_to_bitstring(v, std::pow(2, actual_level), b_vars);
+                    std::cout << N << " " << rw << " " << v << " " << s << std::endl;
                     if (s.find('1') == std::string::npos)
                         return std::make_pair(WeightedVectorFourierMul::MkBasisVectorNode(actual_level, s), 1);
                     return std::make_pair(WeightedVectorFourierMul::MkBasisVectorNode(actual_level, s), 0);
@@ -2052,13 +2436,6 @@ namespace CFL_OBDD {
                     return ComputeIQFTNode(level-1, *(fh->BConnection[0].entryPointHandle), N, n - vars, 3, b_vars, actual_level);
                 }
             }
-
-            redMapHandle.Canonicalize();
-            valList.Canonicalize();
-
-            WeightedCFLOBDDFourierMulNodeHandle gHandle = WeightedCFLOBDDFourierMulNodeHandle(g);
-            // auto t = gHandle.Reduce(redMapHandle, g->numExits, valList, false);
-            return std::make_pair(gHandle, -1);
         }
 
 
@@ -2083,13 +2460,14 @@ namespace CFL_OBDD {
                 {
                     index = rand() % 2;
                 }
+                return std::make_pair(fh, index);
                 // if (fh->numExits == 1)
                 // {
-                    WeightedCFLOBDDFourierDontCareNode* g = new WeightedCFLOBDDFourierDontCareNode();
-                    g->lweight = fourierSemiring(1, 1);
-                    g->rweight = fourierSemiring(1, 1);
-                    g->numExits = 1;
-                    return std::make_pair(WeightedCFLOBDDFourierMulNodeHandle(g), index);
+                    // WeightedCFLOBDDFourierDontCareNode* g = new WeightedCFLOBDDFourierDontCareNode();
+                    // g->lweight = fourierSemiring(1, 1);
+                    // g->rweight = fourierSemiring(1, 1);
+                    // g->numExits = 1;
+                    // return std::make_pair(WeightedCFLOBDDFourierMulNodeHandle(g), index);
                 // }
                 // else {
                 //     WeightedCFLOBDDFourierForkNode* g = new WeightedCFLOBDDFourierForkNode();
@@ -2103,32 +2481,34 @@ namespace CFL_OBDD {
             {
                 WeightedCFLOBDDFourierInternalNode* fh = (WeightedCFLOBDDFourierInternalNode *)f.handleContents;
                 auto t = MeasureAndResetNode(level-1, n/2, *(fh->AConnection.entryPointHandle), R);
-                WeightedCFLOBDDFourierInternalNode* g = new WeightedCFLOBDDFourierInternalNode(level);
-                CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
-                g->AConnection = Connection(t.first, m0);
-                g->numBConnections = 1;
-                g->BConnection = new Connection[g->numBConnections];
-                for (long int i = 0; i < g->numBConnections; i++)
-                {
-                    g->BConnection[i] = Connection(*(fh->BConnection[i].entryPointHandle), fh->BConnection[i].returnMapHandle);
-                }
-                g->numExits = fh->numExits;
-                return std::make_pair(WeightedCFLOBDDFourierMulNodeHandle(g), t.second);  
+                return std::make_pair(fh, t.second);
+                // WeightedCFLOBDDFourierInternalNode* g = new WeightedCFLOBDDFourierInternalNode(level);
+                // CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                // g->AConnection = Connection(t.first, m0);
+                // g->numBConnections = 1;
+                // g->BConnection = new Connection[g->numBConnections];
+                // for (long int i = 0; i < g->numBConnections; i++)
+                // {
+                //     g->BConnection[i] = Connection(*(fh->BConnection[i].entryPointHandle), fh->BConnection[i].returnMapHandle);
+                // }
+                // g->numExits = fh->numExits;
+                // return std::make_pair(WeightedCFLOBDDFourierMulNodeHandle(g), t.second);  
             }
             else
             {
                 WeightedCFLOBDDFourierInternalNode* fh = (WeightedCFLOBDDFourierInternalNode *)f.handleContents;
                 auto t = MeasureAndResetNode(level-1, n/2, *(fh->AConnection.entryPointHandle), R);
-                WeightedCFLOBDDFourierInternalNode* g = new WeightedCFLOBDDFourierInternalNode(level);
-                g->AConnection = Connection(t.first, fh->AConnection.returnMapHandle);
-                g->numBConnections = fh->numBConnections;
-                g->BConnection = new Connection[g->numBConnections];
-                for (long int i = 0; i < g->numBConnections; i++)
-                {
-                    g->BConnection[i] = Connection(*(fh->BConnection[i].entryPointHandle), fh->BConnection[i].returnMapHandle);
-                }
-                g->numExits = fh->numExits;
-                return std::make_pair(WeightedCFLOBDDFourierMulNodeHandle(g), t.second); 
+                return std::make_pair(fh, t.second);
+                // WeightedCFLOBDDFourierInternalNode* g = new WeightedCFLOBDDFourierInternalNode(level);
+                // g->AConnection = Connection(t.first, fh->AConnection.returnMapHandle);
+                // g->numBConnections = fh->numBConnections;
+                // g->BConnection = new Connection[g->numBConnections];
+                // for (long int i = 0; i < g->numBConnections; i++)
+                // {
+                //     g->BConnection[i] = Connection(*(fh->BConnection[i].entryPointHandle), fh->BConnection[i].returnMapHandle);
+                // }
+                // g->numExits = fh->numExits;
+                // return std::make_pair(WeightedCFLOBDDFourierMulNodeHandle(g), t.second); 
             }
         }
 
@@ -2139,6 +2519,7 @@ namespace CFL_OBDD {
             {
                 WeightedCFLOBDDFourierLeafNode* fh = (WeightedCFLOBDDFourierLeafNode *)f.handleContents;
                 WeightedCFLOBDDFourierLeafNode* g = fh;
+                g->lweight = fourierSemiring(1, 1);
                 g->rweight = fourierSemiring(1, 1);
                 return WeightedCFLOBDDFourierMulNodeHandle(g);  
             }

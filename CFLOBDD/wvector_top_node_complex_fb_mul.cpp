@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cstdarg>
 #include <chrono>
+#include <map>
 #include <random>
 #include <unordered_map>
 #include "wvector_top_node_complex_fb_mul.h"
@@ -124,7 +125,7 @@ namespace CFL_OBDD {
 		}
 
 //#ifdef PATH_COUNTING_ENABLED
-		std::string SamplingTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::mt19937 mt, std::uniform_real_distribution<double> dis, bool VocTwo, std::string func)
+		std::string SamplingTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::mt19937_64 mt, std::uniform_real_distribution<double> dis, bool VocTwo, std::string func)
 		{
 			if (n->rootConnection.factor == 0)
 				return "";
@@ -200,6 +201,28 @@ namespace CFL_OBDD {
 			// else {
 			// 	std::cerr << "Cannot print matrix: level must be in [1 .. 4]" << std::endl;
 			// }
+		}
+
+		void PrintVectorTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out, unsigned int vars_count)
+		{
+			Hashtable<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, std::vector<std::vector<std::pair<std::pair<std::string, std::string>, BIG_COMPLEX_FLOAT>>>> hashMap;
+			auto ans = PrintVectorNode(hashMap, n->rootConnection.entryPointHandle->handleContents);
+			std::map<std::string, BIG_COMPLEX_FLOAT> info;
+			for (unsigned int i = 0; i < ans.size(); i++)
+			{
+				for (unsigned int j = 0; j < ans[i].size(); j++)
+				{
+					if (ans[i][j].first.first.substr(vars_count).find('1') == std::string::npos)
+						info.insert(std::make_pair(ans[i][j].first.first.substr(0, vars_count), ans[i][j].second * n->rootConnection.factor));
+					// info.insert(std::make_pair(ans[i][j].first, ans[i][j].second * n->rootConnection.factor));
+				}
+			}
+
+			for (auto it = info.begin(); it != info.end(); it++)
+			{
+				std::cout << it->first << " " << it->second << std::endl;
+			}
+
 		}
 
 		long double getNonZeroProbabilityTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n)

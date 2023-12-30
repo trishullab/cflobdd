@@ -50,6 +50,34 @@ unsigned int WeightedMatMultMapBody<T>::Hash(unsigned int modsize)
 	return hvalue;
 }
 
+template <>
+unsigned int WeightedMatMultMapBody<BIG_COMPLEX_FLOAT>::Hash(unsigned int modsize)
+{
+	/*if (modsize == HASHSETBASE)
+		return hashCheck;*/
+	unsigned int hvalue = 0;
+	boost::hash<BIG_COMPLEX_FLOAT> boost_hash;
+	for (auto &i : map)
+	{
+		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second))) % modsize;
+	}
+	return hvalue;
+}
+
+template <>
+unsigned int WeightedMatMultMapBody<fourierSemiring>::Hash(unsigned int modsize)
+{
+	/*if (modsize == HASHSETBASE)
+		return hashCheck;*/
+	unsigned int hvalue = 0;
+	boost::hash<fourierSemiring> boost_hash;
+	for (auto &i : map)
+	{
+		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second))) % modsize;
+	}
+	return hvalue;
+}
+
 template <typename T>
 void WeightedMatMultMapBody<T>::setHashCheck()
 {
@@ -246,6 +274,25 @@ void WeightedMatMultMapHandle<T>::Add(const INT_PAIR& p, T& v)
 }
 
 template <>
+void WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>::Add(const INT_PAIR& p, BIG_COMPLEX_FLOAT& v)
+{
+	assert(mapContents->refCount <= 1);
+	auto it = mapContents->map.find(p);
+    if (it == mapContents->map.end()){
+        mapContents->map.emplace(p, v);
+    }
+    else{
+        it->second += v;
+		if (boost::multiprecision::abs(it->second.real()) < FLT_EPSILON)
+			it->second = BIG_COMPLEX_FLOAT(0, it->second.imag());
+		// if (boost::multiprecision::abs(it->second.imag()) < FLT_EPSILON)
+		// 	it->second = BIG_COMPLEX_FLOAT(it->second.real(), 0);
+        if (it->second == 0)
+            mapContents->map.erase(it);
+    }
+}
+
+template <>
 void WeightedMatMultMapHandle<fourierSemiring>::Add(const INT_PAIR& p, fourierSemiring& v)
 {
 	assert(mapContents->refCount <= 1);
@@ -331,8 +378,10 @@ void WeightedMatMultMapHandle<T>::Canonicalize()
     //         ++it;
     // }
 
-    if (mapContents->map.empty())
+    if (mapContents->map.empty()){
         mapContents->map.insert(std::make_pair(std::make_pair(-1, -1), 0));
+		mapContents->contains_zero_val = true;
+	}
 
 	WeightedMatMultMapBody<T> *answerContents;
 	mapContents->setHashCheck();
@@ -357,8 +406,10 @@ template <>
 void WeightedMatMultMapHandle<fourierSemiring>::Canonicalize()
 {
 
-    if (mapContents->map.empty())
+    if (mapContents->map.empty()){
         mapContents->map.insert(std::make_pair(std::make_pair(-1, -1), fourierSemiring(0, 1)));
+		mapContents->contains_zero_val = true;
+	}
 
 	WeightedMatMultMapBody<fourierSemiring> *answerContents;
 	mapContents->setHashCheck();
@@ -377,6 +428,7 @@ void WeightedMatMultMapHandle<fourierSemiring>::Canonicalize()
 		}
 	}
 }
+
 
 template <typename T>
 size_t WeightedMatMultMapHandle<T>::getHashCheck()

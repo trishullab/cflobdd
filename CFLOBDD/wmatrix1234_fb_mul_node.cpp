@@ -93,7 +93,7 @@ namespace CFL_OBDD {
             WeightedCFLOBDDFloatBoostInternalNode *n = new WeightedCFLOBDDFloatBoostInternalNode(i);
             if (i == 1) {  // Base case
 
-                WeightedCFLOBDDFloatBoostMulNodeHandle temp = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(1, 1));
+                WeightedCFLOBDDFloatBoostMulNodeHandle temp = WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle;
                 CFLOBDDReturnMapHandle m01;
                 m01.AddToEnd(0);
                 m01.AddToEnd(1);
@@ -101,7 +101,7 @@ namespace CFL_OBDD {
                 n->AConnection = Connection(temp, m01);
                 n->numBConnections = 2;
                 n->BConnection = new Connection[n->numBConnections];
-                WeightedCFLOBDDFloatBoostMulNodeHandle b0 = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostDontCareNode(1, 1));
+                WeightedCFLOBDDFloatBoostMulNodeHandle b0 = WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle;
                 WeightedCFLOBDDFloatBoostMulNodeHandle b1 = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostDontCareNode(1, -1));
                 CFLOBDDReturnMapHandle m0;
                 m0.AddToEnd(0);
@@ -126,6 +126,44 @@ namespace CFL_OBDD {
     #endif
             return WeightedCFLOBDDFloatBoostMulNodeHandle(n);
         } // MkWalshInterleavedNode
+
+
+        WeightedCFLOBDDFloatBoostMulNodeHandle MkNegationMatrixInterleavedNode(unsigned int level)
+        {
+            WeightedCFLOBDDFloatBoostInternalNode *n;
+
+            if (level == 0) {
+                return WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle;
+            }
+            else if (level == 1) {
+                n = new WeightedCFLOBDDFloatBoostInternalNode(level);
+
+                WeightedCFLOBDDFloatBoostMulNodeHandle temp = WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle;
+                n->AConnection = Connection(temp, commonly_used_return_maps[2]);//m01
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                n->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, commonly_used_return_maps[2]);//m01
+                n->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, commonly_used_return_maps[3]);//m10
+            }
+            else {  // Create an appropriate CFLOBDDInternalNode
+                n = new WeightedCFLOBDDFloatBoostInternalNode(level);
+
+                WeightedCFLOBDDFloatBoostMulNodeHandle temp = MkNegationMatrixInterleavedNode(level - 1);
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                n->AConnection = Connection(temp, m01);//m01
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                n->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], m0);
+                n->BConnection[1] = Connection(temp, m01);
+            }
+            n->numExits = 2;
+    #ifdef PATH_COUNTING_ENABLED
+            n->InstallPathCounts();
+    #endif
+            return WeightedCFLOBDDFloatBoostMulNodeHandle(n);
+        } // MkIdRelationInterleavedNode
 
         WeightedCFLOBDDFloatBoostMulNodeHandle KroneckerProduct2VocsNode(WeightedCFLOBDDFloatBoostMulNodeHandle m1, WeightedCFLOBDDFloatBoostMulNodeHandle m2, 
             int zero_index_m1, int zero_index_m2)
@@ -294,6 +332,48 @@ namespace CFL_OBDD {
             return std::make_tuple(reduced_n.first, returnMapHandle, factor);
         }
 
+        std::pair<bool, BIG_FLOAT> compare(WeightedMatMultMapHandle<BIG_FLOAT>& r1, WeightedMatMultMapHandle<BIG_FLOAT>& r2)
+        {
+            BIG_FLOAT factor = 1;
+            bool first = true;
+            if (r1.mapContents->contains_zero_val == true && r2.mapContents->contains_zero_val == true)
+            {
+                return std::make_pair(true, 0);
+            }
+            else if (r1.mapContents->contains_zero_val == true || r2.mapContents->contains_zero_val == true)
+            {
+                return std::make_pair(false, 1);
+            }
+            else
+            {
+                auto it1 = r1.mapContents->map.begin();
+                auto it2 = r2.mapContents->map.begin();
+                for (it1 = r1.mapContents->map.begin(), it2 = r2.mapContents->map.begin();
+                        it1 != r1.mapContents->map.end() && it2 != r2.mapContents->map.end();
+                        it1++, it2++)
+                {
+                    if (it1->first == it2->first)
+                    {
+                        if (first)
+                            factor = it2->second / it1->second;
+                        else{
+                            BIG_FLOAT f = it2->second / it1->second;
+                            if (f != factor)
+                                return std::make_pair(false, 1);
+                        }
+                        first = false;
+                    }
+                    else
+                    {
+                        return std::make_pair(false, 1);
+                    }
+                }
+                if (it1 != r1.mapContents->map.end() || it2 != r2.mapContents->map.end())
+                    return std::make_pair(false, 1);
+                return std::make_pair(true, factor);
+            }
+        }
+
         MatMultReturnT
 		MatrixMultiplyV4Node(WeightedCFLOBDDFloatBoostMulNodeHandle c1, WeightedCFLOBDDFloatBoostMulNodeHandle c2, int zero_exit_1, int zero_exit_2)
         {
@@ -458,150 +538,302 @@ namespace CFL_OBDD {
                     v4.Add(std::make_pair(c1_internal->BConnection[M1_numB-1].returnMapHandle[0], c2_internal->BConnection[0].returnMapHandle[M2_b0_numE-1]), c0b1);
                 v4.Canonicalize();
 
-                if (v1 == v3 && v2 == v4){
-                    CFLOBDDReturnMapHandle m0;
-                    m0.AddToEnd(0); m0.Canonicalize();
-                    if (v1 == v2){
-                        g->numBConnections = 1;
-                        g->BConnection = new Connection[g->numBConnections];
-                        // if (v1.mapContents->contains_zero_val == true){
-                        //     g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
-                        // }
-                        // else {
-                            g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
-                            g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0); 
-                        // }
-                        reductionMapHandle.AddToEnd(0);
-                        valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
-                        g_return_map.AddToEnd(v1);
-                    }
-                    else{
-                        g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
-                        g->numBConnections = 1;
-                        g->BConnection = new Connection[g->numBConnections];
-                        CFLOBDDReturnMapHandle m01;
-                        m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                        // if (v1.mapContents->contains_zero_val == true)
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m01);
-                        // else if (v2.mapContents->contains_zero_val == true)
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
-                        // else
-                            g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01); 
-                        reductionMapHandle.AddToEnd(0);
-                        reductionMapHandle.AddToEnd(1);
-                        valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
-                        valList.AddToEnd(v2.mapContents->contains_zero_val ? 0 : 1);
-                        g_return_map.AddToEnd(v1); 
-                        g_return_map.AddToEnd(v2); 
+                // if (v1 == v3 && v2 == v4){
+                //     CFLOBDDReturnMapHandle m0;
+                //     m0.AddToEnd(0); m0.Canonicalize();
+                //     if (v1 == v2){
+                //         g->numBConnections = 1;
+                //         g->BConnection = new Connection[g->numBConnections];
+                //         g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
+                //         g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0); 
+                //         reductionMapHandle.AddToEnd(0);
+                //         valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
+                //         g_return_map.AddToEnd(v1);
+                //     }
+                //     else{
+                //         g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
+                //         g->numBConnections = 1;
+                //         g->BConnection = new Connection[g->numBConnections];
+                //         CFLOBDDReturnMapHandle m01;
+                //         m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                //         g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01); 
+                //         reductionMapHandle.AddToEnd(0);
+                //         reductionMapHandle.AddToEnd(1);
+                //         valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
+                //         valList.AddToEnd(v2.mapContents->contains_zero_val ? 0 : 1);
+                //         g_return_map.AddToEnd(v1); 
+                //         g_return_map.AddToEnd(v2); 
+                //     }
+                // }
+                // else
+                // {
+                //     CFLOBDDReturnMapHandle m01;
+                //     m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                //     g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                //     g->numBConnections = 2;
+                //     g->BConnection = new Connection[2];
+                //     if (v1 == v2)
+                //     {
+                //         CFLOBDDReturnMapHandle m0;
+                //         m0.AddToEnd(0); m0.Canonicalize();
+                //         g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
+                //         g_return_map.AddToEnd(v1);
+                //         reductionMapHandle.AddToEnd(0);
+                //         valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
+                //     }
+                //     else{
+                //         g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                //         g_return_map.AddToEnd(v1);
+                //         g_return_map.AddToEnd(v2);
+                //         reductionMapHandle.AddToEnd(0);
+                //         reductionMapHandle.AddToEnd(1);
+                //         valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
+                //         valList.AddToEnd(v2.mapContents->contains_zero_val ? 0 : 1);
+                //     }
+                //     if (v3 == v4)
+                //     {
+                //         int k = 0;
+                //         for (k = 0; k < g_return_map.Size(); k++)
+                //         {
+                //             if (g_return_map[k] == v3)
+                //                 break;
+                //         }
+                //         CFLOBDDReturnMapHandle m;
+                //         m.AddToEnd(k); m.Canonicalize();
+                //         g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m);
+                //         if (k >= g_return_map.Size()){
+                //             g_return_map.AddToEnd(v3);
+                //             reductionMapHandle.AddToEnd(k);
+                //             valList.AddToEnd(v3.mapContents->contains_zero_val ? 0 : 1);
+                //         }
+                //     }
+                //     else
+                //     {
+                //         int k1 = g_return_map.Size(), k2 = -1, k = 0;
+                //         for (k = 0; k < g_return_map.Size(); k++)
+                //         {
+                //             if (g_return_map[k] == v3){
+                //                 k1 = k;
+                //             }
+                //             else if (g_return_map[k] == v4){
+                //                 k2 = k;
+                //             }
+                //         }
+                //         if (k2 == -1){
+                //             k2 = std::max(k1, k-1) + 1;
+                //         }
+                //         CFLOBDDReturnMapHandle m1;
+                //         m1.AddToEnd(k1); m1.AddToEnd(k2); m1.Canonicalize();
+                //         g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m1);
+                //         if (k1 >= k){
+                //             g_return_map.AddToEnd(v3);
+                //             reductionMapHandle.AddToEnd(k1);
+                //             valList.AddToEnd(v3.mapContents->contains_zero_val ? 0 : 1);
+                //         }
+                //         if (k2 >= k){
+                //             g_return_map.AddToEnd(v4);
+                //             reductionMapHandle.AddToEnd(k2);
+                //             valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
+                //         }
+                //     }
+                // }
+
+            
+            
+                g_return_map.AddToEnd(v1);
+                valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
+                reductionMapHandle.AddToEnd(0);
+
+                auto v2_c = compare(v1, v2);
+                Connection B1;
+
+                if (v2_c.first == true)
+                {
+                    CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                    if (valList[0] == 0)
+                        B1 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
+                    else
+                    {
+                        auto x = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostDontCareNode(1, v2_c.second));
+                        B1 = Connection(x, m0);
                     }
                 }
                 else
                 {
-                    CFLOBDDReturnMapHandle m01;
-                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                    g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
-                    int la = 1, ra = 1;
-                    g->numBConnections = 2;
-                    g->BConnection = new Connection[2];
-                    if (v1 == v2)
+                    g_return_map.AddToEnd(v2);
+                    valList.AddToEnd(v2.mapContents->contains_zero_val ? 0 : 1);
+                    reductionMapHandle.AddToEnd(1);
+                    CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    B1 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                }
+
+                auto v3_c = compare(v1, v3);
+                Connection B2;
+
+                if (v3_c.first == true)
+                {
+                    if (v3.mapContents->contains_zero_val == true)
                     {
-                        CFLOBDDReturnMapHandle m0;
-                        m0.AddToEnd(0); m0.Canonicalize();
-                        // if (v1.mapContents->contains_zero_val == true){
-                        //     la = 0;
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
-                        // }
-                        // else{
-                        //     la = 1;
-                            g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
-                        // }
-                        g_return_map.AddToEnd(v1);
-                        reductionMapHandle.AddToEnd(0);
-                        valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
-                    }
-                    else{
-                        la = 1;
-                        // if (v1.mapContents->contains_zero_val == true)
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m01);
-                        // else if (v2.mapContents->contains_zero_val == true)
-                        //     g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
-                        // else
-                            g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
-                        g_return_map.AddToEnd(v1);
-                        g_return_map.AddToEnd(v2);
-                        reductionMapHandle.AddToEnd(0);
-                        reductionMapHandle.AddToEnd(1);
-                        valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
-                        valList.AddToEnd(v2.mapContents->contains_zero_val ? 0 : 1);
-                    }
-                    if (v3 == v4)
-                    {
-                        int k = 0;
-                        for (k = 0; k < g_return_map.Size(); k++)
+                        if (v3 == v4)
                         {
-                            if (g_return_map[k] == v3)
-                                break;
+                            CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
                         }
-                        CFLOBDDReturnMapHandle m;
-                        m.AddToEnd(k); m.Canonicalize();
-                        // if (v3.mapContents->contains_zero_val == true)
-                        // {
-                        //     ra = 0;
-                        //     g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m);
-                        // }
-                        // else {
-                        //     ra = 1;
-                            g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m);
-                        // }
-                        if (k >= g_return_map.Size()){
-                            g_return_map.AddToEnd(v3);
-                            reductionMapHandle.AddToEnd(k);
-                            valList.AddToEnd(v3.mapContents->contains_zero_val ? 0 : 1);
+                        else if (v2 == v4)
+                        {
+                            CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                        }
+                        else 
+                        {
+                            CFLOBDDReturnMapHandle m02; m02.AddToEnd(0); m02.AddToEnd(2); m02.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m02);
+                            g_return_map.AddToEnd(v4);
+                            valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
+                            reductionMapHandle.AddToEnd(2);
+                        }
+                    }
+                    else if (v4.mapContents->contains_zero_val == true)
+                    {
+                        if (v2 == v4)
+                        {
+                            CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                            auto x = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(v3_c.second, 0));
+                            B2 = Connection(x, m01);
+                        }
+                        else 
+                        {
+                            CFLOBDDReturnMapHandle m02; m02.AddToEnd(0); m02.AddToEnd(2); m02.Canonicalize();
+                            auto x = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(v3_c.second, 0));
+                            B2 = Connection(x, m02);
+                            g_return_map.AddToEnd(v4);
+                            valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
+                            reductionMapHandle.AddToEnd(2);
                         }
                     }
                     else
                     {
-                        ra = 1;
-                        int k1 = g_return_map.Size(), k2 = -1, k = 0;
-                        for (k = 0; k < g_return_map.Size(); k++)
+                        auto v4_c = compare(v1, v4);
+                        if (v4_c.first == true)
                         {
-                            if (g_return_map[k] == v3){
-                                k1 = k;
+                            CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                            auto x = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(v3_c.second, v4_c.second));
+                            B2 = Connection(x, m0);
+                        }
+                        else
+                        {
+                            if (v2 == v4)
+                            {
+                                CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                                B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01); 
                             }
-                            else if (g_return_map[k] == v4){
-                                k2 = k;
+                            else 
+                            {
+                                CFLOBDDReturnMapHandle m02; m02.AddToEnd(0); m02.AddToEnd(2); m02.Canonicalize();
+                                B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m02);
+                                g_return_map.AddToEnd(v4);
+                                valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
+                                reductionMapHandle.AddToEnd(2);
                             }
-                        }
-                        if (k2 == -1){
-                            k2 = std::max(k1, k-1) + 1;
-                        }
-                        CFLOBDDReturnMapHandle m1;
-                        m1.AddToEnd(k1); m1.AddToEnd(k2); m1.Canonicalize();
-                        // if (v3.mapContents->contains_zero_val == true)
-                        //     g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m1);
-                        // else if (v4.mapContents->contains_zero_val == true)
-                        //     g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m1);
-                        // else
-                            g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m1);
-                        if (k1 >= k){
-                            g_return_map.AddToEnd(v3);
-                            reductionMapHandle.AddToEnd(k1);
-                            valList.AddToEnd(v3.mapContents->contains_zero_val ? 0 : 1);
-                        }
-                        if (k2 >= k){
-                            g_return_map.AddToEnd(v4);
-                            reductionMapHandle.AddToEnd(k2);
-                            valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
                         }
                     }
-                    // if (la == 1 && ra == 1)
-                    //     g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
-                    // else if (la == 1 && ra == 0)
-                    //     g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
-                    // else if (la == 0 && ra == 1)
-                    //     g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m01);
-                    // assert(!(la == 0 && ra == 0));
+                }
+                else 
+                {
+                    if (v2 == v3)
+                    {
+                        if (v2 == v4)
+                        {
+                            CFLOBDDReturnMapHandle mk; mk.AddToEnd(g_return_map.Size()-1); mk.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, mk);
+                        }
+                        else if (v1 == v4)
+                        {
+                            CFLOBDDReturnMapHandle mk; mk.AddToEnd(1); mk.AddToEnd(0); mk.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, mk);
+                        }
+                        else
+                        {
+                            auto v4_c = compare(v3, v4);
+                            if (v4_c.first == true)
+                            {
+                                CFLOBDDReturnMapHandle m2; m2.AddToEnd(g_return_map.Size()-1); m2.Canonicalize();
+                                if (valList[valList.Size()-1] == 0)
+                                    B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m2);
+                                else
+                                {
+                                    auto x = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostDontCareNode(1, v4_c.second));
+                                    B2 = Connection(x, m2);
+                                } 
+                            }
+                            else
+                            {
+                                valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
+                                reductionMapHandle.AddToEnd(g_return_map.Size());
+                                CFLOBDDReturnMapHandle m23; m23.AddToEnd(g_return_map.Size()-1); m23.AddToEnd(g_return_map.Size()); m23.Canonicalize();
+                                B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m23);
+                                g_return_map.AddToEnd(v4);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        g_return_map.AddToEnd(v3);
+                        reductionMapHandle.AddToEnd(g_return_map.Size()-1);
+                        valList.AddToEnd(v3.mapContents->contains_zero_val ? 0 : 1);
+                        if (v1 == v4)
+                        {
+                            CFLOBDDReturnMapHandle m20; m20.AddToEnd(g_return_map.Size()-1); m20.AddToEnd(0); m20.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m20);
+                        }
+                        else if (v2 == v4)
+                        {
+                            CFLOBDDReturnMapHandle m21; m21.AddToEnd(g_return_map.Size()-1); m21.AddToEnd(g_return_map.Size()-2); m21.Canonicalize();
+                            B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m21); 
+                        }
+                        else
+                        {
+                            auto v4_c = compare(v3, v4);
+                            if (v4_c.first == true)
+                            {
+                                CFLOBDDReturnMapHandle m2; m2.AddToEnd(g_return_map.Size()-1); m2.Canonicalize();
+                                if (valList[valList.Size()-1] == 0)
+                                    B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m2);
+                                else
+                                {
+                                    auto x = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostDontCareNode(1, v4_c.second));
+                                    B2 = Connection(x, m2);
+                                } 
+                            }
+                            else
+                            {
+                                g_return_map.AddToEnd(v4);
+                                valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
+                                reductionMapHandle.AddToEnd(g_return_map.Size()-1);
+                                CFLOBDDReturnMapHandle m23; m23.AddToEnd(g_return_map.Size()-2); m23.AddToEnd(g_return_map.Size()-1); m23.Canonicalize();
+                                B2 = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m23);
+                            }
+                        }
+                    }
+                }
+
+            
+                if (B1 == B2)
+                {
+                    CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
+                    g->numBConnections = 1;
+                    g->BConnection = new Connection[1];
+                    g->BConnection[0] = B1;
+                }
+                else
+                {
+                    CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    g->BConnection[0] = B1; 
+                    g->BConnection[1] = B2;
                 }
 
             }
@@ -640,12 +872,17 @@ namespace CFL_OBDD {
                     mI.AddToEnd(i);
                 mI.Canonicalize();
                 top_factor = std::get<2>(aa);
-                g->AConnection = Connection(std::get<0>(aa), mI);
-                g->numBConnections = mI.Size();
-                g->BConnection = new Connection[g->numBConnections];
+                // g->AConnection = Connection(std::get<0>(aa), mI);
+                // g->numBConnections = mI.Size();
+                // g->BConnection = new Connection[g->numBConnections];
+                auto aHandle = std::get<0>(aa);
                 g->numExits = 0;
                 std::unordered_map<unsigned int, unsigned int> mapFromHandleToIndex;
-                for (unsigned int i = 0; i < g->numBConnections; i++){
+                std::unordered_map<unsigned int, unsigned int> mapFromNodeHandleToIndex;
+                std::vector<Connection*> nodeHandles;
+                BIG_FLOAT factor = 1;
+                bool factor_first = true;
+                for (unsigned int i = 0; i < mI.Size(); i++){
                     WeightedMatMultMapHandle<BIG_FLOAT> matmult_returnmap = std::get<1>(aa)[i];
                     WeightedCFLOBDDFloatBoostMulNodeHandle ans;
                     CFLOBDDMatMultMapHandle ans_matmult_map;
@@ -702,6 +939,8 @@ namespace CFL_OBDD {
                         new_bb_return.Canonicalize();
                         if (first){
                             ans = std::get<0>(bb_old);
+                            // n2.print(std::cout);
+                            // ans.print(std::cout);
                             ans_matmult_map = new_bb_return;
                             ans_factor = v.second * std::get<2>(bb_old);
                             first = false;
@@ -715,35 +954,114 @@ namespace CFL_OBDD {
                         }
                     }
 
+                    if (ans == WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[ans.handleContents->level])
+                        ans_factor = 0;
+
+                    if (factor_first && ans_factor != 0)
+                    {
+                        factor = ans_factor;
+                        ans_factor = 1.0;
+                        factor_first = false;
+                    }
+                    else
+                    {
+                        ans_factor = ans_factor/factor;
+                    }
+
+                    // CFLOBDDReturnMapHandle ans_return_map;
+                    // for (unsigned int j = 0; j < ans_matmult_map.Size(); j++){
+                    //     unsigned int map_hash_check = ans_matmult_map[j].getHashCheck();
+                    //     if (mapFromHandleToIndex.find(map_hash_check) == mapFromHandleToIndex.end()){
+                    //         ans_return_map.AddToEnd(g->numExits++);
+                    //         g_return_map.AddToEnd(ans_matmult_map[j]);
+                    //         reductionMapHandle.AddToEnd(g_return_map.Size() - 1);
+                    //         mapFromHandleToIndex[map_hash_check] = g_return_map.Size() - 1;
+                    //         if (ans_matmult_map[j].mapContents->contains_zero_val == true)
+                    //             valList.AddToEnd(0.0);
+                    //         else
+                    //             valList.AddToEnd(ans_factor);
+                    //     }
+                    //     else{
+                    //         unsigned int index = mapFromHandleToIndex[map_hash_check];
+                    //         ans_return_map.AddToEnd(g->numExits++);
+                    //         // ans_return_map.AddToEnd(index);
+                    //         reductionMapHandle.AddToEnd(index);
+                    //         if (ans_matmult_map[j].mapContents->contains_zero_val == true)
+                    //             valList.AddToEnd(0.0);
+                    //         else
+                    //             valList.AddToEnd(ans_factor); 
+                    //     }
+                    // }
+                    // ans_return_map.Canonicalize();
+                    // g->BConnection[i] = Connection(ans, ans_return_map);
+
                     CFLOBDDReturnMapHandle ans_return_map;
                     for (unsigned int j = 0; j < ans_matmult_map.Size(); j++){
                         unsigned int map_hash_check = ans_matmult_map[j].getHashCheck();
                         if (mapFromHandleToIndex.find(map_hash_check) == mapFromHandleToIndex.end()){
                             ans_return_map.AddToEnd(g->numExits++);
                             g_return_map.AddToEnd(ans_matmult_map[j]);
-                            reductionMapHandle.AddToEnd(g_return_map.Size() - 1);
                             mapFromHandleToIndex[map_hash_check] = g_return_map.Size() - 1;
-                            if (ans_matmult_map[j].mapContents->contains_zero_val == true)
-                                valList.AddToEnd(0.0);
-                            else
-                                valList.AddToEnd(ans_factor);
                         }
                         else{
                             unsigned int index = mapFromHandleToIndex[map_hash_check];
-                            ans_return_map.AddToEnd(g->numExits++);
-                            // ans_return_map.AddToEnd(index);
-                            reductionMapHandle.AddToEnd(index);
-                            if (ans_matmult_map[j].mapContents->contains_zero_val == true)
-                                valList.AddToEnd(0.0);
-                            else
-                                valList.AddToEnd(ans_factor); 
+                            ans_return_map.AddToEnd(index);
                         }
                     }
                     ans_return_map.Canonicalize();
-                    g->BConnection[i] = Connection(ans, ans_return_map);
+                    auto c = new Connection(ans, ans_return_map);
+                    unsigned int k = 0;
+                    for (k = 0; k < nodeHandles.size(); k++)
+                    {
+                        if (*(nodeHandles[k]) == *c)
+                            break;
+                    }
+                    if (k == nodeHandles.size())
+                    {
+                        reductionMapHandle.AddToEnd(nodeHandles.size());
+                        nodeHandles.push_back(c);
+                    }
+                    else
+                    {
+                        reductionMapHandle.AddToEnd(k);
+                    }
+                    
+                    valList.AddToEnd(ans_factor);
                 }
 
+             
+                g_return_map.Canonicalize();
+                reductionMapHandle.Canonicalize();
+                valList.Canonicalize();
+                g->numExits = g_return_map.Size();
+
+        #ifdef PATH_COUNTING_ENABLED
+                g->InstallPathCounts();
+        #endif
+
+                MatMultReturnT ret;
+                g->numBConnections = nodeHandles.size();
+                g->BConnection = new Connection[g->numBConnections];
+                for (unsigned int i = 0; i < nodeHandles.size(); i++)
+                {
+                    g->BConnection[i] = *nodeHandles[i];
+                }
+                // std::cout << "factor: " << factor << std::endl;
+                auto tmp = aHandle.Reduce(reductionMapHandle, g->numBConnections, valList, true);
+                CFLOBDDReturnMapHandle mA;
+                for (unsigned int i = 0; i < nodeHandles.size(); i++)
+                    mA.AddToEnd(i);
+                mA.Canonicalize();
+                g->AConnection = Connection(tmp.first, mA);
+                WeightedCFLOBDDFloatBoostMulNodeHandle gHandle(g);
+                ret = std::make_tuple(gHandle, g_return_map, tmp.second * top_factor * factor);
+                matmult_hash.insert(std::make_pair(mmp, ret));
+                for (unsigned int k = 0; k < nodeHandles.size(); k++)
+                    delete nodeHandles[k];
+                return ret;
+
             }
+
             
             g_return_map.Canonicalize();
             reductionMapHandle.Canonicalize();
@@ -765,9 +1083,9 @@ namespace CFL_OBDD {
             }
             else
             {
+                // abort();
                 auto tmp = gHandle.Reduce(reductionMapHandle, g_return_map.Size(), valList, true);
                 ret = std::make_tuple(tmp.first, g_return_map, tmp.second * top_factor);
-                // ret = std::make_tuple(gHandle, g_return_map, top_factor);
             }
             matmult_hash.insert(std::make_pair(mmp, ret));
             return ret;
@@ -791,8 +1109,8 @@ namespace CFL_OBDD {
                     g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
                     g->numBConnections = 2;
                     g->BConnection = new Connection[g->numBConnections];
-                    auto b0 = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(1.0,0.0));
-                    auto b1 = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(0.0,1.0));
+                    auto b0 = WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
+                    auto b1 = WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
                     g->BConnection[0] = Connection(b0, m01);
                     CFLOBDDReturnMapHandle m12;
                     m12.AddToEnd(1); m12.AddToEnd(2); m12.Canonicalize();
@@ -806,8 +1124,8 @@ namespace CFL_OBDD {
                     g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
                     g->numBConnections = 2;
                     g->BConnection = new Connection[g->numBConnections];
-                    auto b0 = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(1.0,0.0));
-                    auto b1 = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(0.0,1.0));
+                    auto b0 = WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
+                    auto b1 = WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
                     g->BConnection[0] = Connection(b1, m01);
                     CFLOBDDReturnMapHandle m10;
                     m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
@@ -939,6 +1257,366 @@ namespace CFL_OBDD {
             WeightedCFLOBDDFloatBoostMulNodeHandle gHandle = WeightedCFLOBDDFloatBoostMulNodeHandle(g);
             cnot_hashMap.insert(std::make_pair(p, gHandle));
             return gHandle;
+        }
+
+        WeightedCFLOBDDFloatBoostMulNodeHandle MkCCNOTNode(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled)
+        {
+            WeightedCFLOBDDFloatBoostInternalNode *g = new WeightedCFLOBDDFloatBoostInternalNode(level);
+
+            if (level == 1)
+            {
+                if (controller1 == 0 || controller2 == 0)
+                {
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[g->numBConnections];
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
+                    CFLOBDDReturnMapHandle m12;
+                    m12.AddToEnd(1); m12.AddToEnd(2); m12.Canonicalize();
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m12);
+                    g->numExits = 3;
+                }
+                else if (controlled == 0)
+                {
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[g->numBConnections];
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m01);
+                    CFLOBDDReturnMapHandle m10;
+                    m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m10);
+                    g->numExits = 2;
+                }
+            }
+            else
+            {
+                if (controller1 < n/2 && controller2 < n/2 && controlled < n/2 && controlled >= 0 && controller1 >= 0 && controller2 >= 0)
+                {
+                    // Case 1: CR1, CR2 and CD in A Connection
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    auto aa = MkCCNOTNode(level-1, n/2, controller1, controller2, controlled);
+                    g->AConnection = Connection(aa, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    CFLOBDDReturnMapHandle m1;
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 2;
+                }
+                else if (controller1 >= n/2 && controller2 >= n/2 && controlled >= n/2 && controller1 >= 0 && controller2 >= 0 && controlled >= 0)
+                {
+                    // Case 2: CR1, CR2 and CD in B Connection
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    auto bb = MkCCNOTNode(level-1, n/2, controller1 - n/2, controller2 - n/2, controlled - n/2);
+                    g->BConnection[0] = Connection(bb, m01);
+                    CFLOBDDReturnMapHandle m1;
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 2;
+                }
+                else if (controller1 < n/2 && controller2 >= n/2 && controlled >= n/2 && controller1 >= 0 && controlled >= 0 && controller2 >= 0)
+                {
+                    // Case 3: CR1 in A, CR2 and CD in B
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    auto aa = MkCCNOTNode(level-1, n/2, controller1, -1, -1);
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1, m10;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                    auto bb = MkCCNOTNode(level-1, n/2, -1, controller2 - n/2, controlled - n/2);
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(bb, m01);
+                    g->numExits = 2;
+                }
+                else if (controlled == -1 && controller1 < n/2 && controller1 >= 0 && controller2 == -1)
+                {
+                    // Case 4: CR1 in A and CR2 == -1 and CD == -1
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    auto aa = MkCCNOTNode(level-1, n/2, controller1, -1, -1);
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[g->numBConnections];
+                    CFLOBDDReturnMapHandle m01, m1, m21;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m21.AddToEnd(2); m21.AddToEnd(1); m21.Canonicalize();
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m21);
+                    g->numExits = 3;
+                }
+                else if (controlled == -1 && controller1 >= n/2 && controller2 == -1)
+                {
+                    // Case 5: CR1 in B and CR2 == -1 and CD == -1
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    auto bb = MkCCNOTNode(level-1, n/2, controller1 - n/2, -1, -1);
+                    CFLOBDDReturnMapHandle m012, m1;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[0] = Connection(bb, m012);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 3;
+                }
+                else if (controller1 == -1 && controlled >= 0 && controlled < n/2 && controller2 == -1)
+                {
+                    // Case 6: controller == -1 and controlled in A
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    auto aa = MkCCNOTNode(level-1, n/2, -1, -1, controlled);
+                    g->AConnection = Connection(aa, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    CFLOBDDReturnMapHandle m0, m10;
+                    m0.AddToEnd(0); m0.Canonicalize();
+                    m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m0);
+                    auto Id = MkIdRelationInterleavedNode(level - 1);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m10);
+                    g->numExits = 2;
+                }
+                else if (controller1 == -1 && controlled >= n/2 && controller2 == -1)
+                {
+                    // Case 7: controller == -1 and controlled in B
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    auto bb = MkCCNOTNode(level-1, n/2, -1, -1, controlled - n/2);
+                    CFLOBDDReturnMapHandle m0;
+                    m0.AddToEnd(0); m0.Canonicalize();
+                    g->BConnection[0] = Connection(bb, m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m0);
+                    g->numExits = 2;
+                }
+                else if (controller1 < n/2 && controller2 < n/2 && controlled >= n/2 && controller1 >= 0 && controlled >= 0 && controller2 >= 0)
+                {
+                    // Case 8: CR1 and CR2 in A, CD in B
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    auto aa = MkCCNOTNode(level-1, n/2, controller1, controller2, -1);
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1, m10;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                    auto bb = MkCCNOTNode(level-1, n/2, -1, -1, controlled - n/2);
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(bb, m10);
+                    g->numExits = 2;
+                }
+                else if (controller1 < n/2 && controller2 < n/2 && controlled == -1 && controller1 >= 0 && controller2 >= 0)
+                {
+                    // Case 9: CR1 and CR2 in A, CD == -1
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    auto aa = MkCCNOTNode(level-1, n/2, controller1, controller2, -1);
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1, m21;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m21.AddToEnd(2); m21.AddToEnd(1); m21.Canonicalize();
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m21);
+                    g->numExits = 3;
+                }
+                else if (controller1 >= n/2 && controller2 >= n/2 && controlled == -1 && controller1 >= 0 && controller2 >= 0)
+                {
+                    // Case 10: CR1 and CR2 in B, CD == -1
+                    auto Id = MkIdRelationInterleavedNode(level - 1);
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(Id, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    CFLOBDDReturnMapHandle m012, m1;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    auto bb = MkCCNOTNode(level-1, n/2, controller1 - n/2, controller2 - n/2, -1);
+                    g->BConnection[0] = Connection(bb, m012);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 3;
+                }
+                else if (controller1 < n/2 && controller2 >= n/2 && controlled == -1 && controller1 >= 0 && controller2 >= 0)
+                {
+                    // Case 11: CR1 in A, CR2 in B, CD == -1
+                    auto aa = MkCCNOTNode(level-1, n/2, controller1, -1, -1);
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    auto bb = MkCCNOTNode(level-1, n/2, -1, controller2 - n/2, -1);
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(bb, m012);
+                    g->numExits = 3;
+                }
+                else if (controller1 == -1 && controller2 < n/2 && controlled == -1 && controller2 >= 0)
+                {
+                    // Case 12: CR1 == -1, CR2 in A, CD == -1
+                    auto aa = MkCCNOTNode(level-1, n/2, -1, controller2, -1);
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1, m21;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m21.AddToEnd(2); m21.AddToEnd(1); m21.Canonicalize();
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m21);
+                    g->numExits = 3;
+                }
+                else if (controller1 == -1 && controller2 >= n/2 && controlled == -1 && controller2 >= 0)
+                {
+                    // Case 12: CR1 == -1, CR2 in B, CD == -1
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    CFLOBDDReturnMapHandle m012, m1;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    auto bb = MkCCNOTNode(level-1, n/2, -1, controller2 - n/2, -1);
+                    g->BConnection[0] = Connection(bb, m012);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 3;
+                }
+                else if (controller1 == -1 && controller2 < n/2 && controlled < n/2 && controller2 >= 0 && controlled >= 0)
+                {
+                    // Case 13: CR1 == -1, CR2 and CD in A
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    auto aa = MkCCNOTNode(level-1, n/2, -1, controller2, controlled);
+                    g->AConnection = Connection(aa, m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    CFLOBDDReturnMapHandle m1;
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 2;
+                }
+                else if (controller1 == -1 && controller2 >= n/2 && controlled >= n/2 && controller2 >= 0 && controlled >= 0)
+                {
+                    // Case 14: CR1 == -1, CR2 and CD in B
+                    CFLOBDDReturnMapHandle m01;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    g->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->numBConnections = 2;
+                    g->BConnection = new Connection[2];
+                    CFLOBDDReturnMapHandle m1;
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    auto bb = MkCCNOTNode(level-1, n/2, -1, controller2 - n/2, controlled - n/2);
+                    g->BConnection[0] = Connection(bb, m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->numExits = 2;
+                }
+                else if (controller1 == -1 && controller2 < n/2 && controlled >= n/2 && controller2 >= 0 && controlled >= 0)
+                {
+                    // Case 15: CR1 == -1, CR2 in A and CD in B
+                    CFLOBDDReturnMapHandle m012;
+                    m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+                    auto aa = MkCCNOTNode(level-1, n/2, -1, controller2, -1);
+                    g->AConnection = Connection(aa, m012);
+                    g->numBConnections = 3;
+                    g->BConnection = new Connection[3];
+                    CFLOBDDReturnMapHandle m01, m1, m10;
+                    m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+                    m1.AddToEnd(1); m1.Canonicalize();
+                    m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
+                    auto bb = MkCCNOTNode(level-1, n/2, -1, -1, controlled - n/2);
+                    g->BConnection[0] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::IdentityNode[level-1], m01);
+                    g->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level-1], m1);
+                    g->BConnection[2] = Connection(bb, m10);
+                    g->numExits = 2;
+                }
+            }
+
+    #ifdef PATH_COUNTING_ENABLED
+            g->InstallPathCounts();
+    #endif
+            WeightedCFLOBDDFloatBoostMulNodeHandle gHandle = WeightedCFLOBDDFloatBoostMulNodeHandle(g);
+            return gHandle;
+        }
+
+        WeightedCFLOBDDFloatBoostMulNodeHandle MkPauliZGateNode(unsigned int i)
+        {
+            assert(i >= 1);
+            WeightedCFLOBDDFloatBoostInternalNode *n = new WeightedCFLOBDDFloatBoostInternalNode(i);
+            if (i == 1) {  // Base case
+
+                WeightedCFLOBDDFloatBoostMulNodeHandle temp = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(1, -1));
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0);
+                m01.AddToEnd(1);
+                m01.Canonicalize();
+                n->AConnection = Connection(temp, m01);
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                WeightedCFLOBDDFloatBoostMulNodeHandle b0 = WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
+                WeightedCFLOBDDFloatBoostMulNodeHandle b1 = WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
+                CFLOBDDReturnMapHandle m10;
+                m10.AddToEnd(1);
+                m10.AddToEnd(0);
+                m10.Canonicalize();
+                n->BConnection[0] = Connection(b0, m10);
+                n->BConnection[1] = Connection(b1, m10);
+            }
+            else {
+                WeightedCFLOBDDFloatBoostMulNodeHandle temp = MkPauliZGateNode(i - 1);
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0);
+                m01.AddToEnd(1);
+                m01.Canonicalize();
+                n->AConnection = Connection(temp, m01);
+
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                n->BConnection[0] = Connection(temp, m01);
+                CFLOBDDReturnMapHandle m1;
+                m1.AddToEnd(1);
+                m1.Canonicalize();
+                n->BConnection[1] = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::NoDistinctionNode_Ann[i-1], m1);
+            }
+            n->numExits = 2;
+    #ifdef PATH_COUNTING_ENABLED
+            n->InstallPathCounts();
+    #endif
+            return WeightedCFLOBDDFloatBoostMulNodeHandle(n);
         }
 
     }

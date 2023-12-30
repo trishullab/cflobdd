@@ -48,9 +48,9 @@ namespace CFL_OBDD {
             {
                 assert(index < 2);
                 if (index == 0)
-                    return WeightedCFLOBDDFloatBoostMulNodeHandle( new WeightedCFLOBDDFloatBoostForkNode(1, 0));
+                    return WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
                 else
-                    return WeightedCFLOBDDFloatBoostMulNodeHandle( new WeightedCFLOBDDFloatBoostForkNode(0, 1));
+                    return WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
             }
 
             WeightedCFLOBDDFloatBoostInternalNode *n = new WeightedCFLOBDDFloatBoostInternalNode(level);
@@ -91,9 +91,9 @@ namespace CFL_OBDD {
             {
                 assert(s.length() == 1);
                 if (s[0] == '0')
-                    return WeightedCFLOBDDFloatBoostMulNodeHandle( new WeightedCFLOBDDFloatBoostForkNode(1, 0));
+                    return WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
                 else
-                    return WeightedCFLOBDDFloatBoostMulNodeHandle( new WeightedCFLOBDDFloatBoostForkNode(0, 1));
+                    return WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
             }
 
             WeightedCFLOBDDFloatBoostInternalNode *n = new WeightedCFLOBDDFloatBoostInternalNode(level);
@@ -251,7 +251,7 @@ namespace CFL_OBDD {
                 n->AConnection = Connection(WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m1);
                 n->numBConnections = 1;
                 n->BConnection = new Connection[1];
-                WeightedCFLOBDDFloatBoostMulNodeHandle t = WeightedCFLOBDDFloatBoostMulNodeHandle(new WeightedCFLOBDDFloatBoostForkNode(1, 0));
+                WeightedCFLOBDDFloatBoostMulNodeHandle t = WeightedCFLOBDDFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
                 n->BConnection[0] = Connection(t, m2);
             }
             else

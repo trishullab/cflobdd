@@ -655,7 +655,7 @@ namespace CFL_OBDD
 			}
 		}
 
-        WEIGHTED_CFLOBDD_FOURIER_MUL MkADDGate(int level, BIG_INT a, int& count, int n)
+        WEIGHTED_CFLOBDD_FOURIER_MUL MkADDGate(int level, BIG_INT a, long int& count, long int n)
         {
             if (count > n)
             {
@@ -663,47 +663,46 @@ namespace CFL_OBDD
             }
             if (level == 1)
             {
-               fourierSemiring a_modn(a, (int)std::pow(2, count));
-               count += 1;
-               return WeightedMatrix1234FourierMul::MkRZGate(level, a_modn); 
+			 	BIG_INT power = boost::multiprecision::pow(BIG_INT(2), count);
+    	        fourierSemiring a_modn(a, power);
+                count += 1;
+                return WeightedMatrix1234FourierMul::MkRZGate(level, a_modn); 
             }
-            int vars = std::pow(2, level-2);
             auto lhs = MkADDGate(level-1, a, count, n);
             auto rhs = MkADDGate(level-1, a, count, n);
             return WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(lhs, rhs);
         }
 
-        void CADDModN(int controller, int x_c, int a, int N, WEIGHTED_CFLOBDD_FOURIER_MUL& stateV, int b_vars, int x_vars)
+        void CADDModN(int controller, int x_c, long long int a, int N, WEIGHTED_CFLOBDD_FOURIER_MUL& stateV, int b_vars, int x_vars)
         {
             int level = stateV.root->level - 2; /* 4 */
             int n = (int)std::pow(2, level-1); // 8
-            int count = 1;
+            long int count = 1;
             auto ADD_amodn = MkADDGate(level, a, count, b_vars);
             auto CADD_amodn = WeightedMatrix1234FourierMul::MkCADDGate(stateV.root->level, controller, x_c, ADD_amodn);
             stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(CADD_amodn, stateV);
-            BIG_INT MinN = BIG_INT(std::pow(2, b_vars) - N);
+            BIG_INT MinN = BIG_INT(boost::multiprecision::pow(BIG_INT(2), b_vars) - N);
             count = 1;
             auto ADD_MinNModn = WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level+1), 
                                     WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level), MkADDGate(level, MinN, count, b_vars)));
             stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(ADD_MinNModn, stateV);
             IQFT_helper(level+1, b_vars, 4*n, stateV);
 			auto Cij = WeightedMatrix1234FourierMul::MkCNOT(stateV.root->level, 4 * n, x_vars + 2 * n, 3 * n);
-			// Cij.print(std::cout);
 			auto SW = WeightedMatrix1234FourierMul::MkSwapGate(level + 2, x_vars + 2*n, 3*n);
-			// SW.print(std::cout);
 			Cij = WeightedMatrix1234FourierMul::MatrixMultiplyV4(Cij, SW);
 			Cij = WeightedMatrix1234FourierMul::MatrixMultiplyV4(SW, Cij);
-			// Cij.print(std::cout);
 			stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(Cij, stateV);
             QFT_helper(level + 1, b_vars, 4 * n, stateV);
 			count = 1;
 			auto ADD_NModn = WeightedMatrix1234FourierMul::KroneckerProduct2Vocs(WeightedMatrix1234FourierMul::MkIdRelationInterleaved(level + 1),
 							WeightedMatrix1234FourierMul::MkCADDGate2(stateV.root->level-1, x_vars, MkADDGate(level, BIG_INT(N), count, b_vars)));
+			
 			stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(ADD_NModn, stateV);
-			BIG_INT MinA = BIG_INT(std::pow(2, b_vars) - a);
+			BIG_INT MinA = BIG_INT(boost::multiprecision::pow(BIG_INT(2), b_vars) - a);
 			count = 1;
 			auto CADD_Minamodn = WeightedMatrix1234FourierMul::MkCADDGate(stateV.root->level, controller, x_c, MkADDGate(level, MinA, count, b_vars));
 			stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(CADD_Minamodn, stateV);
+			stateV.print(std::cout);
             IQFT_helper(level+1, b_vars, 4*n, stateV);
 			WEIGHTED_CFLOBDD_FOURIER_MUL X = NOT_i(std::pow(2, stateV.root->level-1), 3*n);
 			stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(X, stateV);
@@ -713,7 +712,7 @@ namespace CFL_OBDD
 			stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(CADD_amodn, stateV);
         }
 
-        void CMULT(int controller, int powerOfa, int N, WEIGHTED_CFLOBDD_FOURIER_MUL& stateV, int N_vars /* 5 */, int b_vars /* 6 */, int total_vars /* 32 */, int index)
+        void CMULT(int controller, long long int powerOfa, int N, WEIGHTED_CFLOBDD_FOURIER_MUL& stateV, int N_vars /* 5 */, int b_vars /* 6 */, int total_vars /* 32 */, int index)
         {
             int n = total_vars / 4;
             QFT_helper(stateV.root->level-1, b_vars, total_vars, stateV);
@@ -724,18 +723,14 @@ namespace CFL_OBDD
 					a = powerOfa;
 				else
 					a = (2 * a) % N;
+				// std::cout << i << " " << a << std::endl;
                 CADDModN(controller /* c */, (N_vars - 1 - i + total_vars / 2) /* x */, a , N, stateV, b_vars, N_vars);
-				// if (index == 12)
-				// {
-				// 	std::cout << "CMULT i " << i << std::endl;
-				// 	stateV.print(std::cout);
-				// }
             }
             IQFT_helper(stateV.root->level-1, b_vars, total_vars, stateV);
         }
 
         // Source: geeks for geeks
-        int gcdExtended(int a, int b, int* x, int* y)
+        long long int gcdExtended(long long int a, long long int b, long long int* x, long long int* y)
         {
             // Base Case
             if (a == 0) {
@@ -744,8 +739,8 @@ namespace CFL_OBDD
             }
         
             // To store results of recursive call
-            int x1, y1;
-            int gcd = gcdExtended(b % a, a, &x1, &y1);
+            long long int x1, y1;
+            long long int gcd = gcdExtended(b % a, a, &x1, &y1);
         
             // Update x and y using results of recursive
             // call
@@ -755,12 +750,12 @@ namespace CFL_OBDD
             return gcd;
         }
 
-        int modInverse(int a, int N)
+        long long int modInverse(long long int a, long long int N)
         {
-            int x, y;
-            int g = gcdExtended(a, N, &x, &y);
+            long long int x, y;
+            long long int g = gcdExtended(a, N, &x, &y);
             assert(g == 1);
-            int res = (x % N + N) % N;
+            long long int res = (x % N + N) % N;
             return res;
         }
         
@@ -824,6 +819,7 @@ namespace CFL_OBDD
             total_vars = 2 * total_vars; // 32
 
             int level = log2(total_vars); // of the vector (level-1 x level-1) x (level-1 x level-1)
+			std::cout << level << std::endl;
 
             WEIGHTED_CFLOBDD_FOURIER_MUL e0 = WeightedVectorFourierMul::MkBasisVector(level, 0); // matrix
             // auto H = HadamardMatrix(level, total_vars/2 - 1, 2 * x_vars-1);
@@ -872,32 +868,18 @@ namespace CFL_OBDD
             {
                 // U_a => CMULT(a)modN SWAP CMULT(a^-1)modN
                 // CMULT(a)modN = QFT Add_{2^k a} mod N, k \in 0..N_vars-1 QFT^-1
-                std::cout << i << std::endl;
-                // int controller = (2 * x_vars - 1 - i);
-				// int controller = i;
-				int controller = 0;
+
+				long long int controller = 0;
                 long long int powerOfa = powersOfa[2 * x_vars - 1 - i];
-				// std::cout << powerOfa << std::endl;
-                // if (i == 0)
-                //     powerOfa = a % N;
-                // else
-                //     powerOfa = (prevPowOfa * prevPowOfa) % N;
-                // prevPowOfa = powerOfa;
-				// if (i == 12)
-				// 	stateV.print(std::cout);
+				std::cout << i << " " << powerOfa << std::endl;
                 CMULT(controller, powerOfa, N, stateV, x_vars, b_vars, total_vars, i);
-				// if (i == 12)
-				// 	stateV.print(std::cout);
-                // SWAP
                 for (int x = 0; x < x_vars; x++)
                 {
                     auto SW = WeightedMatrix1234FourierMul::MkCSwapGate(level + 1, controller, total_vars/2 + x, total_vars/2 + total_vars/4 + x + 1);
                     stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(SW, stateV);
                 }
-                int powOfaInv = modInverse(powerOfa, N);
-				int minusInv = N - powOfaInv;
-				// stateV.print(std::cout);
-				// stateV = WeightedMatrix1234FourierMul::MkSetBToZero(stateV.root->level, stateV);
+                long long int powOfaInv = modInverse(powerOfa, N);
+				long long int minusInv = N - powOfaInv;
                 CMULT(controller, minusInv, N, stateV, x_vars, b_vars, total_vars, i);
 				
 				auto stateV_tmp = stateV;
@@ -908,32 +890,23 @@ namespace CFL_OBDD
 				{
 					R = fourierSemiring( boost::multiprecision::pow(BIG_INT(2), (i + 1)) - sampled_number, boost::multiprecision::pow(BIG_INT(2), (i + 1)));
 				}
-				// std::cout << R << std::endl;
 				auto R_M = R_i(std::pow(2, level), 0, R);
 				stateV_tmp = WeightedMatrix1234FourierMul::MatrixMultiplyV4(R_M, stateV_tmp);
-				// stateV_tmp.print(std::cout);
 				auto H_M = Hadamard_i(std::pow(2, level), 0);
-				// H_M.print(std::cout);
 				stateV_tmp = WeightedMatrix1234FourierMul::MatrixMultiplyV4(H_M, stateV_tmp);
-				// stateV_tmp.print(std::cout);
-				// abort();
 				auto res = WeightedMatrix1234FourierMul::MeasureAndReset(stateV.root->level, total_vars, stateV_tmp, R);
-				// stateV_tmp.print(std::cout);
 				if (res.second == 0){
 					stateV = Measure0 * stateV;
 				}
 				else
 					stateV = Measure1 * stateV;
 				stateV = WeightedMatrix1234FourierMul::MatrixMultiplyV4(H_M, stateV);
-				stateV = WeightedMatrix1234FourierMul::ResetState(stateV.root->level, stateV);
+				// stateV = WeightedMatrix1234FourierMul::ResetState(stateV.root->level, stateV);
 				sampled_string = (res.second == 0 ? "0" : "1") + sampled_string;
 				sampled_number = boost::multiprecision::pow(BIG_INT(2), i + 1) * res.second + sampled_number;
 				// std::cout << "sampled_string: " << sampled_string << " sampled_number: " << sampled_number << std::endl;
-				// stateV.print(std::cout);
             }
 
-            std::cout << "partly done" << std::endl;
-			std::cout << "sampled_string: " << sampled_string << std::endl;
 			return std::make_tuple(stateV, sampled_string, sampled_number);
         }
 

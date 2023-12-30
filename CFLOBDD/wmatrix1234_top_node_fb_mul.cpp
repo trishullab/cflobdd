@@ -38,14 +38,14 @@ namespace CFL_OBDD {
 		WeightedCFLOBDDTopNodeFloatBoostRefPtr MkNegationMatrixInterleavedTop(unsigned int i)
 		{
 			WeightedCFLOBDDTopNodeFloatBoostRefPtr v;
-			// WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle;
-			// FloatBoostReturnMapHandle m01;
+			WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle;
+			FloatBoostReturnMapHandle m01;
 
-			// tempHandle = MkNegationMatrixInterleavedNode(i);
-			// m01.AddToEnd(0);
-			// m01.AddToEnd(1);
-			// m01.Canonicalize();
-			// v = new WeightedCFLOBDDTopNodeFloatBoost(tempHandle, m01);
+			tempHandle = MkNegationMatrixInterleavedNode(i);
+			m01.AddToEnd(0);
+			m01.AddToEnd(1);
+			m01.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeFloatBoost(tempHandle, m01);
 			return v;
 		}
 
@@ -294,11 +294,7 @@ namespace CFL_OBDD {
 			v.Canonicalize();
 			reductionMapHandle.Canonicalize();
             valList.Canonicalize();
-            // n.print(std::cout);
-            // std::cout << valList << std::endl;
 			auto g = n.Reduce(reductionMapHandle, v.Size(), valList, true);
-			// Create and return CFLOBDDTopNode
-			//return(new CFLOBDDTopNodeFloatBoost(reduced_tempHandle, inducedReturnMap));
 			return(new WeightedCFLOBDDTopNodeFloatBoost(g.first, v, g.second * common_f * c1->rootConnection.factor * c2->rootConnection.factor));
 		}
 
@@ -310,6 +306,30 @@ namespace CFL_OBDD {
 			m.AddToEnd(0);
 			m.Canonicalize();
 			return new WeightedCFLOBDDTopNodeFloatBoost(c, m, 1.0);
+		}
+
+		WeightedCFLOBDDTopNodeFloatBoostRefPtr MkCCNOTTop(unsigned int level, unsigned int n, long int c1, long int c2, long int x)
+		{
+			WeightedCFLOBDDTopNodeFloatBoostRefPtr v;
+			WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle;
+			FloatBoostReturnMapHandle m01;
+			tempHandle = MkCCNOTNode(level, n, c1, c2, x);
+			m01.AddToEnd(1);
+			m01.AddToEnd(0);
+			v = new WeightedCFLOBDDTopNodeFloatBoost(tempHandle, m01);
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeFloatBoostRefPtr MkPauliZGateTop(unsigned int i)
+		{
+			WeightedCFLOBDDTopNodeFloatBoostRefPtr v;
+			WeightedCFLOBDDFloatBoostMulNodeHandle tempHandle;
+			FloatBoostReturnMapHandle m01;
+			tempHandle = MkPauliZGateNode(i);
+			m01.AddToEnd(1);
+			m01.AddToEnd(0);
+			v = new WeightedCFLOBDDTopNodeFloatBoost(tempHandle, m01);
+			return v;
 		}
 
 	}

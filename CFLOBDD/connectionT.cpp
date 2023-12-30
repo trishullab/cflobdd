@@ -14,7 +14,7 @@ ConnectionT<Handle>::ConnectionT()
 // Constructor
 template <typename Handle>
 ConnectionT<Handle>::ConnectionT(CFLOBDDNodeHandle &entryPointHandle, Handle &returnMapHandle)
-	: entryPointHandle(new CFLOBDDNodeHandle(entryPointHandle.handleContents)), returnMapHandle(returnMapHandle)
+	: entryPointHandle(new CFLOBDDNodeHandle(entryPointHandle)), returnMapHandle(returnMapHandle)
 {
 }
 
@@ -28,6 +28,8 @@ ConnectionT<Handle>::ConnectionT(CFLOBDDNode *entryPoint, Handle &returnMapHandl
 template <typename Handle>
 ConnectionT<Handle>::~ConnectionT()
 {
+	delete entryPointHandle;
+	entryPointHandle = NULL;
 }
 
 // Hash
@@ -45,7 +47,7 @@ ConnectionT<Handle>& ConnectionT<Handle>::operator= (const ConnectionT<Handle>& 
 {
 	if (this != &C)      // don't assign to self!
 	{
-		entryPointHandle = C.entryPointHandle;
+		entryPointHandle = new CFLOBDDNodeHandle(*(C.entryPointHandle));
 		returnMapHandle = C.returnMapHandle;
 	}
 	return *this;

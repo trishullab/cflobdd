@@ -164,6 +164,31 @@ namespace CFL_OBDD {
 		{
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCSwapGateTop(i, c1, x1, x2, cflobdd_kind, offset));
 		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCSwapGate2(unsigned int i, long int c1, long int x1, long int x2)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCSwapGate2Top(i, c1, x1, x2));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCNOT(unsigned int i, unsigned int n, long int c1, long int c2, long int x)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCCNOTTop(i, n, c1, c2, x));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCP(unsigned int i, unsigned int n, long int c1, long int c2, long int x, double theta)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCCPTop(i, n, c1, c2, x, theta));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSXGate(unsigned int level) // sqrt X gate 
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkSXGateTop(level));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSYGate(unsigned int level) // sqrt Y gate 
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkSYGateTop(level));
+		}
 	}
 }
 

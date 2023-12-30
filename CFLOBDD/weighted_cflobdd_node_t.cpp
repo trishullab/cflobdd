@@ -151,12 +151,17 @@ void WeightedCFLOBDDNodeHandleT<T, Op>::InitIdentityNodeTable()
         CFLOBDDReturnMapHandle m01, m10;
         m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
         m10.AddToEnd(1); m10.AddToEnd(0); m10.Canonicalize();
-        n->AConnection = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle, m01);
+        n->AConnection.entryPointHandle = &WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle;
+        n->AConnection.returnMapHandle = m01;
+        // n->AConnection = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle, m01);
         n->numBConnections = 2;
         n->BConnection = new WConnection<T,Op>[n->numBConnections];
-        WeightedCFLOBDDNodeHandleT<T,Op> f10, f01;
-        n->BConnection[0] = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10, m01);
-        n->BConnection[1] = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01, m10);
+        n->BConnection[0].entryPointHandle = &WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10;
+        n->BConnection[0].returnMapHandle = m01;
+        n->BConnection[1].entryPointHandle = &WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01;
+        n->BConnection[1].returnMapHandle = m10;
+        // n->BConnection[0] = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle10, m01);
+        // n->BConnection[1] = WConnection<T,Op>(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDForkNodeHandle01, m10);
         n->numExits = 2;
         IdentityNode[1] = WeightedCFLOBDDNodeHandleT<T, Op>(n);
     }
@@ -169,15 +174,17 @@ void WeightedCFLOBDDNodeHandleT<T, Op>::InitIdentityNodeTable()
       m1.AddToEnd(0);
       m1.AddToEnd(1);
       m1.Canonicalize();
-	  n->AConnection.returnMapHandle = m1;//m1
+	    n->AConnection.returnMapHandle = m1;//m1
   
       n->numBConnections = 2;
       n->BConnection = new WConnection<T,Op>[2];
       n->BConnection[0].entryPointHandle = &(IdentityNode[i-1]);
       m2.AddToEnd(1);
       m2.Canonicalize();
-	  n->BConnection[0].returnMapHandle = m1;
-      n->BConnection[1] = WConnection<T,Op>(NoDistinctionNode_Ann[i-1], m2);
+	    n->BConnection[0].returnMapHandle = m1;
+      n->BConnection[1].entryPointHandle = &NoDistinctionNode_Ann[i-1];
+      n->BConnection[1].returnMapHandle = m2;
+      // n->BConnection[1] = WConnection<T,Op>(NoDistinctionNode_Ann[i-1], m2);
       n->numExits = 2;
 //#ifdef PATH_COUNTING_ENABLED
     //   n->InstallPathCounts();
@@ -526,6 +533,7 @@ std::ostream& WeightedCFLOBDDNodeHandleT<T,Op>::print(std::ostream & out) const
   out << *handleContents << std::endl;
   return out;
 }
+
 
 // template <typename T, typename Op> 
 // bool WeightedCFLOBDDNodeHandleT<T,Op>::IsValid()
@@ -1689,15 +1697,30 @@ inline CFLOBDDReturnMapHandle ComposeAndReduce(CFLOBDDReturnMapHandle& mapHandle
 	return answer;
 }
 
-template <typename T>
-WeightedValuesListHandle<T> ComposeValueList(CFLOBDDReturnMapHandle& returnMap, WeightedValuesListHandle<T>& valList)
+template <typename T, typename Op>
+std::pair<WeightedValuesListHandle<T>, T> ComposeValueList(CFLOBDDReturnMapHandle& returnMap, WeightedValuesListHandle<T>& valList)
 {
+    std::ostream& os = std::cout;
     WeightedValuesListHandle<T> answerList;
+    T factor = getIdentityValue<T,Op>();
+    bool found = false;
     for (unsigned int i = 0; i < returnMap.Size(); i++)
     {
-        answerList.AddToEnd(valList[returnMap[i]]);
+      auto v = valList[returnMap[i]];
+      if (!found && v != getAnnhilatorValue<T,Op>())
+      {
+        factor = v;
+        v = getIdentityValue<T,Op>();
+        found = true; 
+      }
+      else
+      {
+        auto x = computeInverseValue<T,Op>(factor, v); // factor, 1, v/factor
+        v = std::get<2>(x);
+      }
+      answerList.AddToEnd(v);
     }
-    return answerList;
+    return std::make_pair(answerList, factor);
 }
 
 // Check this
@@ -1714,13 +1737,15 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
      for (unsigned int i = 0; i < numBConnections; i++) {
         ReductionMapHandle inducedReductionMapHandle(redMapHandle.Size());
         CFLOBDDReturnMapHandle inducedReturnMap;
-		inducedReturnMap = ComposeAndReduce(BConnection[i].returnMapHandle, redMapHandle, inducedReductionMapHandle);
-        WeightedValuesListHandle<T> inducedValueList = ComposeValueList(BConnection[i].returnMapHandle, valList);
-        std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> temp = BConnection[i].entryPointHandle->Reduce(inducedReductionMapHandle, inducedReturnMap.Size(), inducedValueList, forceReduce);
+		    inducedReturnMap = ComposeAndReduce(BConnection[i].returnMapHandle, redMapHandle, inducedReductionMapHandle);
+        auto inducedValueList = ComposeValueList<T,Op>(BConnection[i].returnMapHandle, valList);
+        // inducedReductionMapHandle.print(std::cout);
+        // inducedValueList.first.print(std::cout);
+        std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> temp = BConnection[i].entryPointHandle->Reduce(inducedReductionMapHandle, inducedReturnMap.Size(), inducedValueList.first, forceReduce);
         WConnection<T,Op> c(temp.first, inducedReturnMap);
         unsigned int position = n->InsertBConnection(n->numBConnections, c);
         AReductionMapHandle.AddToEnd(position);
-        AValueList.AddToEnd(temp.second);
+        AValueList.AddToEnd(computeComposition<T,Op>(temp.second, inducedValueList.second));
      }
      AReductionMapHandle.Canonicalize();
      AValueList.Canonicalize();
@@ -1735,10 +1760,10 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
 
   // Reduce the A connection
      ReductionMapHandle inducedAReductionMapHandle;
-	 CFLOBDDReturnMapHandle inducedAReturnMap;
-	 inducedAReturnMap = ComposeAndReduce(AConnection.returnMapHandle, AReductionMapHandle, inducedAReductionMapHandle);
-     WeightedValuesListHandle<T> inducedAValueList = ComposeValueList(AConnection.returnMapHandle, AValueList);
-     std::pair<WeightedCFLOBDDNodeHandleT<T,Op>, T> tempHandle = AConnection.entryPointHandle->Reduce(inducedAReductionMapHandle, inducedAReturnMap.Size(), inducedAValueList, forceReduce);
+	   CFLOBDDReturnMapHandle inducedAReturnMap;
+	   inducedAReturnMap = ComposeAndReduce(AConnection.returnMapHandle, AReductionMapHandle, inducedAReductionMapHandle);
+     auto inducedAValueList = ComposeValueList<T,Op>(AConnection.returnMapHandle, AValueList);
+     std::pair<WeightedCFLOBDDNodeHandleT<T,Op>, T> tempHandle = AConnection.entryPointHandle->Reduce(inducedAReductionMapHandle, inducedAReturnMap.Size(), inducedAValueList.first, forceReduce);
      n->AConnection = WConnection<T,Op>(tempHandle.first, inducedAReturnMap);
 
   // Other material that has to be filled in
@@ -1746,7 +1771,7 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
 #ifdef PATH_COUNTING_ENABLED
      n->InstallPathCounts();
 #endif
-    return std::make_pair(WeightedCFLOBDDNodeHandleT(n), tempHandle.second);
+    return std::make_pair(WeightedCFLOBDDNodeHandleT(n), computeComposition<T,Op>(tempHandle.second, inducedAValueList.second));
 } // CFLOBDDInternalNode::Reduce
 
 template <typename T, typename Op>
@@ -2036,7 +2061,7 @@ template <typename T, typename Op>
 WeightedCFLOBDDLeafNode<T, Op>::WeightedCFLOBDDLeafNode(bool flag)
   :  WeightedCFLOBDDNode<T,Op>(0)
 {
-  this->refCount = 1;
+  // this->refCount = 1;
   if (flag)
     lweight = rweight = getIdentityValue<T, Op>();
   else
@@ -2047,9 +2072,20 @@ template <typename T, typename Op>
 WeightedCFLOBDDLeafNode<T, Op>::WeightedCFLOBDDLeafNode(T lw, T rw)
   :  WeightedCFLOBDDNode<T,Op>(0)
 {
-  this->refCount = 1;
+  // this->refCount = 1;
   lweight = lw;
   rweight = rw;
+
+  if constexpr (std::is_same_v<T, BIG_COMPLEX_FLOAT>) {
+    if (boost::multiprecision::abs(lweight.real()) < FLT_EPSILON)
+        lweight = BIG_COMPLEX_FLOAT(0, lweight.imag());
+    if (boost::multiprecision::abs(lweight.imag()) < FLT_EPSILON)
+        lweight = BIG_COMPLEX_FLOAT(lweight.real(), 0.0);
+    if (boost::multiprecision::abs(rweight.real()) < FLT_EPSILON)
+        rweight = BIG_COMPLEX_FLOAT(0, rweight.imag());
+    if (boost::multiprecision::abs(rweight.imag()) < FLT_EPSILON)
+        rweight = BIG_COMPLEX_FLOAT(rweight.real(), 0.0);
+  } 
 }
 
 template <typename T, typename Op>
@@ -2131,6 +2167,7 @@ WeightedCFLOBDDForkNode<T,Op>::WeightedCFLOBDDForkNode(bool flag)
   this->numPathsToExit = new long double[2];
   this->numPathsToExit[0] = 0;
   this->numPathsToExit[1] = 0;
+  this->isNumPathsMemAllocated = true;
 }
 
 template <typename T, typename Op>
@@ -2141,13 +2178,16 @@ WeightedCFLOBDDForkNode<T,Op>::WeightedCFLOBDDForkNode(T lweight, T rweight)
   this->numPathsToExit = new long double[2];
   this->numPathsToExit[0] = 0;
   this->numPathsToExit[1] = 0;
+  this->isNumPathsMemAllocated = true;
 }
 
 template <typename T, typename Op>
 WeightedCFLOBDDForkNode<T,Op>::~WeightedCFLOBDDForkNode()
 {
     if (this->isWeightsOfPathsMemAllocated)
-        delete [] this->numWeightsOfPathsAsAmpsToExit;
+      delete [] this->numWeightsOfPathsAsAmpsToExit;
+    if (this->isNumPathsMemAllocated)
+      delete [] this->numPathsToExit;
 }
 
 template <typename T, typename Op>
@@ -2199,8 +2239,9 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDForkNode<T,Op>::Red
 {
     // std::cout << "Fork " << replacementNumExits << " " << valList << std::endl;
     if (replacementNumExits == 1) {
-        if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>())
+        if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>() && this->lweight == this->rweight && this->lweight == getIdentityValue<T,Op>()){
             return std::make_pair(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDDontCareNodeHandle, getIdentityValue<T,Op>());
+        }
         else if (valList[0] == valList[1] && valList[0] == getAnnhilatorValue<T,Op>())
             return std::make_pair(WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0], valList[0]);
         else{
@@ -2214,7 +2255,7 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDForkNode<T,Op>::Red
         }
     }
     else {
-        if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>())
+        if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>() && this->lweight == this->rweight && this->lweight == getIdentityValue<T,Op>())
             return std::make_pair(WeightedCFLOBDDNodeHandleT(this), getIdentityValue<T,Op>());
         else{
             T lw = valList[0] * this->lweight;
@@ -2244,14 +2285,20 @@ unsigned int WeightedCFLOBDDForkNode<T,Op>::Hash(unsigned int modsize)
 template <typename T, typename Op>
 bool WeightedCFLOBDDForkNode<T,Op>::operator!= (const WeightedCFLOBDDNode<T,Op> & n)
 {
-  return n.NodeKind() != W_CFLOBDD_FORK;
+  return !(*this == n);
 }
 
 // Overloaded ==
 template <typename T, typename Op>
 bool WeightedCFLOBDDForkNode<T,Op>::operator== (const WeightedCFLOBDDNode<T,Op> & n)
 {
-  return n.NodeKind() == W_CFLOBDD_FORK;
+  if (NodeKind() != n.NodeKind())
+    return false;
+
+  WeightedCFLOBDDLeafNode<T,Op>& nh = (WeightedCFLOBDDLeafNode<T,Op> &)n;
+  if (this->lweight == nh.lweight && this->rweight == nh.rweight)
+    return true;
+  return false;
 }
 
 //********************************************************************
@@ -2268,6 +2315,7 @@ WeightedCFLOBDDDontCareNode<T, Op>::WeightedCFLOBDDDontCareNode(bool flag)
   this->numExits = 1;
   this->numPathsToExit = new long double[1];
   this->numPathsToExit[0] = 1;
+  this->isNumPathsMemAllocated = true;
 }
 
 template <typename T, typename Op>
@@ -2277,6 +2325,7 @@ WeightedCFLOBDDDontCareNode<T, Op>::WeightedCFLOBDDDontCareNode(T lweight, T rwe
   this->numExits = 1;
   this->numPathsToExit = new long double[1];
   this->numPathsToExit[0] = 1;
+  this->isNumPathsMemAllocated = true;
 }
 
 template <typename T, typename Op>
@@ -2284,6 +2333,8 @@ WeightedCFLOBDDDontCareNode<T,Op>::~WeightedCFLOBDDDontCareNode()
 {
     if (this->isWeightsOfPathsMemAllocated)
         delete [] this->numWeightsOfPathsAsAmpsToExit;
+    if (this->isNumPathsMemAllocated)
+      delete [] this->numPathsToExit;
 }
 
 template <typename T, typename Op>
@@ -2330,7 +2381,7 @@ int WeightedCFLOBDDDontCareNode<T,Op>::Traverse(SH_OBDD::AssignmentIterator &ai)
 template <typename T, typename Op>
 std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDDontCareNode<T,Op>::Reduce(ReductionMapHandle&, unsigned int, WeightedValuesListHandle<T>& valList, bool)
 {
-    if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>())
+    if (valList[0] == valList[1] && valList[0] == getIdentityValue<T,Op>() && this->lweight == this->rweight && this->lweight == getIdentityValue<T,Op>())
         return std::make_pair(WeightedCFLOBDDNodeHandleT<T,Op>::CFLOBDDDontCareNodeHandle, getIdentityValue<T,Op>());
     else if (valList[0] == valList[1] && valList[0] == getAnnhilatorValue<T,Op>())
         return std::make_pair(WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[0], valList[0]);
@@ -2359,14 +2410,20 @@ unsigned int WeightedCFLOBDDDontCareNode<T,Op>::Hash(unsigned int modsize)
 template <typename T, typename Op>
 bool WeightedCFLOBDDDontCareNode<T,Op>::operator!= (const WeightedCFLOBDDNode<T,Op> & n)
 {
-  return n.NodeKind() != W_CFLOBDD_DONTCARE;
+  return !(*this == n);
 }
 
 // Overloaded ==
 template <typename T, typename Op>
 bool WeightedCFLOBDDDontCareNode<T,Op>::operator== (const WeightedCFLOBDDNode<T,Op> & n)
 {
-  return n.NodeKind() == W_CFLOBDD_DONTCARE;
+  if (NodeKind() != n.NodeKind())
+    return false;
+
+  WeightedCFLOBDDDontCareNode<T,Op>& nh = (WeightedCFLOBDDDontCareNode<T,Op> &)n;
+  if (this->lweight == nh.lweight && this->rweight == nh.rweight)
+    return true;
+  return false;
 }
 
 // Restrict -----------------------------------------------------------

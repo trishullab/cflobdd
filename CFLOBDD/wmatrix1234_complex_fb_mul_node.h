@@ -65,6 +65,10 @@ namespace CFL_OBDD {
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSGateNode(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCNOTInterleavedNode(unsigned int i);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkExchangeInterleavedNode(unsigned int i);
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCCPNode(std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle>& cp_hashMap, unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled, BIG_COMPLEX_FLOAT theta);
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSXGateNode(unsigned int level);
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSYGateNode(unsigned int level);
+
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCNOTNode(unsigned int level, unsigned int n, long int controller, long int controlled, int cflobdd_kind = 1, unsigned int offset = 0);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCCNOTNode(unsigned int level, long int controller1, long int contoller2, long int controlled, int cflobdd_kind = 1, unsigned int offset = 0);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCPGateNode(std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle>& cp_hashMap, unsigned int level, long int controller, long int controlled, BIG_COMPLEX_FLOAT theta_val, int cflobdd_kind = 1, unsigned int offset = 0);

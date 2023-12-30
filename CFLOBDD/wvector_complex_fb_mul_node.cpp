@@ -53,9 +53,9 @@ namespace CFL_OBDD {
             {
                 assert(index < 2);
                 if (index == 0)
-                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
                 else
-                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
             }
 
             WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(level);
@@ -103,9 +103,9 @@ namespace CFL_OBDD {
             {
                 assert(s.length() == 1);
                 if (s[0] == '0')
-                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
                 else
-                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle( new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1));
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
             }
 
             WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(level);
@@ -263,7 +263,7 @@ namespace CFL_OBDD {
                 n->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m1);
                 n->numBConnections = 1;
                 n->BConnection = new Connection[1];
-                WeightedCFLOBDDComplexFloatBoostMulNodeHandle t = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0));
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle t = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
                 n->BConnection[0] = Connection(t, m2);
             }
             else
@@ -305,7 +305,7 @@ namespace CFL_OBDD {
         
 
     //#ifdef PATH_COUNTING_ENABLED
-        std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh, unsigned int index, std::mt19937 mt, std::uniform_real_distribution<double> dis, bool VocTwo,  std::string func)
+        std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh, unsigned int index, std::mt19937_64 mt, std::uniform_real_distribution<double> dis, bool VocTwo,  std::string func)
         {
             if (nh.handleContents->NodeKind() == W_BDD_TOPNODE)
             {
@@ -324,8 +324,8 @@ namespace CFL_OBDD {
                 {
                     WeightedCFLOBDDComplexFloatBoostDontCareNode* nhL = (WeightedCFLOBDDComplexFloatBoostDontCareNode *)nh.handleContents;
                     assert(index == 0);
-                    long double lw = ((nhL->lweight * nhL->lweight).convert_to<long double>() / nhL->numWeightsOfPathsAsAmpsToExit[0]);
-                    long double rw = ((nhL->rweight * nhL->rweight).convert_to<long double>() / nhL->numWeightsOfPathsAsAmpsToExit[0]);
+                    long double lw = (((nhL->lweight.real() * nhL->lweight.real() + nhL->lweight.imag() * nhL->lweight.imag())).convert_to<long double>() / nhL->numWeightsOfPathsAsAmpsToExit[0]);
+                    long double rw = (((nhL->rweight.real() * nhL->rweight.real() + nhL->rweight.imag() * nhL->rweight.imag())).convert_to<long double>() / nhL->numWeightsOfPathsAsAmpsToExit[0]);
                     std::vector<std::pair<long double, unsigned int>> weights = {std::make_pair(lw, 0), std::make_pair(rw, 1)};
                     // sort(weights.begin(), weights.end(), sortNumPathPairs<long double>);
                     double random_value = ((double)rand() / (RAND_MAX));
@@ -394,6 +394,84 @@ namespace CFL_OBDD {
             return std::make_pair(AString.first + BString.first, AString.second + BString.second);
             //return std::make_pair(AString.first + BString.first + AString.second + BString.second, "");
         }
+    
+    
+        std::vector<std::vector<std::pair<std::pair<std::string, std::string>, BIG_COMPLEX_FLOAT>>> PrintVectorNode(Hashtable<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, std::vector<std::vector<std::pair<std::pair<std::string, std::string>, BIG_COMPLEX_FLOAT>>>>& hashMap, WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh)
+        {
+            std::vector<std::vector<std::pair<std::pair<std::string, std::string>, BIG_COMPLEX_FLOAT>>> ans;
+            if (hashMap.Lookup(nh) == true){
+                hashMap.Fetch(nh, ans);
+                // nh.print(std::cout);
+                // for (int i = 0; i < ans.size(); i++)
+                // {
+                //     for (int j = 0; j < ans[i].size(); j++)
+                //     {
+                //         std::cout << ans[i][j].first.first << " " << ans[i][j].first.second << " " << ans[i][j].second << std::endl;
+                //     }
+                // }
+                return ans;
+            }
+            std::cout << nh.handleContents->level << std::endl;
+            if (nh.handleContents->level == 0)
+            {
+                auto nA = (WeightedCFLOBDDComplexFloatBoostLeafNode *) nh.handleContents;
+                if (nA->numExits == 2){
+                    std::vector<std::pair<std::pair<std::string, std::string>, BIG_COMPLEX_FLOAT>> t1, t2;
+                    t1.push_back(std::make_pair(std::make_pair("0", ""), nA->lweight));
+                    t2.push_back(std::make_pair(std::make_pair("1", ""), nA->rweight));
+                    ans.push_back(t1);
+                    ans.push_back(t2);
+                }
+                else
+                {
+                    std::vector<std::pair<std::pair<std::string, std::string>, BIG_COMPLEX_FLOAT>> t1;
+                    t1.push_back(std::make_pair(std::make_pair("0", ""), nA->lweight));
+                    t1.push_back(std::make_pair(std::make_pair("1", ""), nA->rweight));
+                    ans.push_back(t1);
+                }
+            }
+            else
+            {
+               auto n = (WeightedCFLOBDDComplexFloatBoostInternalNode *)nh.handleContents;
+               auto aa = PrintVectorNode(hashMap, n->AConnection.entryPointHandle->handleContents); 
+               for (unsigned int i = 0; i < n->numExits; i++)
+               {
+                    std::vector<std::pair<std::pair<std::string, std::string>, BIG_COMPLEX_FLOAT>> t;
+                    ans.push_back(t);
+               }
+               for (unsigned int i = 0; i < aa.size(); i++)
+               {
+                    auto bb = PrintVectorNode(hashMap, n->BConnection[i].entryPointHandle->handleContents);
+                    for (unsigned int j = 0; j < bb.size(); j++)
+                    {
+                        unsigned int k = n->BConnection[i].returnMapHandle[j];
+                        for (auto a1 : aa[i])
+                        {
+                            for (auto b1: bb[j])
+                            {
+                                if (n->level == 1){
+                                    ans[k].push_back(std::make_pair(std::make_pair(a1.first.first, b1.first.first), a1.second * b1.second));
+                                }
+                                else{
+                                    ans[k].push_back(std::make_pair(std::make_pair(a1.first.first + b1.first.first, a1.first.second + b1.first.second), a1.second * b1.second)); 
+                                }
+                            }
+                        }
+                    }
+               }
+            }
+            // nh.print(std::cout);
+            // for (int i = 0; i < ans.size(); i++)
+            // {
+            //     for (int j = 0; j < ans[i].size(); j++)
+            //     {
+            //         std::cout << ans[i][j].first.first << " " << ans[i][j].first.second << " " << ans[i][j].second << std::endl;
+            //     }
+            // }
+            hashMap.Insert(nh, ans);
+            return ans;
+        }
+        
 
         long double getNonZeroProbabilityNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh)
         {

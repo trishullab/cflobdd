@@ -50,6 +50,9 @@ int main(int argc, char * argv[])
         else if (argc == 4) {
             CFL_OBDD::CFLTests::runTests(argv[1], atoi(argv[2]), atoi(argv[3]));
         }
+		else if (argc == 5) {
+            CFL_OBDD::CFLTests::runTests(argv[1], atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+        } 
 		else{
 			CFL_OBDD::CFLTests::runTests(argv[1]);
 		}

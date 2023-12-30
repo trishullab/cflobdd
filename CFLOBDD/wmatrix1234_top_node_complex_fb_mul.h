@@ -48,6 +48,11 @@ namespace CFL_OBDD {
 		extern void MatrixPrintRowMajorInterleavedTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out);
 
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MatrixMultiplyV4TopNode(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr c1, WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr c2);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCSwapGate2Top(unsigned int level, long int c, long int i, long int j);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCCPTop(unsigned int level, unsigned int n, long int c1, long int i, long int j, double theta);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSXGateTop(unsigned int i);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSYGateTop(unsigned int i);
+
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSwapGateTop(unsigned int level, long int i, long int j, int cflobdd_kind = 1, unsigned int offset = 0);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkiSwapGateTop(unsigned int level, long int i, long int j, int cflobdd_kind = 1, unsigned int offset = 0);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int level, long int i, long int j, double theta, int cflobdd_kind = 1, unsigned int offset = 0);

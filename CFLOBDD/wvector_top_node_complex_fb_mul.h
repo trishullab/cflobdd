@@ -32,10 +32,11 @@ namespace CFL_OBDD {
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr VectorToMatrixInterleavedTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n); // Convert vector to matrix with variables interleaved
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkColumn1MatrixTop(unsigned int level);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr NoDistinctionNodeTop(unsigned int level, BIG_COMPLEX_FLOAT val);
-		extern std::string SamplingTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::mt19937 mt, std::uniform_real_distribution<double> dis, bool voctwo = false, std::string = "");
+		extern std::string SamplingTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::mt19937_64 mt, std::uniform_real_distribution<double> dis, bool voctwo = false, std::string = "");
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr VectorWithAmplitudeTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n);
 		extern void VectorPrintColumnMajorTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out);
 		extern void VectorPrintColumnMajorInterleavedTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out);
+		extern void PrintVectorTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out, unsigned int vars_count);
 		extern long double getNonZeroProbabilityTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n);
 	}
 }

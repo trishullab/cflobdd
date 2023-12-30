@@ -305,7 +305,7 @@ namespace CFL_OBDD {
         
 
     //#ifdef PATH_COUNTING_ENABLED
-        std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh, unsigned int index, std::mt19937 mt, std::uniform_real_distribution<double> dis, bool VocTwo,  std::string func)
+        std::pair<std::string,std::string> SamplingNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle nh, unsigned int index, std::mt19937_64 mt, std::uniform_real_distribution<double> dis, bool VocTwo,  std::string func)
         {
             if (nh.handleContents->NodeKind() == W_BDD_TOPNODE)
             {

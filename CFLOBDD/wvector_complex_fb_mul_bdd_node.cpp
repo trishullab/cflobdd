@@ -120,7 +120,7 @@ namespace CFL_OBDD {
             return weights[weights.size()-1].second;
         }
 
-        std::pair<std::string,std::string> SamplingNode(WeightedBDDComplexFloatBoostMulNodeHandle nh, unsigned int numVars, std::mt19937 mt, std::uniform_real_distribution<double> dis, long int count)
+        std::pair<std::string,std::string> SamplingNode(WeightedBDDComplexFloatBoostMulNodeHandle nh, unsigned int numVars, std::mt19937_64 mt, std::uniform_real_distribution<double> dis, long int count)
         {
             if (nh.handleContents->NodeKind() == LEAF){
                 std::string add_string1 = "", add_string2 = "";

@@ -22,7 +22,7 @@ namespace CFL_OBDD {
         extern WeightedBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, unsigned int index, long int id = 0);
         extern WeightedBDDComplexFloatBoostMulNodeHandle MkBasisVectorNode(unsigned int level, std::string s, long int id = 0);
         
-        extern std::pair<std::string,std::string> SamplingNode(WeightedBDDComplexFloatBoostMulNodeHandle nh, unsigned int numVars, std::mt19937 mt, std::uniform_real_distribution<double> dis, long int count = 0);
+        extern std::pair<std::string,std::string> SamplingNode(WeightedBDDComplexFloatBoostMulNodeHandle nh, unsigned int numVars, std::mt19937_64 mt, std::uniform_real_distribution<double> dis, long int count = 0);
     }
 }
 

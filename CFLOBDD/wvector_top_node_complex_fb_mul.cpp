@@ -125,7 +125,7 @@ namespace CFL_OBDD {
 		}
 
 //#ifdef PATH_COUNTING_ENABLED
-		std::string SamplingTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::mt19937 mt, std::uniform_real_distribution<double> dis, bool VocTwo, std::string func)
+		std::string SamplingTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::mt19937_64 mt, std::uniform_real_distribution<double> dis, bool VocTwo, std::string func)
 		{
 			if (n->rootConnection.factor == 0)
 				return "";

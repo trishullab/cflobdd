@@ -26,7 +26,7 @@ namespace CFL_OBDD {
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkColumn1Matrix(unsigned int level);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL KroneckerProduct(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m2);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL NoDistinctionNode(unsigned int level, BIG_COMPLEX_FLOAT val);
-		extern std::string Sampling(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, bool voctwo, std::mt19937 mt, std::uniform_real_distribution<double> dis, std::string = "");
+		extern std::string Sampling(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, bool voctwo, std::mt19937_64 mt, std::uniform_real_distribution<double> dis, std::string = "");
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL VectorWithAmplitude(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c);
 		extern void VectorPrintColumnMajor(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, std::ostream & out);
 		extern void VectorPrintColumnMajorInterleaved(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, std::ostream & out);

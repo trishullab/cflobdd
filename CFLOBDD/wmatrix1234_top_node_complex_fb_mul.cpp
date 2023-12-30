@@ -41,17 +41,11 @@ namespace CFL_OBDD {
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m01;
 
-<<<<<<< HEAD
-			tempHandle = MkNegationMatrixInterleavedNode(i);
-=======
 			tempHandle = MkNegationMatrixInterleavedNode(i, cflobdd_kind, offset);
->>>>>>> 743c414798e265174b6d0bfcd4c102fdf3305205
 			m01.AddToEnd(0);
 			m01.AddToEnd(1);
 			m01.Canonicalize();
 			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
-<<<<<<< HEAD
-=======
 			return v;
 		}
 
@@ -101,7 +95,6 @@ namespace CFL_OBDD {
 			m10.AddToEnd(0);
 			m10.Canonicalize();
 			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m10);
->>>>>>> 743c414798e265174b6d0bfcd4c102fdf3305205
 			return v;
 		}
 
@@ -168,17 +161,12 @@ namespace CFL_OBDD {
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m;
 
-<<<<<<< HEAD
-			tempHandle = MkWalshInterleavedNode(i);
-			auto val = boost::multiprecision::pow(BIG_COMPLEX_FLOAT(sqrt(2)), i).convert_to<BIG_COMPLEX_FLOAT>();
-=======
 			tempHandle = MkWalshInterleavedNode(i, cflobdd_kind, offset);
 			BIG_COMPLEX_FLOAT val;
 			if (cflobdd_kind == 0)
 				val = boost::multiprecision::pow(BIG_COMPLEX_FLOAT(sqrt(2)), i/2).convert_to<BIG_COMPLEX_FLOAT>(); 
 			else
 				val = boost::multiprecision::pow(BIG_COMPLEX_FLOAT(sqrt(2)), i-1).convert_to<BIG_COMPLEX_FLOAT>();
->>>>>>> 743c414798e265174b6d0bfcd4c102fdf3305205
 			m.AddToEnd(1);
 			m.Canonicalize();
 			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m, 1.0/val);
@@ -445,21 +433,13 @@ namespace CFL_OBDD {
 			return v;
 		}
 
-<<<<<<< HEAD
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkiSwapGateTop(unsigned int i, long int c1, long int c2)
-=======
 		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkiSwapGateTop(unsigned int i, long int c1, long int c2, int cflobdd_kind, unsigned int offset)
->>>>>>> 743c414798e265174b6d0bfcd4c102fdf3305205
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
 			ComplexFloatBoostReturnMapHandle m01;
 
-<<<<<<< HEAD
-			tempHandle = MkiSwapGateNode(i, c1, c2, -1);
-=======
 			tempHandle = MkiSwapGateNode(i, c1, c2, -1, cflobdd_kind, offset);
->>>>>>> 743c414798e265174b6d0bfcd4c102fdf3305205
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
 			m01.Canonicalize();
@@ -467,13 +447,7 @@ namespace CFL_OBDD {
 			return v;
 		}
 
-<<<<<<< HEAD
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int i, long int c1, long int c2, double theta)
-=======
-
-
 		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCPGateTop(unsigned int i, long int c1, long int c2, double theta, int cflobdd_kind, unsigned int offset)
->>>>>>> 743c414798e265174b6d0bfcd4c102fdf3305205
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
 			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
@@ -583,47 +557,6 @@ namespace CFL_OBDD {
 			BIG_COMPLEX_FLOAT val(cos_v, sin_v);
 			std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle> cp_hashMap;
 			tempHandle = MkCCPNode(cp_hashMap, level, n, c1, c2, x, val);
-			m01.AddToEnd(1);
-			m01.AddToEnd(0);
-			m01.Canonicalize();
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
-			return v;
-		}
-
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliZGateTop(unsigned int i)
-		{
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			ComplexFloatBoostReturnMapHandle m01;
-			tempHandle = MkPauliZGateNode(i);
-			m01.AddToEnd(1);
-			m01.AddToEnd(0);
-			m01.Canonicalize();
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01);
-			return v;
-		}
-
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliYGateTop(unsigned int i)
-		{
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			ComplexFloatBoostReturnMapHandle m01;
-			tempHandle = MkPauliYGateNode(i);
-			m01.AddToEnd(0);
-			m01.AddToEnd(1);
-			m01.Canonicalize();
-			BIG_COMPLEX_FLOAT factor(0, -1);
-			factor = boost::multiprecision::pow(factor, std::pow(2, i));
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m01, factor);
-			return v;
-		}
-
-		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSGateTop(unsigned int i)
-		{
-			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
-			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
-			ComplexFloatBoostReturnMapHandle m01;
-			tempHandle = MkSGateNode(i);
 			m01.AddToEnd(1);
 			m01.AddToEnd(0);
 			m01.Canonicalize();

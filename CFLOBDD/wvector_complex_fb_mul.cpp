@@ -49,7 +49,7 @@ namespace CFL_OBDD {
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(NoDistinctionNodeTop(level, val));
 		}
 
-		std::string Sampling(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, bool isTwoVoc, std::mt19937 mt, std::uniform_real_distribution<double> dis, std::string func)
+		std::string Sampling(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, bool isTwoVoc, std::mt19937_64 mt, std::uniform_real_distribution<double> dis, std::string func)
 		{
 			return SamplingTop(c.root, mt, dis, isTwoVoc, func);
 		}

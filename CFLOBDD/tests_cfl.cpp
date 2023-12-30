@@ -1317,7 +1317,7 @@ void CFLTests::testWeightedOps(unsigned int level)
 	e.ComputeWeightOfPathsAsAmpsToExits();
 	// e.print(std::cout);
 	srand(time(NULL));
-	std::mt19937 mt(time(NULL));
+	std::mt19937_64 mt(time(NULL));
 	std::uniform_real_distribution<double> dis(0.0, 1.0);
 	auto s = WeightedVectorComplexFloatBoostMul::Sampling(e, true, mt, dis);
 	std::cout << s.substr(0, 3) << std::endl;

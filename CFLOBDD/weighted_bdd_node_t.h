@@ -2,6 +2,7 @@
 #define WEIGHTED_BDD_NODE_T_GUARD
 
 #include <iostream>
+#include <cstdint>
 #include "hashset.h"
 
 namespace CFL_OBDD {

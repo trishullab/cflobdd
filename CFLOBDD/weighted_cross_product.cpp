@@ -775,7 +775,7 @@ namespace CFL_OBDD {
                                 WeightedPairProductMapHandle<T> &pairProductMapHandle
                                 )
     {
-        if (n1 == WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[n1->level] && n2 == WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[n2->level])
+        if (n1 == WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[n1->level].handleContents && n2 == WeightedCFLOBDDNodeHandleT<T,Op>::NoDistinctionNode_Ann[n2->level].handleContents)
         {
             pairProductMapHandle.AddToEnd(intpair(-1,-1), Pair_T<T,T>(getAnnhilatorValue<T,Op>(), getAnnhilatorValue<T,Op>()));
             pairProductMapHandle.Canonicalize();

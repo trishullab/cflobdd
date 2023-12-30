@@ -60,11 +60,18 @@ class CFLTests
 		static void testDJAlgo_W(int size, int seed);
         static void testGroversAlgo_W(int size, int seed);
         static void testQFT_W(int size, int seed);
-		static void testShorsAlgo_W(int N, int a);
+		static void testShorsAlgo_W(int N, int a, int seed);
+        static void testSynBenchmark1(int size);
+        static void testSynBenchmark2(int size);
+        static void testSynBenchmark3(int size);
+        static void testSynBenchmark4(int size);
+        static void testSynBenchmark5(int size);
+        static void testSynBenchmark6(int size);
+        static void testSynBenchmark7(int size);
 	    
         static void InitModules();
 	    static void ClearModules();
-		static bool runTests(const char *arg, int size = 0, int seed = 0);
+		static bool runTests(const char *arg, int size = 0, int seed = 0, int a = 0);
 };
 }
 

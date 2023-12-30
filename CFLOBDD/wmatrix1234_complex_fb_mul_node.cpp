@@ -333,6 +333,8 @@ namespace CFL_OBDD {
                 {
                     if (it1->first == it2->first)
                     {
+                        if (it1->second == 0 || it2->second == 0)
+                            continue;
                         if (first)
                             factor = it2->second / it1->second;
                         else{

@@ -447,12 +447,13 @@ namespace CFL_OBDD {
             n = PairProduct<T,Op>(*(n1->rootConnection.entryPointHandle),
                 *(n2->rootConnection.entryPointHandle),
                 MapHandle);
-        else
+        else{
             n = PairProduct2<T,Op>(*(n1->rootConnection.entryPointHandle),
                 *(n2->rootConnection.entryPointHandle),
                 n1->rootConnection.factor,
                 n2->rootConnection.factor,
                 MapHandle);
+        }
 
         // Create returnMapHandle from MapHandle: Fold the pairs in MapHandle by applying
         // [n1->rootConnection.returnMapHandle, n2->rootConnection.returnMapHandle]
@@ -464,6 +465,8 @@ namespace CFL_OBDD {
         ReductionMapHandle reductionMapHandle;
         WeightedValuesListHandle<T> valList;
         unsigned int iterator = 0;
+        T factor = getIdentityValue<T,Op>();
+        bool first_check = true;
         while (iterator < MapHandle.Size()){
             T c1, c2;
             int first, second;
@@ -487,6 +490,16 @@ namespace CFL_OBDD {
             T value_to_check = val;
             if (!flag)
                 value_to_check = (val == getAnnhilatorValue<T,Op>()) ? val : getIdentityValue<T,Op>();
+            if (first_check && val != getAnnhilatorValue<T,Op>())
+            {
+                factor = val;
+                val = getIdentityValue<T,Op>();
+                first_check = false;
+            }
+            else
+            {
+                val = val/factor;
+            }
             if (reductionMap.find(value_to_check) == reductionMap.end()){
                 returnMapHandle.AddToEnd(value_to_check);
                 reductionMap.insert(std::make_pair(value_to_check, returnMapHandle.Size() - 1)); 
@@ -503,11 +516,12 @@ namespace CFL_OBDD {
             returnMapHandle.Canonicalize();
             reductionMapHandle.Canonicalize();
             valList.Canonicalize();
+            // n.print(std::cout);
             std::pair<WeightedCFLOBDDNodeHandleT<T,Op>, T> reduced_n = n.Reduce(reductionMapHandle, returnMapHandle.Size(), valList, true);
-            T factor = reduced_n.second;
+            T factor1 = reduced_n.second * factor;
             if (flag)
-                factor = reduced_n.second * n1->rootConnection.factor * n2->rootConnection.factor;
-            return(new WeightedCFLOBDDTopNodeT<T, Op>(reduced_n.first, returnMapHandle, factor));
+                factor1 = reduced_n.second * n1->rootConnection.factor * n2->rootConnection.factor;
+            return(new WeightedCFLOBDDTopNodeT<T, Op>(reduced_n.first, returnMapHandle, factor1));
     }
 
 

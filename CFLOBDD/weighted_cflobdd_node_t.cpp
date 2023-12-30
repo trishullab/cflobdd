@@ -1739,6 +1739,8 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
         CFLOBDDReturnMapHandle inducedReturnMap;
 		    inducedReturnMap = ComposeAndReduce(BConnection[i].returnMapHandle, redMapHandle, inducedReductionMapHandle);
         auto inducedValueList = ComposeValueList<T,Op>(BConnection[i].returnMapHandle, valList);
+        // inducedReductionMapHandle.print(std::cout);
+        // inducedValueList.first.print(std::cout);
         std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> temp = BConnection[i].entryPointHandle->Reduce(inducedReductionMapHandle, inducedReturnMap.Size(), inducedValueList.first, forceReduce);
         WConnection<T,Op> c(temp.first, inducedReturnMap);
         unsigned int position = n->InsertBConnection(n->numBConnections, c);

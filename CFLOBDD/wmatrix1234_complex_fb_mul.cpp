@@ -172,7 +172,7 @@ namespace CFL_OBDD {
 
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCNOT(unsigned int i, unsigned int n, long int c1, long int c2, long int x)
 		{
-			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCCNOTTop(i, n, c1, c2, x));
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkCCNOTTop(i, c1, c2, x));
 		}
 
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCCP(unsigned int i, unsigned int n, long int c1, long int c2, long int x, double theta)

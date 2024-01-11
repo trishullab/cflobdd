@@ -126,7 +126,7 @@ namespace CFL_OBDD {
                 n->numBConnections = 2;
                 n->BConnection = new Connection[n->numBConnections];
                 n->BConnection[1] = Connection(temp, commonly_used_return_maps[2]);//m01
-                n->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps[1]);//m1
+                n->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level - 1], commonly_used_return_maps[0]);//m0
             }
             n->numExits = 2;
     #ifdef PATH_COUNTING_ENABLED

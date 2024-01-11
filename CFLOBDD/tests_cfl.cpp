@@ -1476,18 +1476,20 @@ void CFLTests::testQFT_W(int p, int seed)
 }
 
 int continued_fractions(double x, int N) {
-  find_cf(x);
-  int i, n; long cp, cq;
-  int r;
-  for(i=2; i<len; ++i) {
-    for(n = (a[i+1]+2)/2; n<=a[i+1]; ++n) {
-		if (N < n * q[i] + q[i-1])
-			return r;
-      r = n * q[i] + q[i-1];
-    }
-  }
-  n = a[len];
-  return n * q[len-1] + q[len-2];
+//   find_cf(x);
+//   int i, n; long cp, cq;
+//   int r;
+//   for(i=2; i<len; ++i) {
+//     for(n = (a[i+1]+2)/2; n<=a[i+1]; ++n) {
+// 		if (N < n * q[i] + q[i-1])
+// 			return r;
+//       r = n * q[i] + q[i-1];
+//     }
+//   }
+//   n = a[len];
+//   return n * q[len-1] + q[len-2];
+// TODO: Fix this
+return N;
 }
 
 int gcd(int a, int b) {

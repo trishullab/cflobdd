@@ -301,6 +301,7 @@ namespace CFL_OBDD {
             {
                 WeightedBDDComplexFloatBoostTopNode *bn = new WeightedBDDComplexFloatBoostTopNode(level);
                 bn->bddContents = WeightedMatrix1234BDDComplexFloatBoostMul::MkNegationMatrixInterleavedNode(bn->numberOfVars, offset);
+                bn->numberOfVars = level;
                 return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(bn);
             }
             else

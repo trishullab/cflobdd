@@ -742,10 +742,10 @@ namespace CFL_OBDD {
 
         WeightedBDDComplexFloatBoostMulNodeHandle MkNegationMatrixInterleavedNode(unsigned int numVars, unsigned int index)
         {
-            assert(numVars >= 2);
             std::string s = std::to_string(numVars) + ";" + std::to_string(index);
             if (not_map.find(s) != not_map.end())
                 return not_map[s];
+                
             if (numVars == 2)
             {
 

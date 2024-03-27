@@ -1641,6 +1641,9 @@ void CFLTests::testSynBenchmark3(int size)
 	// ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
 	// std::cout << (nodeCount + edgeCount) << std::endl;
 	auto end = high_resolution_clock::now();
+	WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level);
+	ans.root->rootConnection.factor = 1;
+	std::cout << (ans == I) << std::endl;
 	auto duration = duration_cast<milliseconds>(end - start);
 	unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
 	ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
@@ -1676,6 +1679,9 @@ void CFLTests::testSynBenchmark5(int size)
 	BIG_COMPLEX_FLOAT c = -1;
 	auto ans = H + (c * H);
 	auto end = high_resolution_clock::now();
+	auto I = WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::NoDistinctionNode_Ann[level];
+	std::cout << (*(ans.root->rootConnection.entryPointHandle) == I) << std::endl;
+	std::cout << (ans.root->rootConnection.factor == 0) << std::endl;
 	auto duration = duration_cast<milliseconds>(end - start);
 	unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
 	ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
@@ -1745,7 +1751,7 @@ void CFLTests::testSynBenchmark2_CFLOBDD(int size)
 	CFLOBDD_COMPLEX_BIG C1 = Matrix1234ComplexFloatBoost::MkCNOT(level, n, 0, n-1);
 	CFLOBDD_COMPLEX_BIG C2 = Matrix1234ComplexFloatBoost::MkCNOT(level, n, n/2-1, n/2);
 
-	auto C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(C1, C2);
+	auto C = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(C1, C2);
 
 	auto end = high_resolution_clock::now();
 	auto duration = duration_cast<milliseconds>(end - start);
@@ -1761,9 +1767,12 @@ void CFLTests::testSynBenchmark3_CFLOBDD(int size)
 	auto start = high_resolution_clock::now();
 	CFLOBDD_COMPLEX_BIG H = Matrix1234ComplexFloatBoost::MkWalshInterleaved(level);
 
-	auto ans = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(H, H);
+	auto ans = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(H, H);
 	
 	auto end = high_resolution_clock::now();
+	// std::cout << ans << std::endl;
+	auto I = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
+	// std::cout << (*(ans.root->rootConnection.entryPointHandle) == *(I.root->rootConnection.entryPointHandle)) << std::endl;
 	auto duration = duration_cast<milliseconds>(end - start);
 	unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
 	ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
@@ -1779,8 +1788,8 @@ void CFLTests::testSynBenchmark4_CFLOBDD(int size)
 	CFLOBDD_COMPLEX_BIG H = Matrix1234ComplexFloatBoost::MkWalshInterleaved(level);
 	CFLOBDD_COMPLEX_BIG I = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
 	CFLOBDD_COMPLEX_BIG X = Matrix1234ComplexFloatBoost::MkNegationMatrixInterleaved(level);
-	auto HI = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(H, I);
-	auto IX = Matrix1234ComplexFloatBoost::MatrixMultiplyV4(I, X);
+	auto HI = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(H, I);
+	auto IX = Matrix1234ComplexFloatBoost::MatrixMultiplyV4WithInfo(I, X);
 	auto ans = HI + IX;
 	auto end = high_resolution_clock::now();
 	auto duration = duration_cast<milliseconds>(end - start);

@@ -68,6 +68,14 @@ class CFLTests
         static void testSynBenchmark5(int size);
         static void testSynBenchmark6(int size);
         static void testSynBenchmark7(int size);
+
+        static void testSynBenchmark1_CFLOBDD(int size);
+        static void testSynBenchmark2_CFLOBDD(int size);
+        static void testSynBenchmark3_CFLOBDD(int size);
+        static void testSynBenchmark4_CFLOBDD(int size);
+        static void testSynBenchmark5_CFLOBDD(int size);
+        static void testSynBenchmark6_CFLOBDD(int size);
+        static void testSynBenchmark7_CFLOBDD(int size);
 	    
         static void InitModules();
 	    static void ClearModules();

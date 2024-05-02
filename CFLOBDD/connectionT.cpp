@@ -34,7 +34,7 @@ ConnectionT<Handle>::~ConnectionT()
 
 // Hash
 template <typename Handle>
-unsigned int ConnectionT<Handle>::Hash(unsigned int modsize)
+unsigned int ConnectionT<Handle>::Hash(unsigned int modsize) const
 {
 	unsigned int hvalue = 0;
 	hvalue = (997 * returnMapHandle.Hash(modsize) + entryPointHandle->Hash(modsize)) % modsize;
@@ -47,6 +47,8 @@ ConnectionT<Handle>& ConnectionT<Handle>::operator= (const ConnectionT<Handle>& 
 {
 	if (this != &C)      // don't assign to self!
 	{
+		if (entryPointHandle != NULL)
+			delete entryPointHandle;
 		entryPointHandle = new CFLOBDDNodeHandle(*(C.entryPointHandle));
 		returnMapHandle = C.returnMapHandle;
 	}
@@ -55,14 +57,14 @@ ConnectionT<Handle>& ConnectionT<Handle>::operator= (const ConnectionT<Handle>& 
 
 // Overloaded !=
 template <typename Handle>
-bool ConnectionT<Handle>::operator!= (const ConnectionT<Handle> & C)
+bool ConnectionT<Handle>::operator!= (const ConnectionT<Handle> & C) const
 {
 	return (returnMapHandle != C.returnMapHandle) || ((*entryPointHandle) != (*C.entryPointHandle));
 }
 
 // Overloaded ==
 template <typename Handle>
-bool ConnectionT<Handle>::operator== (const ConnectionT<Handle> & C)
+bool ConnectionT<Handle>::operator== (const ConnectionT<Handle> & C) const
 {
 	return (returnMapHandle == C.returnMapHandle) && ((*entryPointHandle) == (*C.entryPointHandle));
 }

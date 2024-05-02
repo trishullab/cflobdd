@@ -56,10 +56,10 @@ class ReturnMapHandle {
   ~ReturnMapHandle();                              // Destructor
   ReturnMapHandle(const ReturnMapHandle<T> &r);    // Copy constructor
   ReturnMapHandle<T>& operator= (const ReturnMapHandle<T> &r); // Overloaded assignment
-  bool operator!= (const ReturnMapHandle<T> &r);      // Overloaded !=
-  bool operator== (const ReturnMapHandle<T> &r);      // Overloaded ==
+  bool operator!= (const ReturnMapHandle<T> &r) const;      // Overloaded !=
+  bool operator== (const ReturnMapHandle<T> &r) const;      // Overloaded ==
   T& operator[](unsigned int i);                       // Overloaded []
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned int modsize) const;
   unsigned int Size();
   void AddToEnd(T y);
   bool Member(T y);
@@ -87,7 +87,7 @@ template <typename T>
 class ReturnMapBody {
 
   friend void ReturnMapHandle<T>::Canonicalize();
-  friend unsigned int ReturnMapHandle<T>::Hash(unsigned int modsize);
+  friend unsigned int ReturnMapHandle<T>::Hash(unsigned int modsize) const;
 
  public:
   ReturnMapBody();    // Constructor
@@ -95,7 +95,7 @@ class ReturnMapBody {
   //~ReturnMapBody();
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned int modsize) const;
   void setHashCheck();
   unsigned int refCount;         // reference-count value
   std::vector<T> mapArray;
@@ -250,14 +250,14 @@ intpair ReturnMapHandle<T>::convertValue(int y)
 
 // Overloaded !=
 template <typename T>
-bool ReturnMapHandle<T>::operator!=(const ReturnMapHandle<T> &r)
+bool ReturnMapHandle<T>::operator!=(const ReturnMapHandle<T> &r) const
 {
   return (mapContents != r.mapContents);
 }
 
 // Overloaded ==
 template <typename T>
-bool ReturnMapHandle<T>::operator==(const ReturnMapHandle<T> &r)
+bool ReturnMapHandle<T>::operator==(const ReturnMapHandle<T> &r) const
 {
 
   return (mapContents == r.mapContents);
@@ -286,12 +286,12 @@ std::ostream& operator<< (std::ostream & out, const ReturnMapHandle<T> &r)
 }
 
 template <typename T>
-unsigned int ReturnMapHandle<T>::Hash(unsigned int modsize)
+unsigned int ReturnMapHandle<T>::Hash(unsigned int modsize) const
 {
 	if (!(mapContents->isCanonical)) {
 		std::cout << "Hash of a non-canonical ReturnMapHandle occurred" << std::endl;
 		abort();
-		this->Canonicalize();
+		// this->Canonicalize();
 	}
 	assert(mapContents->isCanonical);
 	return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;

@@ -55,16 +55,25 @@ namespace CFL_OBDD {
 		ConnectionT(CFLOBDDNodeHandle &entryPointHandle, Handle &returnMapHandle);
 		~ConnectionT();                                 // Destructor
 
-		unsigned int Hash(unsigned int modsize);
+		unsigned int Hash(unsigned int modsize) const;
 		ConnectionT& operator= (const ConnectionT &C);   // Overloaded =
-		bool operator!= (const ConnectionT & C);        // Overloaded !=
-		bool operator== (const ConnectionT & C);        // Overloaded ==
+		bool operator!= (const ConnectionT & C) const;        // Overloaded !=
+		bool operator== (const ConnectionT & C) const;        // Overloaded ==
 
 		CFLOBDDNodeHandle* entryPointHandle = NULL;
 		Handle returnMapHandle;
 
 	public:
 		std::ostream& print(std::ostream & out = std::cout) const;
+
+		struct ConnectionT_Hash {
+		public:
+			size_t operator()(const ConnectionT<Handle>& c) const {
+				size_t a1 = reinterpret_cast<size_t>(c.entryPointHandle->handleContents) >> 3;
+				size_t a2 = reinterpret_cast<size_t>(c.returnMapHandle.mapContents) >> 3;
+				return (a1 + a2 * 823ll) % 1000000007;
+			}
+		};
 	};
 
 

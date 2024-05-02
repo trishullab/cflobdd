@@ -76,6 +76,14 @@ namespace CFL_OBDD {
 
 namespace CFL_OBDD {
 
+struct CFLOBDDNodeHash {
+  size_t operator() (const CFLOBDDNode* n) const;
+};
+
+struct CFLOBDDNodeEq {
+  bool operator() (const CFLOBDDNode* n1, const CFLOBDDNode* n2) const;
+};
+
 //********************************************************************
 // CFLOBDDNodeHandle
 //********************************************************************
@@ -89,8 +97,8 @@ class CFLOBDDNodeHandle {
   CFLOBDDNodeHandle(CFLOBDDNode *n);                          // Constructor
   CFLOBDDNodeHandle(const CFLOBDDNodeHandle &nh);              // Copy constructor
   ~CFLOBDDNodeHandle();                                       // Destructor
-  unsigned int Hash(unsigned int modsize);
-  bool operator!= (const CFLOBDDNodeHandle &nh);              // Overloaded !=
+  unsigned int Hash(unsigned int modsize) const;
+  bool operator!= (const CFLOBDDNodeHandle &nh) const;              // Overloaded !=
   bool operator== (const CFLOBDDNodeHandle &nh) const;              // Overloaded ==
   CFLOBDDNodeHandle & operator= (const CFLOBDDNodeHandle &nh); // assignment
 
@@ -110,7 +118,8 @@ class CFLOBDDNodeHandle {
 
  // Table of canonical nodes -------------------------
     public:
-     static Hashset<CFLOBDDNode> *canonicalNodeTable;
+    //  static Hashset<CFLOBDDNode> *canonicalNodeTable;
+     static std::unordered_set<CFLOBDDNode*, CFLOBDDNodeHash, CFLOBDDNodeEq>* canonicalNodeTable;
      void Canonicalize();
 
  // Reduce and its associated cache ---------------
@@ -201,6 +210,7 @@ namespace CFL_OBDD {
 }
 
 #include "cflobdd_top_node_t.h"
+#include <set>
 
 //********************************************************************
 // CFLOBDDNode
@@ -225,18 +235,21 @@ class CFLOBDDNode {
   //cpp_int *numPathsToExit;
   long double *numPathsToExit;
   bool isNumPathsMemAllocated;
+  std::set<std::string> *pathsToExit;
+  bool isPathsMemAllocated;
 //#endif
   virtual void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index) = 0;
   virtual int Traverse(SH_OBDD::AssignmentIterator &ai) = 0;
   virtual CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false) = 0;
-  virtual unsigned int Hash(unsigned int modsize) = 0;
+  virtual unsigned int Hash(unsigned int modsize) const = 0;
   virtual void DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out = std::cout) = 0;
   virtual void CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int &returnEdgesCount) = 0;
   virtual void CountNodes(Hashset<CFLOBDDNodeHandle> *visitedNodes, unsigned int &nodeCount) = 0;
   virtual void CountPaths(Hashset<CFLOBDDNodeHandle> *visitedNodes) = 0;
-  virtual bool operator!= (const CFLOBDDNode & n) = 0;  // Overloaded !=
-  virtual bool operator== (const CFLOBDDNode & n) = 0;  // Overloaded ==
+  virtual void ComputePaths(Hashset<CFLOBDDNodeHandle> *visitedNodes) = 0;
+  virtual bool operator!= (const CFLOBDDNode & n) const = 0;  // Overloaded !=
+  virtual bool operator== (const CFLOBDDNode & n) const = 0;  // Overloaded ==
   virtual void IncrRef() = 0;
   virtual void DecrRef() = 0;
   const unsigned int Level() const { return level; }
@@ -247,6 +260,25 @@ class CFLOBDDNode {
   virtual std::ostream& print(std::ostream & out = std::cout) const = 0;
   virtual bool IsValid() = 0;
   const unsigned int level;
+
+  struct CFLOBDDNode_Hash
+  {
+      public:
+          size_t operator() (const CFLOBDDNode* c) const
+          {
+              return c->Hash(1000007);
+          }
+  };
+
+  struct CFLOBDDNode_Equal
+  {
+      public:
+          bool operator() (const CFLOBDDNode* c1, const CFLOBDDNode* c2 ) const
+          {
+              return *c1 == *c2;
+          }
+  };
+
  protected:
   unsigned int refCount;
   bool isCanonical;              // Is this CFLOBDDNode in canonicalNodeTable?
@@ -278,14 +310,15 @@ class CFLOBDDInternalNode : public CFLOBDDNode {
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned int modsize) const;
   void DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out = std::cout);
   void CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount);
   void CountNodes(Hashset<CFLOBDDNodeHandle> *visitedNodes, unsigned int &nodeCount);
   void CountPaths(Hashset<CFLOBDDNodeHandle> *visitedNodes);
-  bool operator!= (const CFLOBDDNode & n);        // Overloaded !=
-  bool operator== (const CFLOBDDNode & n);        // Overloaded ==
+  void ComputePaths(Hashset<CFLOBDDNodeHandle> *visitedNodes);
+  bool operator!= (const CFLOBDDNode & n) const;        // Overloaded !=
+  bool operator== (const CFLOBDDNode & n) const;        // Overloaded ==
   void IncrRef();
   void DecrRef();
 
@@ -298,6 +331,7 @@ class CFLOBDDInternalNode : public CFLOBDDNode {
   unsigned int InsertBConnection(unsigned int &j, Connection &c);
 //#ifdef PATH_COUNTING_ENABLED
   void InstallPathCounts();
+  void InstallPaths();
 //#endif
 
  private:
@@ -322,14 +356,15 @@ class CFLOBDDLeafNode : public CFLOBDDNode {
   virtual void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index) = 0;
   virtual int Traverse(SH_OBDD::AssignmentIterator &ai) = 0;
   virtual CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false) = 0;
-  virtual unsigned int Hash(unsigned int modsize) = 0;
+  virtual unsigned int Hash(unsigned int modsize) const = 0;
   void DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out = std::cout);
   void CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount);
   void CountNodes(Hashset<CFLOBDDNodeHandle> *visitedNodes, unsigned int &nodeCount);
   void CountPaths(Hashset<CFLOBDDNodeHandle> *visitedNodes);
-  virtual bool operator!= (const CFLOBDDNode & n) = 0;  // Overloaded !=
-  virtual bool operator== (const CFLOBDDNode & n) = 0;  // Overloaded ==
+  void ComputePaths(Hashset<CFLOBDDNodeHandle> *visitedNodes);
+  virtual bool operator!= (const CFLOBDDNode & n) const = 0;  // Overloaded !=
+  virtual bool operator== (const CFLOBDDNode & n) const = 0;  // Overloaded ==
   void IncrRef();
   void DecrRef();
 
@@ -350,9 +385,9 @@ class CFLOBDDForkNode : public CFLOBDDLeafNode {
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
-  unsigned int Hash(unsigned int modsize);
-  bool operator!= (const CFLOBDDNode & n);        // Overloaded !=
-  bool operator== (const CFLOBDDNode & n);        // Overloaded ==
+  unsigned int Hash(unsigned int modsize) const;
+  bool operator!= (const CFLOBDDNode & n) const;        // Overloaded !=
+  bool operator== (const CFLOBDDNode & n) const;        // Overloaded ==
 
  public:
 	 std::ostream& print(std::ostream & out = std::cout) const;
@@ -375,9 +410,9 @@ class CFLOBDDDontCareNode : public CFLOBDDLeafNode {
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
-  unsigned int Hash(unsigned int modsize);
-  bool operator!= (const CFLOBDDNode & n);        // Overloaded !=
-  bool operator== (const CFLOBDDNode & n);        // Overloaded ==
+  unsigned int Hash(unsigned int modsize) const;
+  bool operator!= (const CFLOBDDNode & n) const;        // Overloaded !=
+  bool operator== (const CFLOBDDNode & n) const;        // Overloaded ==
 
  public:
 	 std::ostream& print(std::ostream & out = std::cout) const;

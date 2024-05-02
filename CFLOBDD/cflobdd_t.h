@@ -75,6 +75,7 @@ class CFLOBDD_T {
   void CountNodes(unsigned int &nodeCount);
   void GroupCountNodesAndEdges(unsigned int &nodeCount, unsigned int &edgeCount);
   void CountPaths();
+  void ComputePaths();
 
  public:
 	 std::ostream& print(std::ostream & out = std::cout) const;
@@ -199,6 +200,14 @@ void CFLOBDD_T<T>::CountPaths()
 {
 	Hashset<CFLOBDDNodeHandle> *visitedNodes = new Hashset<CFLOBDDNodeHandle>;
 	root->CountPaths(visitedNodes);
+	delete visitedNodes;
+}
+
+template<typename T>
+void CFLOBDD_T<T>::ComputePaths()
+{
+	Hashset<CFLOBDDNodeHandle> *visitedNodes = new Hashset<CFLOBDDNodeHandle>;
+	root->ComputePaths(visitedNodes);
 	delete visitedNodes;
 }
 

@@ -61,7 +61,8 @@ using namespace CFL_OBDD;
 
 // Initializations of static members ---------------------------------
 
-Hashset<CFLOBDDNode> *CFLOBDDNodeHandle::canonicalNodeTable = new Hashset<CFLOBDDNode>(HASHSET_NUM_BUCKETS);
+// Hashset<CFLOBDDNode> *CFLOBDDNodeHandle::canonicalNodeTable = new Hashset<CFLOBDDNode>(HASHSET_NUM_BUCKETS);
+std::unordered_set<CFLOBDDNode*, CFL_OBDD::CFLOBDDNodeHash, CFL_OBDD::CFLOBDDNodeEq>* CFLOBDDNodeHandle::canonicalNodeTable = new std::unordered_set<CFLOBDDNode*, CFL_OBDD::CFLOBDDNodeHash, CFL_OBDD::CFLOBDDNodeEq>[50];
 CFLOBDDNodeHandle *CFLOBDDNodeHandle::NoDistinctionNode = NULL;
 CFLOBDDNodeHandle CFLOBDDNodeHandle::CFLOBDDForkNodeHandle;
 CFLOBDDNodeHandle CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle;
@@ -318,14 +319,25 @@ CFLOBDDNodeHandle::~CFLOBDDNodeHandle()
   }
 }
 
+size_t CFLOBDDNodeHash::operator() (const CFLOBDDNode* n) const
+{
+	return n->Hash(1000007);
+}
+
+
+bool CFLOBDDNodeEq::operator() (const CFLOBDDNode* n1, const CFLOBDDNode* n2) const
+{
+	return (*n1) == (*n2);
+}
+
 // Hash
-unsigned int CFLOBDDNodeHandle::Hash(unsigned int modsize)
+unsigned int CFLOBDDNodeHandle::Hash(unsigned int modsize) const
 {
   return ((unsigned int) reinterpret_cast<uintptr_t>(handleContents) >> 2) % modsize;
 }
 
 // Overloaded !=
-bool CFLOBDDNodeHandle::operator!= (const CFLOBDDNodeHandle & C)
+bool CFLOBDDNodeHandle::operator!= (const CFLOBDDNodeHandle & C) const
 {
   return handleContents != C.handleContents;
 }
@@ -400,17 +412,29 @@ void CFLOBDDNodeHandle::Canonicalize()
   CFLOBDDNode *answerContents;
 
   if (!handleContents->IsCanonical()) {
-	  unsigned int hash = canonicalNodeTable->GetHash(handleContents);
-    answerContents = canonicalNodeTable->Lookup(handleContents, hash);
-    if (answerContents == NULL) {
-      canonicalNodeTable->Insert(handleContents, hash);
-      handleContents->SetCanonical();
-    }
-    else {
-      answerContents->IncrRef();
-      handleContents->DecrRef();
-      handleContents = answerContents;
-    }
+	auto it = canonicalNodeTable[handleContents->level].find(handleContents);
+	if (it == canonicalNodeTable[handleContents->level].end())
+	{
+		canonicalNodeTable[handleContents->level].insert(handleContents);
+		handleContents->SetCanonical();
+	}
+	else
+	{
+		(*it)->IncrRef();
+		handleContents->DecrRef();
+		handleContents = *it;
+	}
+	// unsigned int hash = canonicalNodeTable->GetHash(handleContents);
+    // answerContents = canonicalNodeTable->Lookup(handleContents, hash);
+    // if (answerContents == NULL) {
+    //   canonicalNodeTable->Insert(handleContents, hash);
+    //   handleContents->SetCanonical();
+    // }
+    // else {
+    //   answerContents->IncrRef();
+    //   handleContents->DecrRef();
+    //   handleContents = answerContents;
+    // }
   }
 }
 
@@ -1371,6 +1395,8 @@ CFLOBDDInternalNode::~CFLOBDDInternalNode()
 //#ifdef PATH_COUNTING_ENABLED
   if (isNumPathsMemAllocated)
 	delete [] numPathsToExit;
+  if (isPathsMemAllocated)
+	delete [] pathsToExit;
 //#endif
 }
 
@@ -1528,6 +1554,29 @@ CFLOBDDReturnMapHandle ComposeAndReduce(CFLOBDDReturnMapHandle& mapHandle, Reduc
 	return answer;
 }
 
+struct ConnectionPair {
+  const Connection &c1;
+  const Connection &c2;
+  ConnectionPair(const Connection &cc1, const Connection &cc2)
+    : c1(cc1), c2(cc2) {}
+  bool operator== (const ConnectionPair &other) const {
+    return c1.entryPointHandle->handleContents == other.c1.entryPointHandle->handleContents
+        && c1.returnMapHandle.mapContents == other.c1.returnMapHandle.mapContents
+        && c2.entryPointHandle->handleContents == other.c2.entryPointHandle->handleContents
+        && c2.returnMapHandle.mapContents == other.c2.returnMapHandle.mapContents;
+  }
+  struct ConnectionPairHash {
+    size_t operator() (const ConnectionPair cp) const {
+      size_t a1 = reinterpret_cast<size_t>(cp.c1.entryPointHandle->handleContents) >> 3;
+      size_t a2 = reinterpret_cast<size_t>(cp.c1.returnMapHandle.mapContents) >> 3;
+      size_t a3 = reinterpret_cast<size_t>(cp.c2.entryPointHandle->handleContents) >> 3;
+      size_t a4 = reinterpret_cast<size_t>(cp.c2.returnMapHandle.mapContents) >> 3;
+      return (a1 + a2 * 823ll + a3 * 100003ll + a4 * 1145141ll) % 1000000007;
+    }
+    
+  };
+};
+
 CFLOBDDNodeHandle CFLOBDDInternalNode::Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce)
 {
   CFLOBDDInternalNode *n = new CFLOBDDInternalNode(level);
@@ -1536,6 +1585,7 @@ CFLOBDDNodeHandle CFLOBDDInternalNode::Reduce(ReductionMapHandle& redMapHandle, 
   // Reduce the B connections
      n->BConnection = new Connection[numBConnections];   // May create shorter version later
      n->numBConnections = 0;
+	 std::unordered_map<ConnectionPair, unsigned int, ConnectionPair::ConnectionPairHash> pos_map;
      for (unsigned int i = 0; i < numBConnections; i++) {
         ReductionMapHandle inducedReductionMapHandle(redMapHandle.Size());
         CFLOBDDReturnMapHandle inducedReturnMap;
@@ -1544,7 +1594,28 @@ CFLOBDDNodeHandle CFLOBDDInternalNode::Reduce(ReductionMapHandle& redMapHandle, 
         //reducedReturnMap.InducedReductionAndReturnMap(inducedReductionMapHandle, inducedReturnMap);
         CFLOBDDNodeHandle temp = BConnection[i].entryPointHandle->Reduce(inducedReductionMapHandle, inducedReturnMap.Size(), forceReduce);
         Connection c(temp, inducedReturnMap);
-        unsigned int position = n->InsertBConnection(n->numBConnections, c);
+
+		unsigned int position;
+		// Empirical
+		if (numBConnections < 7)
+		{
+			position = n->InsertBConnection(n->numBConnections, c);
+		}
+		else
+		{
+			ConnectionPair cp(c,c);
+			if (pos_map.find(cp) == pos_map.end())
+			{
+				position = n->numBConnections;
+				pos_map[cp] = n->numBConnections;
+				n->BConnection[n->numBConnections] = c;
+				n->numBConnections++;
+			}
+			else
+			{
+				position = pos_map[cp];
+			}
+		}
         AReductionMapHandle.AddToEnd(position);
      }
      AReductionMapHandle.Canonicalize();
@@ -1574,7 +1645,7 @@ CFLOBDDNodeHandle CFLOBDDInternalNode::Reduce(ReductionMapHandle& redMapHandle, 
   return CFLOBDDNodeHandle(n);
 } // CFLOBDDInternalNode::Reduce
 
-unsigned int CFLOBDDInternalNode::Hash(unsigned int modsize)
+unsigned int CFLOBDDInternalNode::Hash(unsigned int modsize) const
 {
   unsigned int hvalue = AConnection.Hash(modsize);
   for (unsigned int j = 0; j < numBConnections; j++) {
@@ -1604,7 +1675,9 @@ void CFLOBDDInternalNode::CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visited
 {
   if (visitedNodes->Lookup(new CFLOBDDNodeHandle(this)) == NULL) {
     visitedNodes->Insert(new CFLOBDDNodeHandle(this));
-    nodeCount++;
+    // nodeCount++;
+	// nodeCount += numBConnections;
+	nodeCount += numExits;
     edgeCount += 2* (1 + numBConnections);
 	/*AConnection.entryPointHandle->handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount);
 	for (unsigned int i = 0; i < numBConnections; i++){
@@ -1654,14 +1727,27 @@ void CFLOBDDInternalNode::CountPaths(Hashset<CFLOBDDNodeHandle> *visitedNodes)
 	}
 }
 
+void CFLOBDDInternalNode::ComputePaths(Hashset<CFLOBDDNodeHandle> *visitedNodes)
+{
+	CFLOBDDNodeHandle* handle = new CFLOBDDNodeHandle(this);
+	if (visitedNodes->Lookup(handle) == NULL) {
+		visitedNodes->Insert(handle);
+		AConnection.entryPointHandle->handleContents->ComputePaths(visitedNodes);
+		for (unsigned int i = 0; i < numBConnections; i++) {
+			BConnection[i].entryPointHandle->handleContents->ComputePaths(visitedNodes);
+		}
+		InstallPaths();
+	}
+}
+
 // Overloaded !=
-bool CFLOBDDInternalNode::operator!= (const CFLOBDDNode & n)
+bool CFLOBDDInternalNode::operator!= (const CFLOBDDNode & n) const
 {
   return !(*this == n);
 }
 
 // Overloaded ==
-bool CFLOBDDInternalNode::operator== (const CFLOBDDNode & n)
+bool CFLOBDDInternalNode::operator== (const CFLOBDDNode & n) const
 {
   if (n.NodeKind() != CFLOBDD_INTERNAL)
     return false;
@@ -1691,7 +1777,9 @@ void CFLOBDDInternalNode::DecrRef()
 {
   if (--refCount == 0) {    // Warning: Saturation not checked
     if (isCanonical) {
-      CFLOBDDNodeHandle::canonicalNodeTable->DeleteEq(this);
+		if (CFLOBDDNodeHandle::canonicalNodeTable != NULL && CFLOBDDNodeHandle::canonicalNodeTable[level].find(this) != CFLOBDDNodeHandle::canonicalNodeTable[level].end())
+			CFLOBDDNodeHandle::canonicalNodeTable[level].erase(this);
+    //   CFLOBDDNodeHandle::canonicalNodeTable->DeleteEq(this);
     }
     delete this;
   }
@@ -1741,6 +1829,20 @@ long double addNumPathsToExit(std::vector<long double>& logOfPaths){
 	return logOfSum;
 }
 
+static long double addPaths(long double a, long double b) {
+    if(a < b){
+      if(a == std::numeric_limits<long double>::lowest())
+        return b;
+      return b + log2(1 + pow(2, a - b));
+    }
+    else {
+      if(b == std::numeric_limits<long double>::lowest())
+        return a;
+      return a + log2(1 + pow(2, b - a));
+    }
+}
+
+
 // InstallPathCounts
 void CFLOBDDInternalNode::InstallPathCounts()
 {
@@ -1757,35 +1859,52 @@ void CFLOBDDInternalNode::InstallPathCounts()
   for (unsigned int i = 0; i < AConnection.entryPointHandle->handleContents->numExits; i++) {
     for (unsigned int j = 0; j < BConnection[i].entryPointHandle->handleContents->numExits; j++) {
       unsigned int k = BConnection[i].returnMapHandle.Lookup(j);
-	  //std::cout << "Install Paths --------------------------------------\n";
-	  //for (unsigned int l = 0; l < BConnection[i].returnMapHandle.mapContents->mapArray.size(); l++)
-		 // std::cout << l << " " << BConnection[i].returnMapHandle.mapContents->mapArray[l] << " " << BConnection[i].returnMapHandle.Lookup(l) << std::endl;
-	  //std::cout << i << " " << j << " " << k << std::endl;
-	  ///*std::cout << (AConnection) << std::endl;
-	  //std::cout << (AConnection.entryPointHandle->handleContents == NULL) << std::endl;
-	  //std::cout << AConnection.entryPointHandle->handleContents->numPathsToExit[i] << std::endl;
-	  //std::cout << (BConnection[i]) << std::endl;
-	  //std::cout << (BConnection[i].entryPointHandle->handleContents == NULL) << std::endl;
-	  //std::cout << BConnection[i].entryPointHandle->handleContents->numPathsToExit[j] << std::endl;*/
-	  //std::cout << "-------------------------------------------------------\n";
 	  long double numPathsValue = AConnection.entryPointHandle->handleContents->numPathsToExit[i] + BConnection[i].entryPointHandle->handleContents->numPathsToExit[j];
-	  if (storingNumPathsToExit.find(k) == storingNumPathsToExit.end()){
-		  std::vector<long double> logOfPaths;
-		  logOfPaths.push_back(numPathsValue);
-		  storingNumPathsToExit[k] = logOfPaths;
-	  }
-	  else{
-		  storingNumPathsToExit[k].push_back(numPathsValue);
-	  }
-	  //numPathsToExit[k] = addNumPathsToExit(numPathsToExit[k], numPathsValue);
+	  numPathsToExit[k] = addPaths(numPathsToExit[k], numPathsValue);
+	//   if (storingNumPathsToExit.find(k) == storingNumPathsToExit.end()){
+	// 	  std::vector<long double> logOfPaths;
+	// 	  logOfPaths.push_back(numPathsValue);
+	// 	  storingNumPathsToExit[k] = logOfPaths;
+	//   }
+	//   else{
+	// 	  storingNumPathsToExit[k].push_back(numPathsValue);
+	//   }
     }
 
-	for (std::map<unsigned int, std::vector<long double>>::iterator it = storingNumPathsToExit.begin(); it != storingNumPathsToExit.end(); it++){
-		sort(it->second.begin(), it->second.end());
-		numPathsToExit[it->first] = addNumPathsToExit(it->second);
-	}
+	// for (std::map<unsigned int, std::vector<long double>>::iterator it = storingNumPathsToExit.begin(); it != storingNumPathsToExit.end(); it++){
+	// 	sort(it->second.begin(), it->second.end());
+	// 	numPathsToExit[it->first] = addNumPathsToExit(it->second);
+	// }
   }
 }
+
+
+void CFLOBDDInternalNode::InstallPaths()
+{
+
+  pathsToExit = new std::set<std::string>[numExits];
+  isPathsMemAllocated = true;
+  for (unsigned int i = 0; i < numExits; i++) {
+	std::set<std::string> s;
+    pathsToExit[i] = s;
+  }
+
+  for (unsigned int i = 0; i < AConnection.entryPointHandle->handleContents->numExits; i++) {
+    for (unsigned int j = 0; j < BConnection[i].entryPointHandle->handleContents->numExits; j++) {
+      unsigned int k = BConnection[i].returnMapHandle.Lookup(j);
+	  auto AStrings = AConnection.entryPointHandle->handleContents->pathsToExit[i];
+	  auto BStrings = BConnection[i].entryPointHandle->handleContents->pathsToExit[j];
+	  for (auto aI : AStrings)
+	  {
+		for (auto bI: BStrings)
+		{
+			pathsToExit[k].insert(aI + bI);
+		}
+	  }
+    }
+  }
+}
+
 //#endif
 
 //********************************************************************
@@ -1834,6 +1953,14 @@ void CFLOBDDLeafNode::CountPaths(Hashset<CFLOBDDNodeHandle> *visitedNodes)
 	}
 }
 
+void CFLOBDDLeafNode::ComputePaths(Hashset<CFLOBDDNodeHandle> *visitedNodes)
+{
+	CFLOBDDNodeHandle* handle = new CFLOBDDNodeHandle(this);
+	if (visitedNodes->Lookup(handle) == NULL) {
+		visitedNodes->Insert(handle);
+	}
+}
+
 void CFLOBDDLeafNode::IncrRef() { }
 void CFLOBDDLeafNode::DecrRef() { }
 
@@ -1854,6 +1981,10 @@ CFLOBDDForkNode::CFLOBDDForkNode()
   numPathsToExit = new long double[2];
   numPathsToExit[0] = 0;
   numPathsToExit[1] = 0;
+
+  pathsToExit = new std::set<std::string>[2];
+  pathsToExit[0].insert("0");
+  pathsToExit[1].insert("1");
 //#endif
 }
 
@@ -1909,19 +2040,19 @@ CFLOBDDNodeHandle CFLOBDDForkNode::Reduce(ReductionMapHandle&, unsigned int repl
 	}
 }
 
-unsigned int CFLOBDDForkNode::Hash(unsigned int modsize)
+unsigned int CFLOBDDForkNode::Hash(unsigned int modsize) const
 {
   return ((unsigned int)reinterpret_cast<uintptr_t>(this) >> 2) % modsize;
 }
 
 // Overloaded !=
-bool CFLOBDDForkNode::operator!= (const CFLOBDDNode & n)
+bool CFLOBDDForkNode::operator!= (const CFLOBDDNode & n) const
 {
   return n.NodeKind() != CFLOBDD_FORK;
 }
 
 // Overloaded ==
-bool CFLOBDDForkNode::operator== (const CFLOBDDNode & n)
+bool CFLOBDDForkNode::operator== (const CFLOBDDNode & n) const
 {
   return n.NodeKind() == CFLOBDD_FORK;
 }
@@ -1942,6 +2073,10 @@ CFLOBDDDontCareNode::CFLOBDDDontCareNode()
   //numPathsToExit = new cpp_int[1];
   numPathsToExit = new long double[1];
   numPathsToExit[0] = 1;
+
+  pathsToExit = new std::set<std::string>[1];
+  pathsToExit[0].insert("0");
+  pathsToExit[0].insert("1");
 //#endif
 }
 
@@ -1983,19 +2118,19 @@ CFLOBDDNodeHandle CFLOBDDDontCareNode::Reduce(ReductionMapHandle&, unsigned int,
   return CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle;
 }
 
-unsigned int CFLOBDDDontCareNode::Hash(unsigned int modsize)
+unsigned int CFLOBDDDontCareNode::Hash(unsigned int modsize) const
 {
   return ((unsigned int) reinterpret_cast<uintptr_t>(this) >> 2) % modsize;
 }
 
 // Overloaded !=
-bool CFLOBDDDontCareNode::operator!= (const CFLOBDDNode & n)
+bool CFLOBDDDontCareNode::operator!= (const CFLOBDDNode & n) const
 {
   return n.NodeKind() != CFLOBDD_DONTCARE;
 }
 
 // Overloaded ==
-bool CFLOBDDDontCareNode::operator== (const CFLOBDDNode & n)
+bool CFLOBDDDontCareNode::operator== (const CFLOBDDNode & n) const
 {
   return n.NodeKind() == CFLOBDD_DONTCARE;
 }

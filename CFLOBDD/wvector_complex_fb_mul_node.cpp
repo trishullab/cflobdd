@@ -356,16 +356,18 @@ namespace CFL_OBDD {
                 // }
             }
             // sort(numBPaths.begin(), numBPaths.end(), sortNumPathPairs<long double>);
-            /*std::cout << numBPaths.size() << std::endl;
-            for (unsigned int i = 0; i < numBPaths.size(); i++)
-            {
-                std::cout << i << " " << numBPaths[i].first << " " << numBPaths[i].second << std::endl;
-            }*/
+            // std::cout << "level: " << nhNode->level << std::endl;
+            // std::cout << numBPaths.size() << std::endl;
+            // for (unsigned int i = 0; i < numBPaths.size(); i++)
+            // {
+            //     std::cout << i << " " << numBPaths[i].first << " " << numBPaths[i].second << std::endl;
+            // }
             int BConnectionIndex = -1;
             if (func != "Grovers"){
                 long double random_value = ((double)rand() / RAND_MAX);
                 
                 BConnectionIndex = chooseIndexRandomly(numBPaths, random_value);
+                // std::cout << BConnectionIndex << " " << random_value << std::endl;
             }
             //if (BConnectionIndex == -1){
             //	std::cout << val << " " << random_value << " " << index << " " << nhNode->level << std::endl;

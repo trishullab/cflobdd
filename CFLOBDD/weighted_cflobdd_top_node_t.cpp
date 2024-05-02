@@ -472,6 +472,7 @@ namespace CFL_OBDD {
             int first, second;
             first = MapHandle[iterator].first.First();
             second = MapHandle[iterator].first.Second();
+            // std::cout << first << " " << second << std::endl;
             T val;
             if (first == -1 && second == -1)
                 val = getAnnhilatorValue<T,Op>();
@@ -484,6 +485,8 @@ namespace CFL_OBDD {
                     T v1, v2;
                     v1 = MapHandle[iterator].second.First();
                     v2 = MapHandle[iterator].second.Second();
+                    // std::cout << c1 << " " << c2 << std::endl;
+                    // std::cout << v1 << " " << v2 << std::endl;
                     val = (*func)(computeComposition<T,Op>(v1, c1), computeComposition<T,Op>(v2, c2));
                 }
             }
@@ -517,6 +520,8 @@ namespace CFL_OBDD {
             reductionMapHandle.Canonicalize();
             valList.Canonicalize();
             // n.print(std::cout);
+            // reductionMapHandle.print(std::cout);
+            // valList.print(std::cout);
             std::pair<WeightedCFLOBDDNodeHandleT<T,Op>, T> reduced_n = n.Reduce(reductionMapHandle, returnMapHandle.Size(), valList, true);
             T factor1 = reduced_n.second * factor;
             if (flag)

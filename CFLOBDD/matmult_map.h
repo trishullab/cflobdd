@@ -58,7 +58,7 @@ public:
 	bool operator!= (const MatMultMapHandle &r) const;      // Overloaded !=
 	bool operator== (const MatMultMapHandle &r) const;      // Overloaded ==
 	VAL_TYPE& operator[](INT_PAIR& p);                        // Overloaded []
-	unsigned int Hash(unsigned int modsize);
+	unsigned int Hash(unsigned int modsize) const;
 	void Add(const INT_PAIR& p, VAL_TYPE& v);
 	void ForceAdd(const INT_PAIR& p, VAL_TYPE& v);
 	bool Member(INT_PAIR& p);
@@ -85,13 +85,13 @@ extern std::size_t hash_value(const MatMultMapHandle& val);
 class MatMultMapBody {
 
 	friend void MatMultMapHandle::Canonicalize();
-	friend unsigned int MatMultMapHandle::Hash(unsigned int modsize);
+	friend unsigned int MatMultMapHandle::Hash(unsigned int modsize) const;
 
 public:
 	MatMultMapBody();    // Constructor
 	void IncrRef();
 	void DecrRef();
-	unsigned int Hash(unsigned int modsize);
+	unsigned int Hash(unsigned int modsize) const;
 	void setHashCheck();
 	unsigned int refCount;         // reference-count value
 	std::map<INT_PAIR, VAL_TYPE> map;

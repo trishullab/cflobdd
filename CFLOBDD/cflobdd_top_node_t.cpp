@@ -266,6 +266,12 @@ namespace CFL_OBDD{
         rootConnection.entryPointHandle->handleContents->CountPaths(visitedNodes);
     }
 
+    template <typename T>
+    void CFLOBDDTopNodeT<T>::ComputePaths(Hashset<CFLOBDDNodeHandle> *visitedNodes)
+    {
+        rootConnection.entryPointHandle->handleContents->ComputePaths(visitedNodes);
+    }
+
 
     template <typename T>
     void CFLOBDDTopNodeT<T>::CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 

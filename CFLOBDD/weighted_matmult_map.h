@@ -38,7 +38,7 @@ public:
 	bool operator!= (const WeightedMatMultMapHandle<T> &r) const;      // Overloaded !=
 	bool operator== (const WeightedMatMultMapHandle<T> &r) const;      // Overloaded ==
 	T& operator[](INT_PAIR& p);                        // Overloaded []
-	unsigned int Hash(unsigned int modsize);
+	unsigned int Hash(unsigned int modsize) const;
 	void Add(const INT_PAIR& p, T& v);
 	void ForceAdd(const INT_PAIR& p, T& v);
 	bool Member(INT_PAIR& p);
@@ -78,13 +78,13 @@ template <typename T>
 class WeightedMatMultMapBody {
 
 	friend void WeightedMatMultMapHandle<T>::Canonicalize();
-	friend unsigned int WeightedMatMultMapHandle<T>::Hash(unsigned int modsize);
+	friend unsigned int WeightedMatMultMapHandle<T>::Hash(unsigned int modsize) const;
 
 public:
 	WeightedMatMultMapBody();    // Constructor
 	void IncrRef();
 	void DecrRef();
-	unsigned int Hash(unsigned int modsize);
+	unsigned int Hash(unsigned int modsize) const;
 	void setHashCheck();
 	unsigned int refCount;         // reference-count value
 	std::map<INT_PAIR, T> map;

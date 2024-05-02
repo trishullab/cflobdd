@@ -1593,6 +1593,7 @@ void CFLTests::testSynBenchmark1(int size)
 	unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
 	ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
 	std::cout << "Duration: " << duration.count() << " Memory: " << (nodeCount + edgeCount) << std::endl;
+	ans.print(std::cout);
 }
 
 void CFLTests::testSynBenchmark2(int size)

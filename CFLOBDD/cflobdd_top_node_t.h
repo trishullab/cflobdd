@@ -71,6 +71,7 @@ class CFLOBDDTopNodeT {
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount, unsigned int &returnEdgesObjCount);
   void CountNodes(Hashset<CFLOBDDNodeHandle> *visitedNodes, unsigned int &nodeCount);
   void CountPaths(Hashset<CFLOBDDNodeHandle> *visitedNodes);
+  void ComputePaths(Hashset<CFLOBDDNodeHandle> *visitedNodes);
   bool operator!= (const CFLOBDDTopNodeT<T> & C);          // Overloaded !=
   bool operator== (const CFLOBDDTopNodeT<T> & C);          // Overloaded ==
   static unsigned int const maxLevel;

@@ -96,6 +96,9 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG MkCCNOT(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled);
 		extern CFLOBDD_COMPLEX_BIG MkMCX(unsigned int level, unsigned int n, std::vector<long int>& controllers, long int controlled);
 		extern CFLOBDD_COMPLEX_BIG MkCCP(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled, double theta);
+		extern CFLOBDD_COMPLEX_BIG MkSXGate(unsigned int i);
+		extern CFLOBDD_COMPLEX_BIG MkSYGate(unsigned int i);
+
 
 		extern CFLOBDD_COMPLEX_BIG MatrixShiftToAConnection(CFLOBDD_COMPLEX_BIG c);
 		extern CFLOBDD_COMPLEX_BIG MatrixShiftToBConnection(CFLOBDD_COMPLEX_BIG c);

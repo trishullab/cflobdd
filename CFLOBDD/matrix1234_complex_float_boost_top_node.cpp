@@ -280,6 +280,40 @@ namespace CFL_OBDD {
 			return v;	
 		}
 
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkSXGateTop(unsigned int i)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m10;
+
+			BIG_COMPLEX_FLOAT one_plus_i (1, 1);
+			BIG_COMPLEX_FLOAT one_minus_i (1, -1);
+
+			tempHandle = MkIdRelationInterleavedNode(i);
+			m10.AddToEnd(one_plus_i);
+			m10.AddToEnd(one_minus_i);
+			m10.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m10);
+			return v;
+		}
+
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkSYGateTop(unsigned int i)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m10;
+
+			BIG_COMPLEX_FLOAT one_plus_i (1/2, 1/2);
+			BIG_COMPLEX_FLOAT one_minus_i (-1/2, -1/2);
+
+			tempHandle = MkSYGateNode(i);
+			m10.AddToEnd(one_plus_i);
+			m10.AddToEnd(one_minus_i);
+			m10.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m10);
+			return v;
+		}
+
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MkPhaseShiftGateInterleavedTop(unsigned int i, double theta)
 		{
 			CFLOBDDTopNodeComplexFloatBoostRefPtr v;

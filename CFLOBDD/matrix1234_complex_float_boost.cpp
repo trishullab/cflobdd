@@ -102,6 +102,19 @@ namespace CFL_OBDD {
 			return CFLOBDD_COMPLEX_BIG(Matrix1234ComplexFloatBoost::MkCNOTInterleavedTop(i));
 		}
 
+		
+		CFLOBDD_COMPLEX_BIG MkSXGate(unsigned int i)
+		{
+			return CFLOBDD_COMPLEX_BIG(MkSXGateTop(i));
+
+		}
+
+		CFLOBDD_COMPLEX_BIG MkSYGate(unsigned int i)
+		{
+			return CFLOBDD_COMPLEX_BIG(MkSYGateTop(i));
+
+		}
+
 		// Create representation of the Inverse Reed-Muller matrix IRM(2**(i-1))
 		// [i.e., a matrix of size 2**(2**(i-1))) x 2**(2**(i-1)))]
 		// with interleaved indexing of components: that is, input

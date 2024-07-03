@@ -1583,15 +1583,13 @@ void CFLTests::testSynBenchmark1(int size)
 	unsigned int level = std::log2(2 * n);
 	auto start = high_resolution_clock::now();
 	// WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = WeightedMatrix1234ComplexFloatBoostMul::MkWalshInterleaved(level);
-	int cflobdd_kind = 0;
-	WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(n, cflobdd_kind);
-	WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL X = WeightedMatrix1234ComplexFloatBoostMul::MkNegationMatrixInterleaved(n, cflobdd_kind);
+	WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL I = WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level);
+	WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL X = WeightedMatrix1234ComplexFloatBoostMul::MkNegationMatrixInterleaved(level);
 
 	// auto HI = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(H, I);
 	// auto IX = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(I, X);
 	// auto XH = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(X, H);
 	auto ans = I + X;
-	ans.print(std::cout);
 	// auto HI_IX = IX + XH;
 	// auto ans = HI + HI_IX;
 	// unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;

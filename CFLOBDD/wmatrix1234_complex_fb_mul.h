@@ -15,8 +15,10 @@ namespace CFL_OBDD {
 	typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX_FLOAT;
     // typedef double BIG_COMPLEX_FLOAT;
 	typedef WEIGHTED_CFLOBDD_T<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>> WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL;
+
 	// cflobdd_kind = 1 -> CFLOBDD, 0 -> BDD
 	namespace WeightedMatrix1234ComplexFloatBoostMul {
+
 		// Initialization routine
 		extern void Matrix1234Initializer();
 
@@ -26,6 +28,9 @@ namespace CFL_OBDD {
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPauliYGate(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPauliZGate(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSGate(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSdgGate(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkTGate(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkTdgGate(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOTInterleaved(unsigned int i);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkExchangeInterleaved(unsigned int i); // Representation of exchange matrix
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCNOT(unsigned int level, unsigned int n, long int controller, long int controlled, int cflobdd_kind = 1, unsigned int offset = 0); // Representation of CNOT matrix with index1 as controller and index2 as controlled bits
@@ -53,6 +58,8 @@ namespace CFL_OBDD {
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkPhaseShiftGate(unsigned int i, double theta, int cflobdd_kind = 1, unsigned int offset = 0);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCZGate(unsigned int i, long int c1, long int c2, double theta, int cflobdd_kind = 1, unsigned int offset = 0);
 		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkCSwapGate(unsigned int i, long int c1, long int x1, long int x2, int cflobdd_kind = 1, unsigned int offset = 0);
+
+		extern WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ConjugateTranspose(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c);
 	}
 }
 

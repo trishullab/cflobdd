@@ -43,7 +43,14 @@ namespace CFL_OBDD {
 	typedef CFLOBDD_T<BIG_COMPLEX_FLOAT> CFLOBDD_COMPLEX_BIG;
 	typedef CFLOBDD_T<fourierSemiring> CFLOBDD_FOURIER;
 
+	static constexpr double SQRT2_2 = static_cast<double>(0.707106781186547524400844362104849039284835937688474036588L);
+    static constexpr double PI      = static_cast<double>(3.141592653589793238462643383279502884197169399375105820974L);
+    static constexpr double PI_2    = static_cast<double>(1.570796326794896619231321691639751442098584699687552910487L);
+    static constexpr double PI_4    = static_cast<double>(0.785398163397448309615660845819875721049292349843776455243L);
+
 	namespace Matrix1234ComplexFloatBoost {
+
+		// extern const BIG_COMPLEX_FLOAT TOLERANCE_LEVEL = BIG_COMPLEX_FLOAT(1e5, 1e5);
 		// Initialization routine
 		extern void Matrix1234Initializer();
 
@@ -59,6 +66,9 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG MkPauliYMatrixInterleaved(unsigned int i);
 		extern CFLOBDD_COMPLEX_BIG MkPauliZMatrixInterleaved(unsigned int i);
 		extern CFLOBDD_COMPLEX_BIG MkSGateInterleaved(unsigned int i);
+		extern CFLOBDD_COMPLEX_BIG MkSdgGateInterleaved(unsigned int i);
+		extern CFLOBDD_COMPLEX_BIG MkTGateInterleaved(unsigned int i);
+		extern CFLOBDD_COMPLEX_BIG MkTdgGateInterleaved(unsigned int i);
 		extern CFLOBDD_COMPLEX_BIG MkPhaseShiftGateInterleaved(unsigned int i, double theta);
 
 		extern CFLOBDD_COMPLEX_BIG MkRestrictMatrix(unsigned int level, std::string s); 
@@ -77,6 +87,7 @@ namespace CFL_OBDD {
 		// extern CFLOBDD_COMPLEX_BIG MatrixMultiply(CFLOBDD_COMPLEX_BIG m1, CFLOBDD_COMPLEX_BIG m2);          // Matrix multiplication
 		extern CFLOBDD_COMPLEX_BIG MatrixMultiplyV4(CFLOBDD_COMPLEX_BIG m1, CFLOBDD_COMPLEX_BIG m2);          // Matrix multiplication
 		extern CFLOBDD_COMPLEX_BIG MatrixMultiplyV4WithInfo(CFLOBDD_COMPLEX_BIG m1, CFLOBDD_COMPLEX_BIG m2);          // Matrix multiplication
+		extern CFLOBDD_COMPLEX_BIG MatrixTranspose(CFLOBDD_COMPLEX_BIG c);
 
 		// Discrete Fourier Transform, and subroutines
 		extern CFLOBDD_COMPLEX_BIG MkFourierMatrixInterleaved(unsigned int i);      // Create representation of the DFT matrix
@@ -103,6 +114,7 @@ namespace CFL_OBDD {
 		extern CFLOBDD_COMPLEX_BIG MatrixShiftToAConnection(CFLOBDD_COMPLEX_BIG c);
 		extern CFLOBDD_COMPLEX_BIG MatrixShiftToBConnection(CFLOBDD_COMPLEX_BIG c);
 		extern CFLOBDD_COMPLEX_BIG KroneckerProduct2Vocs(CFLOBDD_COMPLEX_BIG m1, CFLOBDD_COMPLEX_BIG m2);
+		extern CFLOBDD_COMPLEX_BIG ConjugateTranspose(CFLOBDD_COMPLEX_BIG c);
 
 	}
 }

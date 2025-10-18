@@ -187,6 +187,20 @@ namespace CFL_OBDD {
 			return 0;
 		}
 
+		long double ComputeNormTop(CFLOBDDTopNodeComplexFloatBoostRefPtr n)
+		{
+			long double norm = 0.0;
+			for (unsigned int i = 0; i < n->rootConnection.returnMapHandle.Size(); i++)
+			{
+				if (n->rootConnection.returnMapHandle.Lookup(i) != 0){
+					long double v = n->rootConnection.returnMapHandle.Lookup(i).real().convert_to<long double>();
+					long double logNumPaths = n->rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
+					norm += std::pow(2, logNumPaths) * v * v;
+				}
+			}
+			return norm;
+		}
+
 		//#ifdef PATH_COUNTING_ENABLED
 		std::string SamplingTop(CFLOBDDTopNodeComplexFloatBoostRefPtr n, bool VocTwo)
 		{

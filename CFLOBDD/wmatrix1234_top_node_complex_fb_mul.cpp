@@ -98,6 +98,48 @@ namespace CFL_OBDD {
 			return v;
 		}
 
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkTdgGateTop(unsigned int i, int cflobdd_kind, unsigned int offset)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m10;
+
+			tempHandle = MkTdgGateNode(i, cflobdd_kind, offset);
+			m10.AddToEnd(1);
+			m10.AddToEnd(0);
+			m10.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m10);
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSdgGateTop(unsigned int i, int cflobdd_kind, unsigned int offset)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m10;
+
+			tempHandle = MkSdgGateNode(i, cflobdd_kind, offset);
+			m10.AddToEnd(1);
+			m10.AddToEnd(0);
+			m10.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m10);
+			return v;
+		}
+
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkTGateTop(unsigned int i, int cflobdd_kind, unsigned int offset)
+		{
+			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m10;
+
+			tempHandle = MkTGateNode(i, cflobdd_kind, offset);
+			m10.AddToEnd(1);
+			m10.AddToEnd(0);
+			m10.Canonicalize();
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m10);
+			return v;
+		}
+
 		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTInterleavedTop(unsigned int i)
 		{
 			WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr v;
@@ -164,12 +206,12 @@ namespace CFL_OBDD {
 			tempHandle = MkWalshInterleavedNode(i, cflobdd_kind, offset);
 			BIG_COMPLEX_FLOAT val;
 			if (cflobdd_kind == 0)
-				val = boost::multiprecision::pow(BIG_COMPLEX_FLOAT(sqrt(2)), i/2).convert_to<BIG_COMPLEX_FLOAT>(); 
+				val = 1.0/boost::multiprecision::pow(BIG_COMPLEX_FLOAT(sqrt(2)), i/2).convert_to<BIG_COMPLEX_FLOAT>(); 
 			else
-				val = boost::multiprecision::pow(BIG_COMPLEX_FLOAT(sqrt(2)), i-1).convert_to<BIG_COMPLEX_FLOAT>();
+				val = boost::multiprecision::pow(BIG_COMPLEX_FLOAT(SQRT2_2), boost::multiprecision::pow(BIG_COMPLEX_FLOAT(2), i-1)).convert_to<BIG_COMPLEX_FLOAT>();
 			m.AddToEnd(1);
 			m.Canonicalize();
-			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m, 1.0/val);
+			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tempHandle, m, val);
 			return v;
 		}
 
@@ -363,8 +405,11 @@ namespace CFL_OBDD {
 					long int index1 = j.first.first;
 					long int index2 = j.first.second;
 					BIG_COMPLEX_FLOAT factor(j.second);
-                    if (!(index1 == -1 && index2 == -1))
-					    val = val + (factor * (c1->rootConnection.returnMapHandle[index1] * c2->rootConnection.returnMapHandle[index2]));
+                    if (!(index1 == -1 && index2 == -1)) {
+						auto tmp_val = mul(c1->rootConnection.returnMapHandle[index1], c2->rootConnection.returnMapHandle[index2]);
+						tmp_val = mul(tmp_val, factor);
+						val = add(val, tmp_val);
+					}
 				}
                 if (first && val != 0)
                 {
@@ -374,7 +419,7 @@ namespace CFL_OBDD {
                 }
                 else
                 {
-                    val = val/common_f;
+                    val = div(val, common_f);
                 }
                 BIG_COMPLEX_FLOAT val_to_check = (val == 0)? 0 : 1;
 				if (reductionMap.find(val_to_check) == reductionMap.end()){
@@ -396,7 +441,11 @@ namespace CFL_OBDD {
 			auto g = n.Reduce(reductionMapHandle, v.Size(), valList, true);
 			// Create and return CFLOBDDTopNode
 			//return(new CFLOBDDTopNodeFloatBoost(reduced_tempHandle, inducedReturnMap));
-			return(new WeightedCFLOBDDTopNodeComplexFloatBoost(g.first, v, g.second * common_f * c1->rootConnection.factor * c2->rootConnection.factor * n_factor));
+			auto top_factor = mul(common_f, n_factor);
+			top_factor = mul(top_factor, c1->rootConnection.factor);
+			top_factor = mul(top_factor, c2->rootConnection.factor);
+			top_factor = mul(top_factor, g.second);
+			return(new WeightedCFLOBDDTopNodeComplexFloatBoost(g.first, v, top_factor));
 		}
 
 		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled, int cflobdd_kind, unsigned int offset)
@@ -627,6 +676,16 @@ namespace CFL_OBDD {
 			m01.Canonicalize();
 			v = new WeightedCFLOBDDTopNodeComplexFloatBoost(tmp.first, m01);
 			return v;
+		}
+
+		WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr ConjugateTransposeTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr c)
+		{
+			// only does conjugate. doesn't do transpose
+			WeightedCFLOBDDComplexFloatBoostMulNodeHandle ct = ConjugateTransposeNode(*(c->rootConnection.entryPointHandle));
+			BIG_COMPLEX_FLOAT conj_factor = c->rootConnection.factor;
+			if (conj_factor.imag() != 0)
+				conj_factor = BIG_COMPLEX_FLOAT(conj_factor.real(), -conj_factor.imag());
+			return new WeightedCFLOBDDTopNodeComplexFloatBoost(ct, c->rootConnection.returnMapHandle, conj_factor);
 		}
 
 	}

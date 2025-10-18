@@ -38,6 +38,7 @@ namespace CFL_OBDD {
 		extern void VectorPrintColumnMajorInterleavedTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out);
 		extern void PrintVectorTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out, unsigned int vars_count);
 		extern long double getNonZeroProbabilityTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n);
+		extern long double ComputeNormTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr c);
 	}
 }
 

@@ -30,6 +30,7 @@
 #include <iostream>
 #include <fstream>
 #include <complex>
+#include <boost/math/special_functions/round.hpp>
 #include "matrix1234_complex_float_boost.h"
 #include "return_map_T.h"
 namespace CFL_OBDD {
@@ -63,6 +64,9 @@ namespace CFL_OBDD {
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliYMatrixInterleavedTop(unsigned int i);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliZMatrixInterleavedTop(unsigned int i);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkSGateInterleavedTop(unsigned int i);
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkSdgGateInterleavedTop(unsigned int i);
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkTGateInterleavedTop(unsigned int i);
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkTdgGateInterleavedTop(unsigned int i);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkPhaseShiftGateInterleavedTop(unsigned int i, double theta);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkExchangeInterleavedTop(unsigned int i); // Representation of exchange matrix
 
@@ -98,8 +102,105 @@ namespace CFL_OBDD {
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkSXGateTop(unsigned int i);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkSYGateTop(unsigned int i);
 
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr ConjugateTransposeTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixTransposeTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixShiftToAConnectionTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixShiftToBConnectionTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);
+
+		struct CustomComplexHash {
+			std::size_t operator()(const BIG_COMPLEX_FLOAT& p) const noexcept {
+				std::size_t seed = 0;
+				boost::hash_combine(seed, p.real());
+				boost::hash_combine(seed, p.imag());
+				return seed;
+			}
+		};
+
+		struct CustomComplexEqual {
+			bool operator()(const BIG_COMPLEX_FLOAT& lhs, const BIG_COMPLEX_FLOAT& rhs) const noexcept {
+				if (abs(lhs.real() - rhs.real()) < 1e-10 &&
+					abs(lhs.imag() - rhs.imag()) < 1e-10)
+					return true;
+				return false;
+			}
+		};
+
+		inline BIG_COMPLEX_FLOAT isApproximatelyEqualTo(BIG_COMPLEX_FLOAT a, BIG_COMPLEX_FLOAT b, double epsilon = 1e-10) {
+            return abs(a - b) < epsilon;
+        }
+
+		template <typename T>
+		T round_to(const T& val, int digits) {
+			using boost::multiprecision::round;  // use multiprecision round
+			T factor = pow(T(10), digits);
+			return round(val * factor) / factor;
+		}
+
+        inline BIG_COMPLEX_FLOAT roundNearBy(BIG_COMPLEX_FLOAT c) {
+            if (isApproximatelyEqualTo(c.real(), 0)) {
+                c = BIG_COMPLEX_FLOAT(0, c.imag());
+            } else if (isApproximatelyEqualTo(c, 1)) {
+                c = BIG_COMPLEX_FLOAT(1, c.imag());
+            } else if (isApproximatelyEqualTo(c.real(), SQRT2_2)) {
+                c = BIG_COMPLEX_FLOAT(SQRT2_2, c.imag());
+            } else if (isApproximatelyEqualTo(c.real(), -SQRT2_2)) {
+                c = BIG_COMPLEX_FLOAT(-SQRT2_2, c.imag());
+            } else if (isApproximatelyEqualTo(c.real(), 0.5)) {
+                c = BIG_COMPLEX_FLOAT(0.5, c.imag());
+            } else if (isApproximatelyEqualTo(c.real(), -0.5)) {
+                c = BIG_COMPLEX_FLOAT(-0.5, c.imag());
+            } else if (isApproximatelyEqualTo(c.real(), -1)) {
+                c = BIG_COMPLEX_FLOAT(-1, c.imag());
+            } else {
+                c = BIG_COMPLEX_FLOAT(round_to(c.real(), 10), c.imag());
+            }
+
+            if (isApproximatelyEqualTo(c.imag(), 0)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), 0);
+            } else if (isApproximatelyEqualTo(c.imag(), 1)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), 1);
+            } else if (isApproximatelyEqualTo(c.imag(), -1)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), -1);
+            } else if (isApproximatelyEqualTo(c.imag(), SQRT2_2)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), SQRT2_2);
+            } else if (isApproximatelyEqualTo(c.imag(), -SQRT2_2)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), -SQRT2_2);
+            } else if (isApproximatelyEqualTo(c.imag(), 0.5)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), 0.5);
+            } else if (isApproximatelyEqualTo(c.imag(), -0.5)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), -0.5);
+            } else {
+                c = BIG_COMPLEX_FLOAT(c.real(), round_to(c.imag(), 10));
+            }
+            return c;
+        }
+
+        inline BIG_COMPLEX_FLOAT div(BIG_COMPLEX_FLOAT a, BIG_COMPLEX_FLOAT b) {
+            if (b == 0) {
+                throw std::runtime_error("Division by zero in WeightedMatrix1234ComplexFloatBoostMul::div");
+            }
+            auto c = a / b;
+            c = roundNearBy(c);
+            return c;
+        }
+
+        inline BIG_COMPLEX_FLOAT mul(BIG_COMPLEX_FLOAT a, BIG_COMPLEX_FLOAT b) {
+            auto c = a * b;
+            c = roundNearBy(c);
+            return c;
+        }
+
+        inline BIG_COMPLEX_FLOAT add(BIG_COMPLEX_FLOAT a, BIG_COMPLEX_FLOAT b) {
+            auto c = a + b;
+            c = roundNearBy(c);
+            return c;
+        }
+
+        inline BIG_COMPLEX_FLOAT sub(BIG_COMPLEX_FLOAT a, BIG_COMPLEX_FLOAT b) {
+            auto c = a - b;
+            c = roundNearBy(c);
+            return c;
+        }
 
 	}
 }

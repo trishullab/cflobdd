@@ -40,7 +40,8 @@ int main(int argc, char * argv[])
 
 	// Supply a default argument for when invoking from Windows (e.g., for debugging)
 	if (argc == 1) {
-		std::string default_string = "And";
+		// std::string default_string = "And";
+		std::string default_string = "testTmp";
 		CFL_OBDD::CFLTests::runTests(default_string.c_str());
 	}
 	else {

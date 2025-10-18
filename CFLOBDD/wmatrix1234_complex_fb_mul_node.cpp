@@ -320,39 +320,77 @@ namespace CFL_OBDD {
             {
                 return std::make_pair(true, 0);
             }
-            else if (r1.mapContents->contains_zero_val == true || r2.mapContents->contains_zero_val == true)
+            bool are_equal = (r1 == r2);
+            return std::make_pair(are_equal, 1);
+            // else if (r1.mapContents->contains_zero_val == true || r2.mapContents->contains_zero_val == true)
+            // {
+            //     return std::make_pair(false, 1);
+            // }
+            // else
+            // {
+            //     auto it1 = r1.mapContents->map.begin();
+            //     auto it2 = r2.mapContents->map.begin();
+            //     for (it1 = r1.mapContents->map.begin(), it2 = r2.mapContents->map.begin();
+            //             it1 != r1.mapContents->map.end() && it2 != r2.mapContents->map.end();
+            //             it1++, it2++)
+            //     {
+            //         if (it1->first == it2->first)
+            //         {
+            //             if (it1->second == 0 || it2->second == 0)
+            //                 continue;
+            //             if (first)
+            //                 factor = it2->second / it1->second;
+            //             else{
+            //                 BIG_COMPLEX_FLOAT f = it2->second / it1->second;
+            //                 if (f != factor)
+            //                     return std::make_pair(false, 1);
+            //             }
+            //             first = false;
+            //         }
+            //         else
+            //         {
+            //             return std::make_pair(false, 1);
+            //         }
+            //     }
+            //     if (it1 != r1.mapContents->map.end() || it2 != r2.mapContents->map.end())
+            //         return std::make_pair(false, 1);
+            //     return std::make_pair(true, factor);
+            // }
+        }
+
+        std::pair<WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>, BIG_COMPLEX_FLOAT> factorize_if_needed(WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>& r)
+        {
+            BIG_COMPLEX_FLOAT factor = 1;
+            BIG_COMPLEX_FLOAT one = 1;
+            bool first = true;
+            WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT> updated_r;
+            if (r.mapContents->contains_zero_val == true)
             {
-                return std::make_pair(false, 1);
+                return std::make_pair(r, 0);
             }
             else
             {
-                auto it1 = r1.mapContents->map.begin();
-                auto it2 = r2.mapContents->map.begin();
-                for (it1 = r1.mapContents->map.begin(), it2 = r2.mapContents->map.begin();
-                        it1 != r1.mapContents->map.end() && it2 != r2.mapContents->map.end();
-                        it1++, it2++)
+                bool first = true;
+                auto it = r.mapContents->map.begin();
+                for (; it != r.mapContents->map.end();
+                        it++)
                 {
-                    if (it1->first == it2->first)
-                    {
-                        if (it1->second == 0 || it2->second == 0)
-                            continue;
-                        if (first)
-                            factor = it2->second / it1->second;
-                        else{
-                            BIG_COMPLEX_FLOAT f = it2->second / it1->second;
-                            if (f != factor)
-                                return std::make_pair(false, 1);
+                    if (first) {
+                        if (it->second == one) {
+                            return std::make_pair(r, 1);
                         }
+                        factor = it->second;
                         first = false;
+                        updated_r.Add(it->first, one);
                     }
-                    else
-                    {
-                        return std::make_pair(false, 1);
+                    else{
+                        auto weight = div(it->second, factor);
+                        updated_r.Add(it->first, weight);
                     }
+                       
                 }
-                if (it1 != r1.mapContents->map.end() || it2 != r2.mapContents->map.end())
-                    return std::make_pair(false, 1);
-                return std::make_pair(true, factor);
+                updated_r.Canonicalize();
+                return std::make_pair(updated_r, factor);
             }
         }
 
@@ -361,7 +399,25 @@ namespace CFL_OBDD {
             CFLOBDDMatMultMapHandle b1_m, CFLOBDDMatMultMapHandle b2_m, BIG_COMPLEX_FLOAT b_f1, BIG_COMPLEX_FLOAT b_f2)
         {   
             WeightedPairProductMapHandle<BIG_COMPLEX_FLOAT> MapHandle;
+            // std::cout << "Adding Matrices\n";
+            // std::cout << "Matrix 1 with bf1:" << b_f1 << "\n";
+            // b1.print(std::cout);
+            // std::cout << "b1_m:\n";
+            // for (size_t i = 0; i < b1_m.Size(); i++){
+            //     std::cout << "Entry " << i << ":\n";
+            //     b1_m.Lookup(i).print(std::cout);
+            // }
+            // std::cout << "Matrix 2 with bf2:" << b_f2 << "\n";
+            // b2.print(std::cout);
+            // std::cout << "b2_m:\n";
+            // for (size_t i = 0; i < b2_m.Size(); i++){
+            //     std::cout << "Entry " << i << ":\n";
+            //     b2_m.Lookup(i).print(std::cout);
+            // }
             auto tmp =  PairProduct2(b1, b2, b_f1, b_f2, MapHandle);
+
+            // std::cout << "Resultant Matrix before reduction:\n";
+            // tmp.print(std::cout);
 
             CFLOBDDMatMultMapHandle returnMapHandle;
         
@@ -390,8 +446,13 @@ namespace CFL_OBDD {
                     val = v1 * c1 + v2 * c2;
                 }
                 val.Canonicalize();
+                auto val_factored = factorize_if_needed(val);
+                val = val_factored.first;
+                BIG_COMPLEX_FLOAT factor_v = val_factored.second;
+                // std::cout << "Printing val_factored" << factor_v << "\n";
+                // val.print(std::cout);
                 bool found = false;
-                BIG_COMPLEX_FLOAT factor_c = 1;
+                BIG_COMPLEX_FLOAT factor_c = factor_v;
                 unsigned int index = returnMapHandle.Size();
                 for (unsigned int k = 0; k < returnMapHandle.Size(); k++)
                 {
@@ -399,7 +460,7 @@ namespace CFL_OBDD {
                     if (val_c.first == true)
                     {
                         found = true;
-                        factor_c = val_c.second;
+                        factor_c = factor_v;
                         index = k;
                         break;
                     }
@@ -409,9 +470,11 @@ namespace CFL_OBDD {
                     // reductionMap.insert(std::make_pair(val.getHashCheck(), returnMapHandle.Size() - 1)); 
                     reductionMapHandle.AddToEnd(returnMapHandle.Size() - 1);
                     if (val.mapContents->contains_zero_val == false)
-                        valList.AddToEnd(1.0);
+                        valList.AddToEnd(factor_c);
                     else
                         valList.AddToEnd(0.0);
+                    // std::cout << "Added new entry to return map at " << returnMapHandle.Size() - 1 << "\n";
+                    // valList.print(std::cout);
                 }
                 else{
                     // reductionMapHandle.AddToEnd(reductionMap[val.getHashCheck()]);
@@ -420,6 +483,8 @@ namespace CFL_OBDD {
                         valList.AddToEnd(factor_c);
                     else
                         valList.AddToEnd(0.0);
+                    // std::cout << "Reused existing entry in return map at " << index << "\n";
+                    // valList.print(std::cout);
                 }
                 iterator++;
             }
@@ -429,6 +494,8 @@ namespace CFL_OBDD {
             valList.Canonicalize();
             auto reduced_n = tmp.Reduce(reductionMapHandle, returnMapHandle.Size(), valList, false);
             BIG_COMPLEX_FLOAT factor = reduced_n.second;
+            // std::cout << "Resultant Matrix after reduction: " << factor << "\n";
+            // reduced_n.first.print(std::cout);
             return std::make_tuple(reduced_n.first, returnMapHandle, factor);
         }
 
@@ -550,16 +617,16 @@ namespace CFL_OBDD {
                 int M2_numB = c2_internal->numBConnections;
                 WeightedCFLOBDDComplexFloatBoostLeafNode* M1_b0 = (WeightedCFLOBDDComplexFloatBoostLeafNode *)c1_internal->BConnection[0].entryPointHandle->handleContents;
                 WeightedCFLOBDDComplexFloatBoostLeafNode* M1_b1 = (WeightedCFLOBDDComplexFloatBoostLeafNode *)c1_internal->BConnection[M1_numB-1].entryPointHandle->handleContents;
-                a0 = a0 * M1_b0->lweight;
-                b0 = b0 * M1_b0->rweight;
-                c0 = c0 * M1_b1->lweight;
-                d0 = d0 * M1_b1->rweight;
+                a0 = mul(a0, M1_b0->lweight);
+                b0 = mul(b0, M1_b0->rweight);
+                c0 = mul(c0, M1_b1->lweight);
+                d0 = mul(d0, M1_b1->rweight);
                 WeightedCFLOBDDComplexFloatBoostLeafNode* M2_b0 = (WeightedCFLOBDDComplexFloatBoostLeafNode *)c2_internal->BConnection[0].entryPointHandle->handleContents;
                 WeightedCFLOBDDComplexFloatBoostLeafNode* M2_b1 = (WeightedCFLOBDDComplexFloatBoostLeafNode *)c2_internal->BConnection[M2_numB-1].entryPointHandle->handleContents;
-                a1 = a1 * M2_b0->lweight;
-                b1 = b1 * M2_b0->rweight;
-                c1 = c1 * M2_b1->lweight;
-                d1 = d1 * M2_b1->rweight;
+                a1 = mul(a1, M2_b0->lweight);
+                b1 = mul(b1, M2_b0->rweight);
+                c1 = mul(c1, M2_b1->lweight);
+                d1 = mul(d1, M2_b1->rweight);
 
                 int M1_b0_numE = M1_b0->numExits;
                 int M1_b1_numE = M1_b1->numExits;
@@ -567,8 +634,8 @@ namespace CFL_OBDD {
                 int M2_b1_numE = M2_b1->numExits;
 
                 // v1
-                BIG_COMPLEX_FLOAT a0a1 = a0 * a1;
-                BIG_COMPLEX_FLOAT b0c1 = b0 * c1;
+                BIG_COMPLEX_FLOAT a0a1 = mul(a0, a1);
+                BIG_COMPLEX_FLOAT b0c1 = mul(b0, c1);
                 if (a0a1 == 0 && b0c1 == 0){
                     v1.Add(std::make_pair(-1,-1), zero);
                     v1.mapContents->contains_zero_val = true;
@@ -578,10 +645,17 @@ namespace CFL_OBDD {
                 if (a0a1 != 0)
                     v1.Add(std::make_pair(c1_internal->BConnection[0].returnMapHandle[0], c2_internal->BConnection[0].returnMapHandle[0]), a0a1);
                 v1.Canonicalize();
+                BIG_COMPLEX_FLOAT v1_factor = 1.0;
+                auto v1_factored_result = factorize_if_needed(v1);
+                v1 = v1_factored_result.first;
+                v1_factor = v1_factored_result.second;
+                // std::cout << "v1: " << v1_factor << std::endl;
+                // v1.print(std::cout);
+                // std::cout << std::endl;
 
                 // v2
-                BIG_COMPLEX_FLOAT a0b1 = a0 * b1;
-                BIG_COMPLEX_FLOAT b0d1 = b0 * d1;
+                BIG_COMPLEX_FLOAT a0b1 = mul(a0, b1);
+                BIG_COMPLEX_FLOAT b0d1 = mul(b0, d1);
                 if (a0b1 == 0 && b0d1 == 0){
                     v2.Add(std::make_pair(-1,-1), zero);
                     v2.mapContents->contains_zero_val = true;
@@ -591,10 +665,17 @@ namespace CFL_OBDD {
                 if (a0b1 != 0)
                     v2.Add(std::make_pair(c1_internal->BConnection[0].returnMapHandle[0], c2_internal->BConnection[0].returnMapHandle[M2_b0_numE-1]), a0b1);
                 v2.Canonicalize();
+                BIG_COMPLEX_FLOAT v2_factor = 1.0;
+                auto v2_factored_result = factorize_if_needed(v2);
+                v2 = v2_factored_result.first;
+                v2_factor = v2_factored_result.second;
+                // std::cout << "v2: " << v2_factor << std::endl;
+                // v2.print(std::cout);
+                // std::cout << std::endl;
 
                 // v3
-                BIG_COMPLEX_FLOAT c0a1 = c0 * a1;
-                BIG_COMPLEX_FLOAT d0c1 = d0 * c1;
+                BIG_COMPLEX_FLOAT c0a1 = mul(c0, a1);
+                BIG_COMPLEX_FLOAT d0c1 = mul(d0, c1);
                 if (c0a1 == 0 && d0c1 == 0){
                     v3.Add(std::make_pair(-1,-1), zero);
                     v3.mapContents->contains_zero_val = true;
@@ -604,10 +685,17 @@ namespace CFL_OBDD {
                 if (c0a1 != 0)
                     v3.Add(std::make_pair(c1_internal->BConnection[M1_numB-1].returnMapHandle[0], c2_internal->BConnection[0].returnMapHandle[0]), c0a1);
                 v3.Canonicalize();
+                BIG_COMPLEX_FLOAT v3_factor = 1.0;
+                auto v3_factored_result = factorize_if_needed(v3);
+                v3 = v3_factored_result.first;
+                v3_factor = v3_factored_result.second;
+                // std::cout << "v3: " << v3_factor << std::endl;
+                // v3.print(std::cout);
+                // std::cout << std::endl;
 
                 // v4
-                BIG_COMPLEX_FLOAT c0b1 = c0 * b1;
-                BIG_COMPLEX_FLOAT d0d1 = d0 * d1;
+                BIG_COMPLEX_FLOAT c0b1 = mul(c0, b1);
+                BIG_COMPLEX_FLOAT d0d1 = mul(d0, d1);
                 if (c0b1 == 0 && d0d1 == 0){
                     v4.Add(std::make_pair(-1,-1), zero);
                     v4.mapContents->contains_zero_val = true;
@@ -617,168 +705,34 @@ namespace CFL_OBDD {
                 if (c0b1 != 0)
                     v4.Add(std::make_pair(c1_internal->BConnection[M1_numB-1].returnMapHandle[0], c2_internal->BConnection[0].returnMapHandle[M2_b0_numE-1]), c0b1);
                 v4.Canonicalize();
-
-                // if (v1 == v3 && v2 == v4){
-                //     CFLOBDDReturnMapHandle m0;
-                //     m0.AddToEnd(0); m0.Canonicalize();
-                //     if (v1 == v2){
-                //         g->numBConnections = 1;
-                //         g->BConnection = new Connection[g->numBConnections];
-                //         // if (v1.mapContents->contains_zero_val == true){
-                //         //     g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
-                //         //     g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
-                //         // }
-                //         // else {
-                //             g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
-                //             g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0); 
-                //         // }
-                //         reductionMapHandle.AddToEnd(0);
-                //         valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
-                //         g_return_map.AddToEnd(v1);
-                //     }
-                //     else{
-                //         g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
-                //         g->numBConnections = 1;
-                //         g->BConnection = new Connection[g->numBConnections];
-                //         CFLOBDDReturnMapHandle m01;
-                //         m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                //         // if (v1.mapContents->contains_zero_val == true)
-                //         //     g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m01);
-                //         // else if (v2.mapContents->contains_zero_val == true)
-                //         //     g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
-                //         // else
-                //             g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01); 
-                //         reductionMapHandle.AddToEnd(0);
-                //         reductionMapHandle.AddToEnd(1);
-                //         valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
-                //         valList.AddToEnd(v2.mapContents->contains_zero_val ? 0 : 1);
-                //         g_return_map.AddToEnd(v1); 
-                //         g_return_map.AddToEnd(v2); 
-                //     }
-                // }
-                // else
-                // {
-                //     CFLOBDDReturnMapHandle m01;
-                //     m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                //     g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
-                //     int la = 1, ra = 1;
-                //     g->numBConnections = 2;
-                //     g->BConnection = new Connection[2];
-                //     if (v1 == v2)
-                //     {
-                //         CFLOBDDReturnMapHandle m0;
-                //         m0.AddToEnd(0); m0.Canonicalize();
-                //         // if (v1.mapContents->contains_zero_val == true){
-                //         //     la = 0;
-                //         //     g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
-                //         // }
-                //         // else{
-                //         //     la = 1;
-                //             g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
-                //         // }
-                //         g_return_map.AddToEnd(v1);
-                //         reductionMapHandle.AddToEnd(0);
-                //         valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
-                //     }
-                //     else{
-                //         la = 1;
-                //         // if (v1.mapContents->contains_zero_val == true)
-                //         //     g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m01);
-                //         // else if (v2.mapContents->contains_zero_val == true)
-                //         //     g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
-                //         // else
-                //             g->BConnection[0] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
-                //         g_return_map.AddToEnd(v1);
-                //         g_return_map.AddToEnd(v2);
-                //         reductionMapHandle.AddToEnd(0);
-                //         reductionMapHandle.AddToEnd(1);
-                //         valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
-                //         valList.AddToEnd(v2.mapContents->contains_zero_val ? 0 : 1);
-                //     }
-                //     if (v3 == v4)
-                //     {
-                //         int k = 0;
-                //         for (k = 0; k < g_return_map.Size(); k++)
-                //         {
-                //             if (g_return_map[k] == v3)
-                //                 break;
-                //         }
-                //         CFLOBDDReturnMapHandle m;
-                //         m.AddToEnd(k); m.Canonicalize();
-                //         // if (v3.mapContents->contains_zero_val == true)
-                //         // {
-                //         //     ra = 0;
-                //         //     g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m);
-                //         // }
-                //         // else {
-                //         //     ra = 1;
-                //             g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m);
-                //         // }
-                //         if (k >= g_return_map.Size()){
-                //             g_return_map.AddToEnd(v3);
-                //             reductionMapHandle.AddToEnd(k);
-                //             valList.AddToEnd(v3.mapContents->contains_zero_val ? 0 : 1);
-                //         }
-                //     }
-                //     else
-                //     {
-                //         ra = 1;
-                //         int k1 = g_return_map.Size(), k2 = -1, k = 0;
-                //         for (k = 0; k < g_return_map.Size(); k++)
-                //         {
-                //             if (g_return_map[k] == v3){
-                //                 k1 = k;
-                //             }
-                //             else if (g_return_map[k] == v4){
-                //                 k2 = k;
-                //             }
-                //         }
-                //         if (k2 == -1){
-                //             k2 = std::max(k1, k-1) + 1;
-                //         }
-                //         CFLOBDDReturnMapHandle m1;
-                //         m1.AddToEnd(k1); m1.AddToEnd(k2); m1.Canonicalize();
-                //         // if (v3.mapContents->contains_zero_val == true)
-                //         //     g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m1);
-                //         // else if (v4.mapContents->contains_zero_val == true)
-                //         //     g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m1);
-                //         // else
-                //             g->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m1);
-                //         if (k1 >= k){
-                //             g_return_map.AddToEnd(v3);
-                //             reductionMapHandle.AddToEnd(k1);
-                //             valList.AddToEnd(v3.mapContents->contains_zero_val ? 0 : 1);
-                //         }
-                //         if (k2 >= k){
-                //             g_return_map.AddToEnd(v4);
-                //             reductionMapHandle.AddToEnd(k2);
-                //             valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
-                //         }
-                //     }
-                //     // if (la == 1 && ra == 1)
-                //     //     g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
-                //     // else if (la == 1 && ra == 0)
-                //     //     g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10, m01);
-                //     // else if (la == 0 && ra == 1)
-                //     //     g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01, m01);
-                //     // assert(!(la == 0 && ra == 0));
-                // }
+                BIG_COMPLEX_FLOAT v4_factor = 1.0;
+                auto v4_factored_result = factorize_if_needed(v4);
+                v4 = v4_factored_result.first;
+                v4_factor = v4_factored_result.second;
+                // std::cout << "v4: " << v4_factor << std::endl;
+                // v4.print(std::cout);
+                // std::cout << std::endl;
 
                 g_return_map.AddToEnd(v1);
                 valList.AddToEnd(v1.mapContents->contains_zero_val ? 0 : 1);
                 reductionMapHandle.AddToEnd(0);
 
                 auto v2_c = compare(v1, v2);
+                
                 Connection B1;
+                BIG_COMPLEX_FLOAT factor_b1 = 1.0;
 
                 if (v2_c.first == true)
                 {
                     CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
-                    if (valList[0] == 0)
+                    if (valList[0] == 0) {
                         B1 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
+                        factor_b1 = 0.0;
+                    }
                     else
                     {
-                        auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, v2_c.second));
+                        factor_b1 = v1_factor;
+                        auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, div(v2_factor, v1_factor)));
                         B1 = Connection(x, m0);
                     }
                 }
@@ -788,11 +742,22 @@ namespace CFL_OBDD {
                     valList.AddToEnd(v2.mapContents->contains_zero_val ? 0 : 1);
                     reductionMapHandle.AddToEnd(1);
                     CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                    B1 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                    if (v1_factor == 0) {
+                        B1 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1), m01);
+                        factor_b1 = v2_factor;
+                    } else if (v2_factor == 0) {
+                        B1 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0), m01);
+                        factor_b1 = v1_factor;
+                    } else {
+                        factor_b1 = v1_factor;
+                        B1 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, div(v2_factor, v1_factor)), m01);
+                    }
                 }
 
                 auto v3_c = compare(v1, v3);
                 Connection B2;
+                BIG_COMPLEX_FLOAT factor_b2 = 1.0;
+                // std::cout << "v3_c: " << v3_c.first << ", " << v3_c.second << std::endl;
 
                 if (v3_c.first == true)
                 {
@@ -802,19 +767,22 @@ namespace CFL_OBDD {
                         {
                             CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
                             B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m0);
+                            factor_b2 = 0.0;
                         }
                         else if (v2 == v4)
                         {
                             CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                            B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                            B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1), m01);
+                            factor_b2 = v4_factor;
                         }
                         else 
                         {
                             CFLOBDDReturnMapHandle m02; m02.AddToEnd(0); m02.AddToEnd(g_return_map.Size()); m02.Canonicalize();
-                            B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m02);
+                            B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1), m02);
                             g_return_map.AddToEnd(v4);
                             valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
                             reductionMapHandle.AddToEnd(g_return_map.Size()-1);
+                            factor_b2 = v4_factor;
                         }
                     }
                     else if (v4.mapContents->contains_zero_val == true)
@@ -822,26 +790,31 @@ namespace CFL_OBDD {
                         if (v2 == v4)
                         {
                             CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                            auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(v3_c.second, 0));
+                            auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0));
                             B2 = Connection(x, m01);
+                            factor_b2 = v3_factor;
                         }
                         else 
                         {
                             CFLOBDDReturnMapHandle m02; m02.AddToEnd(0); m02.AddToEnd(g_return_map.Size()); m02.Canonicalize();
-                            auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(v3_c.second, 0));
+                            auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0));
                             B2 = Connection(x, m02);
                             g_return_map.AddToEnd(v4);
                             valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
                             reductionMapHandle.AddToEnd(g_return_map.Size()-1);
+                            factor_b2 = v3_factor;
                         }
                     }
                     else
                     {
                         auto v4_c = compare(v1, v4);
+                        // std::cout << "v4_c: " << v4_c.first << ", " << v4_c.second << std::endl;
+
                         if (v4_c.first == true)
                         {
                             CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
-                            auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(v3_c.second, v4_c.second));
+                            factor_b2 = v3_factor;
+                            auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, div(v4_factor, v3_factor)));
                             B2 = Connection(x, m0);
                         }
                         else
@@ -849,15 +822,17 @@ namespace CFL_OBDD {
                             if (v2 == v4)
                             {
                                 CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                                B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01); 
+                                B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, div(v4_factor, v3_factor)), m01);
+                                factor_b2 = v3_factor;
                             }
                             else 
                             {
                                 CFLOBDDReturnMapHandle m02; m02.AddToEnd(0); m02.AddToEnd(g_return_map.Size()); m02.Canonicalize();
-                                B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m02);
+                                B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, div(v4_factor, v3_factor)), m02);
                                 g_return_map.AddToEnd(v4);
                                 valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
                                 reductionMapHandle.AddToEnd(g_return_map.Size()-1);
+                                factor_b2 = v3_factor;
                             }
                         }
                     }
@@ -869,12 +844,27 @@ namespace CFL_OBDD {
                         if (v2 == v4)
                         {
                             CFLOBDDReturnMapHandle mk; mk.AddToEnd(g_return_map.Size()-1); mk.Canonicalize();
-                            B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, mk);
+                            if (v2_factor == 0) {
+                                B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], mk);
+                                factor_b2 = 0.0;
+                            } else {
+                                B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, div(v4_factor, v3_factor)), mk);
+                                factor_b2 = v3_factor;
+                            }
                         }
                         else if (v1 == v4)
                         {
                             CFLOBDDReturnMapHandle mk; mk.AddToEnd(1); mk.AddToEnd(0); mk.Canonicalize();
-                            B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, mk);
+                            if (v1_factor == 0) {
+                                B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0), mk);
+                                factor_b2 = v3_factor;
+                            } else if (v2_factor == 0) {
+                                B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1), mk);
+                                factor_b2 = v4_factor;
+                            } else {
+                                B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, div(v4_factor, v3_factor)), mk);
+                                factor_b2 = v3_factor;
+                            }
                         }
                         else
                         {
@@ -882,20 +872,32 @@ namespace CFL_OBDD {
                             if (v4_c.first == true)
                             {
                                 CFLOBDDReturnMapHandle m2; m2.AddToEnd(g_return_map.Size()-1); m2.Canonicalize();
-                                if (valList[valList.Size()-1] == 0)
+                                if (valList[valList.Size()-1] == 0) {
                                     B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m2);
+                                    factor_b2 = 0.0;
+                                }
                                 else
                                 {
-                                    auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, v4_c.second));
+                                    auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, div(v4_factor, v3_factor)));
                                     B2 = Connection(x, m2);
-                                } 
+                                    factor_b2 = v3_factor;
+                                }
                             }
                             else
                             {
                                 valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
                                 reductionMapHandle.AddToEnd(g_return_map.Size());
                                 CFLOBDDReturnMapHandle m23; m23.AddToEnd(g_return_map.Size()-1); m23.AddToEnd(g_return_map.Size()); m23.Canonicalize();
-                                B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m23);
+                                if (v3_factor == 0) {
+                                    B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1), m23);
+                                    factor_b2 = v4_factor;
+                                } else if (v4_factor == 0) {
+                                    B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0), m23);
+                                    factor_b2 = v3_factor;
+                                } else {
+                                    B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, div(v4_factor, v3_factor)), m23);
+                                    factor_b2 = v3_factor;
+                                }
                                 g_return_map.AddToEnd(v4);
                             }
                         }
@@ -908,12 +910,24 @@ namespace CFL_OBDD {
                         if (v1 == v4)
                         {
                             CFLOBDDReturnMapHandle m20; m20.AddToEnd(g_return_map.Size()-1); m20.AddToEnd(0); m20.Canonicalize();
-                            B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m20);
+                            if (v1_factor == 0) {
+                                B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0), m20);
+                                factor_b2 = v3_factor;
+                            } else {
+                                B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, v4_factor / v3_factor), m20);
+                                factor_b2 = v3_factor;
+                            }
                         }
                         else if (v2 == v4)
                         {
                             CFLOBDDReturnMapHandle m21; m21.AddToEnd(g_return_map.Size()-1); m21.AddToEnd(g_return_map.Size()-2); m21.Canonicalize();
-                            B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m21); 
+                            if (v2_factor == 0) {
+                                B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0), m21);
+                                factor_b2 = v3_factor;
+                            } else {
+                                B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, div(v4_factor, v3_factor)), m21);
+                                factor_b2 = v3_factor;
+                            }
                         }
                         else
                         {
@@ -921,13 +935,16 @@ namespace CFL_OBDD {
                             if (v4_c.first == true)
                             {
                                 CFLOBDDReturnMapHandle m2; m2.AddToEnd(g_return_map.Size()-1); m2.Canonicalize();
-                                if (valList[valList.Size()-1] == 0)
+                                if (valList[valList.Size()-1] == 0) {
                                     B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[0], m2);
+                                    factor_b2 = 0.0;
+                                }
                                 else
                                 {
-                                    auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, v4_c.second));
+                                    auto x = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, v4_factor / v3_factor));
                                     B2 = Connection(x, m2);
-                                } 
+                                    factor_b2 = v3_factor;
+                                }
                             }
                             else
                             {
@@ -935,17 +952,43 @@ namespace CFL_OBDD {
                                 valList.AddToEnd(v4.mapContents->contains_zero_val ? 0 : 1);
                                 reductionMapHandle.AddToEnd(g_return_map.Size()-1);
                                 CFLOBDDReturnMapHandle m23; m23.AddToEnd(g_return_map.Size()-2); m23.AddToEnd(g_return_map.Size()-1); m23.Canonicalize();
-                                B2 = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m23);
+                                if (v3_factor == 0) {
+                                    B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1), m23);
+                                    factor_b2 = v4_factor;
+                                } else if (v4_factor == 0) {
+                                    B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0), m23);
+                                    factor_b2 = v3_factor;
+                                } else {
+                                    B2 = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, v4_factor / v3_factor), m23);
+                                    factor_b2 = v3_factor;
+                                }
                             }
                         }
                     }
                 }
 
+                // std::cout << "Curr c1 level 1: " << std::endl;
+                // c1_internal->print(std::cout);
+                // std::cout << "Curr c2 level 1: " << std::endl;
+                // c2_internal->print(std::cout);
+
+                // std::cout << "B1: ";
+                // B1.print(std::cout);
+                // std::cout << " with factor " << factor_b1 << std::endl;
+                // std::cout << "B2: ";
+                // B2.print(std::cout);
+                // std::cout << " with factor " << factor_b2 << std::endl;
+
             
                 if (B1 == B2)
                 {
                     CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
-                    g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDDontCareNodeHandle, m0);
+                    top_factor = mul(top_factor, factor_b1);
+                    if (factor_b1 == 0) {
+                        g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[1], m0);
+                    } else {
+                        g->AConnection = Connection(new WeightedCFLOBDDComplexFloatBoostDontCareNode(1, div(factor_b2, factor_b1)), m0);
+                    }
                     g->numBConnections = 1;
                     g->BConnection = new Connection[1];
                     g->BConnection[0] = B1;
@@ -953,15 +996,24 @@ namespace CFL_OBDD {
                 else
                 {
                     CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
-                    g->AConnection = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle, m01);
+                    if (factor_b1 == 0) {
+                        g->AConnection = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(0, 1), m01);
+                        top_factor = mul(top_factor, factor_b2);
+                    } else if (factor_b2 == 0) {
+                        g->AConnection = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, 0), m01);
+                        top_factor = mul(top_factor, factor_b1);
+                    } else {
+                        g->AConnection = Connection(new WeightedCFLOBDDComplexFloatBoostForkNode(1, div(factor_b2, factor_b1)), m01);
+                        top_factor = mul(top_factor, factor_b1);
+                    }
                     g->numBConnections = 2;
                     g->BConnection = new Connection[2];
                     g->BConnection[0] = B1; 
                     g->BConnection[1] = B2;
                 }
 
-            }
-            else{
+
+            } else {
                 
                 WeightedCFLOBDDComplexFloatBoostInternalNode* c1_internal = (WeightedCFLOBDDComplexFloatBoostInternalNode *)c1.handleContents;
                 WeightedCFLOBDDComplexFloatBoostInternalNode* c2_internal = (WeightedCFLOBDDComplexFloatBoostInternalNode *)c2.handleContents;
@@ -1064,12 +1116,12 @@ namespace CFL_OBDD {
                         if (first){
                             ans = std::get<0>(bb_old);
                             ans_matmult_map = new_bb_return;
-                            ans_factor = v.second * std::get<2>(bb_old);
+                            ans_factor = mul(v.second, std::get<2>(bb_old));
                             first = false;
                         }
                         else{
                             // TODO: change this
-                            auto t = Add(ans, std::get<0>(bb_old), ans_matmult_map, new_bb_return, ans_factor, v.second * std::get<2>(bb_old));
+                            auto t = Add(ans, std::get<0>(bb_old), ans_matmult_map, new_bb_return, ans_factor, mul(v.second, std::get<2>(bb_old)));
                             ans = std::get<0>(t);
                             ans_matmult_map = std::get<1>(t);
                             ans_factor = std::get<2>(t);
@@ -1087,7 +1139,7 @@ namespace CFL_OBDD {
                     }
                     else
                     {
-                        ans_factor = ans_factor/factor;
+                        ans_factor = div(ans_factor, factor);
                     }
 
                     // CFLOBDDReturnMapHandle ans_return_map;
@@ -1163,7 +1215,7 @@ namespace CFL_OBDD {
                     valList.AddToEnd(ans_factor);
                     
                 }
-
+                
 
                 g_return_map.Canonicalize();
                 reductionMapHandle.Canonicalize();
@@ -1188,7 +1240,9 @@ namespace CFL_OBDD {
                 mA.Canonicalize();
                 g->AConnection = Connection(tmp.first, mA);
                 WeightedCFLOBDDComplexFloatBoostMulNodeHandle gHandle(g);
-                ret = std::make_tuple(gHandle, g_return_map, tmp.second * top_factor * factor);
+                BIG_COMPLEX_FLOAT top_factor_final = mul(top_factor, factor);
+                top_factor_final = mul(top_factor_final, tmp.second);
+                ret = std::make_tuple(gHandle, g_return_map, top_factor_final);
                 matmult_hash.insert(std::make_pair(mmp, ret));
                 for (unsigned int k = 0; k < nodeHandles.size(); k++)
                     delete nodeHandles[k];
@@ -1211,13 +1265,13 @@ namespace CFL_OBDD {
             if (c1.handleContents->level == 1)
             {
                 auto tmp = gHandle.Reduce(reductionMapHandle, g_return_map.Size(), valList, false);
-                ret = std::make_tuple(tmp.first, g_return_map, tmp.second * top_factor);
+                ret = std::make_tuple(tmp.first, g_return_map, mul(tmp.second, top_factor));
                 // ret = std::make_tuple(gHandle, g_return_map, top_factor);
             }
             else
             {
                 auto tmp = gHandle.Reduce(reductionMapHandle, g_return_map.Size(), valList, true);
-                ret = std::make_tuple(tmp.first, g_return_map, tmp.second * top_factor);
+                ret = std::make_tuple(tmp.first, g_return_map, mul(tmp.second, top_factor));
                 // ret = std::make_tuple(gHandle, g_return_map, top_factor);
             }
             matmult_hash.insert(std::make_pair(mmp, ret));
@@ -2115,6 +2169,144 @@ namespace CFL_OBDD {
             }
             else {
                 WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkSGateNodeHelper(i - 1);
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0);
+                m01.AddToEnd(1);
+                m01.Canonicalize();
+                n->AConnection = Connection(temp, m01);
+
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                n->BConnection[0] = Connection(temp, m01);
+                CFLOBDDReturnMapHandle m1;
+                m1.AddToEnd(1);
+                m1.Canonicalize();
+                n->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[i-1], m1);
+            }
+            n->numExits = 2;
+    #ifdef PATH_COUNTING_ENABLED
+            n->InstallPathCounts();
+    #endif
+            return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
+        }
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSdgGateNodeHelper(unsigned int i)
+        {
+            assert(i >= 1);
+            WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(i);
+            if (i == 1) {  // Base case
+
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1, BIG_COMPLEX_FLOAT(0, -1)));
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0);
+                m01.AddToEnd(1);
+                m01.Canonicalize();
+                n->AConnection = Connection(temp, m01);
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle b0 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle b1 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
+                CFLOBDDReturnMapHandle m10;
+                m10.AddToEnd(1);
+                m10.AddToEnd(0);
+                m10.Canonicalize();
+                n->BConnection[0] = Connection(b0, m01);
+                n->BConnection[1] = Connection(b1, m10);
+            }
+            else {
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkSdgGateNodeHelper(i - 1);
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0);
+                m01.AddToEnd(1);
+                m01.Canonicalize();
+                n->AConnection = Connection(temp, m01);
+
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                n->BConnection[0] = Connection(temp, m01);
+                CFLOBDDReturnMapHandle m1;
+                m1.AddToEnd(1);
+                m1.Canonicalize();
+                n->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[i-1], m1);
+            }
+            n->numExits = 2;
+    #ifdef PATH_COUNTING_ENABLED
+            n->InstallPathCounts();
+    #endif
+            return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
+        }
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkTGateNodeHelper(unsigned int i)
+        {
+            assert(i >= 1);
+            WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(i);
+            if (i == 1) {  // Base case
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = 
+                    WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1, BIG_COMPLEX_FLOAT(SQRT2_2, SQRT2_2)));
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0);
+                m01.AddToEnd(1);
+                m01.Canonicalize();
+                n->AConnection = Connection(temp, m01);
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle b0 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle b1 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
+                CFLOBDDReturnMapHandle m10;
+                m10.AddToEnd(1);
+                m10.AddToEnd(0);
+                m10.Canonicalize();
+                n->BConnection[0] = Connection(b0, m01);
+                n->BConnection[1] = Connection(b1, m10);
+            }
+            else {
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkTGateNodeHelper(i - 1);
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0);
+                m01.AddToEnd(1);
+                m01.Canonicalize();
+                n->AConnection = Connection(temp, m01);
+
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                n->BConnection[0] = Connection(temp, m01);
+                CFLOBDDReturnMapHandle m1;
+                m1.AddToEnd(1);
+                m1.Canonicalize();
+                n->BConnection[1] = Connection(WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[i-1], m1);
+            }
+            n->numExits = 2;
+    #ifdef PATH_COUNTING_ENABLED
+            n->InstallPathCounts();
+    #endif
+            return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(n);
+        }
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkTdgGateNodeHelper(unsigned int i)
+        {
+            assert(i >= 1);
+            WeightedCFLOBDDComplexFloatBoostInternalNode *n = new WeightedCFLOBDDComplexFloatBoostInternalNode(i);
+            if (i == 1) {  // Base case
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = 
+                    WeightedCFLOBDDComplexFloatBoostMulNodeHandle(new WeightedCFLOBDDComplexFloatBoostForkNode(1, BIG_COMPLEX_FLOAT(SQRT2_2, -SQRT2_2)));
+                CFLOBDDReturnMapHandle m01;
+                m01.AddToEnd(0);
+                m01.AddToEnd(1);
+                m01.Canonicalize();
+                n->AConnection = Connection(temp, m01);
+                n->numBConnections = 2;
+                n->BConnection = new Connection[n->numBConnections];
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle b0 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle10;
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle b1 = WeightedCFLOBDDComplexFloatBoostMulNodeHandle::CFLOBDDForkNodeHandle01;
+                CFLOBDDReturnMapHandle m10;
+                m10.AddToEnd(1);
+                m10.AddToEnd(0);
+                m10.Canonicalize();
+                n->BConnection[0] = Connection(b0, m01);
+                n->BConnection[1] = Connection(b1, m10);
+            }
+            else {
+                WeightedCFLOBDDComplexFloatBoostMulNodeHandle temp = MkTdgGateNodeHelper(i - 1);
                 CFLOBDDReturnMapHandle m01;
                 m01.AddToEnd(0);
                 m01.AddToEnd(1);
@@ -3759,6 +3951,42 @@ namespace CFL_OBDD {
             }
         }
 
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSdgGateNode(unsigned int level, int cflobdd_kind, unsigned int offset)
+        {
+            if (cflobdd_kind == 0)
+            {
+                abort();
+            }
+            else
+            {
+                return MkSdgGateNodeHelper(level);
+            }
+        }
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkTGateNode(unsigned int level, int cflobdd_kind, unsigned int offset)
+        {
+            if (cflobdd_kind == 0)
+            {
+                abort();
+            }
+            else
+            {
+                return MkTGateNodeHelper(level);
+            }
+        }
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkTdgGateNode(unsigned int level, int cflobdd_kind, unsigned int offset)
+        {
+            if (cflobdd_kind == 0)
+            {
+                abort();
+            }
+            else
+            {
+                return MkTdgGateNodeHelper(level);
+            }
+        }
+
         WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkiSwapGateNode(unsigned int level, long int index1, long int index2, int case_num, int cflobdd_kind, unsigned int offset)
         {
             if (cflobdd_kind == 0)
@@ -3830,6 +4058,57 @@ namespace CFL_OBDD {
             else
             {
                 return MkRestrictNodeHelper(level, s);
+            }
+        }
+
+        WeightedCFLOBDDComplexFloatBoostMulNodeHandle ConjugateTransposeNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle c)
+        {
+            unsigned int level = c.handleContents->level;
+            if (c == WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode_Ann[level] 
+                || c == WeightedCFLOBDDComplexFloatBoostMulNodeHandle::NoDistinctionNode[level]
+                || c == WeightedCFLOBDDComplexFloatBoostMulNodeHandle::IdentityNode[level])
+                return c;
+            
+            if (level == 0)
+            {
+                WeightedCFLOBDDComplexFloatBoostLeafNode* c1_internal = (WeightedCFLOBDDComplexFloatBoostLeafNode *)c.handleContents;
+                auto lweight = c1_internal->lweight;
+                auto rweight = c1_internal->rweight;
+                if (lweight.imag() == 0 && rweight.imag() == 0)
+                {
+                    return c;
+                }
+
+                auto new_lweight = lweight;
+                if (lweight.imag() != 0)
+                    new_lweight = BIG_COMPLEX_FLOAT(lweight.real(), -lweight.imag());
+                auto new_rweight = rweight;
+                if (rweight.imag() != 0)
+                    new_rweight = BIG_COMPLEX_FLOAT(rweight.real(), -rweight.imag());
+                if (c1_internal->numExits == 2)
+                {
+                    WeightedCFLOBDDComplexFloatBoostForkNode* g = new WeightedCFLOBDDComplexFloatBoostForkNode(new_lweight, new_rweight);
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(g);
+                } else {
+                    WeightedCFLOBDDComplexFloatBoostDontCareNode* g = new WeightedCFLOBDDComplexFloatBoostDontCareNode(new_lweight, new_rweight);
+                    return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(g);
+                }   
+            }
+            else 
+            {
+                WeightedCFLOBDDComplexFloatBoostInternalNode* c1_internal = (WeightedCFLOBDDComplexFloatBoostInternalNode *)c.handleContents;
+                WeightedCFLOBDDComplexFloatBoostInternalNode* g = new WeightedCFLOBDDComplexFloatBoostInternalNode(level);
+                g->numExits = c1_internal->numExits;
+                g->numBConnections = c1_internal->numBConnections;
+                auto aa = ConjugateTransposeNode(*c1_internal->AConnection.entryPointHandle);
+                g->AConnection = Connection(aa, c1_internal->AConnection.returnMapHandle);
+                g->BConnection = new Connection[g->numBConnections];
+                for (unsigned int i = 0; i < g->numBConnections; i++)
+                {
+                    auto bnode = ConjugateTransposeNode(*c1_internal->BConnection[i].entryPointHandle);
+                    g->BConnection[i] = Connection(bnode, c1_internal->BConnection[i].returnMapHandle);
+                }
+                return WeightedCFLOBDDComplexFloatBoostMulNodeHandle(g);
             }
         }
 

@@ -49,6 +49,21 @@ namespace CFL_OBDD {
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkSGateTop(i, cflobdd_kind, offset));
 		}
 
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSdgGate(unsigned int i, int cflobdd_kind, unsigned int offset)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkSdgGateTop(i, cflobdd_kind, offset));
+		}
+		
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkTGate(unsigned int i, int cflobdd_kind, unsigned int offset)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkTGateTop(i, cflobdd_kind, offset));
+		}
+		
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkTdgGate(unsigned int i, int cflobdd_kind, unsigned int offset)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkTdgGateTop(i, cflobdd_kind, offset));
+		}
+
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkRestrictMatrix(unsigned int level, std::string s, int cflobdd_kind)
 		{
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkRestrictTop(level, s, cflobdd_kind));	
@@ -188,6 +203,11 @@ namespace CFL_OBDD {
 		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL MkSYGate(unsigned int level) // sqrt Y gate 
 		{
 			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(MkSYGateTop(level));
+		}
+
+		WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL ConjugateTranspose(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c)
+		{
+			return WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(ConjugateTransposeTop(c.root));
 		}
 	}
 }

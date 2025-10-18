@@ -139,8 +139,9 @@ bool WeightedMatMultMapBody<T>::operator==(const WeightedMatMultMapBody<T> &o) c
 	else {
 		for (auto m1_it = map.begin(), m2_it = o.map.begin(); m1_it != map.end() && m2_it != o.map.end(); m1_it++, m2_it++){
 			if ((m1_it->first.first != m2_it->first.first) || (m1_it->first.second != m2_it->first.second) || 
-                ((m1_it->second != m2_it->second)))
+                ((m1_it->second != m2_it->second))) {
 				return false;
+			}
 		}
 	}
 	return true;
@@ -277,6 +278,8 @@ template <>
 void WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>::Add(const INT_PAIR& p, BIG_COMPLEX_FLOAT& v)
 {
 	assert(mapContents->refCount <= 1);
+	if (p.first == -1 || p.second == -1)
+		return ;
 	auto it = mapContents->map.find(p);
     if (it == mapContents->map.end()){
         mapContents->map.emplace(p, v);

@@ -17,6 +17,7 @@ namespace CFL_OBDD {
 
         std::vector<ReturnMapHandle<int>> commonly_used_return_maps_vector;// m0, m1, m01, m10
 
+
         void InitReturnMapVectorHandles(){
             ReturnMapHandle<int> m0, m1, m01, m10;
             m0.AddToEnd(0);

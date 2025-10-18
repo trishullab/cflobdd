@@ -54,6 +54,8 @@ class CFLTests
         static void testMatMul(int size);
         static void testQFT(int size, int seed);
 
+        static void testTmp();
+
         static void testWeightedOps(unsigned int size);
 		static void testGHZAlgo_W(int size);
 		static void testBVAlgo_W(int size, int seed);

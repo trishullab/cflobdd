@@ -37,7 +37,7 @@
 
 // Constructor
 MatMultMapBody::MatMultMapBody()
-	: refCount(0), isCanonical(false)
+	: refCount(0), isCanonical(false), contains_zero_val(false)
 {
 	hashCheck = NULL;
 }

@@ -30,6 +30,7 @@
 #include "matmult_map.h"
 // #include "matrix1234_node.h"
 #include "matrix1234_int.h"
+#include "vector_complex_float_boost.h"
 #include "wmatrix1234_fb_mul.h"
 #include "weighted_cross_product.h"
 #include "wvector_fb_mul.h"
@@ -1848,6 +1849,180 @@ void CFLTests::testSynBenchmark7_CFLOBDD(int size)
 	std::cout << "Duration: " << duration.count() << " Memory: " << (nodeCount + edgeCount) << std::endl;
 }
 
+// CFLOBDD_COMPLEX_BIG CreateGateF2(std::string indices, CFLOBDD_COMPLEX_BIG(*f)(unsigned int, unsigned int))
+// {
+//     if (indices.find('0') == std::string::npos)
+//     {
+//         unsigned int level = log2(indices.length() * 2);
+//         return f(level, 0);
+//     }
+//     else if (indices.find('1') == std::string::npos)
+//     {
+//         unsigned int level = log2(indices.length() * 2);
+//         return Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
+//     }
+//     else
+//     {
+//         auto F1 = CreateGateF2(indices.substr(0, indices.length()/2), f);
+//         auto F2 = CreateGateF2(indices.substr(indices.length()/2), f); 
+//         return Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(F1, F2);
+//     }
+// }
+
+// CFLOBDD_COMPLEX_BIG CreateGateF(std::string indices, CFLOBDD_COMPLEX_BIG(*f)(unsigned int))
+// {
+//     if (indices.find('0') == std::string::npos)
+//     {
+//         unsigned int level = log2(indices.length() * 2);
+//         return f(level);
+//     }
+//     else if (indices.find('1') == std::string::npos)
+//     {
+//         unsigned int level = log2(indices.length() * 2);
+//         return Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
+//     }
+//     else
+//     {
+//         auto F1 = CreateGateF(indices.substr(0, indices.length()/2), f);
+//         auto F2 = CreateGateF(indices.substr(indices.length()/2), f); 
+//         return Matrix1234ComplexFloatBoost::KroneckerProduct2Vocs(F1, F2);
+//     }
+// }
+
+WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CreateGateF2_WCFLOBDD(std::string indices, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(*f)(unsigned int, unsigned int, int))
+{
+    if (indices.find('0') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return f(level, 0, 1);
+    }
+    else if (indices.find('1') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level);
+    }
+    else
+    {
+        auto F1 = CreateGateF2_WCFLOBDD(indices.substr(0, indices.length()/2), f);
+        auto F2 = CreateGateF2_WCFLOBDD(indices.substr(indices.length()/2), f);
+        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(F1, F2);
+    }
+}
+
+WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CreateGateF_WCFLOBDD(std::string indices, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL(*f)(unsigned int, int, unsigned int))
+{
+    if (indices.find('0') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return f(level, 1, 0);
+    }
+    else if (indices.find('1') == std::string::npos)
+    {
+        unsigned int level = log2(indices.length() * 2);
+        return WeightedMatrix1234ComplexFloatBoostMul::MkIdRelationInterleaved(level);
+    }
+    else
+    {
+        auto F1 = CreateGateF_WCFLOBDD(indices.substr(0, indices.length()/2), f);
+        auto F2 = CreateGateF_WCFLOBDD(indices.substr(indices.length()/2), f);
+        return WeightedMatrix1234ComplexFloatBoostMul::KroneckerProduct2Vocs(F1, F2);
+    }
+}
+
+void CFLTests::testTmp() {
+	std::cout << std::setprecision(15);
+	auto state = CreateGateF2_WCFLOBDD("0010", WeightedVectorComplexFloatBoostMul::MkBasisVector);
+	// H (2)
+	auto IIHI = CreateGateF_WCFLOBDD("0010", WeightedMatrix1234ComplexFloatBoostMul::MkWalshInterleaved);
+	state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IIHI);
+	state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIHI, state);
+	
+	// S (2)
+	auto IISdgI = CreateGateF_WCFLOBDD("0010", WeightedMatrix1234ComplexFloatBoostMul::MkSdgGate);
+	auto IISI = CreateGateF_WCFLOBDD("0010", WeightedMatrix1234ComplexFloatBoostMul::MkSGate);
+	state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IISdgI);
+	state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IISI, state);
+
+	// CNOT (2, 3)
+	auto CNOT_2_3 = WeightedMatrix1234ComplexFloatBoostMul::MkCNOT(3, 4, 2, 3);
+	state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, CNOT_2_3);
+	state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CNOT_2_3, state);
+
+	// T (2) H (3)
+	auto IITdgI = CreateGateF_WCFLOBDD("0010", WeightedMatrix1234ComplexFloatBoostMul::MkTdgGate);
+	auto IIIH = CreateGateF_WCFLOBDD("0001", WeightedMatrix1234ComplexFloatBoostMul::MkWalshInterleaved);
+	auto IITI = CreateGateF_WCFLOBDD("0010", WeightedMatrix1234ComplexFloatBoostMul::MkTGate);
+	// auto IITdgH = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IITdgI, IIIH);
+	// auto IITH = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IITI, IIIH);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IITdgH);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IITH, state);
+
+	state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IITdgI);
+	state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IITI, state);
+	state.print(std::cout);
+
+	state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IIIH);
+	state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIIH, state);
+
+	return ;
+
+	// // H (2) S (3)
+	// auto IIISdg = CreateGateF_WCFLOBDD("0001", WeightedMatrix1234ComplexFloatBoostMul::MkSdgGate);
+	// auto IIIS = CreateGateF_WCFLOBDD("0001", WeightedMatrix1234ComplexFloatBoostMul::MkSGate);
+	// auto IIHSdg = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIHI, IIISdg);
+	// auto IIHS = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIHI, IIIS);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IIHSdg);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIHS, state);
+
+	// // H (2) S (3)
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IIHSdg);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIHS, state);
+
+	// // H (2) H (3)
+	// auto IIHH = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIHI, IIIH);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IIHH);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIHH, state);
+
+	// // S (3)
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IIISdg);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIIS, state);
+
+	// // Sdg (3)
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IIIS);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIISdg, state);
+
+	// // H (2) H (3)
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IIHH);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIHH, state);
+
+	// // H (2) Sdg (3)
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IIHS);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIHSdg, state);
+
+	// // H (2) Sdg (3)
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IIHS);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIHSdg, state);
+
+	// // Tdg (2) H (3)
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IITH);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IITdgH, state);
+
+	// // CNOT (2, 3)
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, CNOT_2_3);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CNOT_2_3, state);
+
+	// // Sdg (2)
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IISI);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IISdgI, state);
+
+	// // H (2) H (3)
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(state, IIHH);
+	// state = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(IIHH, state);
+
+	// state.print(std::cout);
+
+}
+
 void CFLTests::InitModules()
 {
 
@@ -2022,6 +2197,8 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 		CFLTests::testSynBenchmark6_CFLOBDD(size);
 	} else if (curTest == "testSyn7_CFL") {
 		CFLTests::testSynBenchmark7_CFLOBDD(size);
+	} else if (curTest == "testTmp") {
+		CFLTests::testTmp();
 	}
 	else {
 		std::cout << "Unrecognized test name: " << curTest << std::endl;

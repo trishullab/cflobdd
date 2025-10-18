@@ -91,6 +91,24 @@ namespace CFL_OBDD {
 			return CFLOBDD_COMPLEX_BIG(MkSGateInterleavedTop(i));
 		}
 
+		CFLOBDD_COMPLEX_BIG MkSdgGateInterleaved(unsigned int i)
+		{
+			assert(i == 1);
+			return CFLOBDD_COMPLEX_BIG(MkSdgGateInterleavedTop(i));
+		}
+
+		CFLOBDD_COMPLEX_BIG MkTGateInterleaved(unsigned int i)
+		{
+			assert(i == 1);
+			return CFLOBDD_COMPLEX_BIG(MkTGateInterleavedTop(i));
+		}
+
+		CFLOBDD_COMPLEX_BIG MkTdgGateInterleaved(unsigned int i)
+		{
+			assert(i == 1);
+			return CFLOBDD_COMPLEX_BIG(MkTdgGateInterleavedTop(i));
+		}
+
 		CFLOBDD_COMPLEX_BIG MkPhaseShiftGateInterleaved(unsigned int i, double theta)
 		{
 			assert(i == 1);
@@ -478,6 +496,16 @@ namespace CFL_OBDD {
 		CFLOBDD_COMPLEX_BIG MatrixShiftToBConnection(CFLOBDD_COMPLEX_BIG c)
 		{
 			return CFLOBDD_COMPLEX_BIG(MatrixShiftToBConnectionTop(c.root));
+		}
+
+		CFLOBDD_COMPLEX_BIG ConjugateTranspose(CFLOBDD_COMPLEX_BIG c)
+		{
+			return CFLOBDD_COMPLEX_BIG(ConjugateTransposeTop(c.root));
+		}
+
+		CFLOBDD_COMPLEX_BIG MatrixTranspose(CFLOBDD_COMPLEX_BIG c)
+		{
+			return CFLOBDD_COMPLEX_BIG(MatrixTransposeTop(c.root));
 		}
 
 		// Return the Kronecker product of two matrices

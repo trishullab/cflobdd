@@ -3370,7 +3370,9 @@ namespace CFL_OBDD {
 				}
 				if (isFork)
 				{
-					n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, commonly_used_return_maps[2]);//m01
+					CFLOBDDReturnMapHandle m01;
+					m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+					n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);
 					n->numBConnections = 2;
 					CFLOBDDReturnMapHandle m0;
 					if (nhNode->BConnection[0].returnMapHandle.Lookup(0) == nhNode->BConnection[1].returnMapHandle.Lookup(0)){
@@ -3431,7 +3433,8 @@ namespace CFL_OBDD {
 				}
 				else
 				{
-					n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle, commonly_used_return_maps[0]);//m0
+					CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+					n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle, m0);
 					n->numBConnections = 1;
 					n->BConnection = new Connection[1];
 					n->BConnection[0] = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, nhNode->AConnection.returnMapHandle);
@@ -5436,6 +5439,7 @@ namespace CFL_OBDD {
 			CFLOBDDInternalNode* c1_internal = (CFLOBDDInternalNode *)c1.handleContents;
 			CFLOBDDInternalNode* c2_internal = (CFLOBDDInternalNode *)c2.handleContents;
 
+			// std::cout << "MatrixMultiplyV4Node: AConnection level = " << c1.handleContents->level << std::endl;
 			CFLOBDDTopNodeMatMultMapRefPtr aa = MatrixMultiplyV4Node(hashMap, *(c1_internal->AConnection.entryPointHandle),
 				*(c2_internal->AConnection.entryPointHandle));
 			CFLOBDDReturnMapHandle mI;
@@ -5449,15 +5453,21 @@ namespace CFL_OBDD {
 			g->numExits = 0;
 			//std::unordered_map<std::string, unsigned int> mapFromHandleToIndex;
 			std::unordered_map<unsigned int, unsigned int> mapFromHandleToIndex;
+			// std::cout << "numBConnections: " << g->numBConnections << std::endl;
+			// for each B connection of g, compute the matrix multiplication of the corresponding
 			for (unsigned int i = 0; i < g->numBConnections; i++){
 				MatMultMapHandle matmult_returnmap = aa->rootConnection.returnMapHandle[i];
 				CFLOBDDTopNodeMatMultMapRefPtr ans;
 				bool first = true;
 				// Consider Multiplication of M1 and M2
+				// std::cout << "B Connection " << i << " has " << matmult_returnmap.mapContents->map.size() << " terms." << std::endl;
+				// matmult_returnmap.print(std::cout);
 				for (auto &v : matmult_returnmap.mapContents->map){
 					unsigned int M1_index = v.first.first;
 					unsigned int M2_index = v.first.second;
 					//VAL_TYPE factor = v.second;
+					// std::cout << "Multiplying B connections: " << M1_index << " and " << M2_index << std::endl;
+					// Multiply B connections M1 and M2
 					CFLOBDDTopNodeMatMultMapRefPtr bb_old = 
 						MatrixMultiplyV4Node(hashMap, *(c1_internal->BConnection[M1_index].entryPointHandle),
 						*(c2_internal->BConnection[M2_index].entryPointHandle));
@@ -5756,7 +5766,8 @@ namespace CFL_OBDD {
 						hashMap.emplace(c2_zero_val_node, zm);
 					}
 				}
-
+				
+				// std::cout << "MatrixMultiplyV4WithInfoNode: AConnection level = " << c1.handleContents->level << std::endl;
 				CFLOBDDTopNodeMatMultMapRefPtr aa = MatrixMultiplyV4WithInfoNode(hashMap, *(c1_internal->AConnection.entryPointHandle),
 					*(c2_internal->AConnection.entryPointHandle), a_zero_index_c1, a_zero_index_c2);
 				CFLOBDDReturnMapHandle mI;
@@ -5769,6 +5780,8 @@ namespace CFL_OBDD {
 				g->BConnection = new Connection[g->numBConnections];
 				g->numExits = 0;
 				//std::unordered_map<std::string, unsigned int> mapFromHandleToIndex;
+				// std::cout << "numBConnections: " << g->numBConnections << std::endl;
+				// for each B connection of g, compute the matrix multiplication of the corresponding
 				std::unordered_map<unsigned int, unsigned int> mapFromHandleToIndex;
 				for (unsigned int i = 0; i < g->numBConnections; i++){
 					MatMultMapHandle matmult_returnmap = aa->rootConnection.returnMapHandle[i];
@@ -5783,10 +5796,15 @@ namespace CFL_OBDD {
 					}
 					else{
 						// Consider Multiplication of M1 and M2
+						// std::cout << "B Connection " << i << " has " << matmult_returnmap.mapContents->map.size() << " terms." << std::endl;
+						// matmult_returnmap.print(std::cout);
+						// for each term in the matrix multiplication map, multiply the corresponding B connections
 						for (auto &v : matmult_returnmap.mapContents->map){
 							unsigned int M1_index = v.first.first;
 							unsigned int M2_index = v.first.second;
 							//VAL_TYPE factor = v.second;
+							// std::cout << "Multiplying B connections: " << M1_index << " and " << M2_index << std::endl;
+							// Multiply B connections M1 and M2
 							CFLOBDDTopNodeMatMultMapRefPtr bb_old =
 								MatrixMultiplyV4WithInfoNode(hashMap, *(c1_internal->BConnection[M1_index].entryPointHandle),
 								*(c2_internal->BConnection[M2_index].entryPointHandle), b_zero_indices_c1[M1_index], b_zero_indices_c2[M2_index]);
@@ -5825,6 +5843,8 @@ namespace CFL_OBDD {
 								else
 									ans = bb;
 							}
+							// std::cout << "Intermediate ans: after running M1_index = " << M1_index << " and M2_index = " << M2_index << std::endl;
+							// ans->rootConnection.print(std::cout);
 						}
 					}
 					CFLOBDDReturnMapHandle ans_return_map;
@@ -5843,6 +5863,10 @@ namespace CFL_OBDD {
 						}
 					}
 					ans_return_map.Canonicalize();
+					// std::cout << "Setting g->BConnection[" << i << "]" << std::endl;
+					// ans->rootConnection.entryPointHandle->print(std::cout);
+					// ans_return_map.print(std::cout);
+					// ans->rootConnection.returnMapHandle.print(std::cout);
 					g->BConnection[i] = Connection(*(ans->rootConnection.entryPointHandle), ans_return_map);
 				}
 
@@ -5856,9 +5880,8 @@ namespace CFL_OBDD {
 #endif
 
 		CFLOBDDNodeHandle gHandle(g);
-		//gHandle = gHandle.Reduce(reductionMapHandle, g_return_map.Size(), true);
+		gHandle = gHandle.Reduce(reductionMapHandle, g_return_map.Size(), true);
 		CFLOBDDTopNodeMatMultMapRefPtr return_ans = new CFLOBDDTopNodeMatMultMap(gHandle, g_return_map);
-		//hashMap[mmp] = return_ans;
 		matmult_hashMap_info[mmp] = return_ans;
 		return return_ans;
 	}

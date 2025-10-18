@@ -10,6 +10,11 @@
 
 namespace CFL_OBDD {
 
+    static constexpr double SQRT2_2 = static_cast<double>(0.707106781186547524400844362104849039284835937688474036588L);
+	static constexpr double PI      = static_cast<double>(3.141592653589793238462643383279502884197169399375105820974L);
+	static constexpr double PI_2    = static_cast<double>(1.570796326794896619231321691639751442098584699687552910487L);
+	static constexpr double PI_4    = static_cast<double>(0.785398163397448309615660845819875721049292349843776455243L);
+
     namespace WeightedMatrix1234ComplexFloatBoostMul {
 
 	    typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX_FLOAT;
@@ -63,6 +68,9 @@ namespace CFL_OBDD {
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkPauliYGateNode(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkPauliZGateNode(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSGateNode(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkSdgGateNode(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkTGateNode(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkTdgGateNode(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCNOTInterleavedNode(unsigned int i);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkExchangeInterleavedNode(unsigned int i);
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCCPNode(std::unordered_map<std::string, WeightedCFLOBDDComplexFloatBoostMulNodeHandle>& cp_hashMap, unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled, BIG_COMPLEX_FLOAT theta);
@@ -79,6 +87,7 @@ namespace CFL_OBDD {
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle MkCSwapGate2Node(unsigned int level, long int controller, long int i, long int j, int case_num, int cflobdd_kind = 1, unsigned int offset = 0);
 
         extern std::pair<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, int> MkRestrictNode(unsigned int level, std::string s, int cflobdd_kind = 1);
+        extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle ConjugateTransposeNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle c);
 
         extern WeightedCFLOBDDComplexFloatBoostMulNodeHandle KroneckerProduct2VocsNode(WeightedCFLOBDDComplexFloatBoostMulNodeHandle m1, WeightedCFLOBDDComplexFloatBoostMulNodeHandle m2, int zero_index_m1, int zero_index_m2, bool rename = true); 
         extern std::tuple<WeightedCFLOBDDComplexFloatBoostMulNodeHandle, CFLOBDDMatMultMapHandle, BIG_COMPLEX_FLOAT>
@@ -93,6 +102,83 @@ namespace CFL_OBDD {
         // extern CFLOBDDTopNodeMatMultMapRefPtr MatrixMultiplyV4WithInfoNode(
         // 	std::unordered_map<ZeroValNodeInfo, ZeroIndicesMapHandle, ZeroValNodeInfo::ZeroValNodeInfoHash>& hashMap,
         // 	WeightedCFLOBDDComplexFloatBoostMulNodeHandle c1, WeightedCFLOBDDComplexFloatBoostMulNodeHandle c2, int c1_zero_index, int c2_zero_index);
+
+        inline BIG_COMPLEX_FLOAT isApproximatelyEqualTo(BIG_COMPLEX_FLOAT a, BIG_COMPLEX_FLOAT b, double epsilon = 1e-10) {
+            return abs(a - b) < epsilon;
+        }
+
+        template <typename T>
+		T round_to(const T& val, int digits) {
+			using boost::multiprecision::round;  // use multiprecision round
+			T factor = pow(T(10), digits);
+			return round(val * factor) / factor;
+		}
+
+        inline BIG_COMPLEX_FLOAT roundNearBy(BIG_COMPLEX_FLOAT c) {
+            if (isApproximatelyEqualTo(c.real(), 0)) {
+                c = BIG_COMPLEX_FLOAT(0, c.imag());
+            } else if (isApproximatelyEqualTo(c, 1)) {
+                c = BIG_COMPLEX_FLOAT(1, c.imag());
+            } else if (isApproximatelyEqualTo(c.real(), SQRT2_2)) {
+                c = BIG_COMPLEX_FLOAT(SQRT2_2, c.imag());
+            } else if (isApproximatelyEqualTo(c.real(), -SQRT2_2)) {
+                c = BIG_COMPLEX_FLOAT(-SQRT2_2, c.imag());
+            } else if (isApproximatelyEqualTo(c.real(), 0.5)) {
+                c = BIG_COMPLEX_FLOAT(0.5, c.imag());
+            } else if (isApproximatelyEqualTo(c.real(), -0.5)) {
+                c = BIG_COMPLEX_FLOAT(-0.5, c.imag());
+            } else if (isApproximatelyEqualTo(c.real(), -1)) {
+                c = BIG_COMPLEX_FLOAT(-1, c.imag());
+            } else {
+                c = BIG_COMPLEX_FLOAT(round_to(c.real(), 10), c.imag());
+            }
+
+            if (isApproximatelyEqualTo(c.imag(), 0)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), 0);
+            } else if (isApproximatelyEqualTo(c.imag(), 1)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), 1);
+            } else if (isApproximatelyEqualTo(c.imag(), -1)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), -1);
+            } else if (isApproximatelyEqualTo(c.imag(), SQRT2_2)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), SQRT2_2);
+            } else if (isApproximatelyEqualTo(c.imag(), -SQRT2_2)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), -SQRT2_2);
+            } else if (isApproximatelyEqualTo(c.imag(), 0.5)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), 0.5);
+            } else if (isApproximatelyEqualTo(c.imag(), -0.5)) {
+                c = BIG_COMPLEX_FLOAT(c.real(), -0.5);
+            } else {
+                c = BIG_COMPLEX_FLOAT(c.real(), round_to(c.imag(), 10));
+            }
+            return c;
+        }
+
+        inline BIG_COMPLEX_FLOAT div(BIG_COMPLEX_FLOAT a, BIG_COMPLEX_FLOAT b) {
+            if (b == 0) {
+                throw std::runtime_error("Division by zero in WeightedMatrix1234ComplexFloatBoostMul::div");
+            }
+            auto c = a / b;
+            c = roundNearBy(c);
+            return c;
+        }
+
+        inline BIG_COMPLEX_FLOAT mul(BIG_COMPLEX_FLOAT a, BIG_COMPLEX_FLOAT b) {
+            auto c = a * b;
+            c = roundNearBy(c);
+            return c;
+        }
+
+        inline BIG_COMPLEX_FLOAT add(BIG_COMPLEX_FLOAT a, BIG_COMPLEX_FLOAT b) {
+            auto c = a + b;
+            c = roundNearBy(c);
+            return c;
+        }
+
+        inline BIG_COMPLEX_FLOAT sub(BIG_COMPLEX_FLOAT a, BIG_COMPLEX_FLOAT b) {
+            auto c = a - b;
+            c = roundNearBy(c);
+            return c;
+        }
     }
  }
 

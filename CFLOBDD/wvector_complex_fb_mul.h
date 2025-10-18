@@ -32,6 +32,8 @@ namespace CFL_OBDD {
 		extern void VectorPrintColumnMajorInterleaved(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, std::ostream & out);
 		extern void PrintVector(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL c, std::ostream & out, unsigned int vars_count);
 		extern long double getNonZeroProbability(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL n);
+
+		extern long double ComputeL1Norm(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m2);
 	}
 }
 

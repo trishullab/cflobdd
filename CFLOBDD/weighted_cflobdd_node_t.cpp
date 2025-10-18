@@ -79,14 +79,14 @@ void WeightedCFLOBDDNodeHandleT<T, Op>::InitNoDistinctionTable()
       n->AConnection.entryPointHandle = &(NoDistinctionNode[i-1]);
       m1.AddToEnd(0);
       m1.Canonicalize();
-	  n->AConnection.returnMapHandle = m1;//m1
+	    n->AConnection.returnMapHandle = m1;//m1
   
       n->numBConnections = 1;
       n->BConnection = new WConnection<T,Op>[1];
       n->BConnection[0].entryPointHandle = &(NoDistinctionNode[i-1]);
       m2.AddToEnd(0);
       m2.Canonicalize();
-	  n->BConnection[0].returnMapHandle = m2;
+	    n->BConnection[0].returnMapHandle = m2;
       n->numExits = 1;
 //#ifdef PATH_COUNTING_ENABLED
       n->InstallPathCounts();
@@ -2027,7 +2027,7 @@ void WeightedCFLOBDDInternalNode<T,Op>::InstallWeightsOfPathsAsAmpsToExits()
   for (unsigned int i = 0; i < AConnection.entryPointHandle->handleContents->numExits; i++) {
     for (unsigned int j = 0; j < BConnection[i].entryPointHandle->handleContents->numExits; j++) {
       unsigned int k = BConnection[i].returnMapHandle.Lookup(j);
-	  long double numPathsValue = AConnection.entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[i] * BConnection[i].entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[j];
+	    long double numPathsValue = AConnection.entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[i] * BConnection[i].entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[j];
 	//   if (storingNumPathsToExit.find(k) == storingNumPathsToExit.end()){
 	// 	  std::vector<long double> logOfPaths;
 	// 	  logOfPaths.push_back(numPathsValue);

@@ -36,6 +36,9 @@ namespace CFL_OBDD {
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliYGateTop(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkPauliZGateTop(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSGateTop(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkSdgGateTop(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkTGateTop(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkTdgGateTop(unsigned int i, int cflobdd_kind = 1, unsigned int offset = 0);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTInterleavedTop(unsigned int i);
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkExchangeInterleavedTop(unsigned int i); // Representation of exchange matrix
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCNOTTopNode(unsigned int level, unsigned int n, long int controller, long int controlled, int cflobdd_kind = 1, unsigned int offset = 0);
@@ -43,6 +46,7 @@ namespace CFL_OBDD {
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkCCNOTTop(unsigned int level, long int controller1, long int controller2, long int controlled, int cflobdd_kind = 1, unsigned int offset = 0);
 
 		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr MkRestrictTop(unsigned int level, std::string s, int cflobdd_kind = 1);
+		extern WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr ConjugateTransposeTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr c);
 
 		extern void MatrixPrintRowMajorTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out);
 		extern void MatrixPrintRowMajorInterleavedTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out);

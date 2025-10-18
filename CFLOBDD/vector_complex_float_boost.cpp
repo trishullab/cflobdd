@@ -103,6 +103,13 @@ namespace CFL_OBDD {
 		{
 			return GetPathCountTop(n.root, p);
 		}
+
+		long double ComputeL1Norm(CFLOBDD_COMPLEX_BIG m1, CFLOBDD_COMPLEX_BIG m2)
+		{
+			auto c = m1 + (-1 * m2);
+			c.CountPaths();
+			return ComputeNormTop(c.root);
+		}
 	}
 }
 

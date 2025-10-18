@@ -80,6 +80,14 @@ namespace CFL_OBDD {
 		{
 			return getNonZeroProbabilityTop(n.root);
 		}
+
+		long double ComputeL1Norm(WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m1, WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL m2)
+		{
+			BIG_COMPLEX_FLOAT minus_one (-1, 0);
+			auto c = m1 + (minus_one * m2);
+			c.ComputeWeightOfPathsAsAmpsToExits();
+			return ComputeNormTop(c.root);
+		}
 	}
 }
 

@@ -231,6 +231,18 @@ namespace CFL_OBDD {
 			long double prob = getNonZeroProbabilityNode(*(n->rootConnection.entryPointHandle));
 			return prob / factor.convert_to<long double>();
 		}
+
+		long double ComputeNormTop(WeightedCFLOBDDTopNodeComplexFloatBoostRefPtr c)
+		{
+			if (c->rootConnection.factor == 0)
+				return 0;
+			int index = c->rootConnection.returnMapHandle.LookupInv(1);
+			auto norm = c->rootConnection.entryPointHandle->handleContents->numWeightsOfPathsAsAmpsToExit[index];
+			long double real = c->rootConnection.factor.real().convert_to<long double>();
+			long double imag = c->rootConnection.factor.imag().convert_to<long double>();
+			long double factor = real * real + imag * imag;
+			return norm * factor;
+		}
 	}
 }
 

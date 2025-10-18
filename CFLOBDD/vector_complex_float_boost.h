@@ -39,6 +39,7 @@ namespace CFL_OBDD {
 		extern void VectorPrintColumnMajorInterleaved(CFLOBDD_COMPLEX_BIG c, std::ostream & out);
 		extern long double getNonZeroProbability(CFLOBDD_COMPLEX_BIG n);
 		extern unsigned long long int GetPathCount(CFLOBDD_COMPLEX_BIG n, long double p);
+		extern long double ComputeL1Norm(CFLOBDD_COMPLEX_BIG m1, CFLOBDD_COMPLEX_BIG m2);
 	}
 }
 

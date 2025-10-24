@@ -30,6 +30,7 @@ class CFLTests
         static void testMkIdRelationInterleaved();
         static void testProbability();
         static void testParity();
+        static void test0();
         static void test1();
         static void test2();
         static void testMaxLevelGreaterThan10();

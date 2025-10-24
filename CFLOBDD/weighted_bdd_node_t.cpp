@@ -50,7 +50,7 @@ WeightedBDDNodeHandle<T,Op>::~WeightedBDDNodeHandle()
 }
 
 template <typename T, typename Op>
-unsigned int WeightedBDDNodeHandle<T,Op>::Hash(unsigned int modsize)
+unsigned int WeightedBDDNodeHandle<T,Op>::Hash(unsigned long modsize)
 {
     return ((unsigned int) reinterpret_cast<uintptr_t>(handleContents) >> 2) % modsize;
 }
@@ -194,7 +194,7 @@ void WeightedBDDInternalNode<T,Op>::DecrRef()
 }
 
 template <typename T, typename Op>
-unsigned int WeightedBDDInternalNode<T,Op>::Hash(unsigned int modsize)
+unsigned int WeightedBDDInternalNode<T,Op>::Hash(unsigned long modsize)
 {
     unsigned int l_hvalue = leftNode.Hash(modsize);
     unsigned int r_hvalue = rightNode.Hash(modsize);
@@ -312,7 +312,7 @@ void WeightedBDDLeafNode<T,Op>::DecrRef()
 }
 
 template <typename T, typename Op>
-unsigned int WeightedBDDLeafNode<T,Op>::Hash(unsigned int modsize)
+unsigned int WeightedBDDLeafNode<T,Op>::Hash(unsigned long modsize)
 {
     boost::hash<T> boost_hash;
     return ((117 * boost_hash(value) + 1) % modsize);

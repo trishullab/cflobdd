@@ -34,11 +34,11 @@ class WeightedCFLOBDDTopNodeT {
 //   void PrintYieldSemantic(std::ostream & out);       // print the yield of the "tree"
 //   bool IsValid();				// check if the CFLOBDD is valid (satisfies structural invariants)
 #ifdef PATH_COUNTING_ENABLED
-  unsigned int NumSatisfyingAssignments();
+//   unsigned int NumSatisfyingAssignments();
   //mpz_class NumSatisfyingAssignments();
 #endif
   bool FindOneSatisfyingAssignment(SH_OBDD::Assignment * &assignment);
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   void DumpConnections(Hashset<WeightedCFLOBDDNodeHandleT<T, Op>> *visited, std::ostream & out = std::cout);
   void CountNodesAndEdges(Hashset<WeightedCFLOBDDNodeHandleT<T, Op>> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount, unsigned int &returnEdgesObjCount);

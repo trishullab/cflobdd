@@ -46,7 +46,7 @@ typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX_FLOAT;
 // Instantiation and specialization of class ReturnMapHandle<LinearMapHandle> ----------
 
 // template<>
-// unsigned int ReturnMapBody<LinearMapHandle>::Hash(unsigned int modsize)
+// unsigned int ReturnMapBody<LinearMapHandle>::Hash(unsigned long modsize)
 // {
 // 	unsigned int hvalue = 0;
 
@@ -73,7 +73,7 @@ void ReturnMapBody<MatMultMapHandle>::setHashCheck()
 }
 
 template<>
-unsigned int ReturnMapBody<MatMultMapHandle>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<MatMultMapHandle>::Hash(unsigned long modsize)
 {
 	unsigned int hvalue = 0;
 
@@ -100,7 +100,7 @@ void ReturnMapBody<WeightedMatMultMapHandle<BIG_FLOAT>>::setHashCheck()
 }
 
 template<>
-unsigned int ReturnMapBody<WeightedMatMultMapHandle<BIG_FLOAT>>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<WeightedMatMultMapHandle<BIG_FLOAT>>::Hash(unsigned long modsize)
 {
 	unsigned int hvalue = 0;
 
@@ -127,7 +127,7 @@ void ReturnMapBody<WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>>::setHashCheck()
 }
 
 template<>
-unsigned int ReturnMapBody<WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>>::Hash(unsigned long modsize)
 {
 	unsigned int hvalue = 0;
 
@@ -154,7 +154,7 @@ void ReturnMapBody<WeightedMatMultMapHandle<fourierSemiring>>::setHashCheck()
 }
 
 template<>
-unsigned int ReturnMapBody<WeightedMatMultMapHandle<fourierSemiring>>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<WeightedMatMultMapHandle<fourierSemiring>>::Hash(unsigned long modsize)
 {
 	unsigned int hvalue = 0;
 
@@ -217,7 +217,7 @@ std::ostream& operator<< (std::ostream & out, const ReturnMapBody<LinearMapHandl
 // Instantiation and specialization of class ReturnMapHandle<int> ---------------------
 
 template<>
-unsigned int ReturnMapBody<int>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<int>::Hash(unsigned long modsize)
 {
   unsigned int hvalue = 0;
 
@@ -274,7 +274,7 @@ CFL_OBDD::CFLOBDDReturnMapHandle CFL_OBDD::CFLOBDDReturnMapHandle::Complement()
 // Instantiation and specialization of class ReturnMapHandle<double> ---------------------
 
 template<>
-unsigned int ReturnMapBody<double>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<double>::Hash(unsigned long modsize)
 {
 	unsigned int hvalue = 0;
 	std::hash<double> double_hash;
@@ -312,7 +312,7 @@ ReturnMapHandle<double> ReturnMapHandle<double>::Complement()
 // double_hash needs to be changed
 
 template<>
-unsigned int ReturnMapBody<BIG_FLOAT>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<BIG_FLOAT>::Hash(unsigned long modsize)
 {
 	unsigned int hvalue = 0;
 	std::hash<BIG_FLOAT> big_float_hash;
@@ -350,7 +350,7 @@ ReturnMapHandle<BIG_FLOAT> ReturnMapHandle<BIG_FLOAT>::Complement()
 // double_hash needs to be changed
 
 template<>
-unsigned int ReturnMapBody<BIG_COMPLEX_FLOAT>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<BIG_COMPLEX_FLOAT>::Hash(unsigned long modsize)
 {
 	unsigned int hvalue = 0;
 	std::hash<BIG_COMPLEX_FLOAT> big_float_hash;
@@ -387,7 +387,7 @@ ReturnMapHandle<BIG_COMPLEX_FLOAT> ReturnMapHandle<BIG_COMPLEX_FLOAT>::Complemen
 // double_hash needs to be changed
 
 // template<>
-// unsigned int ReturnMapBody<GeneralMapHandle>::Hash(unsigned int modsize)
+// unsigned int ReturnMapBody<GeneralMapHandle>::Hash(unsigned long modsize)
 // {
 // 	unsigned int hvalue = 0;
 // 	std::hash<double> double_hash;
@@ -424,7 +424,7 @@ ReturnMapHandle<BIG_COMPLEX_FLOAT> ReturnMapHandle<BIG_COMPLEX_FLOAT>::Complemen
 // Instantiation and specialization of class ReturnMapHandle<intPair> ---------------------
 
 template<>
-unsigned int ReturnMapBody<intpair>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<intpair>::Hash(unsigned long modsize)
 {
   unsigned int hvalue = 0;
 
@@ -465,7 +465,7 @@ ReturnMapHandle<intpair> ReturnMapHandle<intpair>::Complement()
 // Instantiation and specialization of class ReturnMapHandle<fourierSemiring> ---------------------
 
 template<>
-unsigned int ReturnMapBody<fourierSemiring>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<fourierSemiring>::Hash(unsigned long modsize)
 {
 	unsigned int hvalue = 0;
 	boost::hash<BIG_INT> boost_hash;
@@ -524,7 +524,7 @@ std::size_t hash_value(std::complex<double> c)
 */
 
 template<>
-unsigned int ReturnMapBody<std::complex<double>>::Hash(unsigned int modsize)
+unsigned int ReturnMapBody<std::complex<double>>::Hash(unsigned long modsize)
 {
 	unsigned int hvalue = 0;
 

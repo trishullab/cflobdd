@@ -37,7 +37,7 @@ void WeightedMatMultMapBody<T>::DecrRef()
 }
 
 template <typename T>
-unsigned int WeightedMatMultMapBody<T>::Hash(unsigned int modsize)
+unsigned int WeightedMatMultMapBody<T>::Hash(unsigned long modsize)
 {
 	/*if (modsize == HASHSETBASE)
 		return hashCheck;*/
@@ -51,7 +51,7 @@ unsigned int WeightedMatMultMapBody<T>::Hash(unsigned int modsize)
 }
 
 template <>
-unsigned int WeightedMatMultMapBody<BIG_COMPLEX_FLOAT>::Hash(unsigned int modsize)
+unsigned int WeightedMatMultMapBody<BIG_COMPLEX_FLOAT>::Hash(unsigned long modsize)
 {
 	/*if (modsize == HASHSETBASE)
 		return hashCheck;*/
@@ -65,7 +65,7 @@ unsigned int WeightedMatMultMapBody<BIG_COMPLEX_FLOAT>::Hash(unsigned int modsiz
 }
 
 template <>
-unsigned int WeightedMatMultMapBody<fourierSemiring>::Hash(unsigned int modsize)
+unsigned int WeightedMatMultMapBody<fourierSemiring>::Hash(unsigned long modsize)
 {
 	/*if (modsize == HASHSETBASE)
 		return hashCheck;*/
@@ -247,7 +247,7 @@ std::ostream& operator<< (std::ostream & out, const WeightedMatMultMapHandle<T> 
 }
 
 template <typename T>
-unsigned int WeightedMatMultMapHandle<T>::Hash(unsigned int modsize)
+unsigned int WeightedMatMultMapHandle<T>::Hash(unsigned long modsize)
 {
 	if (!(mapContents->isCanonical)) {
 		std::cout << "Hash of a non-canonical LinearMapHandle occurred" << std::endl;

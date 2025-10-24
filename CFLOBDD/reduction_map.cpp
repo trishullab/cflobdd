@@ -35,6 +35,7 @@
 #include "list_TPtr.h"
 #include "intpair.h"
 #include "hashset.h"
+#include <cstdint>
 
 //***************************************************************
 // ReductionMapBodyIterator
@@ -74,7 +75,7 @@ void ReductionMapBody::DecrRef()
   }
 }
 
-unsigned int ReductionMapBody::Hash(unsigned int modsize)
+unsigned int ReductionMapBody::Hash(unsigned long modsize)
 {
   unsigned int hvalue = 0;
   /*ReductionMapBodyIterator mi(*this);
@@ -212,7 +213,7 @@ std::ostream& operator<< (std::ostream & out, const ReductionMapHandle &r)
   return(out);
 }
 
-unsigned int ReductionMapHandle::Hash(unsigned int modsize)
+unsigned int ReductionMapHandle::Hash(unsigned long modsize)
 {
   return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
 }

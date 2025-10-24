@@ -35,7 +35,7 @@ WRootConnection<Handle, T, Op>::~WRootConnection()
 
 // Hash
 template <typename Handle, typename T, typename Op>
-unsigned int WRootConnection<Handle, T, Op>::Hash(unsigned int modsize)
+unsigned int WRootConnection<Handle, T, Op>::Hash(unsigned long modsize)
 {
 	unsigned int hvalue = 0;
     boost::hash<T> boost_hash;

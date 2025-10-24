@@ -319,7 +319,7 @@ CFLOBDDNodeHandle::~CFLOBDDNodeHandle()
 }
 
 // Hash
-unsigned int CFLOBDDNodeHandle::Hash(unsigned int modsize)
+unsigned int CFLOBDDNodeHandle::Hash(unsigned long modsize)
 {
   return ((unsigned int) reinterpret_cast<uintptr_t>(handleContents) >> 2) % modsize;
 }
@@ -1277,7 +1277,7 @@ CFLReduceKey::CFLReduceKey(CFLOBDDNodeHandle nodeHandle, ReductionMapHandle redM
 }
 
 // Hash
-unsigned int CFLReduceKey::Hash(unsigned int modsize)
+unsigned int CFLReduceKey::Hash(unsigned long modsize)
 {
   unsigned int hvalue = 0;
   hvalue = (997 * nodeHandle.Hash(modsize) + redMapHandle.Hash(modsize)) % modsize;
@@ -1574,7 +1574,7 @@ CFLOBDDNodeHandle CFLOBDDInternalNode::Reduce(ReductionMapHandle& redMapHandle, 
   return CFLOBDDNodeHandle(n);
 } // CFLOBDDInternalNode::Reduce
 
-unsigned int CFLOBDDInternalNode::Hash(unsigned int modsize)
+unsigned int CFLOBDDInternalNode::Hash(unsigned long modsize)
 {
   unsigned int hvalue = AConnection.Hash(modsize);
   for (unsigned int j = 0; j < numBConnections; j++) {
@@ -1909,7 +1909,7 @@ CFLOBDDNodeHandle CFLOBDDForkNode::Reduce(ReductionMapHandle&, unsigned int repl
 	}
 }
 
-unsigned int CFLOBDDForkNode::Hash(unsigned int modsize)
+unsigned int CFLOBDDForkNode::Hash(unsigned long modsize)
 {
   return ((unsigned int)reinterpret_cast<uintptr_t>(this) >> 2) % modsize;
 }
@@ -1983,7 +1983,7 @@ CFLOBDDNodeHandle CFLOBDDDontCareNode::Reduce(ReductionMapHandle&, unsigned int,
   return CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle;
 }
 
-unsigned int CFLOBDDDontCareNode::Hash(unsigned int modsize)
+unsigned int CFLOBDDDontCareNode::Hash(unsigned long modsize)
 {
   return ((unsigned int) reinterpret_cast<uintptr_t>(this) >> 2) % modsize;
 }

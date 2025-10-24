@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 project(cflobdd)
 
 # Set the C++ standard to 17, as specified in the compile command
@@ -34,6 +34,11 @@ list(REMOVE_ITEM SOURCES "${CFLOBDD_DIR}/main.cpp")
 
 # Create the shared library.
 add_library(cflobdd SHARED ${SOURCES})
+add_executable(cflobdd_test ${SOURCES} ${CFLOBDD_DIR}/main.cpp)
 
 # Link the math library.
 target_link_libraries(cflobdd m)
+target_compile_definitions(cflobdd PUBLIC PATH_COUNTING_ENABLED)
+
+target_link_libraries(cflobdd_test m)
+target_compile_definitions(cflobdd_test PUBLIC PATH_COUNTING_ENABLED)

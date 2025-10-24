@@ -59,7 +59,7 @@ class PairProductMapHandle {
   PairProductMapHandle& operator= (const PairProductMapHandle &r); // Overloaded assignment
   bool operator!= (const PairProductMapHandle &r);      // Overloaded !=
   bool operator== (const PairProductMapHandle &r);      // Overloaded ==
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   unsigned int Size();
   intpair& operator[](unsigned int i);                       // Overloaded []
   void AddToEnd(const intpair& p);
@@ -82,7 +82,7 @@ class PairProductMapBody {//: public List<intpair> {
   PairProductMapBody();    // Constructor
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   unsigned int refCount;         // reference-count value
   void setHashCheck();
   void AddToEnd(const intpair& y);          // Override AddToEnd
@@ -109,7 +109,7 @@ class PairProductKey {
 
  public:
   PairProductKey(CFLOBDDNodeHandle nodeHandle1, CFLOBDDNodeHandle nodeHandle2); // Constructor
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   PairProductKey& operator= (const PairProductKey& p);  // Overloaded assignment
   bool operator!= (const PairProductKey& p);        // Overloaded !=
   bool operator== (const PairProductKey& p);        // Overloaded ==
@@ -184,7 +184,7 @@ class TripleProductMapHandle {
   TripleProductMapHandle& operator= (const TripleProductMapHandle &r); // Overloaded assignment
   bool operator!= (const TripleProductMapHandle &r);      // Overloaded !=
   bool operator== (const TripleProductMapHandle &r);      // Overloaded ==
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   unsigned int Size();
   void AddToEnd(inttriple t);
   bool Member(inttriple t);
@@ -205,7 +205,7 @@ class TripleProductMapBody : public List<inttriple> {
   TripleProductMapBody();    // Constructor
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   unsigned int refCount;         // reference-count value
 
  public:
@@ -226,7 +226,7 @@ class TripleProductKey {
 
  public:
   TripleProductKey(CFLOBDDNodeHandle nodeHandle1, CFLOBDDNodeHandle nodeHandle2, CFLOBDDNodeHandle nodeHandle3); // Constructor
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   TripleProductKey& operator= (const TripleProductKey& p);  // Overloaded assignment
   bool operator!= (const TripleProductKey& p);        // Overloaded !=
   bool operator== (const TripleProductKey& p);        // Overloaded ==

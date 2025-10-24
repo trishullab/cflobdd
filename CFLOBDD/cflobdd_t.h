@@ -1,6 +1,5 @@
 #ifndef CFLOBDD_T_GUARD
 #define CFLOBDD_T_GUARD
-
 //
 //    Copyright (c) 1999, 2017 Thomas W. Reps
 //    All Rights Reserved.
@@ -52,6 +51,7 @@ class CFLOBDD_T {
   CFLOBDD_T();      // Default constructor (rep. of \a.true)
   CFLOBDD_T(typename CFLOBDDTopNodeT<T>::CFLOBDDTopNodeTRefPtr n); // Constructor
   CFLOBDD_T(const CFLOBDD_T &d);                            // Copy constructor
+  CFLOBDD_T(CFLOBDD_T &&d);                            // Move constructor
   ~CFLOBDD_T();                                             // Destructor
   static unsigned int const maxLevel;
   bool Evaluate(SH_OBDD::Assignment &assignment);        // Evaluate a Boolean function
@@ -63,10 +63,11 @@ class CFLOBDD_T {
 #endif
   bool FindOneSatisfyingAssignment(SH_OBDD::Assignment * &assignment);
                                                 // Find a satisfying assignment
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   bool operator!= (const CFLOBDD_T & C) const;          // Overloaded !=
   bool operator== (const CFLOBDD_T & C) const;          // Overloaded ==
   CFLOBDD_T& operator= (const CFLOBDD_T &c);       // assignment
+  CFLOBDD_T& operator= (CFLOBDD_T &&c);       // Move assignment
   ref_ptr<CFLOBDDTopNodeT<T>> root;
 
   void DumpConnections(std::ostream & out = std::cout);
@@ -110,6 +111,13 @@ template<typename T>
 CFLOBDD_T<T>::CFLOBDD_T(const CFLOBDD_T<T> &c)
 {
 	root = c.root;
+}
+
+// Move constructor
+template<typename T>
+CFLOBDD_T<T>::CFLOBDD_T(CFLOBDD_T<T> &&c)
+{
+	root = std::move(c.root);
 }
 
 template<typename T>
@@ -178,7 +186,7 @@ bool CFLOBDD_T<T>::FindOneSatisfyingAssignment(SH_OBDD::Assignment * &assignment
 
 // Hash
 template<typename T>
-unsigned int CFLOBDD_T<T>::Hash(unsigned int modsize)
+unsigned int CFLOBDD_T<T>::Hash(unsigned long modsize)
 {
 	return root->Hash(modsize);
 }
@@ -240,6 +248,18 @@ CFLOBDD_T<T> & CFLOBDD_T<T>::operator= (const CFLOBDD_T<T> &c)
 	}
 	return *this;
 }
+
+// Move assignment
+template<typename T>
+CFLOBDD_T<T> & CFLOBDD_T<T>::operator= (CFLOBDD_T<T> &&c)
+{
+	if (this != &c)      // don't assign to self!
+	{
+		root = std::move(c.root);
+	}
+	return *this;
+}
+
 
 
 // print

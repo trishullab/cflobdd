@@ -394,8 +394,21 @@ namespace CFL_OBDD {
 			ReductionMapHandle reductionMapHandle;
             WeightedValuesListHandle<BIG_COMPLEX_FLOAT> valList;
             WeightedCFLOBDDComplexFloatBoostMulNodeHandle n = std::get<0>(c);
+			// std::cout << "Printing n:" << std::endl;
+			// n.print(std::cout);
             CFLOBDDMatMultMapHandle n_return = std::get<1>(c);
+			// std::cout << "Printing n_return:" << std::endl;
+			// for (unsigned int i = 0; i < n_return.Size(); i++){
+			// 	WeightedMatMultMapHandle r = n_return[i];
+			// 	std::cout << "n_return[" << i << "]:" << std::endl;
+			// 	r.print(std::cout);
+			// }
             BIG_COMPLEX_FLOAT n_factor = std::get<2>(c);
+			// std::cout << "Printing n_factor: " << n_factor << std::endl;
+			// std::cout << "Printing c1 return map:" << std::endl;
+			// c1->rootConnection.returnMapHandle.print(std::cout);
+			// std::cout << "Printing c2 return map:" << std::endl;
+			// c2->rootConnection.returnMapHandle.print(std::cout);
             bool first = true;
             BIG_COMPLEX_FLOAT common_f = 1.0;
 			for (unsigned int i = 0; i < n_return.Size(); i++){
@@ -436,8 +449,9 @@ namespace CFL_OBDD {
 			v.Canonicalize();
 			reductionMapHandle.Canonicalize();
             valList.Canonicalize();
-            // n.print(std::cout);
             // std::cout << valList << std::endl;
+			// std::cout << "Printing reduction map:" << std::endl;
+			// reductionMapHandle.print(std::cout);
 			auto g = n.Reduce(reductionMapHandle, v.Size(), valList, true);
 			// Create and return CFLOBDDTopNode
 			//return(new CFLOBDDTopNodeFloatBoost(reduced_tempHandle, inducedReturnMap));

@@ -43,7 +43,7 @@ bool CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::FindOneSatisfyingAssignment(SH_OBDD::As
 // Running time: Linear in the size of the CFLOBDDTopNode
 //
 template <>
-unsigned int CFLOBDDTopNodeT<BIG_FLOAT>::NumSatisfyingAssignments()
+unsigned int CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::NumSatisfyingAssignments()
 {
 	unsigned int ans = 0;
 

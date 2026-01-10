@@ -27,6 +27,7 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
+#include <cstdint>
 #include "zero_indices_map.h"
 
 //***************************************************************
@@ -55,7 +56,7 @@ void ZeroIndicesMapBody::DecrRef()
 	}
 }
 
-unsigned int ZeroIndicesMapBody::Hash(unsigned int modsize)
+unsigned int ZeroIndicesMapBody::Hash(unsigned long modsize)
 {
 	/*if (modsize == HASHSETBASE)
 	return hashCheck;*/
@@ -192,7 +193,7 @@ std::ostream& operator<< (std::ostream & out, const ZeroIndicesMapHandle &r)
 	return(out);
 }
 
-unsigned int ZeroIndicesMapHandle::Hash(unsigned int modsize)
+unsigned int ZeroIndicesMapHandle::Hash(unsigned long modsize)
 {
 	if (!(mapContents->isCanonical)) {
 		std::cout << "Hash of a non-canonical LinearMapHandle occurred" << std::endl;

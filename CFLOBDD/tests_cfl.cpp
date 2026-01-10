@@ -360,7 +360,22 @@ void CFLTests::testTimes(){
 	K2.PrintYield(&std::cout);
 	std::cout << std::endl;
 }
-
+void CFLTests::test0() {
+	CFLOBDD a, b, c, d, e;
+	a = MkProjection(0, 2);
+	b = MkProjection(1, 2);
+	c = MkProjection(2, 2);
+	d = MkProjection(3, 2);
+	e = MkAnd(MkAnd(a, MkNot(b)), MkAnd(c, MkNot(d)));
+	SH_OBDD::Assignment *assignment = nullptr;
+	e.FindOneSatisfyingAssignment(assignment);
+	
+	bool buffer[4];
+	std::memcpy(buffer, &(assignment->get_data())[(1 << 30) - 4], 4);
+	std::cout << "[" << buffer[0] << " " << buffer[1] << " " << buffer[2] << " " << buffer[3] << "]" << std::endl;
+	e.CountPaths();
+	std::cout << "NumSatisfyingAssignments: " << e.NumSatisfyingAssignments() << std::endl;
+}
 void CFLTests::test1(){
   CFLOBDD F, G, H, I;
   F = MkProjection(3);
@@ -1932,6 +1947,8 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 	// 	CFLTests::test_restrict_exists_and_forall();
 	// } else if (curTest == "Karatsuba") {			
 	// 	CFLTests::testKaratsuba();
+	} else if (curTest == "Test0") {
+		CFLTests::test0();
 	} else if (curTest == "Test1") {
 		CFLTests::test1();
 	} else if (curTest == "Test2") {

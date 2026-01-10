@@ -30,7 +30,7 @@ class WeightedValuesListHandle {
   WeightedValuesListHandle& operator= (const WeightedValuesListHandle &r); // Overloaded assignment
   bool operator!= (const WeightedValuesListHandle &r);      // Overloaded !=
   bool operator== (const WeightedValuesListHandle &r);      // Overloaded ==
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   unsigned int Size();
   void AddToEnd(T y);
   T& operator[](unsigned int i);                       // Overloaded []
@@ -61,7 +61,7 @@ class WeightedValuesListBody {//: public List<int> {
   WeightedValuesListBody(unsigned int capacity);
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   void setHashCheck();
   void AddToEnd(T y);          // Override AddToEnd
   unsigned int refCount;         // reference-count value

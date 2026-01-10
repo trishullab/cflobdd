@@ -84,6 +84,8 @@ class Assignment
     bool *binding;                       // bool binding[size];
   public:
 	std::ostream& print(std::ostream & out = std::cout) const;
+  unsigned int get_size() const { return size; }
+  bool *get_data() const { return binding; }
 };
 
 std::ostream& operator<< (std::ostream & out, const Assignment &A);

@@ -57,7 +57,7 @@ namespace CFL_OBDD {
     }
 
     template <typename T>
-    unsigned int WeightedPairProductMapBody<T>::Hash(unsigned int modsize)
+    unsigned int WeightedPairProductMapBody<T>::Hash(unsigned long modsize)
     {
         unsigned int hvalue = 0;
 
@@ -210,7 +210,7 @@ namespace CFL_OBDD {
     }
 
     template <typename T>
-    unsigned int WeightedPairProductMapHandle<T>::Hash(unsigned int modsize)
+    unsigned int WeightedPairProductMapHandle<T>::Hash(unsigned long modsize)
     {
         return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
     }
@@ -312,7 +312,7 @@ namespace CFL_OBDD {
 
     // Hash
     template <typename T, typename Op>
-    unsigned int WeightedPairProductKey<T,Op>::Hash(unsigned int modsize)
+    unsigned int WeightedPairProductKey<T,Op>::Hash(unsigned long modsize)
     {
         unsigned int hvalue = 0;
         boost::hash<T> boost_hash;

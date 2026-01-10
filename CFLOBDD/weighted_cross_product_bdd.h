@@ -34,7 +34,7 @@ class WeightedBDDPairProductMapHandle {
   WeightedBDDPairProductMapHandle& operator= (const WeightedBDDPairProductMapHandle<T> &r); // Overloaded assignment
   bool operator!= (const WeightedBDDPairProductMapHandle<T> &r);      // Overloaded !=
   bool operator== (const WeightedBDDPairProductMapHandle<T> &r);      // Overloaded ==
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   unsigned int Size();
   // std::pair<intpair, Pair_T<T,T>> operator[](unsigned int i);                       // Overloaded []
   void AddToEnd(const std::vector<T>& p, const T v);
@@ -59,7 +59,7 @@ class WeightedBDDPairProductMapBody {//: public List<intpair> {
   WeightedBDDPairProductMapBody();    // Constructor
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   unsigned int refCount;         // reference-count value
   void setHashCheck();
   void AddToEnd(const std::vector<T>& y, const T v);          // Override AddToEnd
@@ -91,7 +91,7 @@ class WeightedBDDPairProductKey {
  public:
   WeightedBDDPairProductKey(WeightedBDDNodeHandle<T,Op> nodeHandle1, WeightedBDDNodeHandle<T,Op> nodeHandle2); // Constructor
   WeightedBDDPairProductKey(WeightedBDDNodeHandle<T,Op> nodeHandle1, WeightedBDDNodeHandle<T,Op> nodeHandle2, T factor1, T factor2); // Constructor
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   WeightedBDDPairProductKey& operator= (const WeightedBDDPairProductKey& p);  // Overloaded assignment
   bool operator!= (const WeightedBDDPairProductKey& p);        // Overloaded !=
   bool operator== (const WeightedBDDPairProductKey& p);        // Overloaded ==

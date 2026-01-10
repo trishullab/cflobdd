@@ -60,6 +60,11 @@ template< typename T > class ref_ptr {
             acquire( rp.ptr );
         }
 
+        ref_ptr(ref_ptr &&rp) : ptr(rp.ptr) {
+            // no acquire, just move the pointer
+            rp.ptr = nullptr;
+        }
+
         ~ref_ptr() {
             release();
         }
@@ -71,6 +76,16 @@ template< typename T > class ref_ptr {
               release(old_ptr);
           }
           return *this;
+        }
+
+        ref_ptr& operator=( ref_ptr &&rp ) {
+            if (this != &rp) {
+                // no release
+                release(ptr);
+                ptr = rp.ptr;
+                rp.ptr = nullptr;
+            }
+            return *this;
         }
 
         inline ref_ptr& operator=( const ref_ptr& rp ) {
@@ -118,7 +133,7 @@ template< typename T > class ref_ptr {
             if( old_ptr ) {
                 --old_ptr->count;
 #ifdef DBGREFPTR
-                std::cout << "Released " << *old_ptr << " with count = "
+                std::cout << "Released " << old_ptr << " with count = "
                     << old_ptr->count << std::endl;
 #endif
                 if( old_ptr->count == 0 ) {

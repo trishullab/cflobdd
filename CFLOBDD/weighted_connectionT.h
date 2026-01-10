@@ -35,7 +35,7 @@ namespace CFL_OBDD {
 		WConnection(WeightedCFLOBDDNodeHandleT<T, Op> &entryPointHandle, CFLOBDDReturnMapHandle &returnMapHandle);
 		~WConnection();                                 // Destructor
 
-		unsigned int Hash(unsigned int modsize);
+		unsigned int Hash(unsigned long modsize);
 		WConnection& operator= (const WConnection &C);   // Overloaded =
 		bool operator!= (const WConnection & C);        // Overloaded !=
 		bool operator== (const WConnection & C);        // Overloaded ==

@@ -1,7 +1,10 @@
 # CFLOBDDs: Context-Free-Language Ordered Binary Decision Diagrams
-## Paper: https://arxiv.org/abs/2211.06818
+## CFLOBDD Paper: https://arxiv.org/abs/2211.06818
+## Weighted CFLOBDD Paper: https://arxiv.org/pdf/2305.13610
 
-CFLOBDDs are data structures that provide double-exponential compression of Boolean functions in the best case (and exponential compression over BDDs). They can be used as a plug-compatible replacement for BDDs. In this paper, we have used them in the context of simulating quantum algorithms.
+CFLOBDDs are data structures that provide double-exponential compression of Boolean functions in the best case (and exponential compression over BDDs). They can be used as a plug-compatible replacement for BDDs. In this paper, we have used them to simulate quantum algorithms.
+
+More recently, Weighted CFLOBDDs (WCFLOBDDs) have also been added to the repository.
 
 ### Installation
 1. Git clone this repository (git clone https://github.com/trishullab/cflobdd.git .)
@@ -12,10 +15,40 @@ CFLOBDDs are data structures that provide double-exponential compression of Bool
 
 ### Code Structure:
 
-The main CFLOBDD class is present in cflobdd_t.h with definitions of internal groupings and other classes in cflobdd_node.cpp.<br>
-The matrix and vector operations are present in files matrix1234_* and vector_*.<br>
-As all the classes are templatized, the classes are instantiated with different types (int, double, float_boost -> arbitary precision floating point).<br>
-A CFLOBDD object (say 'int') generally follows :-> cflobdd_int.cpp, cflobdd_top_node_int.cpp (deals with terminal values) and then the core operations are in cflobdd_node.cpp. <br>
-cflobdd_node.cpp (or matrix1234_node.cpp) is common to all data types are they handle proto-CFLOBDDs (see the paper for more details). <br>
-All the tests are done via runTests function in tests_cfl.cpp which is the only function called in main.cpp.<br>
-InitModules in tests_cfl.cpp should be run before creating any CFLOBDD object. InitModules initializes the cache. ClearModules should be invoked before exiting the program.
+- The main CFLOBDD class is present in cflobdd_t.h with definitions of internal groupings and other classes in cflobdd_node.cpp.<br>
+- The matrix and vector operations are present in files matrix1234_* and vector_*.<br>
+- As all the classes are templatized, the classes are instantiated with different types (int, double, float_boost -> arbitary precision floating point).<br>
+- A CFLOBDD object (say 'int') generally follows :-> cflobdd_int.cpp, cflobdd_top_node_int.cpp (deals with terminal values) and then the core operations are in cflobdd_node.cpp. <br>
+- cflobdd_node.cpp (or matrix1234_node.cpp) is common to all data types are they handle proto-CFLOBDDs (see the paper for more details). <br>
+- All the tests are done via runTests function in tests_cfl.cpp which is the only function called in main.cpp.<br>
+- InitModules in tests_cfl.cpp should be run before creating any CFLOBDD object. InitModules initializes the cache. ClearModules should be invoked before exiting the program.
+- Weighted CFLOBDDs have weighted_* or wmatrix_* type of prefix to the files. The structure is similar to CFLOBDDs, except for the edge weights.
+
+### Cite
+You can cite our work using the following:
+- CFLOBDD Work: <br>
+    ```
+    @article{sistla2024cflobdds,
+      title={CFLOBDDs: Context-free-language ordered binary decision diagrams},
+      author={Sistla, Meghana Aparna and Chaudhuri, Swarat and Reps, Thomas},
+      journal={ACM Transactions on Programming Languages and Systems},
+      volume={46},
+      number={2},
+      pages={1--82},
+      year={2024},
+      publisher={ACM New York, NY}
+    }
+    ```
+- WCFLOBDD work:
+  ```
+  @article{sistla2024weighted,
+      title={Weighted context-free-language ordered binary decision diagrams},
+      author={Sistla, Meghana and Chaudhuri, Swarat and Reps, Thomas},
+      journal={Proceedings of the ACM on Programming Languages},
+      volume={8},
+      number={OOPSLA2},
+      pages={1390--1419},
+      year={2024},
+      publisher={ACM New York, NY, USA}
+    }
+  ```

@@ -35,12 +35,12 @@ class WEIGHTED_CFLOBDD_T {
 //   void PrintYield(std::ostream * out);               // print the yield of the "tree"
 //   bool IsValid();									// check if the CFLOBDD is valid (satisying all structural invariants)
 #ifdef PATH_COUNTING_ENABLED
-  unsigned int NumSatisfyingAssignments();      // Return number of satisfying assignments
+//   unsigned int NumSatisfyingAssignments();      // Return number of satisfying assignments
  // mpz_class NumSatisfyingAssignments();      // Return number of satisfying assignments
 #endif
   bool FindOneSatisfyingAssignment(SH_OBDD::Assignment * &assignment);
                                                 // Find a satisfying assignment
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   bool operator!= (const WEIGHTED_CFLOBDD_T & C) const;          // Overloaded !=
   bool operator== (const WEIGHTED_CFLOBDD_T & C) const;          // Overloaded ==
   WEIGHTED_CFLOBDD_T& operator= (const WEIGHTED_CFLOBDD_T &c);       // assignment
@@ -133,11 +133,11 @@ bool WEIGHTED_CFLOBDD_T<T, Op>::Evaluate(SH_OBDD::Assignment &assignment)
 //
 // Running time: Linear in the size of the CFLOBDD
 //
-template <typename T, typename Op>
-unsigned int CFLOBDD_T<T, Op>::NumSatisfyingAssignments()
-{
-	return root->NumSatisfyingAssignments();
-}
+// template <typename T, typename Op>
+// unsigned int WEIGHTED_CFLOBDD_T<T, Op>::NumSatisfyingAssignments()
+// {
+// 	return root->NumSatisfyingAssignments();
+// }
 #endif
 
 // FindOneSatisfyingAssignment
@@ -156,7 +156,7 @@ bool WEIGHTED_CFLOBDD_T<T, Op>::FindOneSatisfyingAssignment(SH_OBDD::Assignment 
 
 // Hash
 template <typename T, typename Op>
-unsigned int WEIGHTED_CFLOBDD_T<T, Op>::Hash(unsigned int modsize)
+unsigned int WEIGHTED_CFLOBDD_T<T, Op>::Hash(unsigned long modsize)
 {
 	return root->Hash(modsize);
 }

@@ -71,7 +71,7 @@ void PairProductMapBody::DecrRef()
   }
 }
 
-unsigned int PairProductMapBody::Hash(unsigned int modsize)
+unsigned int PairProductMapBody::Hash(unsigned long modsize)
 {
   unsigned int hvalue = 0;
 
@@ -195,7 +195,7 @@ std::ostream& operator<< (std::ostream & out, const PairProductMapHandle &r)
   return(out);
 }
 
-unsigned int PairProductMapHandle::Hash(unsigned int modsize)
+unsigned int PairProductMapHandle::Hash(unsigned long modsize)
 {
   return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
 }
@@ -309,7 +309,7 @@ PairProductKey::PairProductKey(CFLOBDDNodeHandle nodeHandle1, CFLOBDDNodeHandle 
 }
 
 // Hash
-unsigned int PairProductKey::Hash(unsigned int modsize)
+unsigned int PairProductKey::Hash(unsigned long modsize)
 {
   unsigned int hvalue = 0;
   hvalue = (997 * nodeHandle1.Hash(modsize) + nodeHandle2.Hash(modsize)) % modsize;
@@ -626,7 +626,7 @@ void TripleProductMapBody::DecrRef()
   }
 }
 
-unsigned int TripleProductMapBody::Hash(unsigned int modsize)
+unsigned int TripleProductMapBody::Hash(unsigned long modsize)
 {
   unsigned int hvalue = 0;
   TripleProductMapBodyIterator mi(*this);
@@ -702,7 +702,7 @@ std::ostream& operator<< (std::ostream & out, const TripleProductMapHandle &r)
   return(out);
 }
 
-unsigned int TripleProductMapHandle::Hash(unsigned int modsize)
+unsigned int TripleProductMapHandle::Hash(unsigned long modsize)
 {
   return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
 }
@@ -776,7 +776,7 @@ TripleProductKey::TripleProductKey(CFLOBDDNodeHandle nodeHandle1, CFLOBDDNodeHan
 }
 
 // Hash
-unsigned int TripleProductKey::Hash(unsigned int modsize)
+unsigned int TripleProductKey::Hash(unsigned long modsize)
 {
   unsigned int hvalue = 0;
   hvalue = (997 * (997 * nodeHandle1.Hash(modsize) + nodeHandle2.Hash(modsize)) + nodeHandle3.Hash(modsize)) % modsize;

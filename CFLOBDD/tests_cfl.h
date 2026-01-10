@@ -37,6 +37,7 @@ class CFLTests
         static void testSynFun7();
         static void testSynFun8();
         static void testParity();
+        static void test0();
         static void test1();
         static void test2();
         static void testMaxLevelGreaterThan10();

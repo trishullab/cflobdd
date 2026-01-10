@@ -57,7 +57,7 @@ void MatMultMapBody::DecrRef()
 	}
 }
 
-unsigned int MatMultMapBody::Hash(unsigned int modsize)
+unsigned int MatMultMapBody::Hash(unsigned long modsize)
 {
 	/*if (modsize == HASHSETBASE)
 		return hashCheck;*/
@@ -184,7 +184,7 @@ std::ostream& operator<< (std::ostream & out, const MatMultMapHandle &r)
 	return(out);
 }
 
-unsigned int MatMultMapHandle::Hash(unsigned int modsize)
+unsigned int MatMultMapHandle::Hash(unsigned long modsize)
 {
 	if (!(mapContents->isCanonical)) {
 		std::cout << "Hash of a non-canonical LinearMapHandle occurred" << std::endl;

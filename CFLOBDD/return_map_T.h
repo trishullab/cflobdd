@@ -36,6 +36,7 @@
 #include "reduction_map.h"
 #include "intpair.h"
 #include <complex>
+#include <cstdint>
 //#include <boost/multiprecision/cpp_int.hpp>
 //#include "hash_functions.h"
 
@@ -59,7 +60,7 @@ class ReturnMapHandle {
   bool operator!= (const ReturnMapHandle<T> &r);      // Overloaded !=
   bool operator== (const ReturnMapHandle<T> &r);      // Overloaded ==
   T& operator[](unsigned int i);                       // Overloaded []
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   unsigned int Size();
   void AddToEnd(T y);
   bool Member(T y);
@@ -87,7 +88,7 @@ template <typename T>
 class ReturnMapBody {
 
   friend void ReturnMapHandle<T>::Canonicalize();
-  friend unsigned int ReturnMapHandle<T>::Hash(unsigned int modsize);
+  friend unsigned int ReturnMapHandle<T>::Hash(unsigned long modsize);
 
  public:
   ReturnMapBody();    // Constructor
@@ -95,7 +96,7 @@ class ReturnMapBody {
   //~ReturnMapBody();
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned int modsize);
+  unsigned int Hash(unsigned long modsize);
   void setHashCheck();
   unsigned int refCount;         // reference-count value
   std::vector<T> mapArray;
@@ -286,7 +287,7 @@ std::ostream& operator<< (std::ostream & out, const ReturnMapHandle<T> &r)
 }
 
 template <typename T>
-unsigned int ReturnMapHandle<T>::Hash(unsigned int modsize)
+unsigned int ReturnMapHandle<T>::Hash(unsigned long modsize)
 {
 	if (!(mapContents->isCanonical)) {
 		std::cout << "Hash of a non-canonical ReturnMapHandle occurred" << std::endl;

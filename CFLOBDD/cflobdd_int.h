@@ -50,7 +50,7 @@ extern CFLOBDD MkYBit(unsigned int j);
 extern CFLOBDD MkZBit(unsigned int j);
 extern CFLOBDD MkMultiplicationInterleavedBruteForce(); // Representation of multiplication relation { (xi yi zi _)* | vec{x} * vec{y} = vec{z} }
 extern bool FactorZ(CFLOBDD R, unsigned int z, CFLOBDD &f1, CFLOBDD &f2, unsigned int &v1, unsigned int &v2);   // Return true if z has a non-trivial factorization
-extern CFLOBDD MkParity();                           // Representation of parity function
+extern CFLOBDD MkParity(int level = -1);                           // Representation of parity function
 extern CFLOBDD MkStepUpOneFourth();                  // Representation of step function
 extern CFLOBDD MkStepDownOneFourth();                // Representation of step function
 #ifdef ARBITRARY_STEP_FUNCTIONS

@@ -31,6 +31,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "cflobdd_node.h"
+#include "hash.h"
 
 namespace CFL_OBDD {
 

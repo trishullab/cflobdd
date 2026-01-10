@@ -117,6 +117,22 @@ class PairProductKey {
   CFLOBDDNodeHandle NodeHandle2() const { return nodeHandle2; }      // Access function
   std::ostream& print(std::ostream & out) const;
   ~PairProductKey(){}
+  struct PairProductKey_Hash {
+	 public:
+		 size_t operator()(const PairProductKey& nh) const {
+       auto h = nh;
+			 return h.Hash(HASHBASE);
+		 }
+	 };
+  
+  struct PairProductKey_Equal {
+	 public:
+		 bool operator()(const PairProductKey& nh1, const PairProductKey& nh2) const {
+      auto h1 = nh1;
+      auto h2 = nh2;
+			 return h1 == h2;
+		 }
+	 };
  private:
   CFLOBDDNodeHandle nodeHandle1;
   CFLOBDDNodeHandle nodeHandle2;

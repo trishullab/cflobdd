@@ -143,7 +143,7 @@ CFLOBDDTopNodeIntRefPtr MkDistinction(unsigned int i, int level)
   CFLOBDDNodeHandle tempHandle;
   CFLOBDDReturnMapHandle m;
 
-  assert(i < (1 << CFLOBDDTopNode::maxLevel));   // i.e., i < 2**maxLevel
+  // assert(i < (1 << CFLOBDDTopNode::maxLevel));   // i.e., i < 2**maxLevel
   if (level == -1)
 	tempHandle = MkDistinction(CFLOBDDTopNode::maxLevel, i);
   else
@@ -212,13 +212,17 @@ CFLOBDDTopNodeIntRefPtr MkAdditionInterleavedTop()
 }
 
 // Create representation of parity function
-CFLOBDDTopNodeIntRefPtr MkParityTop()
+CFLOBDDTopNodeIntRefPtr MkParityTop(int level)
 {
   CFLOBDDTopNodeIntRefPtr v;
   CFLOBDDNodeHandle tempHandle;
   CFLOBDDReturnMapHandle m;
 
-  tempHandle = MkParity(CFLOBDDTopNode::maxLevel);
+  if (level == -1){
+    tempHandle = MkParity(CFLOBDDTopNode::maxLevel);
+  } else {
+    tempHandle = MkParity(level);
+  }
   m.AddToEnd(0);
   m.AddToEnd(1);
   m.Canonicalize();

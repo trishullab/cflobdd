@@ -332,22 +332,16 @@ namespace CFL_OBDD{
         CFLOBDDNodeHandle n = PairProduct(*(n1->rootConnection.entryPointHandle),
             *(n2->rootConnection.entryPointHandle),
             MapHandle);
-
         // Create returnMapHandle from MapHandle: Fold the pairs in MapHandle by applying
         // [n1->rootConnection.returnMapHandle, n2->rootConnection.returnMapHandle]
         // (component-wise) to each pair.
         ReturnMapHandle<T> returnMapHandle;
-        //PairProductMapBodyIterator MapIterator(*MapHandle.mapContents);
-        //MapIterator.Reset();
         std::unordered_map<T, unsigned int> reduction_map;
         ReductionMapHandle reductionMapHandle;
         unsigned int iterator = 0;
-        //while (!MapIterator.AtEnd()) {
         while (iterator < MapHandle.Size()){
             T c1, c2;
             int first, second;
-            //first = MapIterator.Current().First();
-            //second = MapIterator.Current().Second();
             first = MapHandle[iterator].First();
             second = MapHandle[iterator].Second();
             c1 = n1->rootConnection.returnMapHandle.Lookup(first);
@@ -361,20 +355,13 @@ namespace CFL_OBDD{
             else{
                 reductionMapHandle.AddToEnd(reduction_map[val]);
             }
-            //MapIterator.Next();
             iterator++;
         }
         returnMapHandle.Canonicalize();
         reductionMapHandle.Canonicalize();
 
         // Perform reduction on n, with respect to the common elements that returnMapHandle maps together
-        //ReductionMapHandle inducedReductionMapHandle;
-        //ReturnMapHandle<T> inducedReturnMap;
-        //returnMapHandle.InducedReductionAndReturnMap(inducedReductionMapHandle, inducedReturnMap);
-        //CFLOBDDNodeHandle::InitReduceCache();
-        //CFLOBDDNodeHandle reduced_n = n.Reduce(inducedReductionMapHandle, inducedReturnMap.Size());
         CFLOBDDNodeHandle reduced_n = n.Reduce(reductionMapHandle, returnMapHandle.Size());
-        //CFLOBDDNodeHandle::DisposeOfReduceCache();
 
         // Create and return CFLOBDDTopNode
         //return(new CFLOBDDTopNodeT<T>(reduced_n, inducedReturnMap));

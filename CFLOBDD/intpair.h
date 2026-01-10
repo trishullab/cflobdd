@@ -45,6 +45,11 @@ class intpair {
 		  return 117 * (p.First() + 1) + p.Second();
 	  }
   };
+  struct intpair_equal {
+    bool operator()(const intpair& lhs, const intpair& rhs) const {
+      return (lhs.First() == rhs.First()) && (lhs.Second() == rhs.Second());
+    }
+  };
  private:
   int first;
   int second;

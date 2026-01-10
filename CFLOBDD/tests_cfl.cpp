@@ -1030,6 +1030,452 @@ void CFLTests::testProbability(){
 	// std::cout << ComputeProbability(alpha, probs)<< std::endl;
 }
 
+
+void CFLTests::testNQueens(int n) {
+
+	auto start = high_resolution_clock::now();
+	std::vector<std::vector<CFLOBDD>> vars;
+	unsigned int numVars = n * n;
+	for (unsigned int i = 0; i < n; i++) {
+		vars.push_back(std::vector<CFLOBDD>());
+		for (unsigned int j = 0; j < n; j++) {
+			vars[i].push_back(MkProjection(i * n + j, std::ceil(std::log2(numVars))));
+		}
+	}
+
+	std::vector<CFLOBDD> orBatch(n);
+	for (int i = 0; i < n; i++) {
+		CFLOBDD condition = MkFalse(std::ceil(std::log2(numVars)));
+		for (int j = 0; j < n; j++) {
+			condition = MkOr(condition, vars[i][j]);
+		}
+		orBatch[i] = condition;
+	}
+
+	std::vector<std::vector<CFLOBDD>> impBatch(n, std::vector<CFLOBDD>(n));
+
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			CFLOBDD a, b, c, d;
+			a = b = c = d = MkTrue(std::ceil(std::log2(numVars)));
+
+			int k, l;
+
+			/* No one in the same column */
+			for (l = 0; l < n; l++) {
+				if (l != j) {
+					CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[i][l]));
+					a = MkAnd(a, mp);
+				}
+			}
+
+			/* No one in the same row */
+			for (k = 0; k < n; k++) {
+				if (k != i) {
+					CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[k][j]));
+					b = MkAnd(b, mp);
+				}
+			}
+
+			/* No one in the same up-right diagonal */
+			for (k = 0; k < n; k++) {
+				int ll = k - i + j;
+				if (ll >= 0 && ll < n) {
+					if (k != i) {
+						CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[k][ll]));
+						c = MkAnd(c, mp);
+					}
+				}
+			}
+
+			/* No one in the same down-right diagonal */
+			for (k = 0; k < n; k++) {
+				int ll = i + j - k;
+				if (ll >= 0 && ll < n) {
+					if (k != i) {
+						CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[k][ll]));
+						d = MkAnd(d, mp);
+					}
+				}
+			}
+
+			c = MkAnd(c, d);
+			b = MkAnd(b, c);
+			a = MkAnd(a, b);
+			impBatch[i][j] = a;
+		}
+	}
+
+	CFLOBDD queen = MkTrue(std::ceil(std::log2(numVars)));
+
+	for (int i = 0; i < n; i++) {
+		queen = MkAnd(queen, orBatch[i]);
+	}
+
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			queen = MkAnd(queen, impBatch[i][j]);
+		}
+	}
+
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	std::cout << "Duration: " << duration.count() << " ms" << std::endl;
+	// queen.print(std::cout);
+	unsigned int numDummyVars = std::pow(2, std::ceil(std::log2(numVars))) - numVars;
+	queen.CountPaths();
+	CFLOBDDInternalNode* queen_node = (CFLOBDDInternalNode*) queen.root->rootConnection.entryPointHandle->handleContents;
+	// std::cout << "Number of non-solutions for " << n << "-Queens: " << std::pow(2, queen_node->numPathsToExit[0]) << std::endl;
+	std::cout << "Number of solutions for " << n << "-Queens: " << std::pow(2, queen_node->numPathsToExit[1]) / std::pow(2, numDummyVars) << std::endl;
+}
+
+void CFLTests::testRandomFunction() {
+	std::cout << "Random start..." << std::endl;
+	auto start = high_resolution_clock::now();
+	unsigned int numVars = std::pow(3, 12); // 531441 variables
+	unsigned int level = std::ceil(std::log2(numVars));
+	std::cout << "numVars: " << numVars << " level: " << level << std::endl;
+	std::vector<CFLOBDD> vars;
+	for (unsigned int i = 0; i < numVars; i++) {
+		if (i % 10000 == 0)
+			std::cout << "Creating variable " << i << "/" << numVars << std::endl;
+		vars.push_back(MkProjection(i, level));
+	}
+
+	CFLOBDD F = MkTrue(level);
+	for (unsigned int i = 0; i < numVars / 3; i++) {
+		if (i % 10000 == 0)
+			std::cout << "Processing clause " << i << "/" << (numVars / 3) << std::endl;
+		unsigned int a = 3 * i;
+		unsigned int b = 3 * i + 1;;
+		unsigned int c = 3 * i + 2;
+		CFLOBDD A = vars[a];
+		CFLOBDD B = vars[b];
+		CFLOBDD C = vars[c];
+		CFLOBDD A_and_B = MkAnd(A, B);
+		CFLOBDD Not_A = MkNot(A);
+		CFLOBDD Not_A_and_C = MkAnd(Not_A, C);
+		CFLOBDD A_and_B_or_Not_A_and_C = MkOr(A_and_B, Not_A_and_C);
+		F = MkAnd(F, A_and_B_or_Not_A_and_C);
+	}
+
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	std::cout << "Duration: " << duration.count() << std::endl;
+
+	unsigned int nodeCount = 0, edgeCount = 0;
+	unsigned int returnEdgesCount = 0, returnEdgesObjCount = 0;
+
+	F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "nodeCount: " << nodeCount << " edgeCount: " << edgeCount << " returnEdgesCount: " << returnEdgesCount
+		<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+
+}
+
+void CFLTests::testSynFun2() {
+
+	auto start = high_resolution_clock::now();
+	unsigned int numVars = std::pow(2, 17) + 2; // 18
+	unsigned int level = std::ceil(std::log2(numVars));
+	std::cout << "numVars: " << numVars << " level: " << level << std::endl;
+	std::vector<CFLOBDD> vars;
+	for (unsigned int i = 0; i < numVars; i++) {
+        if (i % 10000 == 0) {
+            std::cout << "Creating projection for variable " << i << " / " << numVars << std::endl;
+        }
+		vars.push_back(MkProjection(i, level));
+	}
+
+	CFLOBDD F = MkTrue(level);
+	CFLOBDD F1 = MkTrue(level);
+	CFLOBDD F2 = MkFalse(level);
+	for (unsigned int i = 2; i < numVars; i++) {
+		if (i % 10000 == 0) {
+			std::cout << "Processing variable pair " << i << " / " << (numVars) << std::endl;
+        }
+        F1 = MkAnd(F1, vars[i]);
+        F2 = MkOr(F2, vars[i]);
+    }
+
+    F = MkExclusiveOr(vars[0], vars[1]);
+    F = MkOr(MkAnd(F, F1), MkAnd(MkNot(F), F2));
+
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	std::cout << "Duration: " << duration.count() << " ms" << std::endl;
+
+	unsigned int nodeCount = 0, edgeCount = 0, returnEdgesCount = 0, returnEdgesObjCount = 0;
+	F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "nodeCount: " << nodeCount << " edgeCount: " << edgeCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+}
+
+
+void CFLTests::testSynFun3() {
+    
+	auto start = high_resolution_clock::now();
+	unsigned int numVars = std::pow(2, 19) + 4; // 18
+	unsigned int level = std::ceil(std::log2(numVars));
+	std::vector<CFLOBDD> vars;
+	for (unsigned int i = 0; i < numVars; i++) {
+        if (i % 10000 == 0) {
+            std::cout << "Creating projection for variable " << i << " / " << numVars << std::endl;
+        }
+		vars.push_back(MkProjection(i, level));
+	}
+
+	auto F1 = 1 * MkAnd(vars[0], vars[1]) + (-1) * MkNot(MkAnd(vars[0], vars[1]));
+    auto I1 = MkTrue(level);
+
+    for (unsigned int i = 2; i < (numVars - 4)/2; i+=2) {
+        if (i % 10000 == 0) {
+            std::cout << "Processing variable " << i << " / " << (numVars) << std::endl;
+        }
+        I1 = MkAnd(MkExclusiveOr(vars[i], vars[i + 1]), I1);
+    }
+
+    int v = 2 + (numVars - 4)/2;
+    auto F2 = 1 * MkAnd(vars[v], vars[v + 1]) + (-1) * MkNot(MkAnd(vars[v], vars[v + 1]));
+
+    auto I2 = MkTrue(level);
+    for (unsigned int i = v + 2; i < numVars; i+=2) {
+        if (i % 10000 == 0) {
+            std::cout << "Processing variable " << i << " / " << (numVars) << std::endl;
+        }
+        I2 = MkAnd(MkExclusiveOr(vars[i], vars[i + 1]), I2);
+    }
+
+    CFLOBDD F = MkAnd(MkAnd(F1, I1), MkAnd(F2, I2));
+
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	std::cout << "Duration: " << duration.count() << " ms" << std::endl;
+
+	unsigned int nodeCount = 0, edgeCount = 0, returnEdgesCount = 0, returnEdgesObjCount = 0;
+	F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "nodeCount: " << nodeCount << " edgeCount: " << edgeCount << " totalCount: " << (nodeCount + edgeCount) << std::endl; 
+}
+
+void CFLTests::testSynFun4() {
+    
+	auto start = high_resolution_clock::now();
+	unsigned int numVars = 3359232; // 18
+	unsigned int level = std::ceil(std::log2(numVars));
+	std::vector<CFLOBDD> vars;
+	for (unsigned int i = 0; i < numVars; i++) {
+        if (i % 10000 == 0) {
+            std::cout << "Creating projection for variable " << i << " / " << numVars << std::endl;
+        }
+		vars.push_back(MkProjection(i, level));
+	}
+
+	std::vector<CFLOBDD> groupFuncs = vars;
+    for (int i = 0; i < 17; i++) {
+        std::cout << "Starting iteration " << i << std::endl;
+        std::vector<CFLOBDD> newGroupFuncs;
+        if (i % 2 == 0) {
+            for (size_t j = 0; j < groupFuncs.size(); j += 2) {
+                CFLOBDD f1 = groupFuncs[j];
+                CFLOBDD f2 = groupFuncs[j + 1];
+                CFLOBDD combined = MkExclusiveOr(f1, f2);
+                newGroupFuncs.push_back(combined);
+            }
+        } else {
+            for (size_t j = 0; j < groupFuncs.size(); j += 3) {
+                CFLOBDD f1 = groupFuncs[j];
+                CFLOBDD f2 = groupFuncs[j + 1];
+                CFLOBDD f3 = groupFuncs[j + 2];
+                CFLOBDD A_and_B = MkAnd(f1, f2);
+                CFLOBDD Not_A = MkNot(f1);
+                CFLOBDD Not_A_and_C = MkAnd(Not_A, f3);
+                CFLOBDD A_and_B_or_Not_A_and_C = MkOr(A_and_B, Not_A_and_C);
+                newGroupFuncs.push_back(A_and_B_or_Not_A_and_C);
+            }
+        }
+
+        groupFuncs = newGroupFuncs;
+    }
+
+    CFLOBDD F = groupFuncs[0];
+
+	auto end = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	std::cout << "Duration: " << duration.count() << " ms" << std::endl;
+
+	unsigned int nodeCount = 0, edgeCount = 0, returnEdgesCount = 0, returnEdgesObjCount = 0;
+	F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	std::cout << "nodeCount: " << nodeCount << " edgeCount: " << edgeCount << " totalCount: " << (nodeCount + edgeCount) << std::endl; 
+}
+
+CFLOBDD computeFibFunction(unsigned int n, const std::vector<CFLOBDD>& vars, unsigned int level, int startIndex, std::vector<int>& fibIndices) {
+
+    // std::cout << "Computing Fibonacci function for n = " << n << " at index " << startIndex << std::endl;
+    if (fibIndices[n] == 0) {
+        return MkNot(vars[0]);
+    } else if (fibIndices[n] == 1) {
+        return vars[startIndex];
+    } else if (fibIndices[n] == 2) {
+        return MkExclusiveOr(vars[startIndex], vars[startIndex + 1]);
+    } else if (fibIndices[n] == 3) {
+        return MkAnd(vars[startIndex], MkExclusiveOr(vars[startIndex + 1], vars[startIndex + 2]));
+    } else {
+        auto F1 = computeFibFunction(n - 2, vars, level, startIndex, fibIndices);
+        auto F2 = computeFibFunction(n - 1, vars, level, startIndex + fibIndices[n - 2], fibIndices);
+        return MkAnd(F1, F2);
+    }
+}
+
+void CFLTests::testSynFun5() {
+	auto start = high_resolution_clock::now();
+	unsigned int numVars = 514229; // 6765
+	unsigned int level = std::ceil(std::log2(numVars));
+	std::vector<CFLOBDD> vars;
+	for (unsigned int i = 0; i < numVars; i++) {
+        if (i % 10000 == 0) {
+            std::cout << "Creating projection for variable " << i << " / " << numVars << std::endl;
+        }
+		vars.push_back(MkProjection(i, level));
+	} 
+
+    std::vector<int> fibIndices = {0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229};
+
+
+    CFLOBDD F = computeFibFunction(3, vars, level, 0, fibIndices);
+    for (unsigned int i = 5; i < fibIndices.size() - 1; i++) {
+        std::cout << "Computing Fibonacci function for n = " << i << std::endl;
+        CFLOBDD Fi = computeFibFunction(i, vars, level, fibIndices[i - 1], fibIndices);
+        F = MkAnd(F, Fi);
+    }
+
+    
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(end - start);
+    std::cout << "Duration: " << duration.count() << " ms" << std::endl;
+    unsigned int nodeCount = 0, edgeCount = 0, returnEdgesCount = 0, returnEdgesObjCount = 0;
+    F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+    std::cout << "nodeCount: " << nodeCount << " edgeCount: " << edgeCount << " totalCount: " << (nodeCount + edgeCount) << std::endl; 
+}
+
+void CFLTests::testSynFun7() {
+	auto start = high_resolution_clock::now();
+    unsigned int k = 300;
+    unsigned int n = 300;
+	unsigned int numVars = k * n; // 40
+	unsigned int level = std::ceil(std::log2(numVars));
+	std::vector<CFLOBDD> vars;
+	for (unsigned int i = 0; i < numVars; i++) {
+        if (i % 10000 == 0) {
+            std::cout << "Creating projection for variable " << i << " / " << numVars << std::endl;
+        }
+		vars.push_back(MkProjection(i, level));
+	}
+    
+    std::vector<CFLOBDD> groups;
+    for (unsigned int i = 0; i < k; i++) {
+        std::cout << "Creating group function " << i << " / " << k << std::endl;
+        CFLOBDD groupFunc = MkExclusiveOr(vars[i * n], vars[i * n + 1]);
+        for (unsigned int j = 2; j < numVars / k; j++) {
+            CFLOBDD tmp = MkExclusiveOr(groupFunc, vars[i * n + j]);
+            groupFunc = tmp;
+        }
+        groups.push_back(groupFunc);
+    }
+
+    std::vector<std::string> boolOps = {"MkAnd", "MkOr", "MkExclusiveOr", "MkNor", "MkNand"};
+    CFLOBDD F = MkTrue(level);
+    for (unsigned int i = 0; i < groups.size(); i+=2) {
+        if (i + 1 < groups.size()) {
+            std::cout << "Combining group function " << i << " / " << k << std::endl;
+        } else {
+            std::cout << "Processing last unpaired group function " << i << " / " << k << std::endl;
+            F = MkAnd(F, groups[i]);
+            break;
+        }
+        CFLOBDD a = groups[i];
+        CFLOBDD b = groups[i + 1];
+        auto op1_s = boolOps[i % boolOps.size()];
+        auto op2_s = boolOps[(i + 1) % boolOps.size()];
+        CFLOBDD c = MkTrue(level);
+        if (op1_s == "MkAnd") {
+            c = MkAnd(a, b);
+        } else if (op1_s == "MkOr") {
+            c = MkOr(a, b);
+        } else if (op1_s == "MkExclusiveOr") {
+            c = MkExclusiveOr(a, b);
+        } else if (op1_s == "MkNor") {
+            c = MkNor(a, b);
+        } else if (op1_s == "MkNand") {
+            c = MkNand(a, b);
+        }
+
+        CFLOBDD d = MkTrue(level);
+        if (op2_s == "MkAnd") {
+            d = MkAnd(a, b);
+        } else if (op2_s == "MkOr") {
+            d = MkOr(a, b);
+        } else if (op2_s == "MkExclusiveOr") {
+            d = MkExclusiveOr(a, b);
+        } else if (op2_s == "MkNor") {
+            d = MkNor(a, b);
+        } else if (op2_s == "MkNand") {
+            d = MkNand(a, b);
+        }
+        F = MkAnd(F, MkOr(c, d));
+    }
+    
+
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(end - start);
+    std::cout << "Duration: " << duration.count() << " ms" << std::endl;
+
+    unsigned int nodeCount = 0, edgeCount = 0, returnEdgesCount = 0, returnEdgesObjCount = 0;
+    F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+    std::cout << "nodeCount: " << nodeCount << " edgeCount: " << edgeCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+}
+
+void CFLTests::testSynFun8() {
+
+    auto start = high_resolution_clock::now();
+	unsigned int numVars = pow(3, 12) + 1; // 59049 + 1
+	unsigned int level = std::ceil(std::log2(numVars));
+	std::vector<CFLOBDD> vars;
+	for (unsigned int i = 0; i < numVars; i++) {
+        if (i % 10000 == 0) {
+            std::cout << "Creating projection for variable " << i << " / " << numVars << std::endl;
+        }
+		vars.push_back(MkProjection(i, level));
+	}
+    
+    CFLOBDD F1 = MkTrue(level);
+    for (unsigned int i = 1; i < numVars; i+=3) {
+        if (i % 10000 == 0) {
+            std::cout << "Processing clause for variables " << i << ", " << i+1 << ", " << i+2 << std::endl;
+        }
+        auto tmp = MkOr(MkAnd(MkAnd(vars[i+1], vars[i]), MkNot(vars[i+2])), MkAnd(MkAnd(MkNot(vars[i]), vars[i+2]), MkNot(vars[i+1])));
+        F1 = MkAnd(F1, tmp);
+    }
+
+    CFLOBDD F2 = MkTrue(level);
+    for (unsigned int i = 1; i < numVars; i+=3) {
+        if (i % 10000 == 0) {
+            std::cout << "Processing clause for variables " << i << ", " << i+1 << ", " << i+2 << std::endl;
+        }
+        auto tmp = MkOr(MkAnd(vars[i], MkExclusiveOr(vars[i+1], vars[i+2])), MkAnd(MkNot(vars[i]), MkNot(MkExclusiveOr(vars[i+1], vars[i+2]))));
+        F2 = MkAnd(F2, tmp);
+    }
+
+    CFLOBDD F = MkOr(MkAnd(vars[0], F1), MkAnd(MkNot(vars[0]), F2));
+    
+
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(end - start);
+    std::cout << "Duration: " << duration.count() << " ms" << std::endl;
+
+    unsigned int nodeCount = 0, edgeCount = 0, returnEdgesCount = 0, returnEdgesObjCount = 0;
+    F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+    std::cout << "nodeCount: " << nodeCount << " edgeCount: " << edgeCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
+}
+
+
 void CFLTests::testGHZAlgo(int p){
 	unsigned long long int n = pow(2, p);
 	std::cout << "GHZ start..." << std::endl;
@@ -1263,11 +1709,22 @@ void CFLTests::testXOR(int p)
 	std::cout << "start" << std::endl;
 	auto start = high_resolution_clock::now();
 	CFLOBDD F = MkProjection(0, p);
+	// unsigned int nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount;
+	// F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+	// unsigned int max_size = (nodeCount + edgeCount);
 	for (int i = 1; i < pow(2, p); i++){
 			F = MkExclusiveOr(F, MkProjection(i, p));
+			// unsigned int nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount;
+			// F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+			// std::cout << "i: " << i << " size: " <<  nodeCount + edgeCount << std::endl;
+			// if (nodeCount + edgeCount > max_size)
+			// 	max_size = nodeCount + edgeCount;
 	}
 	auto end = high_resolution_clock::now();
+	// std::cout << "max_size: " << max_size << std::endl;
 	std::cout << "end" << std::endl;
+	// nodeCount = 0, edgeCount = 0;
+	// returnEdgesCount = 0; returnEdgesObjCount = 0;
 	unsigned int nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount;
 	F.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
 	// std::cout << F << std::endl;
@@ -1283,23 +1740,12 @@ void CFLTests::testMatMul(int p)
 	auto start = high_resolution_clock::now();	
 	CFLOBDD_FLOAT_BOOST H = Matrix1234FloatBoost::MkWalshInterleaved(p);
 	CFLOBDD_FLOAT_BOOST I = Matrix1234FloatBoost::MkIdRelationInterleaved(p);
-	// CFLOBDD_FLOAT_BOOST X = Matrix1234FloatBoost::MkExchangeInterleaved(p);
-	// CFLOBDD_FLOAT_BOOST F = VectorFloatBoost::NoDistinctionNode(p + 1, 0);
-	// for (int i = 1; i < 4; i++)
-	// {
-	// 	if (i % 3 == 0){
-	// 		F = F + Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(H, I);
-	// 	} else if (i % 3 == 1){
-	// 		F = F + Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(X, H);
-	// 	} else if (i % 3 == 2){
-	// 		F = F + Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(I, X);
-	// 	}
-	// }
-	CFLOBDD_FLOAT_BOOST F = H + I;	
-	// for (int i = 1; i < 1024; i++){
-	// 	CFLOBDD_FLOAT_BOOST tmp_F = H + I;	
-	// 	F = F + tmp_F;
-	// }
+	CFLOBDD_FLOAT_BOOST X = Matrix1234FloatBoost::MkExchangeInterleaved(p);
+	CFLOBDD_FLOAT_BOOST HI = Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(H, I);
+	CFLOBDD_FLOAT_BOOST IX = Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(I, X);
+	CFLOBDD_FLOAT_BOOST XH = Matrix1234FloatBoost::MatrixMultiplyV4WithInfo(X, H);
+	CFLOBDD_FLOAT_BOOST F = HI + IX;
+	F = F + XH;
 	auto end = high_resolution_clock::now();
 	std::cout << "end" << std::endl;
 	unsigned int nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount;
@@ -1896,7 +2342,6 @@ void CFLTests::ClearModules()
 	DisposeOfWeightedPairProductCache<BIG_FLOAT, std::multiplies<BIG_FLOAT>>();
 	DisposeOfWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
 	DisposeOfWeightedPairProductCache<fourierSemiring, std::multiplies<fourierSemiring>>();
-
 	DisposeOfWeightedBDDPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
 }
 
@@ -2022,6 +2467,22 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 		CFLTests::testSynBenchmark6_CFLOBDD(size);
 	} else if (curTest == "testSyn7_CFL") {
 		CFLTests::testSynBenchmark7_CFLOBDD(size);
+	} else if (curTest == "testRandomFunction") {
+		CFLTests::testRandomFunction();
+	} else if (curTest == "testSynFun2") {
+		CFLTests::testSynFun2();
+	} else if (curTest == "testSynFun3") {
+		CFLTests::testSynFun3();
+	} else if (curTest == "testSynFun4") {
+		CFLTests::testSynFun4();
+	} else if (curTest == "testSynFun5") {
+		CFLTests::testSynFun5();
+	} else if (curTest == "testSynFun7") {
+		CFLTests::testSynFun7();
+	} else if (curTest == "testSynFun8") {
+		CFLTests::testSynFun8();
+	} else if (curTest == "testNQueens") {
+		CFLTests::testNQueens(size);
 	}
 	else {
 		std::cout << "Unrecognized test name: " << curTest << std::endl;

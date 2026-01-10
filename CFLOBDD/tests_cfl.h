@@ -29,6 +29,13 @@ class CFLTests
 		static void testMkFourierMatrix(int p);
         static void testMkIdRelationInterleaved();
         static void testProbability();
+        static void testRandomFunction();
+        static void testSynFun2();
+        static void testSynFun3();
+        static void testSynFun4();
+        static void testSynFun5();
+        static void testSynFun7();
+        static void testSynFun8();
         static void testParity();
         static void test1();
         static void test2();
@@ -76,6 +83,8 @@ class CFLTests
         static void testSynBenchmark5_CFLOBDD(int size);
         static void testSynBenchmark6_CFLOBDD(int size);
         static void testSynBenchmark7_CFLOBDD(int size);
+
+        static void testNQueens(int n);
 	    
         static void InitModules();
 	    static void ClearModules();

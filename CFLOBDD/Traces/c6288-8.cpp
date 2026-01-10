@@ -1,0 +1,968 @@
+#include "../cflobdd_int.h"
+#include "../cflobdd_top_node_int.h"
+
+#include <ctime>
+#include <time.h>
+#include <string>
+#include <chrono>
+
+using namespace std;
+using namespace CFL_OBDD;
+using namespace std::chrono;
+
+// iscas85: c6288-8
+static void c6288_8()
+{
+
+
+auto start = high_resolution_clock::now();
+
+int coeff = 1;
+int offset = 0;
+int max_level = 4;
+
+#define DESCENDING_NONINTERLEAVED 1
+// #define DESCENDING_INTERLEAVED 1
+// #define ASCENDING_NONINTERLEAVED 1
+// #define ASCENDING_INTERLEAVED 1
+// #define AMANO_8BIT_OPTIMAL 1
+// #define NEW_ORDERING 1
+// #define NEW_ORDERING_REV 1
+
+#ifdef DESCENDING_NONINTERLEAVED
+CFLOBDD a7 = MkProjection(coeff*0 + offset, max_level);
+CFLOBDD a6 = MkProjection(coeff*1 + offset, max_level);
+CFLOBDD a5 = MkProjection(coeff*2 + offset, max_level);
+CFLOBDD a4 = MkProjection(coeff*3 + offset, max_level);
+CFLOBDD a3 = MkProjection(coeff*4 + offset, max_level);
+CFLOBDD a2 = MkProjection(coeff*5 + offset, max_level);
+CFLOBDD a1 = MkProjection(coeff*6 + offset, max_level);
+CFLOBDD a0 = MkProjection(coeff*7 + offset, max_level);
+CFLOBDD b7 = MkProjection(coeff*8 + offset, max_level);
+CFLOBDD b6 = MkProjection(coeff*9 + offset, max_level);
+CFLOBDD b5 = MkProjection(coeff*10 + offset, max_level);
+CFLOBDD b4 = MkProjection(coeff*11 + offset, max_level);
+CFLOBDD b3 = MkProjection(coeff*12 + offset, max_level);
+CFLOBDD b2 = MkProjection(coeff*13 + offset, max_level);
+CFLOBDD b1 = MkProjection(coeff*14 + offset, max_level);
+CFLOBDD b0 = MkProjection(coeff*15 + offset, max_level);
+#endif
+
+#ifdef DESCENDING_INTERLEAVED
+CFLOBDD a7 = MkProjection(coeff*0 + offset, max_level);
+CFLOBDD b7 = MkProjection(coeff*1 + offset, max_level);
+CFLOBDD a6 = MkProjection(coeff*2 + offset, max_level);
+CFLOBDD b6 = MkProjection(coeff*3 + offset, max_level);
+CFLOBDD a5 = MkProjection(coeff*4 + offset, max_level);
+CFLOBDD b5 = MkProjection(coeff*5 + offset, max_level);
+CFLOBDD a4 = MkProjection(coeff*6 + offset, max_level);
+CFLOBDD b4 = MkProjection(coeff*7 + offset, max_level);
+CFLOBDD a3 = MkProjection(coeff*8 + offset, max_level);
+CFLOBDD b3 = MkProjection(coeff*9 + offset, max_level);
+CFLOBDD a2 = MkProjection(coeff*10 + offset, max_level);
+CFLOBDD b2 = MkProjection(coeff*11 + offset, max_level);
+CFLOBDD a1 = MkProjection(coeff*12 + offset, max_level);
+CFLOBDD b1 = MkProjection(coeff*13 + offset, max_level);
+CFLOBDD a0 = MkProjection(coeff*14 + offset, max_level);
+CFLOBDD b0 = MkProjection(coeff*15 + offset, max_level);
+#endif
+
+#ifdef ASCENDING_NONINTERLEAVED
+CFLOBDD a0 = MkProjection(coeff*0 + offset, max_level);
+CFLOBDD a1 = MkProjection(coeff*1 + offset, max_level);
+CFLOBDD a2 = MkProjection(coeff*2 + offset, max_level);
+CFLOBDD a3 = MkProjection(coeff*3 + offset, max_level);
+CFLOBDD a4 = MkProjection(coeff*4 + offset, max_level);
+CFLOBDD a5 = MkProjection(coeff*5 + offset, max_level);
+CFLOBDD a6 = MkProjection(coeff*6 + offset, max_level);
+CFLOBDD a7 = MkProjection(coeff*7 + offset, max_level);
+CFLOBDD b0 = MkProjection(coeff*8 + offset, max_level);
+CFLOBDD b1 = MkProjection(coeff*9 + offset, max_level);
+CFLOBDD b2 = MkProjection(coeff*10 + offset, max_level);
+CFLOBDD b3 = MkProjection(coeff*11 + offset, max_level);
+CFLOBDD b4 = MkProjection(coeff*12 + offset, max_level);
+CFLOBDD b5 = MkProjection(coeff*13 + offset, max_level);
+CFLOBDD b6 = MkProjection(coeff*14 + offset, max_level);
+CFLOBDD b7 = MkProjection(coeff*15 + offset, max_level);
+#endif
+
+#ifdef ASCENDING_INTERLEAVED
+CFLOBDD a0 = MkProjection(coeff*0 + offset, max_level);
+CFLOBDD b0 = MkProjection(coeff*1 + offset, max_level);
+CFLOBDD a1 = MkProjection(coeff*2 + offset, max_level);
+CFLOBDD b1 = MkProjection(coeff*3 + offset, max_level);
+CFLOBDD a2 = MkProjection(coeff*4 + offset, max_level);
+CFLOBDD b2 = MkProjection(coeff*5 + offset, max_level);
+CFLOBDD a3 = MkProjection(coeff*6 + offset, max_level);
+CFLOBDD b3 = MkProjection(coeff*7 + offset, max_level);
+CFLOBDD a4 = MkProjection(coeff*8 + offset, max_level);
+CFLOBDD b4 = MkProjection(coeff*9 + offset, max_level);
+CFLOBDD a5 = MkProjection(coeff*10 + offset, max_level);
+CFLOBDD b5 = MkProjection(coeff*11 + offset, max_level);
+CFLOBDD a6 = MkProjection(coeff*12 + offset, max_level);
+CFLOBDD b6 = MkProjection(coeff*13 + offset, max_level);
+CFLOBDD a7 = MkProjection(coeff*14 + offset, max_level);
+CFLOBDD b7 = MkProjection(coeff*15 + offset, max_level);
+#endif
+
+#ifdef DESCENDING_ASCENDING
+CFLOBDD a7 = MkProjection(coeff*0 + offset, max_level);
+CFLOBDD a6 = MkProjection(coeff*1 + offset, max_level);
+CFLOBDD a5 = MkProjection(coeff*2 + offset, max_level);
+CFLOBDD a4 = MkProjection(coeff*3 + offset, max_level);
+CFLOBDD a3 = MkProjection(coeff*4 + offset, max_level);
+CFLOBDD a2 = MkProjection(coeff*5 + offset, max_level);
+CFLOBDD a1 = MkProjection(coeff*6 + offset, max_level);
+CFLOBDD a0 = MkProjection(coeff*7 + offset, max_level);
+CFLOBDD b0 = MkProjection(coeff*8 + offset, max_level);
+CFLOBDD b1 = MkProjection(coeff*9 + offset, max_level);
+CFLOBDD b2 = MkProjection(coeff*10 + offset, max_level);
+CFLOBDD b3 = MkProjection(coeff*11 + offset, max_level);
+CFLOBDD b4 = MkProjection(coeff*12 + offset, max_level);
+CFLOBDD b5 = MkProjection(coeff*13 + offset, max_level);
+CFLOBDD b6 = MkProjection(coeff*14 + offset, max_level);
+CFLOBDD b7 = MkProjection(coeff*15 + offset, max_level);
+#endif
+
+#ifdef ASCENDING_DESCENDING
+CFLOBDD a0 = MkProjection(coeff*0 + offset, max_level);
+CFLOBDD a1 = MkProjection(coeff*1 + offset, max_level);
+CFLOBDD a2 = MkProjection(coeff*2 + offset, max_level);
+CFLOBDD a3 = MkProjection(coeff*3 + offset, max_level);
+CFLOBDD a4 = MkProjection(coeff*4 + offset, max_level);
+CFLOBDD a5 = MkProjection(coeff*5 + offset, max_level);
+CFLOBDD a6 = MkProjection(coeff*6 + offset, max_level);
+CFLOBDD a7 = MkProjection(coeff*7 + offset, max_level);
+CFLOBDD b7 = MkProjection(coeff*8 + offset, max_level);
+CFLOBDD b6 = MkProjection(coeff*9 + offset, max_level);
+CFLOBDD b5 = MkProjection(coeff*10 + offset, max_level);
+CFLOBDD b4 = MkProjection(coeff*11 + offset, max_level);
+CFLOBDD b3 = MkProjection(coeff*12 + offset, max_level);
+CFLOBDD b2 = MkProjection(coeff*13 + offset, max_level);
+CFLOBDD b1 = MkProjection(coeff*14 + offset, max_level);
+CFLOBDD b0 = MkProjection(coeff*15 + offset, max_level);
+#endif
+
+// Amano & Maruoka, DAC 2007: the variable order
+// that gives the smallest 8-bit multiplication BDD for MUL_7,8 is
+// (a1, a2, a3, a4, b3, b4, b2, a5, b5, b1, a6, b6, a0, b7, a7, b0)
+#ifdef AMANO_8BIT_OPTIMAL
+CFLOBDD a1 = MkProjection(coeff*0 + offset, max_level);
+CFLOBDD a2 = MkProjection(coeff*1 + offset, max_level);
+CFLOBDD a3 = MkProjection(coeff*2 + offset, max_level);
+CFLOBDD a4 = MkProjection(coeff*3 + offset, max_level);
+CFLOBDD b3 = MkProjection(coeff*4 + offset, max_level);
+CFLOBDD b4 = MkProjection(coeff*5 + offset, max_level);
+CFLOBDD b2 = MkProjection(coeff*6 + offset, max_level);
+CFLOBDD a5 = MkProjection(coeff*7 + offset, max_level);
+CFLOBDD b5 = MkProjection(coeff*8 + offset, max_level);
+CFLOBDD b1 = MkProjection(coeff*9 + offset, max_level);
+CFLOBDD a6 = MkProjection(coeff*10 + offset, max_level);
+CFLOBDD b6 = MkProjection(coeff*11 + offset, max_level);
+CFLOBDD a0 = MkProjection(coeff*12 + offset, max_level);
+CFLOBDD b7 = MkProjection(coeff*13 + offset, max_level);
+CFLOBDD a7 = MkProjection(coeff*14 + offset, max_level);
+CFLOBDD b0 = MkProjection(coeff*15 + offset, max_level);
+#endif
+
+#ifdef NEW_ORDERING
+CFLOBDD a0 = MkProjection(0, 16);//32768
+CFLOBDD b0 = MkProjection(32768, 16);//16384
+CFLOBDD a1 = MkProjection(49152, 16);//8192
+CFLOBDD b1 = MkProjection(57344, 16);//4096
+CFLOBDD a2 = MkProjection(61440, 16);//2048
+CFLOBDD b2 = MkProjection(63488, 16);//1024
+CFLOBDD a3 = MkProjection(64512, 16);//512
+CFLOBDD b3 = MkProjection(65024, 16);//256
+CFLOBDD a4 = MkProjection(65280, 16);//128
+CFLOBDD b4 = MkProjection(65408, 16);//64
+CFLOBDD a5 = MkProjection(65472, 16);//32
+CFLOBDD b5 = MkProjection(65504, 16);//16
+CFLOBDD a6 = MkProjection(65520, 16);//8
+CFLOBDD b6 = MkProjection(65528, 16);//4
+CFLOBDD a7 = MkProjection(65532, 16);//2
+CFLOBDD b7 = MkProjection(65534, 16);
+#endif
+
+// #ifdef NEW_ORDERING_REV
+// CFLOBDD a0 = MkProjection(0, 16);//32768
+// CFLOBDD b0 = MkProjection(2, 16);//16384
+// CFLOBDD a1 = MkProjection(4, 16);//8192
+// CFLOBDD b1 = MkProjection(8, 16);//4096
+// CFLOBDD a2 = MkProjection(16, 16);//2048
+// CFLOBDD b2 = MkProjection(32, 16);//1024
+// CFLOBDD a3 = MkProjection(64, 16);//512
+// CFLOBDD b3 = MkProjection(128, 16);//256
+// CFLOBDD a4 = MkProjection(256, 16);//128
+// CFLOBDD b4 = MkProjection(512, 16);//64
+// CFLOBDD a5 = MkProjection(1024, 16);//32
+// CFLOBDD b5 = MkProjection(2048, 16);//16
+// CFLOBDD a6 = MkProjection(4096, 16);//8
+// CFLOBDD b6 = MkProjection(8192, 16);//4
+// CFLOBDD a7 = MkProjection(16384, 16);//2
+// CFLOBDD b7 = MkProjection(32768, 16);
+// #endif
+
+#ifdef NEW_ORDERING_REV
+CFLOBDD a0 = MkProjection(0, 15);//32768
+CFLOBDD b0 = MkProjection(1, 15);//16384
+CFLOBDD a1 = MkProjection(2, 15);//8192
+CFLOBDD b1 = MkProjection(4, 15);//4096
+CFLOBDD a2 = MkProjection(8, 15);//2048
+CFLOBDD b2 = MkProjection(16, 15);//1024
+CFLOBDD a3 = MkProjection(32, 15);//512
+CFLOBDD b3 = MkProjection(64, 15);//256
+CFLOBDD a4 = MkProjection(128, 15);//128
+CFLOBDD b4 = MkProjection(256, 15);//64
+CFLOBDD a5 = MkProjection(512, 15);//32
+CFLOBDD b5 = MkProjection(1024, 15);//16
+CFLOBDD a6 = MkProjection(2048, 15);//8
+CFLOBDD b6 = MkProjection(4096, 15);//4
+CFLOBDD a7 = MkProjection(8192, 15);//2
+CFLOBDD b7 = MkProjection(16384, 15);
+#endif
+
+std::cout << "	pp0_0	 " << std::endl;
+CFLOBDD	pp0_0	 = MkAnd(a0, b0);
+CFLOBDD	pp1_0	 = MkAnd(a0, b1);
+CFLOBDD	pp2_0	 = MkAnd(a0, b2);
+CFLOBDD	pp3_0	 = MkAnd(a0, b3);
+CFLOBDD	pp4_0	 = MkAnd(a0, b4);
+CFLOBDD	pp5_0	 = MkAnd(a0, b5);
+CFLOBDD	pp6_0	 = MkAnd(a0, b6);
+CFLOBDD	pp7_0	 = MkAnd(a0, b7);
+CFLOBDD	sum0	= pp0_0;
+CFLOBDD	pp0_1	 = MkAnd(a1, b0);
+std::cout << "	pp1_1	 " << std::endl;
+CFLOBDD	pp1_1	 = MkAnd(a1, b1);
+CFLOBDD	pp2_1	 = MkAnd(a1, b2);
+CFLOBDD	pp3_1	 = MkAnd(a1, b3);
+CFLOBDD	pp4_1	 = MkAnd(a1, b4);
+CFLOBDD	pp5_1	 = MkAnd(a1, b5);
+CFLOBDD	pp6_1	 = MkAnd(a1, b6);
+CFLOBDD	pp7_1	 = MkAnd(a1, b7);
+CFLOBDD	gate0_1_0	=  MkNor(pp1_0, pp0_1);
+CFLOBDD	gate0_1_1	=  MkNor(pp1_0, gate0_1_0);
+CFLOBDD	gate0_1_2	=  MkNor(pp0_1, gate0_1_0);
+CFLOBDD	gate0_1_3	=  MkNor(gate0_1_1, gate0_1_2);
+CFLOBDD	gate0_1_4	= MkNot(gate0_1_3); 
+CFLOBDD	gate0_1_5	= MkNor(gate0_1_4, gate0_1_3); 
+CFLOBDD	gate0_1_6	= MkNot(gate0_1_4); 
+CFLOBDD	sum1	= MkNor(gate0_1_5,gate0_1_6); 
+CFLOBDD	c0_1	= MkNor(gate0_1_0,gate0_1_4); 
+CFLOBDD	gate1_1_0	=  MkNor(pp2_0, pp1_1);
+CFLOBDD	gate1_1_1	=  MkNor(pp2_0, gate1_1_0);
+CFLOBDD	gate1_1_2	=  MkNor(pp1_1, gate1_1_0);
+CFLOBDD	gate1_1_3	=  MkNor(gate1_1_1, gate1_1_2);
+std::cout << "	gate1_1_4	" << std::endl;
+CFLOBDD	gate1_1_4	= MkNot(gate1_1_3); 
+CFLOBDD	gate1_1_5	= MkNor(gate1_1_4, gate1_1_3); 
+CFLOBDD	gate1_1_6	= MkNot(gate1_1_4); 
+CFLOBDD	s1_1	= MkNor(gate1_1_5,gate1_1_6); 
+CFLOBDD	c1_1	= MkNor(gate1_1_0,gate1_1_4); 
+CFLOBDD	gate2_1_0	=  MkNor(pp3_0, pp2_1);
+CFLOBDD	gate2_1_1	=  MkNor(pp3_0, gate2_1_0);
+CFLOBDD	gate2_1_2	=  MkNor(pp2_1, gate2_1_0);
+CFLOBDD	gate2_1_3	=  MkNor(gate2_1_1, gate2_1_2);
+CFLOBDD	gate2_1_4	= MkNot(gate2_1_3); 
+std::cout << "	gate2_1_5	" << std::endl;
+CFLOBDD	gate2_1_5	= MkNor(gate2_1_4, gate2_1_3); 
+CFLOBDD	gate2_1_6	= MkNot(gate2_1_4); 
+CFLOBDD	s2_1	= MkNor(gate2_1_5,gate2_1_6); 
+CFLOBDD	c2_1	= MkNor(gate2_1_0,gate2_1_4); 
+CFLOBDD	gate3_1_0	=  MkNor(pp4_0, pp3_1);
+CFLOBDD	gate3_1_1	=  MkNor(pp4_0, gate3_1_0);
+CFLOBDD	gate3_1_2	=  MkNor(pp3_1, gate3_1_0);
+CFLOBDD	gate3_1_3	=  MkNor(gate3_1_1, gate3_1_2);
+CFLOBDD	gate3_1_4	= MkNot(gate3_1_3); 
+CFLOBDD	gate3_1_5	= MkNor(gate3_1_4, gate3_1_3); 
+std::cout << "	gate3_1_6	" << std::endl;
+CFLOBDD	gate3_1_6	= MkNot(gate3_1_4); 
+CFLOBDD	s3_1	= MkNor(gate3_1_5,gate3_1_6); 
+CFLOBDD	c3_1	= MkNor(gate3_1_0,gate3_1_4); 
+CFLOBDD	gate4_1_0	=  MkNor(pp5_0, pp4_1);
+CFLOBDD	gate4_1_1	=  MkNor(pp5_0, gate4_1_0);
+CFLOBDD	gate4_1_2	=  MkNor(pp4_1, gate4_1_0);
+CFLOBDD	gate4_1_3	=  MkNor(gate4_1_1, gate4_1_2);
+CFLOBDD	gate4_1_4	= MkNot(gate4_1_3); 
+CFLOBDD	gate4_1_5	= MkNor(gate4_1_4, gate4_1_3); 
+CFLOBDD	gate4_1_6	= MkNot(gate4_1_4); 
+std::cout << "	s4_1	" << std::endl;
+CFLOBDD	s4_1	= MkNor(gate4_1_5,gate4_1_6); 
+CFLOBDD	c4_1	= MkNor(gate4_1_0,gate4_1_4); 
+CFLOBDD	gate5_1_0	=  MkNor(pp6_0, pp5_1);
+CFLOBDD	gate5_1_1	=  MkNor(pp6_0, gate5_1_0);
+CFLOBDD	gate5_1_2	=  MkNor(pp5_1, gate5_1_0);
+CFLOBDD	gate5_1_3	=  MkNor(gate5_1_1, gate5_1_2);
+CFLOBDD	gate5_1_4	= MkNot(gate5_1_3); 
+CFLOBDD	gate5_1_5	= MkNor(gate5_1_4, gate5_1_3); 
+CFLOBDD	gate5_1_6	= MkNot(gate5_1_4); 
+CFLOBDD	s5_1	= MkNor(gate5_1_5,gate5_1_6); 
+std::cout << "	c5_1	" << std::endl;
+CFLOBDD	c5_1	= MkNor(gate5_1_0,gate5_1_4); 
+CFLOBDD	gate6_1_0	=  MkNor(pp7_0, pp6_1);
+CFLOBDD	gate6_1_1	=  MkNor(pp7_0, gate6_1_0);
+CFLOBDD	gate6_1_2	=  MkNor(pp6_1, gate6_1_0);
+CFLOBDD	gate6_1_3	=  MkNor(gate6_1_1, gate6_1_2);
+CFLOBDD	gate6_1_4	= MkNot(gate6_1_3); 
+CFLOBDD	gate6_1_5	= MkNor(gate6_1_4, gate6_1_3); 
+CFLOBDD	gate6_1_6	= MkNot(gate6_1_4); 
+CFLOBDD	s6_1	= MkNor(gate6_1_5,gate6_1_6); 
+CFLOBDD	c6_1	= MkNor(gate6_1_0,gate6_1_4); 
+std::cout << "	s7_1	" << std::endl;
+CFLOBDD	s7_1	= pp7_1;
+CFLOBDD	pp0_2	 = MkAnd(a2, b0);
+CFLOBDD	pp1_2	 = MkAnd(a2, b1);
+CFLOBDD	pp2_2	 = MkAnd(a2, b2);
+CFLOBDD	pp3_2	 = MkAnd(a2, b3);
+CFLOBDD	pp4_2	 = MkAnd(a2, b4);
+CFLOBDD	pp5_2	 = MkAnd(a2, b5);
+CFLOBDD	pp6_2	 = MkAnd(a2, b6);
+CFLOBDD	pp7_2	 = MkAnd(a2, b7);
+CFLOBDD	gate0_2_0	=  MkNor(s1_1, c0_1);
+std::cout << "	gate0_2_1	" << std::endl;
+CFLOBDD	gate0_2_1	=  MkNor(s1_1, gate0_2_0);
+CFLOBDD	gate0_2_2	=  MkNor(c0_1, gate0_2_0);
+CFLOBDD	gate0_2_3	=  MkNor(gate0_2_1, gate0_2_2);
+CFLOBDD	gate0_2_4	=  MkNor(gate0_2_3, pp0_2);
+CFLOBDD	gate0_2_5	=  MkNor(gate0_2_3, gate0_2_4);
+CFLOBDD	gate0_2_6	=  MkNor(pp0_2, gate0_2_4);
+CFLOBDD	sum2	=  MkNor(gate0_2_5, gate0_2_6);
+CFLOBDD	c0_2	= MkNor(gate0_2_0,gate0_2_4); 
+CFLOBDD	gate1_2_0	=  MkNor(s2_1, c1_1);
+CFLOBDD	gate1_2_1	=  MkNor(s2_1, gate1_2_0);
+std::cout << "	gate1_2_2	" << std::endl;
+CFLOBDD	gate1_2_2	=  MkNor(c1_1, gate1_2_0);
+CFLOBDD	gate1_2_3	=  MkNor(gate1_2_1, gate1_2_2);
+CFLOBDD	gate1_2_4	=  MkNor(gate1_2_3, pp1_2);
+CFLOBDD	gate1_2_5	=  MkNor(gate1_2_3, gate1_2_4);
+CFLOBDD	gate1_2_6	=  MkNor(pp1_2, gate1_2_4);
+CFLOBDD	s1_2	=  MkNor(gate1_2_5, gate1_2_6);
+CFLOBDD	c1_2	= MkNor(gate1_2_0,gate1_2_4); 
+CFLOBDD	gate2_2_0	=  MkNor(s3_1, c2_1);
+CFLOBDD	gate2_2_1	=  MkNor(s3_1, gate2_2_0);
+CFLOBDD	gate2_2_2	=  MkNor(c2_1, gate2_2_0);
+std::cout << "	gate2_2_3	" << std::endl;
+CFLOBDD	gate2_2_3	=  MkNor(gate2_2_1, gate2_2_2);
+CFLOBDD	gate2_2_4	=  MkNor(gate2_2_3, pp2_2);
+CFLOBDD	gate2_2_5	=  MkNor(gate2_2_3, gate2_2_4);
+CFLOBDD	gate2_2_6	=  MkNor(pp2_2, gate2_2_4);
+CFLOBDD	s2_2	=  MkNor(gate2_2_5, gate2_2_6);
+CFLOBDD	c2_2	= MkNor(gate2_2_0,gate2_2_4); 
+CFLOBDD	gate3_2_0	=  MkNor(s4_1, c3_1);
+CFLOBDD	gate3_2_1	=  MkNor(s4_1, gate3_2_0);
+CFLOBDD	gate3_2_2	=  MkNor(c3_1, gate3_2_0);
+CFLOBDD	gate3_2_3	=  MkNor(gate3_2_1, gate3_2_2);
+std::cout << "	gate3_2_4	" << std::endl;
+CFLOBDD	gate3_2_4	=  MkNor(gate3_2_3, pp3_2);
+CFLOBDD	gate3_2_5	=  MkNor(gate3_2_3, gate3_2_4);
+CFLOBDD	gate3_2_6	=  MkNor(pp3_2, gate3_2_4);
+CFLOBDD	s3_2	=  MkNor(gate3_2_5, gate3_2_6);
+CFLOBDD	c3_2	= MkNor(gate3_2_0,gate3_2_4); 
+CFLOBDD	gate4_2_0	=  MkNor(s5_1, c4_1);
+CFLOBDD	gate4_2_1	=  MkNor(s5_1, gate4_2_0);
+CFLOBDD	gate4_2_2	=  MkNor(c4_1, gate4_2_0);
+CFLOBDD	gate4_2_3	=  MkNor(gate4_2_1, gate4_2_2);
+CFLOBDD	gate4_2_4	=  MkNor(gate4_2_3, pp4_2);
+std::cout << "	gate4_2_5	" << std::endl;
+CFLOBDD	gate4_2_5	=  MkNor(gate4_2_3, gate4_2_4);
+CFLOBDD	gate4_2_6	=  MkNor(pp4_2, gate4_2_4);
+CFLOBDD	s4_2	=  MkNor(gate4_2_5, gate4_2_6);
+CFLOBDD	c4_2	= MkNor(gate4_2_0,gate4_2_4); 
+CFLOBDD	gate5_2_0	=  MkNor(s6_1, c5_1);
+CFLOBDD	gate5_2_1	=  MkNor(s6_1, gate5_2_0);
+CFLOBDD	gate5_2_2	=  MkNor(c5_1, gate5_2_0);
+CFLOBDD	gate5_2_3	=  MkNor(gate5_2_1, gate5_2_2);
+CFLOBDD	gate5_2_4	=  MkNor(gate5_2_3, pp5_2);
+CFLOBDD	gate5_2_5	=  MkNor(gate5_2_3, gate5_2_4);
+std::cout << "	gate5_2_6	" << std::endl;
+CFLOBDD	gate5_2_6	=  MkNor(pp5_2, gate5_2_4);
+CFLOBDD	s5_2	=  MkNor(gate5_2_5, gate5_2_6);
+CFLOBDD	c5_2	= MkNor(gate5_2_0,gate5_2_4); 
+CFLOBDD	gate6_2_0	=  MkNor(s7_1, c6_1);
+CFLOBDD	gate6_2_1	=  MkNor(s7_1, gate6_2_0);
+CFLOBDD	gate6_2_2	=  MkNor(c6_1, gate6_2_0);
+CFLOBDD	gate6_2_3	=  MkNor(gate6_2_1, gate6_2_2);
+CFLOBDD	gate6_2_4	=  MkNor(gate6_2_3, pp6_2);
+CFLOBDD	gate6_2_5	=  MkNor(gate6_2_3, gate6_2_4);
+CFLOBDD	gate6_2_6	=  MkNor(pp6_2, gate6_2_4);
+std::cout << "	s6_2	" << std::endl;
+CFLOBDD	s6_2	=  MkNor(gate6_2_5, gate6_2_6);
+CFLOBDD	c6_2	= MkNor(gate6_2_0,gate6_2_4); 
+CFLOBDD	s7_2	= pp7_2;
+CFLOBDD	pp0_3	 = MkAnd(a3, b0);
+CFLOBDD	pp1_3	 = MkAnd(a3, b1);
+CFLOBDD	pp2_3	 = MkAnd(a3, b2);
+CFLOBDD	pp3_3	 = MkAnd(a3, b3);
+CFLOBDD	pp4_3	 = MkAnd(a3, b4);
+CFLOBDD	pp5_3	 = MkAnd(a3, b5);
+CFLOBDD	pp6_3	 = MkAnd(a3, b6);
+std::cout << "	pp7_3	 " << std::endl;
+CFLOBDD	pp7_3	 = MkAnd(a3, b7);
+CFLOBDD	gate0_3_0	=  MkNor(s1_2, c0_2);
+CFLOBDD	gate0_3_1	=  MkNor(s1_2, gate0_3_0);
+CFLOBDD	gate0_3_2	=  MkNor(c0_2, gate0_3_0);
+CFLOBDD	gate0_3_3	=  MkNor(gate0_3_1, gate0_3_2);
+CFLOBDD	gate0_3_4	=  MkNor(gate0_3_3, pp0_3);
+CFLOBDD	gate0_3_5	=  MkNor(gate0_3_3, gate0_3_4);
+CFLOBDD	gate0_3_6	=  MkNor(pp0_3, gate0_3_4);
+CFLOBDD	sum3	=  MkNor(gate0_3_5, gate0_3_6);
+CFLOBDD	c0_3	= MkNor(gate0_3_0,gate0_3_4); 
+std::cout << "	gate1_3_0	" << std::endl;
+CFLOBDD	gate1_3_0	=  MkNor(s2_2, c1_2);
+CFLOBDD	gate1_3_1	=  MkNor(s2_2, gate1_3_0);
+CFLOBDD	gate1_3_2	=  MkNor(c1_2, gate1_3_0);
+CFLOBDD	gate1_3_3	=  MkNor(gate1_3_1, gate1_3_2);
+CFLOBDD	gate1_3_4	=  MkNor(gate1_3_3, pp1_3);
+CFLOBDD	gate1_3_5	=  MkNor(gate1_3_3, gate1_3_4);
+CFLOBDD	gate1_3_6	=  MkNor(pp1_3, gate1_3_4);
+CFLOBDD	s1_3	=  MkNor(gate1_3_5, gate1_3_6);
+CFLOBDD	c1_3	= MkNor(gate1_3_0,gate1_3_4); 
+CFLOBDD	gate2_3_0	=  MkNor(s3_2, c2_2);
+std::cout << "	gate2_3_1	" << std::endl;
+CFLOBDD	gate2_3_1	=  MkNor(s3_2, gate2_3_0);
+CFLOBDD	gate2_3_2	=  MkNor(c2_2, gate2_3_0);
+CFLOBDD	gate2_3_3	=  MkNor(gate2_3_1, gate2_3_2);
+CFLOBDD	gate2_3_4	=  MkNor(gate2_3_3, pp2_3);
+CFLOBDD	gate2_3_5	=  MkNor(gate2_3_3, gate2_3_4);
+CFLOBDD	gate2_3_6	=  MkNor(pp2_3, gate2_3_4);
+CFLOBDD	s2_3	=  MkNor(gate2_3_5, gate2_3_6);
+CFLOBDD	c2_3	= MkNor(gate2_3_0,gate2_3_4); 
+CFLOBDD	gate3_3_0	=  MkNor(s4_2, c3_2);
+CFLOBDD	gate3_3_1	=  MkNor(s4_2, gate3_3_0);
+std::cout << "	gate3_3_2	" << std::endl;
+CFLOBDD	gate3_3_2	=  MkNor(c3_2, gate3_3_0);
+CFLOBDD	gate3_3_3	=  MkNor(gate3_3_1, gate3_3_2);
+CFLOBDD	gate3_3_4	=  MkNor(gate3_3_3, pp3_3);
+CFLOBDD	gate3_3_5	=  MkNor(gate3_3_3, gate3_3_4);
+CFLOBDD	gate3_3_6	=  MkNor(pp3_3, gate3_3_4);
+CFLOBDD	s3_3	=  MkNor(gate3_3_5, gate3_3_6);
+CFLOBDD	c3_3	= MkNor(gate3_3_0,gate3_3_4); 
+CFLOBDD	gate4_3_0	=  MkNor(s5_2, c4_2);
+CFLOBDD	gate4_3_1	=  MkNor(s5_2, gate4_3_0);
+CFLOBDD	gate4_3_2	=  MkNor(c4_2, gate4_3_0);
+std::cout << "	gate4_3_3	" << std::endl;
+CFLOBDD	gate4_3_3	=  MkNor(gate4_3_1, gate4_3_2);
+CFLOBDD	gate4_3_4	=  MkNor(gate4_3_3, pp4_3);
+CFLOBDD	gate4_3_5	=  MkNor(gate4_3_3, gate4_3_4);
+CFLOBDD	gate4_3_6	=  MkNor(pp4_3, gate4_3_4);
+CFLOBDD	s4_3	=  MkNor(gate4_3_5, gate4_3_6);
+CFLOBDD	c4_3	= MkNor(gate4_3_0,gate4_3_4); 
+CFLOBDD	gate5_3_0	=  MkNor(s6_2, c5_2);
+CFLOBDD	gate5_3_1	=  MkNor(s6_2, gate5_3_0);
+CFLOBDD	gate5_3_2	=  MkNor(c5_2, gate5_3_0);
+CFLOBDD	gate5_3_3	=  MkNor(gate5_3_1, gate5_3_2);
+std::cout << "	gate5_3_4	" << std::endl;
+CFLOBDD	gate5_3_4	=  MkNor(gate5_3_3, pp5_3);
+CFLOBDD	gate5_3_5	=  MkNor(gate5_3_3, gate5_3_4);
+CFLOBDD	gate5_3_6	=  MkNor(pp5_3, gate5_3_4);
+CFLOBDD	s5_3	=  MkNor(gate5_3_5, gate5_3_6);
+CFLOBDD	c5_3	= MkNor(gate5_3_0,gate5_3_4); 
+CFLOBDD	gate6_3_0	=  MkNor(s7_2, c6_2);
+CFLOBDD	gate6_3_1	=  MkNor(s7_2, gate6_3_0);
+CFLOBDD	gate6_3_2	=  MkNor(c6_2, gate6_3_0);
+CFLOBDD	gate6_3_3	=  MkNor(gate6_3_1, gate6_3_2);
+CFLOBDD	gate6_3_4	=  MkNor(gate6_3_3, pp6_3);
+std::cout << "	gate6_3_5	" << std::endl;
+CFLOBDD	gate6_3_5	=  MkNor(gate6_3_3, gate6_3_4);
+CFLOBDD	gate6_3_6	=  MkNor(pp6_3, gate6_3_4);
+CFLOBDD	s6_3	=  MkNor(gate6_3_5, gate6_3_6);
+CFLOBDD	c6_3	= MkNor(gate6_3_0,gate6_3_4); 
+CFLOBDD	s7_3	= pp7_3;
+CFLOBDD	pp0_4	 = MkAnd(a4, b0);
+CFLOBDD	pp1_4	 = MkAnd(a4, b1);
+CFLOBDD	pp2_4	 = MkAnd(a4, b2);
+CFLOBDD	pp3_4	 = MkAnd(a4, b3);
+CFLOBDD	pp4_4	 = MkAnd(a4, b4);
+std::cout << "	pp5_4	 " << std::endl;
+CFLOBDD	pp5_4	 = MkAnd(a4, b5);
+CFLOBDD	pp6_4	 = MkAnd(a4, b6);
+CFLOBDD	pp7_4	 = MkAnd(a4, b7);
+CFLOBDD	gate0_4_0	=  MkNor(s1_3, c0_3);
+CFLOBDD	gate0_4_1	=  MkNor(s1_3, gate0_4_0);
+CFLOBDD	gate0_4_2	=  MkNor(c0_3, gate0_4_0);
+CFLOBDD	gate0_4_3	=  MkNor(gate0_4_1, gate0_4_2);
+CFLOBDD	gate0_4_4	=  MkNor(gate0_4_3, pp0_4);
+CFLOBDD	gate0_4_5	=  MkNor(gate0_4_3, gate0_4_4);
+CFLOBDD	gate0_4_6	=  MkNor(pp0_4, gate0_4_4);
+std::cout << "	sum4	" << std::endl;
+CFLOBDD	sum4	=  MkNor(gate0_4_5, gate0_4_6);
+CFLOBDD	c0_4	= MkNor(gate0_4_0,gate0_4_4); 
+CFLOBDD	gate1_4_0	=  MkNor(s2_3, c1_3);
+CFLOBDD	gate1_4_1	=  MkNor(s2_3, gate1_4_0);
+CFLOBDD	gate1_4_2	=  MkNor(c1_3, gate1_4_0);
+CFLOBDD	gate1_4_3	=  MkNor(gate1_4_1, gate1_4_2);
+CFLOBDD	gate1_4_4	=  MkNor(gate1_4_3, pp1_4);
+CFLOBDD	gate1_4_5	=  MkNor(gate1_4_3, gate1_4_4);
+CFLOBDD	gate1_4_6	=  MkNor(pp1_4, gate1_4_4);
+CFLOBDD	s1_4	=  MkNor(gate1_4_5, gate1_4_6);
+std::cout << "	c1_4	" << std::endl;
+CFLOBDD	c1_4	= MkNor(gate1_4_0,gate1_4_4); 
+CFLOBDD	gate2_4_0	=  MkNor(s3_3, c2_3);
+CFLOBDD	gate2_4_1	=  MkNor(s3_3, gate2_4_0);
+CFLOBDD	gate2_4_2	=  MkNor(c2_3, gate2_4_0);
+CFLOBDD	gate2_4_3	=  MkNor(gate2_4_1, gate2_4_2);
+CFLOBDD	gate2_4_4	=  MkNor(gate2_4_3, pp2_4);
+CFLOBDD	gate2_4_5	=  MkNor(gate2_4_3, gate2_4_4);
+CFLOBDD	gate2_4_6	=  MkNor(pp2_4, gate2_4_4);
+CFLOBDD	s2_4	=  MkNor(gate2_4_5, gate2_4_6);
+CFLOBDD	c2_4	= MkNor(gate2_4_0,gate2_4_4); 
+std::cout << "	gate3_4_0	" << std::endl;
+CFLOBDD	gate3_4_0	=  MkNor(s4_3, c3_3);
+CFLOBDD	gate3_4_1	=  MkNor(s4_3, gate3_4_0);
+CFLOBDD	gate3_4_2	=  MkNor(c3_3, gate3_4_0);
+CFLOBDD	gate3_4_3	=  MkNor(gate3_4_1, gate3_4_2);
+CFLOBDD	gate3_4_4	=  MkNor(gate3_4_3, pp3_4);
+CFLOBDD	gate3_4_5	=  MkNor(gate3_4_3, gate3_4_4);
+CFLOBDD	gate3_4_6	=  MkNor(pp3_4, gate3_4_4);
+CFLOBDD	s3_4	=  MkNor(gate3_4_5, gate3_4_6);
+CFLOBDD	c3_4	= MkNor(gate3_4_0,gate3_4_4); 
+CFLOBDD	gate4_4_0	=  MkNor(s5_3, c4_3);
+std::cout << "	gate4_4_1	" << std::endl;
+CFLOBDD	gate4_4_1	=  MkNor(s5_3, gate4_4_0);
+CFLOBDD	gate4_4_2	=  MkNor(c4_3, gate4_4_0);
+CFLOBDD	gate4_4_3	=  MkNor(gate4_4_1, gate4_4_2);
+CFLOBDD	gate4_4_4	=  MkNor(gate4_4_3, pp4_4);
+CFLOBDD	gate4_4_5	=  MkNor(gate4_4_3, gate4_4_4);
+CFLOBDD	gate4_4_6	=  MkNor(pp4_4, gate4_4_4);
+CFLOBDD	s4_4	=  MkNor(gate4_4_5, gate4_4_6);
+CFLOBDD	c4_4	= MkNor(gate4_4_0,gate4_4_4); 
+CFLOBDD	gate5_4_0	=  MkNor(s6_3, c5_3);
+CFLOBDD	gate5_4_1	=  MkNor(s6_3, gate5_4_0);
+std::cout << "	gate5_4_2	" << std::endl;
+CFLOBDD	gate5_4_2	=  MkNor(c5_3, gate5_4_0);
+CFLOBDD	gate5_4_3	=  MkNor(gate5_4_1, gate5_4_2);
+CFLOBDD	gate5_4_4	=  MkNor(gate5_4_3, pp5_4);
+CFLOBDD	gate5_4_5	=  MkNor(gate5_4_3, gate5_4_4);
+CFLOBDD	gate5_4_6	=  MkNor(pp5_4, gate5_4_4);
+CFLOBDD	s5_4	=  MkNor(gate5_4_5, gate5_4_6);
+CFLOBDD	c5_4	= MkNor(gate5_4_0,gate5_4_4); 
+CFLOBDD	gate6_4_0	=  MkNor(s7_3, c6_3);
+CFLOBDD	gate6_4_1	=  MkNor(s7_3, gate6_4_0);
+CFLOBDD	gate6_4_2	=  MkNor(c6_3, gate6_4_0);
+std::cout << "	gate6_4_3	" << std::endl;
+CFLOBDD	gate6_4_3	=  MkNor(gate6_4_1, gate6_4_2);
+CFLOBDD	gate6_4_4	=  MkNor(gate6_4_3, pp6_4);
+CFLOBDD	gate6_4_5	=  MkNor(gate6_4_3, gate6_4_4);
+CFLOBDD	gate6_4_6	=  MkNor(pp6_4, gate6_4_4);
+CFLOBDD	s6_4	=  MkNor(gate6_4_5, gate6_4_6);
+CFLOBDD	c6_4	= MkNor(gate6_4_0,gate6_4_4); 
+CFLOBDD	s7_4	= pp7_4;
+CFLOBDD	pp0_5	 = MkAnd(a5, b0);
+CFLOBDD	pp1_5	 = MkAnd(a5, b1);
+CFLOBDD	pp2_5	 = MkAnd(a5, b2);
+std::cout << "	pp3_5	 " << std::endl;
+CFLOBDD	pp3_5	 = MkAnd(a5, b3);
+CFLOBDD	pp4_5	 = MkAnd(a5, b4);
+CFLOBDD	pp5_5	 = MkAnd(a5, b5);
+CFLOBDD	pp6_5	 = MkAnd(a5, b6);
+CFLOBDD	pp7_5	 = MkAnd(a5, b7);
+CFLOBDD	gate0_5_0	=  MkNor(s1_4, c0_4);
+CFLOBDD	gate0_5_1	=  MkNor(s1_4, gate0_5_0);
+CFLOBDD	gate0_5_2	=  MkNor(c0_4, gate0_5_0);
+CFLOBDD	gate0_5_3	=  MkNor(gate0_5_1, gate0_5_2);
+CFLOBDD	gate0_5_4	=  MkNor(gate0_5_3, pp0_5);
+std::cout << "	gate0_5_5	" << std::endl;
+CFLOBDD	gate0_5_5	=  MkNor(gate0_5_3, gate0_5_4);
+CFLOBDD	gate0_5_6	=  MkNor(pp0_5, gate0_5_4);
+CFLOBDD	sum5	=  MkNor(gate0_5_5, gate0_5_6);
+CFLOBDD	c0_5	= MkNor(gate0_5_0,gate0_5_4);
+CFLOBDD	gate1_5_0	=  MkNor(s2_4, c1_4);
+CFLOBDD	gate1_5_1	=  MkNor(s2_4, gate1_5_0);
+CFLOBDD	gate1_5_2	=  MkNor(c1_4, gate1_5_0);
+CFLOBDD	gate1_5_3	=  MkNor(gate1_5_1, gate1_5_2);
+CFLOBDD	gate1_5_4	=  MkNor(gate1_5_3, pp1_5);
+CFLOBDD	gate1_5_5	=  MkNor(gate1_5_3, gate1_5_4);
+std::cout << "	gate1_5_6	" << std::endl;
+CFLOBDD	gate1_5_6	=  MkNor(pp1_5, gate1_5_4);
+CFLOBDD	s1_5	=  MkNor(gate1_5_5, gate1_5_6);
+CFLOBDD	c1_5	= MkNor(gate1_5_0,gate1_5_4); 
+CFLOBDD	gate2_5_0	=  MkNor(s3_4, c2_4);
+CFLOBDD	gate2_5_1	=  MkNor(s3_4, gate2_5_0);
+CFLOBDD	gate2_5_2	=  MkNor(c2_4, gate2_5_0);
+CFLOBDD	gate2_5_3	=  MkNor(gate2_5_1, gate2_5_2);
+CFLOBDD	gate2_5_4	=  MkNor(gate2_5_3, pp2_5);
+CFLOBDD	gate2_5_5	=  MkNor(gate2_5_3, gate2_5_4);
+CFLOBDD	gate2_5_6	=  MkNor(pp2_5, gate2_5_4);
+std::cout << "	s2_5	" << std::endl;
+CFLOBDD	s2_5	=  MkNor(gate2_5_5, gate2_5_6);
+CFLOBDD	c2_5	= MkNor(gate2_5_0,gate2_5_4); 
+CFLOBDD	gate3_5_0	=  MkNor(s4_4, c3_4);
+CFLOBDD	gate3_5_1	=  MkNor(s4_4, gate3_5_0);
+CFLOBDD	gate3_5_2	=  MkNor(c3_4, gate3_5_0);
+CFLOBDD	gate3_5_3	=  MkNor(gate3_5_1, gate3_5_2);
+CFLOBDD	gate3_5_4	=  MkNor(gate3_5_3, pp3_5);
+CFLOBDD	gate3_5_5	=  MkNor(gate3_5_3, gate3_5_4);
+CFLOBDD	gate3_5_6	=  MkNor(pp3_5, gate3_5_4);
+CFLOBDD	s3_5	=  MkNor(gate3_5_5, gate3_5_6);
+std::cout << "	c3_5	" << std::endl;
+CFLOBDD	c3_5	= MkNor(gate3_5_0,gate3_5_4); 
+CFLOBDD	gate4_5_0	=  MkNor(s5_4, c4_4);
+CFLOBDD	gate4_5_1	=  MkNor(s5_4, gate4_5_0);
+CFLOBDD	gate4_5_2	=  MkNor(c4_4, gate4_5_0);
+CFLOBDD	gate4_5_3	=  MkNor(gate4_5_1, gate4_5_2);
+CFLOBDD	gate4_5_4	=  MkNor(gate4_5_3, pp4_5);
+CFLOBDD	gate4_5_5	=  MkNor(gate4_5_3, gate4_5_4);
+CFLOBDD	gate4_5_6	=  MkNor(pp4_5, gate4_5_4);
+CFLOBDD	s4_5	=  MkNor(gate4_5_5, gate4_5_6);
+CFLOBDD	c4_5	= MkNor(gate4_5_0,gate4_5_4); 
+std::cout << "	gate5_5_0	" << std::endl;
+CFLOBDD	gate5_5_0	=  MkNor(s6_4, c5_4);
+CFLOBDD	gate5_5_1	=  MkNor(s6_4, gate5_5_0);
+CFLOBDD	gate5_5_2	=  MkNor(c5_4, gate5_5_0);
+CFLOBDD	gate5_5_3	=  MkNor(gate5_5_1, gate5_5_2);
+CFLOBDD	gate5_5_4	=  MkNor(gate5_5_3, pp5_5);
+CFLOBDD	gate5_5_5	=  MkNor(gate5_5_3, gate5_5_4);
+CFLOBDD	gate5_5_6	=  MkNor(pp5_5, gate5_5_4);
+CFLOBDD	s5_5	=  MkNor(gate5_5_5, gate5_5_6);
+CFLOBDD	c5_5	= MkNor(gate5_5_0,gate5_5_4); 
+CFLOBDD	gate6_5_0	=  MkNor(s7_4, c6_4);
+std::cout << "	gate6_5_1	" << std::endl;
+CFLOBDD	gate6_5_1	=  MkNor(s7_4, gate6_5_0);
+CFLOBDD	gate6_5_2	=  MkNor(c6_4, gate6_5_0);
+CFLOBDD	gate6_5_3	=  MkNor(gate6_5_1, gate6_5_2);
+CFLOBDD	gate6_5_4	=  MkNor(gate6_5_3, pp6_5);
+CFLOBDD	gate6_5_5	=  MkNor(gate6_5_3, gate6_5_4);
+CFLOBDD	gate6_5_6	=  MkNor(pp6_5, gate6_5_4);
+CFLOBDD	s6_5	=  MkNor(gate6_5_5, gate6_5_6);
+CFLOBDD	c6_5	= MkNor(gate6_5_0,gate6_5_4); 
+CFLOBDD	s7_5	= pp7_5;
+CFLOBDD	pp0_6	 = MkAnd(a6, b0);
+std::cout << "	pp1_6	 " << std::endl;
+CFLOBDD	pp1_6	 = MkAnd(a6, b1);
+CFLOBDD	pp2_6	 = MkAnd(a6, b2);
+CFLOBDD	pp3_6	 = MkAnd(a6, b3);
+CFLOBDD	pp4_6	 = MkAnd(a6, b4);
+CFLOBDD	pp5_6	 = MkAnd(a6, b5);
+CFLOBDD	pp6_6	 = MkAnd(a6, b6);
+CFLOBDD	pp7_6	 = MkAnd(a6, b7);
+CFLOBDD	gate0_6_0	=  MkNor(s1_5, c0_5);
+CFLOBDD	gate0_6_1	=  MkNor(s1_5, gate0_6_0);
+CFLOBDD	gate0_6_2	=  MkNor(c0_5, gate0_6_0);
+std::cout << "	gate0_6_3	" << std::endl;
+CFLOBDD	gate0_6_3	=  MkNor(gate0_6_1, gate0_6_2);
+CFLOBDD	gate0_6_4	=  MkNor(gate0_6_3, pp0_6);
+CFLOBDD	gate0_6_5	=  MkNor(gate0_6_3, gate0_6_4);
+CFLOBDD	gate0_6_6	=  MkNor(pp0_6, gate0_6_4);
+CFLOBDD	sum6	=  MkNor(gate0_6_5, gate0_6_6);
+CFLOBDD	c0_6	= MkNor(gate0_6_0,gate0_6_4); 
+CFLOBDD	gate1_6_0	=  MkNor(s2_5, c1_5);
+CFLOBDD	gate1_6_1	=  MkNor(s2_5, gate1_6_0);
+CFLOBDD	gate1_6_2	=  MkNor(c1_5, gate1_6_0);
+CFLOBDD	gate1_6_3	=  MkNor(gate1_6_1, gate1_6_2);
+std::cout << "	gate1_6_4	" << std::endl;
+CFLOBDD	gate1_6_4	=  MkNor(gate1_6_3, pp1_6);
+CFLOBDD	gate1_6_5	=  MkNor(gate1_6_3, gate1_6_4);
+CFLOBDD	gate1_6_6	=  MkNor(pp1_6, gate1_6_4);
+CFLOBDD	s1_6	=  MkNor(gate1_6_5, gate1_6_6);
+CFLOBDD	c1_6	= MkNor(gate1_6_0,gate1_6_4); 
+CFLOBDD	gate2_6_0	=  MkNor(s3_5, c2_5);
+CFLOBDD	gate2_6_1	=  MkNor(s3_5, gate2_6_0);
+CFLOBDD	gate2_6_2	=  MkNor(c2_5, gate2_6_0);
+CFLOBDD	gate2_6_3	=  MkNor(gate2_6_1, gate2_6_2);
+CFLOBDD	gate2_6_4	=  MkNor(gate2_6_3, pp2_6);
+std::cout << "	gate2_6_5	" << std::endl;
+CFLOBDD	gate2_6_5	=  MkNor(gate2_6_3, gate2_6_4);
+CFLOBDD	gate2_6_6	=  MkNor(pp2_6, gate2_6_4);
+CFLOBDD	s2_6	=  MkNor(gate2_6_5, gate2_6_6);
+CFLOBDD	c2_6	= MkNor(gate2_6_0,gate2_6_4); 
+CFLOBDD	gate3_6_0	=  MkNor(s4_5, c3_5);
+CFLOBDD	gate3_6_1	=  MkNor(s4_5, gate3_6_0);
+CFLOBDD	gate3_6_2	=  MkNor(c3_5, gate3_6_0);
+CFLOBDD	gate3_6_3	=  MkNor(gate3_6_1, gate3_6_2);
+CFLOBDD	gate3_6_4	=  MkNor(gate3_6_3, pp3_6);
+CFLOBDD	gate3_6_5	=  MkNor(gate3_6_3, gate3_6_4);
+std::cout << "	gate3_6_6	" << std::endl;
+CFLOBDD	gate3_6_6	=  MkNor(pp3_6, gate3_6_4);
+CFLOBDD	s3_6	=  MkNor(gate3_6_5, gate3_6_6);
+CFLOBDD	c3_6	= MkNor(gate3_6_0,gate3_6_4); 
+CFLOBDD	gate4_6_0	=  MkNor(s5_5, c4_5);
+CFLOBDD	gate4_6_1	=  MkNor(s5_5, gate4_6_0);
+CFLOBDD	gate4_6_2	=  MkNor(c4_5, gate4_6_0);
+CFLOBDD	gate4_6_3	=  MkNor(gate4_6_1, gate4_6_2);
+CFLOBDD	gate4_6_4	=  MkNor(gate4_6_3, pp4_6);
+CFLOBDD	gate4_6_5	=  MkNor(gate4_6_3, gate4_6_4);
+CFLOBDD	gate4_6_6	=  MkNor(pp4_6, gate4_6_4);
+std::cout << "	s4_6	" << std::endl;
+CFLOBDD	s4_6	=  MkNor(gate4_6_5, gate4_6_6);
+CFLOBDD	c4_6	= MkNor(gate4_6_0,gate4_6_4); 
+CFLOBDD	gate5_6_0	=  MkNor(s6_5, c5_5);
+CFLOBDD	gate5_6_1	=  MkNor(s6_5, gate5_6_0);
+CFLOBDD	gate5_6_2	=  MkNor(c5_5, gate5_6_0);
+CFLOBDD	gate5_6_3	=  MkNor(gate5_6_1, gate5_6_2);
+CFLOBDD	gate5_6_4	=  MkNor(gate5_6_3, pp5_6);
+CFLOBDD	gate5_6_5	=  MkNor(gate5_6_3, gate5_6_4);
+CFLOBDD	gate5_6_6	=  MkNor(pp5_6, gate5_6_4);
+CFLOBDD	s5_6	=  MkNor(gate5_6_5, gate5_6_6);
+std::cout << "	c5_6	" << std::endl;
+CFLOBDD	c5_6	= MkNor(gate5_6_0,gate5_6_4); 
+CFLOBDD	gate6_6_0	=  MkNor(s7_5, c6_5);
+CFLOBDD	gate6_6_1	=  MkNor(s7_5, gate6_6_0);
+CFLOBDD	gate6_6_2	=  MkNor(c6_5, gate6_6_0);
+CFLOBDD	gate6_6_3	=  MkNor(gate6_6_1, gate6_6_2);
+CFLOBDD	gate6_6_4	=  MkNor(gate6_6_3, pp6_6);
+CFLOBDD	gate6_6_5	=  MkNor(gate6_6_3, gate6_6_4);
+CFLOBDD	gate6_6_6	=  MkNor(pp6_6, gate6_6_4);
+CFLOBDD	s6_6	=  MkNor(gate6_6_5, gate6_6_6);
+CFLOBDD	c6_6	= MkNor(gate6_6_0,gate6_6_4); 
+std::cout << "	s7_6	" << std::endl;
+CFLOBDD	s7_6	= pp7_6;
+CFLOBDD	pp0_7	 = MkAnd(a7, b0);
+CFLOBDD	pp1_7	 = MkAnd(a7, b1);
+CFLOBDD	pp2_7	 = MkAnd(a7, b2);
+CFLOBDD	pp3_7	 = MkAnd(a7, b3);
+CFLOBDD	pp4_7	 = MkAnd(a7, b4);
+CFLOBDD	pp5_7	 = MkAnd(a7, b5);
+CFLOBDD	pp6_7	 = MkAnd(a7, b6);
+CFLOBDD	pp7_7	 = MkAnd(a7, b7);
+CFLOBDD	gate0_7_0	=  MkNor(s1_6, c0_6);
+std::cout << "	gate0_7_1	" << std::endl;
+CFLOBDD	gate0_7_1	=  MkNor(s1_6, gate0_7_0);
+CFLOBDD	gate0_7_2	=  MkNor(c0_6, gate0_7_0);
+CFLOBDD	gate0_7_3	=  MkNor(gate0_7_1, gate0_7_2);
+CFLOBDD	gate0_7_4	=  MkNor(gate0_7_3, pp0_7);
+CFLOBDD	gate0_7_5	=  MkNor(gate0_7_3, gate0_7_4);
+CFLOBDD	gate0_7_6	=  MkNor(pp0_7, gate0_7_4);
+CFLOBDD	sum7	=  MkNor(gate0_7_5, gate0_7_6);
+CFLOBDD	c0_7	= MkNor(gate0_7_0,gate0_7_4); 
+CFLOBDD	gate1_7_0	=  MkNor(s2_6, c1_6);
+CFLOBDD	gate1_7_1	=  MkNor(s2_6, gate1_7_0);
+std::cout << "	gate1_7_2	" << std::endl;
+CFLOBDD	gate1_7_2	=  MkNor(c1_6, gate1_7_0);
+CFLOBDD	gate1_7_3	=  MkNor(gate1_7_1, gate1_7_2);
+CFLOBDD	gate1_7_4	=  MkNor(gate1_7_3, pp1_7);
+CFLOBDD	gate1_7_5	=  MkNor(gate1_7_3, gate1_7_4);
+CFLOBDD	gate1_7_6	=  MkNor(pp1_7, gate1_7_4);
+CFLOBDD	s1_7	=  MkNor(gate1_7_5, gate1_7_6);
+CFLOBDD	c1_7	= MkNor(gate1_7_0,gate1_7_4); 
+CFLOBDD	gate2_7_0	=  MkNor(s3_6, c2_6);
+CFLOBDD	gate2_7_1	=  MkNor(s3_6, gate2_7_0);
+CFLOBDD	gate2_7_2	=  MkNor(c2_6, gate2_7_0);
+std::cout << "	gate2_7_3	" << std::endl;
+CFLOBDD	gate2_7_3	=  MkNor(gate2_7_1, gate2_7_2);
+CFLOBDD	gate2_7_4	=  MkNor(gate2_7_3, pp2_7);
+CFLOBDD	gate2_7_5	=  MkNor(gate2_7_3, gate2_7_4);
+CFLOBDD	gate2_7_6	=  MkNor(pp2_7, gate2_7_4);
+CFLOBDD	s2_7	=  MkNor(gate2_7_5, gate2_7_6);
+CFLOBDD	c2_7	= MkNor(gate2_7_0,gate2_7_4); 
+CFLOBDD	gate3_7_0	=  MkNor(s4_6, c3_6);
+CFLOBDD	gate3_7_1	=  MkNor(s4_6, gate3_7_0);
+CFLOBDD	gate3_7_2	=  MkNor(c3_6, gate3_7_0);
+CFLOBDD	gate3_7_3	=  MkNor(gate3_7_1, gate3_7_2);
+std::cout << "	gate3_7_4	" << std::endl;
+CFLOBDD	gate3_7_4	=  MkNor(gate3_7_3, pp3_7);
+CFLOBDD	gate3_7_5	=  MkNor(gate3_7_3, gate3_7_4);
+CFLOBDD	gate3_7_6	=  MkNor(pp3_7, gate3_7_4);
+CFLOBDD	s3_7	=  MkNor(gate3_7_5, gate3_7_6);
+CFLOBDD	c3_7	= MkNor(gate3_7_0,gate3_7_4); 
+CFLOBDD	gate4_7_0	=  MkNor(s5_6, c4_6);
+CFLOBDD	gate4_7_1	=  MkNor(s5_6, gate4_7_0);
+CFLOBDD	gate4_7_2	=  MkNor(c4_6, gate4_7_0);
+CFLOBDD	gate4_7_3	=  MkNor(gate4_7_1, gate4_7_2);
+CFLOBDD	gate4_7_4	=  MkNor(gate4_7_3, pp4_7);
+std::cout << "	gate4_7_5	" << std::endl;
+CFLOBDD	gate4_7_5	=  MkNor(gate4_7_3, gate4_7_4);
+CFLOBDD	gate4_7_6	=  MkNor(pp4_7, gate4_7_4);
+CFLOBDD	s4_7	=  MkNor(gate4_7_5, gate4_7_6);
+CFLOBDD	c4_7	= MkNor(gate4_7_0,gate4_7_4); 
+CFLOBDD	gate5_7_0	=  MkNor(s6_6, c5_6);
+CFLOBDD	gate5_7_1	=  MkNor(s6_6, gate5_7_0);
+CFLOBDD	gate5_7_2	=  MkNor(c5_6, gate5_7_0);
+CFLOBDD	gate5_7_3	=  MkNor(gate5_7_1, gate5_7_2);
+CFLOBDD	gate5_7_4	=  MkNor(gate5_7_3, pp5_7);
+CFLOBDD	gate5_7_5	=  MkNor(gate5_7_3, gate5_7_4);
+std::cout << "	gate5_7_6	" << std::endl;
+CFLOBDD	gate5_7_6	=  MkNor(pp5_7, gate5_7_4);
+CFLOBDD	s5_7	=  MkNor(gate5_7_5, gate5_7_6);
+CFLOBDD	c5_7	= MkNor(gate5_7_0,gate5_7_4); 
+CFLOBDD	gate6_7_0	=  MkNor(s7_6, c6_6);
+CFLOBDD	gate6_7_1	=  MkNor(s7_6, gate6_7_0);
+CFLOBDD	gate6_7_2	=  MkNor(c6_6, gate6_7_0);
+CFLOBDD	gate6_7_3	=  MkNor(gate6_7_1, gate6_7_2);
+CFLOBDD	gate6_7_4	=  MkNor(gate6_7_3, pp6_7);
+CFLOBDD	gate6_7_5	=  MkNor(gate6_7_3, gate6_7_4);
+CFLOBDD	gate6_7_6	=  MkNor(pp6_7, gate6_7_4);
+std::cout << "	s6_7	" << std::endl;
+CFLOBDD	s6_7	=  MkNor(gate6_7_5, gate6_7_6);
+CFLOBDD	c6_7	= MkNor(gate6_7_0,gate6_7_4); 
+CFLOBDD	s7_7	= pp7_7;
+CFLOBDD	gate0_8_0	= MkNot(s1_7); 
+CFLOBDD	gate0_8_1	= MkNor(gate0_8_0, s1_7); 
+CFLOBDD	gate0_8_2	= MkNot(gate0_8_0); 
+CFLOBDD	gate0_8_3	= MkNor(gate0_8_1,gate0_8_2); 
+CFLOBDD	gate0_8_4	=  MkNor(gate0_8_3, c0_7);
+CFLOBDD	gate0_8_5	=  MkNor(gate0_8_3, gate0_8_4);
+CFLOBDD	gate0_8_6	=  MkNor(c0_7, gate0_8_4);
+std::cout << "	sum8	" << std::endl;
+CFLOBDD	sum8	=  MkNor(gate0_8_5, gate0_8_6);
+CFLOBDD	c0_8	= MkNor(gate0_8_0,gate0_8_4); 
+CFLOBDD	gate1_8_0	=  MkNor(c1_7, c0_8);
+CFLOBDD	gate1_8_1	=  MkNor(c1_7, gate1_8_0);
+CFLOBDD	gate1_8_2	=  MkNor(c0_8, gate1_8_0);
+CFLOBDD	gate1_8_3	=  MkNor(gate1_8_1, gate1_8_2);
+CFLOBDD	gate1_8_4	=  MkNor(gate1_8_3, s2_7);
+CFLOBDD	gate1_8_5	=  MkNor(gate1_8_3, gate1_8_4);
+CFLOBDD	gate1_8_6	=  MkNor(s2_7, gate1_8_4);
+CFLOBDD	sum9	=  MkNor(gate1_8_5, gate1_8_6);
+std::cout << "	c1_8	" << std::endl;
+CFLOBDD	c1_8	= MkNor(gate1_8_0,gate1_8_4); 
+CFLOBDD	gate2_8_0	=  MkNor(c2_7, c1_8);
+CFLOBDD	gate2_8_1	=  MkNor(c2_7, gate2_8_0);
+CFLOBDD	gate2_8_2	=  MkNor(c1_8, gate2_8_0);
+CFLOBDD	gate2_8_3	=  MkNor(gate2_8_1, gate2_8_2);
+CFLOBDD	gate2_8_4	=  MkNor(gate2_8_3, s3_7);
+CFLOBDD	gate2_8_5	=  MkNor(gate2_8_3, gate2_8_4);
+CFLOBDD	gate2_8_6	=  MkNor(s3_7, gate2_8_4);
+CFLOBDD	sum10	=  MkNor(gate2_8_5, gate2_8_6);
+CFLOBDD	c2_8	= MkNor(gate2_8_0,gate2_8_4); 
+std::cout << "	gate3_8_0	" << std::endl;
+CFLOBDD	gate3_8_0	=  MkNor(c3_7, c2_8);
+CFLOBDD	gate3_8_1	=  MkNor(c3_7, gate3_8_0);
+CFLOBDD	gate3_8_2	=  MkNor(c2_8, gate3_8_0);
+CFLOBDD	gate3_8_3	=  MkNor(gate3_8_1, gate3_8_2);
+CFLOBDD	gate3_8_4	=  MkNor(gate3_8_3, s4_7);
+CFLOBDD	gate3_8_5	=  MkNor(gate3_8_3, gate3_8_4);
+CFLOBDD	gate3_8_6	=  MkNor(s4_7, gate3_8_4);
+CFLOBDD	sum11	=  MkNor(gate3_8_5, gate3_8_6);
+CFLOBDD	c3_8	= MkNor(gate3_8_0,gate3_8_4); 
+CFLOBDD	gate4_8_0	=  MkNor(c4_7, c3_8);
+std::cout << "	gate4_8_1	" << std::endl;
+CFLOBDD	gate4_8_1	=  MkNor(c4_7, gate4_8_0);
+CFLOBDD	gate4_8_2	=  MkNor(c3_8, gate4_8_0);
+CFLOBDD	gate4_8_3	=  MkNor(gate4_8_1, gate4_8_2);
+CFLOBDD	gate4_8_4	=  MkNor(gate4_8_3, s5_7);
+CFLOBDD	gate4_8_5	=  MkNor(gate4_8_3, gate4_8_4);
+CFLOBDD	gate4_8_6	=  MkNor(s5_7, gate4_8_4);
+CFLOBDD	sum12	=  MkNor(gate4_8_5, gate4_8_6);
+CFLOBDD	c4_8	= MkNor(gate4_8_0,gate4_8_4); 
+CFLOBDD	gate5_8_0	=  MkNor(c5_7, c4_8);
+CFLOBDD	gate5_8_1	=  MkNor(c5_7, gate5_8_0);
+std::cout << "	gate5_8_2	" << std::endl;
+CFLOBDD	gate5_8_2	=  MkNor(c4_8, gate5_8_0);
+CFLOBDD	gate5_8_3	=  MkNor(gate5_8_1, gate5_8_2);
+CFLOBDD	gate5_8_4	=  MkNor(gate5_8_3, s6_7);
+CFLOBDD	gate5_8_5	=  MkNor(gate5_8_3, gate5_8_4);
+CFLOBDD	gate5_8_6	=  MkNor(s6_7, gate5_8_4);
+CFLOBDD	sum13	=  MkNor(gate5_8_5, gate5_8_6);
+CFLOBDD	c5_8	= MkNor(gate5_8_0,gate5_8_4); 
+CFLOBDD	gate6_8_0	=  MkNor(c6_7, c5_8);
+CFLOBDD	gate6_8_1	=  MkNor(c6_7, gate6_8_0);
+CFLOBDD	gate6_8_2	=  MkNor(c5_8, gate6_8_0);
+std::cout << "	gate6_8_3	" << std::endl;
+CFLOBDD	gate6_8_3	=  MkNor(gate6_8_1, gate6_8_2);
+CFLOBDD	gate6_8_4	=  MkNor(gate6_8_3, s7_7);
+CFLOBDD	gate6_8_5	=  MkNor(gate6_8_3, gate6_8_4);
+CFLOBDD	gate6_8_6	=  MkNor(s7_7, gate6_8_4);
+CFLOBDD	sum14	=  MkNor(gate6_8_5, gate6_8_6);
+CFLOBDD	sum15	= MkNor(gate6_8_0,gate6_8_4); 
+
+auto end = high_resolution_clock::now();
+auto duration = duration_cast<milliseconds>(end - start);
+
+unsigned int nodeCount = 0, edgeCount = 0;
+std::cout << "CFLOBDD sizes" << std::endl;
+GroupCountNodesAndEdgesStart(nodeCount, edgeCount);
+sum0.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum1.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum2.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum3.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum4.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum5.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum6.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum7.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum8.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum9.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum10.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum11.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum12.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum13.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum14.GroupCountNodesAndEdges(nodeCount, edgeCount);
+sum15.GroupCountNodesAndEdges(nodeCount, edgeCount);
+GroupCountNodesAndEdgesEnd();
+std::cout << "Duration: " << duration.count() << " Memory: " << nodeCount << " " << edgeCount << " " << (nodeCount + edgeCount) << std::endl;
+
+// std::vector<CFLOBDD> sums = {sum0, sum1, sum2, sum3, sum4, sum5, sum6, sum7, sum8, sum9, sum10, sum11, sum12, sum13, sum14, sum15};
+// for (int i = 0; i < sums.size(); i++) {
+//   nodeCount = 0;
+//   edgeCount = 0;
+//   unsigned int returnEdgesCount = 0, returnEdgesObjCount = 0;
+//   std::cout << "sum" << i << " size -------------------------" << std::endl;
+//   sums[i].CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+//   std::cout << "|sum" << i << "| = " << nodeCount << ", " << edgeCount << std::endl;
+// }
+
+// nodeCount = 0;
+// edgeCount = 0;
+// unsigned int returnEdgesCount = 0, returnEdgesObjCount = 0;
+// std::cout << "sum6 size -------------------------" << std::endl;
+// sum6.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+// std::cout << "|sum6| = " << nodeCount << ", " << edgeCount << std::endl;
+
+/*
+// Test a specific multiplication problem
+// Only for the order a7 .. a0 b7 .. b0 in positions 0 .. 15
+unsigned int a = 238; //  0356: 0 <= a <= 255
+unsigned int b = 165; //  0245: 0 <= b <= 255
+Assignment assign(16);
+unsigned long int mask = 1UL;
+for (int j = 15; j >= 8; j--) {
+  assign[j] = (b & mask);
+  mask = mask << 1;
+}
+mask = 1UL;
+for (int j = 7; j >= 0; j--) {
+  assign[j] = (a & mask);
+  mask = mask << 1;
+}
+bool val[16];
+
+val[0] = sum0.Evaluate(assign);
+val[1] = sum1.Evaluate(assign);
+val[2] = sum2.Evaluate(assign);
+val[3] = sum3.Evaluate(assign);
+val[4] = sum4.Evaluate(assign);
+val[5] = sum5.Evaluate(assign);
+val[6] = sum6.Evaluate(assign);
+val[7] = sum7.Evaluate(assign);
+val[8] = sum8.Evaluate(assign);
+val[9] = sum9.Evaluate(assign);
+val[10] = sum10.Evaluate(assign);
+val[11] = sum11.Evaluate(assign);
+val[12] = sum12.Evaluate(assign);
+val[13] = sum13.Evaluate(assign);
+val[14] = sum14.Evaluate(assign);
+val[15] = sum15.Evaluate(assign);
+
+// 238 * 165 = 0356 * 0245 = 0x9966 = 1001 1001 0110 0110
+for (int k = 15; k >= 0; k--) {
+  std::cout << (val[k]?1:0);
+}
+std::cout << std::endl;
+std::cout << a*b << std::endl;
+*/
+}
+
+static void InitModules()
+{
+
+	CFLOBDDNodeHandle::InitNoDistinctionTable();
+	// CFLOBDDNodeHandle::InitAdditionInterleavedTable();
+	CFLOBDDNodeHandle::InitReduceCache();
+	InitPairProductCache();
+	InitTripleProductCache();
+}
+
+// static void ClearModules()
+// {
+// 	DisposeOfTripleProductCache();
+// 	DisposeOfPairProductCache();
+// 	CFLOBDDNodeHandle::DisposeOfReduceCache();
+// }
+
+int main () {
+
+  InitModules();
+  c6288_8();
+//   ClearModules();
+  return 0;
+}

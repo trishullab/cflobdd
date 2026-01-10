@@ -43,7 +43,7 @@ extern CFLOBDDTopNodeIntRefPtr MkFalseTop(int level=-1);                   // Re
 extern CFLOBDDTopNodeIntRefPtr MkDistinction(unsigned int i, int level = -1);  // Representation of \x.x_i
 extern CFLOBDDTopNodeIntRefPtr MkAdditionInterleavedRecursiveTop();     // Representation of addition relation, created recursively
 extern CFLOBDDTopNodeIntRefPtr MkAdditionInterleavedTop();     // Representation of addition relation
-extern CFLOBDDTopNodeIntRefPtr MkParityTop();                  // Representation of parity function
+extern CFLOBDDTopNodeIntRefPtr MkParityTop(int level = -1);                  // Representation of parity function
 extern CFLOBDDTopNodeIntRefPtr MkStepUpOneFourthTop();         // Representation of step function
 extern CFLOBDDTopNodeIntRefPtr MkStepDownOneFourthTop();       // Representation of step function
 #ifdef ARBITRARY_STEP_FUNCTIONS

@@ -50,7 +50,8 @@ using namespace CFL_OBDD;
 template<>
 CFLOBDD_T<int>::CFLOBDD_T()
 {
-	root = MkTrueTop();
+	// root = MkTrueTop();
+  root = NULL;
 }
 
 
@@ -75,7 +76,7 @@ CFLOBDD MkFalse(int level)
 // Create representation of \x.x_i
 CFLOBDD MkProjection(unsigned int i, int level)
 {
-  assert(i < (1 << CFLOBDD::maxLevel));   // i.e., i < 2**maxLevel
+  // assert(i < (1 << CFLOBDD::maxLevel));   // i.e., i < 2**maxLevel
   return CFLOBDD(MkDistinction(i, level));
 }
 
@@ -431,9 +432,9 @@ bool FactorZ(CFLOBDD R, unsigned int z, CFLOBDD &f1, CFLOBDD &f2, unsigned int &
 
 
 // Create representation of parity function
-CFLOBDD MkParity()
+CFLOBDD MkParity(int level)
 {
-  return CFLOBDD(MkParityTop());
+  return CFLOBDD(MkParityTop(level));
 }
 
 
@@ -621,7 +622,7 @@ CFLOBDD MkTimes(CFLOBDD f, CFLOBDD g)
 
 // // N-ary operations on CFLOBDDs -----------------------------------
 
-// // \f1. ... \fk.(f1 && ... && fk)
+// \f1. ... \fk.(f1 && ... && fk)
 // CFLOBDD  MkAnd(int N, ...)
 // {
 // 	CFLOBDD  temp;
@@ -889,7 +890,7 @@ void CFL_OBDD::GroupCountNodesAndEdgesEnd()
 template<>
 void CFLOBDD::GroupCountNodesAndEdges(unsigned int &nodeCount, unsigned int &edgeCount)
 {
-    unsigned int returnEdgesCount, returnEdgesObjCount;
+    unsigned int returnEdgesCount = 0, returnEdgesObjCount = 0;
   root->CountNodesAndEdges(CFLOBDD::visitedNodesDuringGroupCountNodesAndEdges,
                            CFLOBDD::visitedEdgesDuringGroupCountNodesAndEdges,
                            nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount

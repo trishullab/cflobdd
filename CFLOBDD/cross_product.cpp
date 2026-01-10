@@ -404,6 +404,7 @@ bool PairProductMemo::operator==(const PairProductMemo& p)
 // --------------------------------------------------------------------
 
 static Hashtable<PairProductKey, PairProductMemo> *pairProductCache = NULL;
+// static std::unordered_map<PairProductKey, PairProductMemo, PairProductKey::PairProductKey_Hash, PairProductKey::PairProductKey_Equal> pairProductCache;
 
 namespace CFL_OBDD {
 
@@ -452,71 +453,55 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
       // Fill in n->AConnection.returnMapHandle
       // Correctness relies on AMap having no duplicates
       CFLOBDDReturnMapHandle aReturnHandle;
-        for (unsigned int k = 0; k < AMap.Size(); k++) {
-            aReturnHandle.AddToEnd(k);
-        }
-        aReturnHandle.Canonicalize();
-        n->AConnection = Connection(aHandle, aReturnHandle);
+      for (unsigned int k = 0; k < AMap.Size(); k++) {
+          aReturnHandle.AddToEnd(k);
+      }
+      aReturnHandle.Canonicalize();
+      n->AConnection = Connection(aHandle, aReturnHandle);
       // Perform the appropriate cross products of the BConnections
-         j = 0;
-         curExit = 0;
-         n->numBConnections = AMap.Size();
-         n->BConnection = new Connection[n->numBConnections];
-         //PairProductMapBodyIterator AMapIterator(*AMap.mapContents);
-         //AMapIterator.Reset();
-		 unsigned int Aiterator = 0;
-		 std::unordered_map<intpair, unsigned int, intpair::intpair_hash> pair_to_index;
-         //while (!AMapIterator.AtEnd()) {
-		 while (Aiterator < AMap.Size()) {
-           PairProductMapHandle BMap;
-		   b1 = AMap[Aiterator].First();//AMapIterator.Current().First();
-		   b2 = AMap[Aiterator].Second();//AMapIterator.Current().Second();
-       CFLOBDDNodeHandle bHandle = 
-                 PairProduct(*(n1->BConnection[b1].entryPointHandle),
-                             *(n2->BConnection[b2].entryPointHandle),
-                             BMap
+      j = 0;
+      curExit = 0;
+      n->numBConnections = AMap.Size();
+      n->BConnection = new Connection[n->numBConnections];
+		  unsigned int Aiterator = 0;
+		  std::unordered_map<intpair, unsigned int, intpair::intpair_hash> pair_to_index;
+		  while (Aiterator < AMap.Size()) {
+        PairProductMapHandle BMap;
+		    b1 = AMap[Aiterator].First();//AMapIterator.Current().First();
+		    b2 = AMap[Aiterator].Second();//AMapIterator.Current().Second();
+        CFLOBDDNodeHandle bHandle = 
+                PairProduct(*(n1->BConnection[b1].entryPointHandle),
+                            *(n2->BConnection[b2].entryPointHandle),
+                            BMap
                             );
         CFLOBDDReturnMapHandle bReturnHandle;
-           // Fill in n->BConnection[j].returnMapHandle and add new pairs (as appropriate)
-           // to pairProductMapHandle
-              //PairProductMapBodyIterator BMapIterator(*BMap.mapContents);
-              //BMapIterator.Reset();
-		   //while (!BMapIterator.AtEnd()) {
-		   unsigned int Biterator = 0;
-		   while (Biterator < BMap.Size()){
-                int c1, c2;
-					//c1 = n1->BConnection[b1].returnMapHandle.Lookup(BMapIterator.Current().First());
-					//c2 = n2->BConnection[b2].returnMapHandle.Lookup(BMapIterator.Current().Second());
-				c1 = n1->BConnection[b1].returnMapHandle.Lookup(BMap[Biterator].First());
-				c2 = n2->BConnection[b2].returnMapHandle.Lookup(BMap[Biterator].Second());
+		    unsigned int Biterator = 0;
+		    while (Biterator < BMap.Size()){
+          int c1, c2;
+				  c1 = n1->BConnection[b1].returnMapHandle.Lookup(BMap[Biterator].First());
+				  c2 = n2->BConnection[b2].returnMapHandle.Lookup(BMap[Biterator].Second());
                 // Test whether the pair (c1,c2) occurs in pairProductMapHandle
-			  intpair p = intpair(c1, c2);
-				auto it = pair_to_index.find(p);
-                   //if (pairProductMapHandle.Member(intpair(c1,c2))) {
-				if (it != pair_to_index.end()){
-					bReturnHandle.AddToEnd(it->second);
-                     //int index = pairProductMapHandle.Lookup(intpair(c1,c2));
-                     //n->BConnection[j].returnMapHandle.AddToEnd(index);
-                     // std::cout << "[PairProduct] Duplicate found: j = " << j << "; index = " << index << std::endl;
-                   }
-                   else {   // New pair found (i.e., new exit node found)
-                     pairProductMapHandle.AddToEnd(p);
-                     bReturnHandle.AddToEnd(curExit);
-					 pair_to_index.emplace(p, curExit);
-                     curExit++;
-                   }
-                //BMapIterator.Next();
-				   Biterator++;
-              }
-           bReturnHandle.Canonicalize();
-           //AMapIterator.Next();
-           n->BConnection[j] = Connection(bHandle, bReturnHandle);
-		   Aiterator++;
-           j++;
-         }
-         n->numExits = curExit;
+			    intpair p = intpair(c1, c2);
+				  auto it = pair_to_index.find(p);
+				  if (it != pair_to_index.end()){
+					  bReturnHandle.AddToEnd(it->second);
+          }
+          else {   // New pair found (i.e., new exit node found)
+            pairProductMapHandle.AddToEnd(p);
+            bReturnHandle.AddToEnd(curExit);
+					  pair_to_index.emplace(p, curExit);
+            curExit++;
+          }
+				  Biterator++;
+        }
+        bReturnHandle.Canonicalize();
+        n->BConnection[j] = Connection(bHandle, bReturnHandle);
+		    Aiterator++;
+        j++;
+      }
+      n->numExits = curExit;
 #ifdef PATH_COUNTING_ENABLED
-         n->InstallPathCounts();
+      n->InstallPathCounts();
 #endif
       pairProductMapHandle.Canonicalize();
       return CFLOBDDNodeHandle(n);
@@ -530,12 +515,25 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDNodeHandle n1,
                              )
 {
   PairProductMemo cachedPairProductMemo;
+
+  // auto key1 = PairProductKey(n1, n2);
+  // auto key2 = PairProductKey(n2, n1);
+
+  // bool isCached = pairProductCache.find(key1) != pairProductCache.end();
+
   bool isCached = pairProductCache->Fetch(PairProductKey(n1,n2), cachedPairProductMemo);
   if (isCached) {
+    // auto memo = pairProductCache.at(key1);
+    // pairProductMapHandle = memo.pairProductMapHandle;
     pairProductMapHandle = cachedPairProductMemo.pairProductMapHandle;
     return cachedPairProductMemo.nodeHandle;
+    // return memo.nodeHandle;
   }
+  // else if (pairProductCache.find(key2) != pairProductCache.end()) {
   else if (pairProductCache->Fetch(PairProductKey(n2,n1), cachedPairProductMemo)) {
+    // auto memo = pairProductCache.at(key2);
+    // pairProductMapHandle = memo.pairProductMapHandle.Flip();
+    // return memo.nodeHandle;
     pairProductMapHandle = cachedPairProductMemo.pairProductMapHandle.Flip();
     return cachedPairProductMemo.nodeHandle;
     }
@@ -577,6 +575,7 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDNodeHandle n1,
     }
 		pairProductCache->Insert(PairProductKey(n1, n2),
 		PairProductMemo(answer, pairProductMapHandle));
+    // pairProductCache.insert(std::make_pair(key1, PairProductMemo(answer, pairProductMapHandle)));
     return answer;
   }
 }
@@ -592,6 +591,7 @@ void DisposeOfPairProductCache()
 	//std::cout << "PairProductCache Size: " << pairProductCache->Size() << std::endl;
 	delete pairProductCache;
 	pairProductCache = NULL;
+  // pairProductCache.clear();
 }
 }
 // ********************************************************************

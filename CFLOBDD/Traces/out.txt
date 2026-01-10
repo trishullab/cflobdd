@@ -1,0 +1,2 @@
+	pp0_0	 
+ApplyAndReduce: Nodes: 8 Edges: 18

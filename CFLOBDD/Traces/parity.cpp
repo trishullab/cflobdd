@@ -60,12 +60,12 @@ auto start = high_resolution_clock::now();
   
   CFLOBDD x0_15 = MkExclusiveOr(x0_7, x8_15);
   
-  if (x0_15 == parity16) {
-    cout << "x0_15 == parity16" << endl;
-  }
-  else {
-    cout << "x0_15 != parity16" << endl;
-  }
+  // if (x0_15 == parity16) {
+  //   cout << "x0_15 == parity16" << endl;
+  // }
+  // else {
+  //   cout << "x0_15 != parity16" << endl;
+  // }
 
   auto end = high_resolution_clock::now();
   auto duration = duration_cast<milliseconds>(end - start); 

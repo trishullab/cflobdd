@@ -12,9 +12,9 @@ using namespace std::chrono;
 
 static void iscasProduct2(){
 // product -----------------------------------------------------
-if (CFLOBDD::maxLevel >= 27) {
-  cerr << "Cannot create product CFLOBDD: maxLevel must be < 27" << endl;
-}
+// if (CFLOBDD::maxLevel >= 27) {
+//   cerr << "Cannot create product CFLOBDD: maxLevel must be < 27" << endl;
+// }
 CFLOBDD **x = new CFLOBDD* [CFLOBDD::maxLevel+1];
 for (int i = CFLOBDD::maxLevel; i >= 0; i--) {
   x[i] = new CFLOBDD[1 << i];
@@ -35,7 +35,7 @@ for (int i = CFLOBDD::maxLevel; i >= 0; i--) {
 
 unsigned int nodeCount, edgeCount;
 unsigned int returnEdgesCount, returnEdgesObjCount;
-cout << "CFLOBDD sizes" << endl;
+// cout << "CFLOBDD sizes" << endl;
 GroupCountNodesAndEdgesStart(nodeCount, edgeCount);
 for (int i = CFLOBDD::maxLevel; i >= 0; i--) {
   for (int j = 0; j < (1 << i); j++) {
@@ -43,7 +43,7 @@ for (int i = CFLOBDD::maxLevel; i >= 0; i--) {
   }
 }
 GroupCountNodesAndEdgesEnd();
-cout << nodeCount << ", " << edgeCount << endl;
+// cout << nodeCount << ", " << edgeCount << endl;
 
 x[0][0].CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
 cout << nodeCount << ", " << edgeCount << endl;

@@ -1182,7 +1182,7 @@ auto end = high_resolution_clock::now();
 auto duration = duration_cast<milliseconds>(end - start); 
 
 unsigned int nodeCount, edgeCount;
-std::cout << "CFLOBDD sizes" << std::endl;
+// std::cout << "CFLOBDD sizes" << std::endl;
 GroupCountNodesAndEdgesStart(nodeCount, edgeCount);
 sum0.GroupCountNodesAndEdges(nodeCount, edgeCount);
 sum1.GroupCountNodesAndEdges(nodeCount, edgeCount);
@@ -1207,7 +1207,7 @@ sum19.GroupCountNodesAndEdges(nodeCount, edgeCount);
 sum20.GroupCountNodesAndEdges(nodeCount, edgeCount);
 sum21.GroupCountNodesAndEdges(nodeCount, edgeCount);
 GroupCountNodesAndEdgesEnd();
-std::cout << "Duration: " << duration.count() << " Memory: " << nodeCount << " " << edgeCount << " " << (nodeCount + edgeCount) << std::endl;
+std::cout << "Duration: " << duration.count()/1000.0 << " Memory: " << nodeCount << " " << edgeCount << " " << (nodeCount + edgeCount) << std::endl;
 
 }
 

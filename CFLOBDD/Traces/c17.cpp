@@ -34,7 +34,7 @@ auto end = high_resolution_clock::now();
 auto duration = duration_cast<milliseconds>(end - start);
 
 unsigned int nodeCount, edgeCount;
-cout << "CFLOBDD sizes" << endl;
+// cout << "CFLOBDD sizes" << endl;
 GroupCountNodesAndEdgesStart(nodeCount, edgeCount);
 gat22.GroupCountNodesAndEdges(nodeCount, edgeCount);
 // cout << nodeCount << ", " << edgeCount << ", " << (nodeCount + edgeCount) << endl;
@@ -43,7 +43,7 @@ gat23.GroupCountNodesAndEdges(nodeCount, edgeCount);
 GroupCountNodesAndEdgesEnd();
 // cout << nodeCount << ", " << edgeCount << ", " << (nodeCount + edgeCount) << endl;
 
-std::cout << "Duration: " << duration.count() << " Memory: " << nodeCount << " " << edgeCount << " " << (nodeCount + edgeCount) << std::endl;
+std::cout << "Duration: " << duration.count()/1000.0 << " Memory: " << nodeCount << " " << edgeCount << " " << (nodeCount + edgeCount) << std::endl;
 
 // gat23.print(std::cout);
 

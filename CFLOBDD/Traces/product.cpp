@@ -57,7 +57,7 @@ CFLOBDD x0_15 = MkOr(x0_7, x8_15);
   auto duration = duration_cast<milliseconds>(end - start); 
 
 unsigned int nodeCount, edgeCount;
-cout << "CFLOBDD sizes" << endl;
+// cout << "CFLOBDD sizes" << endl;
 GroupCountNodesAndEdgesStart(nodeCount, edgeCount);
 x0_1.GroupCountNodesAndEdges(nodeCount, edgeCount);
 x2_3.GroupCountNodesAndEdges(nodeCount, edgeCount);

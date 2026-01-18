@@ -352,6 +352,27 @@ namespace CFL_OBDD {
 			return v;	
 		}
 
+		CFLOBDDTopNodeComplexFloatBoostRefPtr MkRZGateTop(unsigned int i, double theta)
+		{
+			CFLOBDDTopNodeComplexFloatBoostRefPtr v;
+			CFLOBDDNodeHandle tempHandle;
+			ComplexFloatBoostReturnMapHandle m;
+
+			assert(i == 1);
+
+			double cos_v = boost::math::cos_pi(theta);
+			double sin_v = boost::math::sin_pi(theta);
+			BIG_COMPLEX_FLOAT val1(cos_v, sin_v);
+			BIG_COMPLEX_FLOAT val2(-cos_v, -sin_v);
+			tempHandle = MkSGateInterleavedNode(i);
+			m.AddToEnd(val1);
+			m.AddToEnd(0);
+			m.AddToEnd(val2);
+			m.Canonicalize();
+			v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, m);
+			return v;	
+		}
+
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MkSXGateTop(unsigned int i)
 		{
 			CFLOBDDTopNodeComplexFloatBoostRefPtr v;

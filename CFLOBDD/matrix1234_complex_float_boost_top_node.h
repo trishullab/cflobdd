@@ -101,6 +101,7 @@ namespace CFL_OBDD {
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkCCPTopNode(unsigned int level, unsigned int n, long int controller1, long int controller2, long int controlled, double theta);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkSXGateTop(unsigned int i);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkSYGateTop(unsigned int i);
+		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MkRZGateTop(unsigned int i, double theta);
 
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr ConjugateTransposeTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);
 		extern CFLOBDDTopNodeComplexFloatBoostRefPtr MatrixTransposeTop(CFLOBDDTopNodeComplexFloatBoostRefPtr c);

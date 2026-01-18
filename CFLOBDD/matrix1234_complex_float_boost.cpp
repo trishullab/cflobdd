@@ -133,6 +133,12 @@ namespace CFL_OBDD {
 
 		}
 
+		CFLOBDD_COMPLEX_BIG MkRZGate(unsigned int i, double theta)
+		{
+			return CFLOBDD_COMPLEX_BIG(MkRZGateTop(i, theta));
+
+		}
+
 		// Create representation of the Inverse Reed-Muller matrix IRM(2**(i-1))
 		// [i.e., a matrix of size 2**(2**(i-1))) x 2**(2**(i-1)))]
 		// with interleaved indexing of components: that is, input

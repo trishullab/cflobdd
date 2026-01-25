@@ -1,0 +1,181 @@
+32-bit Multiplier Verification (17.7 seconds)
+=============================================
+Timing is for
+ (a) creating the specification (a MultRelation with a CFLOBDD for each
+     of the multiplication relations mod k, for the first 26 odd primes)
+ (b) creation of another MultRelation where each of the 26 CFLOBDDs is created by
+     executing a CFLOBDD reinterpretation of a shift-and-add multiplier
+ (c) 26 CFLOBDD equality checks
+
+Note: to configure for 32-bit multiplier verification, two changes are needed
+ (i)  multiplication_crt.cpp, line 299: assert(CFLOBDDMaxLevel >= 7); =>  assert(CFLOBDDMaxLevel >= 6);
+ (ii) cflobdd_node.h, line 174: #define CFLOBDD_MAX_LEVEL 7 => #define CFLOBDD_MAX_LEVEL 6
+Then run make clean; make all
+
+Testing VerifyShiftAndAddMultiplication
+ModularMultRelations[0]
+ModularMultRelations[1]
+ModularMultRelations[2]
+ModularMultRelations[3]
+ModularMultRelations[4]
+ModularMultRelations[5]
+ModularMultRelations[6]
+ModularMultRelations[7]
+ModularMultRelations[8]
+ModularMultRelations[9]
+ModularMultRelations[10]
+ModularMultRelations[11]
+ModularMultRelations[12]
+ModularMultRelations[13]
+ModularMultRelations[14]
+ModularMultRelations[15]
+ModularMultRelations[16]
+ModularMultRelations[17]
+ModularMultRelations[18]
+ModularMultRelations[19]
+ModularMultRelations[20]
+ModularMultRelations[21]
+ModularMultRelations[22]
+ModularMultRelations[23]
+ModularMultRelations[24]
+ModularMultRelations[25]
+MultRelation::VerifyShiftAndAddMultiplication: 1
+MultRelation::VerifyShiftAndAddMultiplication took 17711 ms
+result.ModularMultRelations[0]:
+13, 86
+result.ModularMultRelations[1]: 
+13, 150
+result.ModularMultRelations[2]:
+13, 212
+result.ModularMultRelations[3]:
+13, 384
+result.ModularMultRelations[4]:
+13, 494
+result.ModularMultRelations[5]:
+13, 1016
+result.ModularMultRelations[6]:
+13, 1170
+result.ModularMultRelations[7]:
+13, 1526
+result.ModularMultRelations[8]:
+13, 2180
+result.ModularMultRelations[9]:
+13, 2430
+result.ModularMultRelations[10]:
+13, 3276
+result.ModularMultRelations[11]:
+13, 3920
+result.ModularMultRelations[12]:
+13, 4266
+result.ModularMultRelations[13]:
+13, 5006
+result.ModularMultRelations[14]:
+13, 6236
+result.ModularMultRelations[15]:
+13, 7610
+result.ModularMultRelations[16]:
+13, 8100
+result.ModularMultRelations[17]:
+13, 9666
+result.ModularMultRelations[18]:
+13, 10790
+result.ModularMultRelations[19]:
+13, 11376
+result.ModularMultRelations[20]:
+13, 13230
+result.ModularMultRelations[21]:
+13, 14546
+result.ModularMultRelations[22]:
+13, 16640
+result.ModularMultRelations[23]:
+13, 19656
+result.ModularMultRelations[24]:
+13, 21260
+result.ModularMultRelations[25]:
+13, 22086
+
+
+64-bit Multiplier Verification (38.6 seconds)
+=============================================
+
+Testing VerifyShiftAndAddMultiplication
+ModularMultRelations[0]
+ModularMultRelations[1]
+ModularMultRelations[2]
+ModularMultRelations[3]
+ModularMultRelations[4]
+ModularMultRelations[5]
+ModularMultRelations[6]
+ModularMultRelations[7]
+ModularMultRelations[8]
+ModularMultRelations[9]
+ModularMultRelations[10]
+ModularMultRelations[11]
+ModularMultRelations[12]
+ModularMultRelations[13]
+ModularMultRelations[14]
+ModularMultRelations[15]
+ModularMultRelations[16]
+ModularMultRelations[17]
+ModularMultRelations[18]
+ModularMultRelations[19]
+ModularMultRelations[20]
+ModularMultRelations[21]
+ModularMultRelations[22]
+ModularMultRelations[23]
+ModularMultRelations[24]
+ModularMultRelations[25]
+MultRelation::VerifyShiftAndAddMultiplication: 1
+MultRelation::VerifyShiftAndAddMultiplication took 38591 ms
+result.ModularMultRelations[0]:
+15, 98
+result.ModularMultRelations[1]:
+15, 166
+result.ModularMultRelations[2]:
+15, 232
+result.ModularMultRelations[3]:
+15, 412
+result.ModularMultRelations[4]:
+15, 526
+result.ModularMultRelations[5]:
+15, 1056
+result.ModularMultRelations[6]:
+15, 1214
+result.ModularMultRelations[7]:
+15, 1578
+result.ModularMultRelations[8]:
+15, 2244
+result.ModularMultRelations[9]:
+15, 2498
+result.ModularMultRelations[10]:
+15, 3356
+result.ModularMultRelations[11]:
+15, 4008
+result.ModularMultRelations[12]:
+15, 4358
+result.ModularMultRelations[13]:
+15, 5106
+result.ModularMultRelations[14]:
+15, 6348
+result.ModularMultRelations[15]:
+15, 7734
+result.ModularMultRelations[16]:
+15, 8228
+result.ModularMultRelations[17]:
+15, 9806
+result.ModularMultRelations[18]:
+15, 10938
+result.ModularMultRelations[19]:
+15, 11528
+result.ModularMultRelations[20]:
+15, 13394
+result.ModularMultRelations[21]:
+15, 14718
+result.ModularMultRelations[22]:
+15, 16824
+result.ModularMultRelations[23]:
+15, 19856
+result.ModularMultRelations[24]:
+15, 21468
+result.ModularMultRelations[25]:
+15, 22298

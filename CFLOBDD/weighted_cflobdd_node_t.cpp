@@ -1669,7 +1669,7 @@ int WeightedCFLOBDDInternalNode<T,Op>::Traverse(SH_OBDD::AssignmentIterator &ai)
 }
 
 
-inline CFLOBDDReturnMapHandle ComposeAndReduce(CFLOBDDReturnMapHandle& mapHandle, ReductionMapHandle& redMapHandle, ReductionMapHandle& inducedRedMapHandle)
+inline CFLOBDDReturnMapHandle WeightedComposeAndReduce(CFLOBDDReturnMapHandle& mapHandle, ReductionMapHandle& redMapHandle, ReductionMapHandle& inducedRedMapHandle)
 {
 	int c2, c3;
 	int size = mapHandle.mapContents->mapArray.size();
@@ -1737,7 +1737,7 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
      for (unsigned int i = 0; i < numBConnections; i++) {
         ReductionMapHandle inducedReductionMapHandle(redMapHandle.Size());
         CFLOBDDReturnMapHandle inducedReturnMap;
-		    inducedReturnMap = ComposeAndReduce(BConnection[i].returnMapHandle, redMapHandle, inducedReductionMapHandle);
+		    inducedReturnMap = WeightedComposeAndReduce(BConnection[i].returnMapHandle, redMapHandle, inducedReductionMapHandle);
         auto inducedValueList = ComposeValueList<T,Op>(BConnection[i].returnMapHandle, valList);
         // inducedReductionMapHandle.print(std::cout);
         // inducedValueList.first.print(std::cout);
@@ -1761,7 +1761,7 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
   // Reduce the A connection
      ReductionMapHandle inducedAReductionMapHandle;
 	   CFLOBDDReturnMapHandle inducedAReturnMap;
-	   inducedAReturnMap = ComposeAndReduce(AConnection.returnMapHandle, AReductionMapHandle, inducedAReductionMapHandle);
+	   inducedAReturnMap = WeightedComposeAndReduce(AConnection.returnMapHandle, AReductionMapHandle, inducedAReductionMapHandle);
      auto inducedAValueList = ComposeValueList<T,Op>(AConnection.returnMapHandle, AValueList);
      std::pair<WeightedCFLOBDDNodeHandleT<T,Op>, T> tempHandle = AConnection.entryPointHandle->Reduce(inducedAReductionMapHandle, inducedAReturnMap.Size(), inducedAValueList.first, forceReduce);
      n->AConnection = WConnection<T,Op>(tempHandle.first, inducedAReturnMap);

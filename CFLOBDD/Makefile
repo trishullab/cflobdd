@@ -1,13 +1,23 @@
 # Project Name (executable)
-PROJECT = cflobdd
+# PROJECT = cflobdd
+# Detect the operating system
+ifeq ($(OS),Windows_NT)
+    # Windows (MinGW)
+    PROJECT      = cflobdd.exe
+else
+    # Linux/Unix-like
+    PROJECT      = cflobdd
+endif
+
 # Compiler
-CC = g++-11
+# CC = g++-11
+CC = g++
 
 # Run Options       
 COMMANDLINE_OPTIONS = #/dev/ttyS0
 
 # Compiler options during compilation
-COMPILE_OPTIONS = -O3 -std=c++2a -w
+COMPILE_OPTIONS = -g -O3 -std=c++2a -w -DCFLOBDD_C_EXPORTS
 # -ansi -pedantic -Wall 
 
 #Header include directories

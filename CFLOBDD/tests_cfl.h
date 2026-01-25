@@ -77,7 +77,8 @@ class CFLTests
         static void testSynBenchmark5_CFLOBDD(int size);
         static void testSynBenchmark6_CFLOBDD(int size);
         static void testSynBenchmark7_CFLOBDD(int size);
-	    
+        static void testMultiplicationCRT();
+
         static void InitModules();
 	    static void ClearModules();
 		static bool runTests(const char *arg, int size = 0, int seed = 0, int a = 0);

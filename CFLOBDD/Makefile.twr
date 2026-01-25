@@ -1,0 +1,38 @@
+BOOST_DIR = ../../../boost_1_80_0
+CC = g++
+INCLUDE_DIRS = -I. -I$(BOOST_DIR) -I.Solver/uwr/bit_vector/ -I.Solver/uwr/assert/ -I.Solver/uwr/matrix/ -I.Solver/uwr/parsing/
+CFLAGS = -std=c++17 -Wall -Wextra -pedantic $(INCLUDE_DIRS)
+
+# Automatically find all .cpp files in current directory
+SRCS = $(wildcard *.cpp)
+OBJS = $(SRCS:.cpp=.o)
+DEPS = $(OBJS:.o=.d)
+TARGET = myprogram
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) -o $@ -lm $^ Solver/uwr/bit_vector/*.cpp Solver/uwr/parsing/*.cpp 
+
+%.o: %.cpp
+	$(CC) -c $(CFLAGS) -o $@ $<
+	
+# Rule to create dependency files
+%.d: %.cpp
+	@set -e; rm -f $@
+	$(CC) -MMD -MT"$@ $(@:.d=.o)" -MF$@ $(CFLAGS) $<
+
+# Include dependency files (ignore if they don't exist yet)
+-include $(DEPS)
+
+clean:
+	rm -f $(OBJS) $(DEPS) $(TARGET)
+
+.PHONY: all clean
+
+
+#test:
+#	g++ -g -std=c++17 -w -c -I. -I$(BOOST_DIR) -I.Solver/uwr/bit_vector/ -I.Solver/uwr/assert/ -I.Solver/uwr/matrix/ -I.Solver/uwr/parsing/ cflobdd_node.cpp
+
+#all:
+#	g++ -g -std=c++17 -w -I. -I$(BOOST_DIR) -I.Solver/uwr/bit_vector/ -I.Solver/uwr/assert/ -I.Solver/uwr/matrix/ -I.Solver/uwr/parsing/ -lm *.cpp Solver/uwr/bit_vector/*.cpp Solver/uwr/parsing/*.cpp

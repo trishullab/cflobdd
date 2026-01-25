@@ -33,6 +33,7 @@
 #include "multiplication_crt.h"
 #include "cflobdd_node.h"
 #include "cflobdd_top_node_t.h"
+#include <boost/multiprecision/cpp_int.hpp>
 
 namespace CFL_OBDD {
 
@@ -412,7 +413,6 @@ CFLOBDD ShiftAndAddMultiplicationModK(unsigned int k) {
 // VerifyShiftAndAddMultiplicationModK
 //
 // Operation to check whether a shift-and-add multiplier produces the correct result
-// Needs to be corrected
 // -----------------------------------------------------------------------------
 bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
   currentModulus = k;
@@ -497,5 +497,100 @@ bool MultRelation::VerifyShiftAndAddMultiplication() {
     return equal;
 }
 
+// -----------------------------------------------------------------------------
+// Helper function: Extended Euclidean Algorithm for computing modular inverse
+// Returns the modular inverse of a modulo m
+// -----------------------------------------------------------------------------
+static unsigned int ModularInverse(unsigned int a, unsigned int m) {
+    int m0 = m;
+    int y = 0, x = 1;
+
+    if (m == 1) return 0;
+
+    while (a > 1) {
+        int q = a / m;
+        int t = m;
+
+        m = a % m;
+        a = t;
+        t = y;
+
+        y = x - q * y;
+        x = t;
+    }
+
+    if (x < 0) x += m0;
+
+    return x;
+}
+
+// -----------------------------------------------------------------------------
+// MultRelation::Multiply
+//
+// Multiply two 64-bit values using the CRT representation and Garner's algorithm
+// to reconstruct the 128-bit result without overflow
+// -----------------------------------------------------------------------------
+boost::multiprecision::uint128_t MultRelation::Multiply(unsigned long long a, unsigned long long b) const {
+    using namespace boost::multiprecision;
+
+    // Create 128-bit assignment with a in the A position and b in the B position
+    SH_OBDD::Assignment assignment(2 * MultRelation::numBits);
+
+    // Most significant bit first (high-order to low-order as in the CRT document)
+    for (unsigned int j = 0; j < MultRelation::numBits; j++) {
+        assignment[j] = (a >> (MultRelation::numBits - 1 - j)) & 1;
+        assignment[MultRelation::numBits + j] = (b >> (MultRelation::numBits - 1 - j)) & 1;
+    }
+
+    // Evaluate each CFLOBDD to get remainders modulo each prime
+    unsigned int remainders[numberOfMultRelations];
+    for (unsigned int i = 0; i < numberOfMultRelations; i++) {
+        remainders[i] = ModularMultRelations[i].root->Evaluate(assignment);
+    }
+
+    // Apply Garner's algorithm to reconstruct the result
+    // Garner's algorithm computes the mixed radix representation:
+    // x = u[0] + u[1]*m[0] + u[2]*m[0]*m[1] + ... + u[n-1]*m[0]*...*m[n-2]
+
+    unsigned int u[numberOfMultRelations];
+
+    // Compute u values
+    u[0] = remainders[0];
+    for (unsigned int i = 1; i < numberOfMultRelations; i++) {
+        u[i] = remainders[i];
+        for (unsigned int j = 0; j < i; j++) {
+            // u[i] = (u[i] - u[j]) * inverse(m[j], m[i]) mod m[i]
+            int diff = u[i] - u[j];
+            if (diff < 0) diff += ModuliArray[i];
+            unsigned int inv = ModularInverse(ModuliArray[j], ModuliArray[i]);
+            u[i] = (diff * inv) % ModuliArray[i];
+        }
+    }
+
+    // Reconstruct the result using mixed radix representation
+    uint128_t result = u[0];
+    uint128_t product = ModuliArray[0];
+
+    for (unsigned int i = 1; i < numberOfMultRelations; i++) {
+        result += uint128_t(u[i]) * product;
+        product *= ModuliArray[i];
+    }
+
+    return result;
+}
+
+// -----------------------------------------------------------------------------
+// ShiftAndAddMultiplication
+//
+// Multiply two 64-bit values using shift-and-add multiplication
+// -----------------------------------------------------------------------------
+boost::multiprecision::uint128_t ShiftAndAddMultiplication(unsigned long long a, unsigned long long b) {
+    boost::multiprecision::uint128_t result = 0;
+    for (int i = MultRelation::numBits - 1; i >= 0; i--) {
+        unsigned long long addend = (a & (1ull << i)) ? b : 0;
+        result = 2 * result + addend;
+    }
+    return result;
+}
 
 } // namespace CFL_OBDD

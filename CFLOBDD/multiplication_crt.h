@@ -41,6 +41,7 @@
 // - Bit order is high-order to low-order
 
 #include "cflobdd_int.h"
+#include <boost/multiprecision/cpp_int.hpp>
 
 namespace CFL_OBDD {
 
@@ -123,6 +124,10 @@ public:
     MultRelation();  // Constructor
     bool operator==(const MultRelation& other) const;
     static bool VerifyShiftAndAddMultiplication();
+
+    // Multiply two 64-bit values using CRT and Garner's algorithm
+    // Returns the 128-bit product
+    boost::multiprecision::uint128_t Multiply(unsigned long long a, unsigned long long b) const;
 };
 
 //
@@ -166,6 +171,10 @@ extern CFLOBDD ShiftAndAddMultiplicationModK(unsigned int k);
 //   A bool indicating whether the result == the specification (i.e., 1 means "correct")
 // -----------------------------------------------------------------------------
 extern bool VerifyShiftAndAddMultiplicationModK(unsigned int k);
+
+// Multiply two 64-bit values using shift-and-add multiplication
+// Returns the 128-bit product
+extern boost::multiprecision::uint128_t ShiftAndAddMultiplication(unsigned long long a, unsigned long long b);
 
 } // namespace CFL_OBDD
 

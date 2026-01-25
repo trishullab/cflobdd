@@ -9,6 +9,7 @@
 #include <string>
 #include <chrono>
 #include <boost/rational.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
 #include "cflobdd_node.h"
 #include "cflobdd_t.h"
 #include "cflobdd_int.h"
@@ -2009,6 +2010,13 @@ void CFLTests::testMultiplicationCRT()
 			}
 		}
 	}
+    std::cout << std:: endl;
+
+	// Test MultRelation::Multiply()
+	std::cout << "Testing MultRelation::Multiply()" << std::endl;
+	boost::multiprecision::uint128_t answer = R.Multiply(5000000000, 6000000000);
+	boost::multiprecision::uint128_t expected = ShiftAndAddMultiplication(5000000000, 6000000000);
+	std::cout << "answer = " << answer << "; expected: " << expected << std::endl;
     std::cout << std:: endl;
 
 

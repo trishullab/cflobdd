@@ -15,7 +15,40 @@ REL_S_DIR = ../cudd-addmin
 
 tmp:
 	g++ -O3 -DHAVE_CONFIG_H -I./$(DIR)  -I./$(DIR)/cudd -I./$(DIR)/mtr -I./$(DIR)/epd -I./$(DIR)/st   -Wall -Wextra  -Wl,--stack,4096 -std=c++0x -g -O3 -MT test.o -MD -MP -MF test.Tpo -c -o test.o `test -f 'test.cc' || echo './'`test.cc
-	/bin/bash ./$(REL_DIR)/libtool  --tag=CXX   --mode=link g++  -Wall -Wextra -std=c++0x -g -O3   -o test test.o $(DIR)/cplusplus/libobj.la $(DIR)/cudd/libcudd.la 
+	/bin/bash ./$(REL_DIR)/libtool  --tag=CXX   --mode=link g++  -Wall -Wextra -std=c++0x -g -O3   -o test test.o $(DIR)/cplusplus/libobj.la $(DIR)/cudd/libcudd.la
+
+multmod:
+	g++ -O3 -DHAVE_CONFIG_H -I./$(REL_DIR)  -I./$(REL_DIR)/cudd -I./$(REL_DIR)/mtr -I./$(REL_DIR)/epd -I./$(REL_DIR)/st   -Wall -Wextra -std=c++0x -g -O3 -MT addMultiplication.o -MD -MP -MF addMultiplication.Tpo -c -o addMultiplication.o `test -f 'addMultiplication.cc' || echo './'`addMultiplication.cc
+	/bin/bash ./$(REL_DIR)/libtool  --tag=CXX   --mode=link g++  -Wall -Wextra -std=c++0x -g -O3   -o addMultiplication addMultiplication.o $(REL_DIR)/cplusplus/libobj.la $(REL_DIR)/cudd/libcudd.la
+
+# Direct build target (bypasses libtool - works on Windows with mixed shell environments)
+CUDD_SRCS = $(wildcard $(REL_DIR)/cudd/cudd*.c) $(REL_DIR)/mtr/mtrBasic.c $(REL_DIR)/mtr/mtrGroup.c \
+            $(REL_DIR)/st/st.c $(REL_DIR)/epd/epd.c \
+            $(REL_DIR)/util/cpu_stats.c $(REL_DIR)/util/cpu_time.c $(REL_DIR)/util/cstringstream.c \
+            $(REL_DIR)/util/datalimit.c $(REL_DIR)/util/pathsearch.c $(REL_DIR)/util/pipefork.c \
+            $(REL_DIR)/util/prtime.c $(REL_DIR)/util/safe_mem.c $(REL_DIR)/util/strsav.c \
+            $(REL_DIR)/util/texpand.c $(REL_DIR)/util/ucbqsort.c
+CUDD_OBJS = $(patsubst $(REL_DIR)/%.c, cudd_build/%.o, $(CUDD_SRCS))
+CUDDOBJ_SRC = $(REL_DIR)/cplusplus/cuddObj.cc
+
+CUDD_CFLAGS = -DHAVE_CONFIG_H -I$(REL_DIR) -I$(REL_DIR)/cudd -I$(REL_DIR)/mtr -I$(REL_DIR)/epd -I$(REL_DIR)/st -I$(REL_DIR)/util -Wall -Wextra -g -O3
+CUDD_CXXFLAGS = $(CUDD_CFLAGS) -std=c++11
+
+cudd_build:
+	mkdir -p cudd_build/cudd cudd_build/mtr cudd_build/st cudd_build/epd cudd_build/util cudd_build/cplusplus
+
+cudd_build/%.o: $(REL_DIR)/%.c | cudd_build
+	gcc $(CUDD_CFLAGS) -c -o $@ $<
+
+cudd_build/cplusplus/cuddObj.o: $(CUDDOBJ_SRC) | cudd_build
+	g++ $(CUDD_CXXFLAGS) -c -o $@ $<
+
+cudd_build/libcudd.a: $(CUDD_OBJS) cudd_build/cplusplus/cuddObj.o
+	ar rcs $@ $^
+
+multmod-direct: cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) -c -o addMultiplication.o addMultiplication.cc
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication addMultiplication.o cudd_build/libcudd.a 
 
 complex:
 	gcc -DHAVE_CONFIG_H -I./$(C_DIR)  -I./$(C_DIR)/cudd -I./$(C_DIR)/mtr -I./$(C_DIR)/epd -I./$(C_DIR)/st -I./$(C_DIR)/util  -MT complex_test.o -MD -MP -MF complex_test.Tpo -c -o complex_test.o `test -f 'complex_test.c' || echo './'`complex_test.c

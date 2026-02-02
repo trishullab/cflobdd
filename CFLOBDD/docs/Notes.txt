@@ -179,3 +179,143 @@ result.ModularMultRelations[24]:
 15, 21468
 result.ModularMultRelations[25]:
 15, 22298
+
+128-bit Multiplier Verification (896.7 seconds)
+===============================================
+
+Testing VerifyShiftAndAddMultiplicationModuliwise
+Testing multiplication modulo the 1th odd prime: 3
+Testing multiplication modulo the 2th odd prime: 5
+Testing multiplication modulo the 3th odd prime: 7
+Testing multiplication modulo the 4th odd prime: 11
+Testing multiplication modulo the 5th odd prime: 13
+Testing multiplication modulo the 6th odd prime: 17
+Testing multiplication modulo the 7th odd prime: 19
+Testing multiplication modulo the 8th odd prime: 23
+Testing multiplication modulo the 9th odd prime: 29
+Testing multiplication modulo the 10th odd prime: 31
+Testing multiplication modulo the 11th odd prime: 37
+Testing multiplication modulo the 12th odd prime: 41
+Testing multiplication modulo the 13th odd prime: 43
+Testing multiplication modulo the 14th odd prime: 47
+Testing multiplication modulo the 15th odd prime: 53
+Testing multiplication modulo the 16th odd prime: 59
+Testing multiplication modulo the 17th odd prime: 61
+Testing multiplication modulo the 18th odd prime: 67
+Testing multiplication modulo the 19th odd prime: 71
+Testing multiplication modulo the 20th odd prime: 73
+Testing multiplication modulo the 21th odd prime: 79
+Testing multiplication modulo the 22th odd prime: 83
+Testing multiplication modulo the 23th odd prime: 89
+Testing multiplication modulo the 24th odd prime: 97
+Testing multiplication modulo the 25th odd prime: 101
+Testing multiplication modulo the 26th odd prime: 103
+Testing multiplication modulo the 27th odd prime: 107
+Testing multiplication modulo the 28th odd prime: 109
+Testing multiplication modulo the 29th odd prime: 113
+Testing multiplication modulo the 30th odd prime: 127
+Testing multiplication modulo the 31th odd prime: 131
+Testing multiplication modulo the 32th odd prime: 137
+Testing multiplication modulo the 33th odd prime: 139
+Testing multiplication modulo the 34th odd prime: 149
+Testing multiplication modulo the 35th odd prime: 151
+Testing multiplication modulo the 36th odd prime: 157
+Testing multiplication modulo the 37th odd prime: 163
+Testing multiplication modulo the 38th odd prime: 167
+Testing multiplication modulo the 39th odd prime: 173
+Testing multiplication modulo the 40th odd prime: 179
+Testing multiplication modulo the 41th odd prime: 181
+Testing multiplication modulo the 42th odd prime: 191
+Testing multiplication modulo the 43th odd prime: 193
+Testing multiplication modulo the 44th odd prime: 197
+Success
+VerifyShiftAndAddMultiplicationModuliwise took 896655 ms
+CFLOBDD Sizes
+Size of the multiplication relation for the 1th odd prime: 3
+17, 110
+Size of the multiplication relation for the 2th odd prime: 5
+17, 182
+Size of the multiplication relation for the 3th odd prime: 7
+17, 252
+Size of the multiplication relation for the 4th odd prime: 11
+17, 440
+Size of the multiplication relation for the 5th odd prime: 13
+17, 558
+Size of the multiplication relation for the 6th odd prime: 17
+17, 1096
+Size of the multiplication relation for the 7th odd prime: 19
+17, 1258
+Size of the multiplication relation for the 8th odd prime: 23
+17, 1630
+Size of the multiplication relation for the 9th odd prime: 29
+17, 2308
+Size of the multiplication relation for the 10th odd prime: 31
+17, 2566
+Size of the multiplication relation for the 11th odd prime: 37
+17, 3436
+Size of the multiplication relation for the 12th odd prime: 41
+17, 4096
+Size of the multiplication relation for the 13th odd prime: 43
+17, 4450
+Size of the multiplication relation for the 14th odd prime: 47
+17, 5206
+Size of the multiplication relation for the 15th odd prime: 53
+17, 6460
+Size of the multiplication relation for the 16th odd prime: 59
+17, 7858
+Size of the multiplication relation for the 17th odd prime: 61
+17, 8356
+Size of the multiplication relation for the 18th odd prime: 67
+17, 9946
+Size of the multiplication relation for the 19th odd prime: 71
+17, 11086
+Size of the multiplication relation for the 20th odd prime: 73
+17, 11680
+Size of the multiplication relation for the 21th odd prime: 79
+17, 13558
+Size of the multiplication relation for the 22th odd prime: 83
+17, 14890
+Size of the multiplication relation for the 23th odd prime: 89
+17, 17008
+Size of the multiplication relation for the 24th odd prime: 97
+17, 20056
+Size of the multiplication relation for the 25th odd prime: 101
+17, 21676
+Size of the multiplication relation for the 26th odd prime: 103
+17, 22510
+Size of the multiplication relation for the 27th odd prime: 107
+17, 24226
+Size of the multiplication relation for the 28th odd prime: 109
+17, 25108
+Size of the multiplication relation for the 29th odd prime: 113
+17, 26920
+Size of the multiplication relation for the 30th odd prime: 127
+17, 33766
+Size of the multiplication relation for the 31th odd prime: 131
+17, 35866
+Size of the multiplication relation for the 32th odd prime: 137
+17, 39136
+Size of the multiplication relation for the 33th odd prime: 139
+17, 40258
+Size of the multiplication relation for the 34th odd prime: 149
+17, 46108
+Size of the multiplication relation for the 35th odd prime: 151
+17, 47326
+Size of the multiplication relation for the 36th odd prime: 157
+17, 51076
+Size of the multiplication relation for the 37th odd prime: 163
+17, 54970
+Size of the multiplication relation for the 38th odd prime: 167
+17, 57646
+Size of the multiplication relation for the 39th odd prime: 173
+17, 61780
+Size of the multiplication relation for the 40th odd prime: 179
+17, 66058
+Size of the multiplication relation for the 41th odd prime: 181
+17, 67516
+Size of the multiplication relation for the 42th odd prime: 191
+17, 75046
+Size of the multiplication relation for the 43th odd prime: 193
+17, 76600
+Size of the multiplication relation for the 44th odd prime: 197
+17, 79756

@@ -46,15 +46,56 @@
 namespace CFL_OBDD {
 
 // Constants from the document
-const unsigned int logLogOfMaxModulus = 3;  // Each modulus must be <= 256
-const unsigned int maxModulus = 1 << (1 << logLogOfMaxModulus);  // = 256
+const unsigned int logLogOfMaxModulus = 4;  // Each modulus must be <= 65536
+const unsigned int maxModulus = 1 << (1 << logLogOfMaxModulus);  // = 65536
 
 // To indicate the role of a Grouping in a recursive call (Figure 7, line 13)
 enum Position { TopLevel, A, B };
 
-// First 26 odd primes (Figure 12)
-const unsigned int numberOfMultRelations = 26;
-extern const unsigned int Moduli[numberOfMultRelations];
+// First 999 odd primes 
+const unsigned int numberOfMultRelations = 75;
+const unsigned int numberOfOddPrimes = 999;
+extern const unsigned int Moduli[numberOfOddPrimes];
+
+// For 64-bit multiplication
+// typedef unsigned long long INPUT_TYPE;
+// typedef boost::multiprecision::uint128_t OUTPUT_TYPE;
+
+// // For 128-bit multiplication
+// typedef boost::multiprecision::uint128_t INPUT_TYPE;
+// typedef boost::multiprecision::uint256_t OUTPUT_TYPE;
+
+// For 256-bit multiplication
+typedef boost::multiprecision::uint256_t INPUT_TYPE;
+typedef boost::multiprecision::uint512_t OUTPUT_TYPE;
+
+// // For 512-bit multiplication
+// typedef boost::multiprecision::uint512_t INPUT_TYPE;
+// typedef boost::multiprecision::uint1024_t OUTPUT_TYPE;
+
+// // For 1024-bit multiplication
+// typedef boost::multiprecision::number<
+//     boost::multiprecision::cpp_int_backend<2048, 2048,
+//         boost::multiprecision::unsigned_magnitude,
+//         boost::multiprecision::unchecked, void>> uint2048_t;
+// typedef boost::multiprecision::uint1024_t INPUT_TYPE;
+// typedef uint2048_t OUTPUT_TYPE;
+
+// // For 2048-bit multiplication
+// typedef boost::multiprecision::number<
+//     boost::multiprecision::cpp_int_backend<4096, 4096,
+//         boost::multiprecision::unsigned_magnitude,
+//         boost::multiprecision::unchecked, void>> uint4096_t;
+// typedef uint2048_t INPUT_TYPE;
+// typedef uint4096_t OUTPUT_TYPE;
+
+// // For 4096-bit multiplication
+// typedef boost::multiprecision::number<
+//     boost::multiprecision::cpp_int_backend<8192, 8192,
+//         boost::multiprecision::unsigned_magnitude,
+//         boost::multiprecision::unchecked, void>> uint8192_t;
+// typedef uint4096_t INPUT_TYPE;
+// typedef uint8192_t OUTPUT_TYPE;
 
 //
 // ProtoCFLOBDDNumsModK
@@ -113,7 +154,7 @@ extern CFLOBDD MultModK(unsigned int k);
 // (Figures 11-12 in the document)
 //
 // With the first 26 odd primes, we can represent 133-bit numbers, which is
-// sufficient for handling multiplication mod 2^64. Requires CFLOBDDMaxLevel >= 9.
+// sufficient for handling multiplication mod 2^64. Requires CFLOBDDMaxLevel >= 7.
 //
 class MultRelation {
 public:
@@ -123,11 +164,12 @@ public:
 
     MultRelation();  // Constructor
     bool operator==(const MultRelation& other) const;
+    static bool VerifyShiftAndAddMultiplicationModuliwise();
     static bool VerifyShiftAndAddMultiplication();
 
-    // Multiply two 64-bit values using CRT and Garner's algorithm
-    // Returns the 128-bit product
-    boost::multiprecision::uint128_t Multiply(unsigned long long a, unsigned long long b) const;
+    // Multiply two m-bit values using CRT and Garner's algorithm
+    // Return the 2*m-bit product
+    OUTPUT_TYPE Multiply(INPUT_TYPE a, INPUT_TYPE b) const;
 };
 
 //
@@ -172,9 +214,9 @@ extern CFLOBDD ShiftAndAddMultiplicationModK(unsigned int k);
 // -----------------------------------------------------------------------------
 extern bool VerifyShiftAndAddMultiplicationModK(unsigned int k);
 
-// Multiply two 64-bit values using shift-and-add multiplication
-// Returns the 128-bit product
-extern boost::multiprecision::uint128_t ShiftAndAddMultiplication(unsigned long long a, unsigned long long b);
+// Multiply two m-bit values using shift-and-add multiplication
+// Return the 2*m-bit product
+extern OUTPUT_TYPE ShiftAndAddMultiplication(INPUT_TYPE a, INPUT_TYPE b);
 
 } // namespace CFL_OBDD
 

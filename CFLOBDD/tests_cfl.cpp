@@ -1922,134 +1922,138 @@ void CFLTests::ClearModules()
 // -----------------------------------------------------------------------------
 void CFLTests::testMultiplicationCRT()
 {
-	std::cout << "Testing Multiplication via CRT ------------" << std::endl;
+	// std::cout << "Testing Multiplication via CRT ------------" << std::endl;
 
-	// Test NumsModK for small modulus
-	std::cout << "Testing NumsModK..." << std::endl;
-	CFLOBDD numsModA5 = NumsModK(5, A);
-	std::cout << "NumsModK(5, A) created successfully" << std::endl;
+	// // Test NumsModK for small modulus
+	// std::cout << "Testing NumsModK..." << std::endl;
+	// CFLOBDD numsModA5 = NumsModK(5, A);
+	// std::cout << "NumsModK(5, A) created successfully" << std::endl;
 
-	CFLOBDD numsModB5 = NumsModK(5, B);
-	std::cout << "NumsModK(5, B) created successfully" << std::endl;
+	// CFLOBDD numsModB5 = NumsModK(5, B);
+	// std::cout << "NumsModK(5, B) created successfully" << std::endl;
 
-	// Lookup the first 20 values in numsModA5 and numsModB5
-	// Create assignments for 128 variables from a 64-bit value
-	unsigned long long junk = 0x123456789ABCDEF0ULL;
-	for(unsigned long long i = 0; i < 20; i++) {
-		// Create two 128-bit assignments:
-		//   a with the intended value in the A position
-		//   b with the intended value in the B position
-		SH_OBDD::Assignment a(2*MultRelation::numBits);
-		SH_OBDD::Assignment b(2*MultRelation::numBits);
-		// Most significant bit first (high-order to low-order as in the CRT document)
-		for (unsigned int j = 0; j < MultRelation::numBits; j++) {
-			a[j] = (i >> (MultRelation::numBits - 1 - j)) & 1;
-			b[j] = (junk >> (MultRelation::numBits - 1 - j)) & 1;  // junk
-		}
-		for (unsigned int j = 0; j < MultRelation::numBits; j++) {
-			a[MultRelation::numBits+j] = (junk >> (MultRelation::numBits - 1 - j)) & 1;  // junk
-			b[MultRelation::numBits+j] = (i >> (MultRelation::numBits - 1 - j)) & 1;
-		}
-		// std::cout << "a: ";  a.print(std::cout);  std::cout << std::endl;
-		int a_result = numsModA5.root->Evaluate(a);
-		std::cout << "a_result: " << a_result << std::endl;
-		// std::cout << "b: ";  b.print(std::cout);  std::cout << std::endl;
-		int b_result = numsModB5.root->Evaluate(b);
-		std::cout << "b_result: " << b_result << std::endl;
-	}
-    std::cout << std:: endl;
-
-
-
-	// Test MultModK for small modulus
-	std::cout << "Testing MultModK..." << std::endl;
-	CFLOBDD multMod5 = MultModK(5);
-	std::cout << "MultModK(5) created successfully" << std::endl;
-
-	CFLOBDD multMod7 = MultModK(7);
-	std::cout << "MultModK(7) created successfully" << std::endl;
-
-	// Lookup a selection of products in multMod5 and multMod7
-	// Create assignments for 128 variables from two 64-bit values
-	for(unsigned long long i = 18; i < 20; i++) {
-		for(unsigned long long k = 20; k < 24; k++) {
-			// Create a 128-bit assignment with i in the A position and k in the B position
-			SH_OBDD::Assignment a(2*MultRelation::numBits);
-			// Most significant bit first (high-order to low-order as in the CRT document)
-			for (unsigned int j = 0; j < MultRelation::numBits; j++) {
-				a[j] = (i >> (MultRelation::numBits - 1 - j)) & 1;
-				a[MultRelation::numBits+j] = (k >> (MultRelation::numBits - 1 - j)) & 1;
-			}
-			// std::cout << "a: ";  a.print(std::cout);  std::cout << std::endl;
-			int a_result = multMod5.root->Evaluate(a);
-			std::cout << i << " * " << k << " mod 5 = " << a_result << " Expected: " << i*k % 5 << std::endl;
-			a_result = multMod7.root->Evaluate(a);
-			std::cout << i << " * " << k << " mod 7 = " << a_result << " Expected: " << i*k % 7  << std::endl;
-		}
-	}
-    std::cout << std:: endl;
-
-	// Test MultRelation
-	std::cout << "Testing MultRelation..." << std::endl;
-	// Lookup a selection of products in a MultRelation
-    // Create MultRelation
-    MultRelation R;
-	for(unsigned long long i = 18; i < 20; i++) {
-		for(unsigned long long k = 20; k < 24; k++) {
-			// Create a 128-bit assignment with i in the A position and k in the B position
-			SH_OBDD::Assignment a(2*MultRelation::numBits);
-			// Most significant bit first (high-order to low-order as in the CRT document)
-			for (unsigned int j = 0; j < MultRelation::numBits; j++) {
-				a[j] = (i >> (MultRelation::numBits - 1 - j)) & 1;
-				a[MultRelation::numBits+j] = (k >> (MultRelation::numBits - 1 - j)) & 1;
-			}
-			for (unsigned int m = 0; m < numberOfMultRelations; m++) {
-				// std::cout << "a: ";  a.print(std::cout);  std::cout << std::endl;
-				int a_result = R.ModularMultRelations[m].root->Evaluate(a);
-				std::cout << i << " * " << k << " mod " << R.ModuliArray[m] << " = " << a_result << " Expected: " << i*k % R.ModuliArray[m] << std::endl;
-			}
-		}
-	}
-    std::cout << std:: endl;
-
-	// Test MultRelation::Multiply()
-	std::cout << "Testing MultRelation::Multiply()" << std::endl;
-	boost::multiprecision::uint128_t answer = R.Multiply(5000000000, 6000000000);
-	boost::multiprecision::uint128_t expected = ShiftAndAddMultiplication(5000000000, 6000000000);
-	std::cout << "answer = " << answer << "; expected: " << expected << std::endl;
-    std::cout << std:: endl;
+	// // Lookup the first 20 values in numsModA5 and numsModB5
+	// // Create assignments for 128 variables from a 64-bit value
+	// INPUT_TYPE junk = 0x123456789ABCDEF0ULL;
+	// for(INPUT_TYPE i = 0; i < 20; i++) {
+	// 	// Create two 2*m-bit assignments:
+	// 	//   a with the intended value in the A position
+	// 	//   b with the intended value in the B position
+	// 	SH_OBDD::Assignment a(2*MultRelation::numBits);
+	// 	SH_OBDD::Assignment b(2*MultRelation::numBits);
+	// 	// Most significant bit first (high-order to low-order as in the CRT document)
+	// 	for (unsigned int j = 0; j < MultRelation::numBits; j++) {
+	// 		a[j] = static_cast<int>((i >> (MultRelation::numBits - 1 - j)) & 1);
+	// 		b[j] = static_cast<int>((junk >> (MultRelation::numBits - 1 - j)) & 1);  // junk
+	// 	}
+	// 	for (unsigned int j = 0; j < MultRelation::numBits; j++) {
+	// 		a[MultRelation::numBits+j] = static_cast<int>((junk >> (MultRelation::numBits - 1 - j)) & 1);  // junk
+	// 		b[MultRelation::numBits+j] = static_cast<int>((i >> (MultRelation::numBits - 1 - j)) & 1);
+	// 	}
+	// 	// std::cout << "a: ";  a.print(std::cout);  std::cout << std::endl;
+	// 	int a_result = numsModA5.root->Evaluate(a);
+	// 	std::cout << "a_result: " << a_result << std::endl;
+	// 	// std::cout << "b: ";  b.print(std::cout);  std::cout << std::endl;
+	// 	int b_result = numsModB5.root->Evaluate(b);
+	// 	std::cout << "b_result: " << b_result << std::endl;
+	// }
+    // std::cout << std:: endl;
 
 
-	// // Test FactorViaCRT for some simple cases
-	// std::cout << "Testing FactorViaCRT..." << std::endl;
 
-	// // Test factoring 6 = 2 * 3
-	// std::cout << "Factoring 6..." << std::endl;
-	// CFLOBDD factors6 = FactorViaCRT(6);
-	// std::cout << "FactorViaCRT(6) created successfully" << std::endl;
+	// // Test MultModK for small modulus
+	// std::cout << "Testing MultModK..." << std::endl;
+	// CFLOBDD multMod5 = MultModK(5);
+	// std::cout << "MultModK(5) created successfully" << std::endl;
 
-	// // Test factoring 15 = 3 * 5
-	// std::cout << "Factoring 15..." << std::endl;
-	// CFLOBDD factors15 = FactorViaCRT(15);
-	// std::cout << "FactorViaCRT(15) created successfully" << std::endl;
+	// CFLOBDD multMod7 = MultModK(7);
+	// std::cout << "MultModK(7) created successfully" << std::endl;
 
-	// // Test factoring a prime (7 = 1 * 7 or 7 * 1 only)
-	// std::cout << "Factoring 7 (prime)..." << std::endl;
-	// CFLOBDD factors7 = FactorViaCRT(7);
-	// std::cout << "FactorViaCRT(7) created successfully" << std::endl;
+	// // Lookup a selection of products in multMod5 and multMod7
+	// // Create assignments for 128 variables from two 64-bit values
+	// for(INPUT_TYPE i = 18; i < 20; i++) {
+	// 	for(INPUT_TYPE k = 20; k < 24; k++) {
+	// 		// Create a 2*m-bit assignment with i in the A position and k in the B position
+	// 		SH_OBDD::Assignment a(2*MultRelation::numBits);
+	// 		// Most significant bit first (high-order to low-order as in the CRT document)
+	// 		for (unsigned int j = 0; j < MultRelation::numBits; j++) {
+	// 			a[j] = static_cast<int>((i >> (MultRelation::numBits - 1 - j)) & 1);
+	// 			a[MultRelation::numBits+j] = static_cast<int>((k >> (MultRelation::numBits - 1 - j)) & 1);
+	// 		}
+	// 		// std::cout << "a: ";  a.print(std::cout);  std::cout << std::endl;
+	// 		int a_result = multMod5.root->Evaluate(a);
+	// 		std::cout << i << " * " << k << " mod 5 = " << a_result << " Expected: " << i*k % 5 << std::endl;
+	// 		a_result = multMod7.root->Evaluate(a);
+	// 		std::cout << i << " * " << k << " mod 7 = " << a_result << " Expected: " << i*k % 7  << std::endl;
+	// 	}
+	// }
+    // std::cout << std:: endl;
+
+	// // Test MultRelation
+	// std::cout << "Testing MultRelation..." << std::endl;
+	// // Lookup a selection of products in a MultRelation
+    // // Create MultRelation
+    // MultRelation R;
+	// for(INPUT_TYPE i = 18; i < 20; i++) {
+	// 	for(INPUT_TYPE k = 20; k < 24; k++) {
+	// 		// Create a 2*m-bit assignment with i in the A position and k in the B position
+	// 		SH_OBDD::Assignment a(2*MultRelation::numBits);
+	// 		// Most significant bit first (high-order to low-order as in the CRT document)
+	// 		for (unsigned int j = 0; j < MultRelation::numBits; j++) {
+	// 			a[j] = static_cast<int>((i >> (MultRelation::numBits - 1 - j)) & 1);
+	// 			a[MultRelation::numBits+j] = static_cast<int>((k >> (MultRelation::numBits - 1 - j)) & 1);
+	// 		}
+	// 		for (unsigned int m = 0; m < numberOfMultRelations; m++) {
+	// 			// std::cout << "a: ";  a.print(std::cout);  std::cout << std::endl;
+	// 			int a_result = R.ModularMultRelations[m].root->Evaluate(a);
+	// 			std::cout << i << " * " << k << " mod " << R.ModuliArray[m] << " = " << a_result << " Expected: " << i*k % R.ModuliArray[m] << std::endl;
+	// 		}
+	// 	}
+	// }
+    // std::cout << std:: endl;
+
+	// // Test MultRelation::Multiply()
+	// std::cout << "Testing MultRelation::Multiply()" << std::endl;
+	// OUTPUT_TYPE answer = R.Multiply(INPUT_TYPE(5000000000), INPUT_TYPE(6000000000));
+	// OUTPUT_TYPE expected = ShiftAndAddMultiplication(INPUT_TYPE(5000000000), INPUT_TYPE(6000000000));
+	// std::cout << "answer = " << answer << "; expected: " << expected << std::endl;
+    // std::cout << std:: endl;
+
+
+	// // // Test FactorViaCRT for some simple cases
+	// // std::cout << "Testing FactorViaCRT..." << std::endl;
+
+	// // // Test factoring 6 = 2 * 3
+	// // std::cout << "Factoring 6..." << std::endl;
+	// // CFLOBDD factors6 = FactorViaCRT(6);
+	// // std::cout << "FactorViaCRT(6) created successfully" << std::endl;
+
+	// // // Test factoring 15 = 3 * 5
+	// // std::cout << "Factoring 15..." << std::endl;
+	// // CFLOBDD factors15 = FactorViaCRT(15);
+	// // std::cout << "FactorViaCRT(15) created successfully" << std::endl;
+
+	// // // Test factoring a prime (7 = 1 * 7 or 7 * 1 only)
+	// // std::cout << "Factoring 7 (prime)..." << std::endl;
+	// // CFLOBDD factors7 = FactorViaCRT(7);
+	// // std::cout << "FactorViaCRT(7) created successfully" << std::endl;
+	// // std::cout << std:: endl;
+
+	// // Test VerifyShiftAndAddMultiplicationModK
+	// std::cout << "Testing VerifyShiftAndAddMultiplicationModK for 5" << std::endl;
+	// VerifyShiftAndAddMultiplicationModK(5);
+	// std::cout << std:: endl;
+	// std::cout << "Testing VerifyShiftAndAddMultiplicationModK for 7" << std::endl;
+	// VerifyShiftAndAddMultiplicationModK(7);
 	// std::cout << std:: endl;
 
-	// Test VerifyShiftAndAddMultiplicationModK
-	std::cout << "Testing VerifyShiftAndAddMultiplicationModK for 5" << std::endl;
-	VerifyShiftAndAddMultiplicationModK(5);
-	std::cout << std:: endl;
-	std::cout << "Testing VerifyShiftAndAddMultiplicationModK for 7" << std::endl;
-	VerifyShiftAndAddMultiplicationModK(7);
-	std::cout << std:: endl;
+	// // // Test VerifyShiftAndAddMultiplication
+	// // std::cout << "Testing VerifyShiftAndAddMultiplication" << std::endl;
+	// // MultRelation::VerifyShiftAndAddMultiplication();
 
-	// Test VerifyShiftAndAddMultiplication
-	std::cout << "Testing VerifyShiftAndAddMultiplication" << std::endl;
-	MultRelation::VerifyShiftAndAddMultiplication();
+	// Test VerifyShiftAndAddMultiplicationModuliwise
+	std::cout << "Testing VerifyShiftAndAddMultiplicationModuliwise" << std::endl;
+	MultRelation::VerifyShiftAndAddMultiplicationModuliwise();
 
 	std::cout << "Multiplication via CRT tests completed." << std::endl;
 }

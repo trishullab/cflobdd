@@ -17,7 +17,7 @@ CC = g++
 COMMANDLINE_OPTIONS = #/dev/ttyS0
 
 # Compiler options during compilation
-COMPILE_OPTIONS = -g -O3 -std=c++2a -w -DCFLOBDD_C_EXPORTS
+COMPILE_OPTIONS = -g -O2 -std=c++2a -w -DCFLOBDD_C_EXPORTS
 # -ansi -pedantic -Wall 
 
 #Header include directories

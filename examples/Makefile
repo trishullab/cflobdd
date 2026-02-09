@@ -32,7 +32,7 @@ CUDD_OBJS = $(patsubst $(REL_DIR)/%.c, cudd_build/%.o, $(CUDD_SRCS))
 CUDDOBJ_SRC = $(REL_DIR)/cplusplus/cuddObj.cc
 
 CUDD_CFLAGS = -DHAVE_CONFIG_H -I$(REL_DIR) -I$(REL_DIR)/cudd -I$(REL_DIR)/mtr -I$(REL_DIR)/epd -I$(REL_DIR)/st -I$(REL_DIR)/util -Wall -Wextra -g -O3
-CUDD_CXXFLAGS = $(CUDD_CFLAGS) -std=c++11
+CUDD_CXXFLAGS = $(CUDD_CFLAGS) -std=c++14
 
 cudd_build:
 	mkdir -p cudd_build/cudd cudd_build/mtr cudd_build/st cudd_build/epd cudd_build/util cudd_build/cplusplus
@@ -48,7 +48,43 @@ cudd_build/libcudd.a: $(CUDD_OBJS) cudd_build/cplusplus/cuddObj.o
 
 multmod-direct: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) -c -o addMultiplication.o addMultiplication.cc
-	g++ $(CUDD_CXXFLAGS) -o addMultiplication addMultiplication.o cudd_build/libcudd.a 
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication addMultiplication.o cudd_build/libcudd.a
+
+# Boost include path for multiprecision types
+BOOST_INC = -I../../boost_1_81_0
+
+# Build targets for different bit-widths
+multmod-32: cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=32 -c -o addMultiplication.o addMultiplication.cc
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication32 addMultiplication.o cudd_build/libcudd.a
+
+multmod-64: cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=64 -c -o addMultiplication.o addMultiplication.cc
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication64 addMultiplication.o cudd_build/libcudd.a
+
+multmod-128: cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=128 -c -o addMultiplication.o addMultiplication.cc
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication128 addMultiplication.o cudd_build/libcudd.a
+
+multmod-256: cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=256 -c -o addMultiplication.o addMultiplication.cc
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication256 addMultiplication.o cudd_build/libcudd.a
+
+multmod-512: cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=512 -c -o addMultiplication.o addMultiplication.cc
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication512 addMultiplication.o cudd_build/libcudd.a
+
+multmod-1024: cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=1024 -c -o addMultiplication.o addMultiplication.cc
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication1024 addMultiplication.o cudd_build/libcudd.a
+
+multmod-2048: cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=2048 -c -o addMultiplication.o addMultiplication.cc
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication2048 addMultiplication.o cudd_build/libcudd.a
+
+multmod-4096: cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=4096 -c -o addMultiplication.o addMultiplication.cc
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication4096 addMultiplication.o cudd_build/libcudd.a
 
 complex:
 	gcc -DHAVE_CONFIG_H -I./$(C_DIR)  -I./$(C_DIR)/cudd -I./$(C_DIR)/mtr -I./$(C_DIR)/epd -I./$(C_DIR)/st -I./$(C_DIR)/util  -MT complex_test.o -MD -MP -MF complex_test.Tpo -c -o complex_test.o `test -f 'complex_test.c' || echo './'`complex_test.c

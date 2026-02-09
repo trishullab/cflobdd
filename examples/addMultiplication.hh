@@ -35,16 +35,96 @@
 #define ADD_MULTIPLICATION_HH_
 
 #include "../cudd-3.0.0/cplusplus/cuddObj.hh"
+#include <boost/multiprecision/cpp_int.hpp>
+
+// =============================================================================
+// Bit-width configuration
+// =============================================================================
+
+#ifndef NUM_BITS
+#define NUM_BITS 64
+#endif
 
 // =============================================================================
 // Constants for CRT-based multiplication (Figure 12 in Multiplication_via_CRT.pdf)
 // =============================================================================
 
-/// Number of primes used for CRT-based multiplication verification
-const unsigned int numberOfMultRelations = 26;
+/// Number of primes needed per bit-width (product must exceed 2^(2*bitwidth))
+#if NUM_BITS == 32
+  const unsigned int numberOfMultRelations = 16;
+#elif NUM_BITS == 64
+  const unsigned int numberOfMultRelations = 26;
+#elif NUM_BITS == 128
+  const unsigned int numberOfMultRelations = 44;
+#elif NUM_BITS == 256
+  const unsigned int numberOfMultRelations = 75;
+#elif NUM_BITS == 512
+  const unsigned int numberOfMultRelations = 131;
+#elif NUM_BITS == 1024
+  const unsigned int numberOfMultRelations = 233;
+#elif NUM_BITS == 2048
+  const unsigned int numberOfMultRelations = 418;
+#elif NUM_BITS == 4096
+  const unsigned int numberOfMultRelations = 758;
+#else
+  #error "Unsupported NUM_BITS value. Use 32, 64, 128, 256, 512, 1024, 2048, or 4096."
+#endif
 
-/// First 26 odd primes (product > 2^133, sufficient for 64-bit multiplication)
-extern const unsigned int Moduli[numberOfMultRelations];
+/// Total number of odd primes available
+const unsigned int numberOfOddPrimes = 999;
+
+/// Array of first 999 odd primes
+extern const unsigned int AllModuli[numberOfOddPrimes];
+
+/// Pointer to the moduli array (for backward compatibility)
+extern const unsigned int* Moduli;
+
+// =============================================================================
+// Position enumeration for Karatsuba splitting
+// =============================================================================
+
+/// Position enumeration for variable placement in ADDs
+/// TopLevel: not used for NumsModK
+/// A, B: standard positions for two input operands (each n bits)
+/// AA, AB, BA, BB: half-width positions for Karatsuba decomposition
+enum Position { TopLevel, A, B, AA, AB, BA, BB };
+
+// =============================================================================
+// INPUT_TYPE and OUTPUT_TYPE for varying bit-widths
+// =============================================================================
+
+namespace mp = boost::multiprecision;
+
+#if NUM_BITS == 32
+  typedef uint32_t INPUT_TYPE;
+  typedef uint64_t OUTPUT_TYPE;
+#elif NUM_BITS == 64
+  typedef uint64_t INPUT_TYPE;
+  typedef mp::uint128_t OUTPUT_TYPE;
+#elif NUM_BITS == 128
+  typedef mp::uint128_t INPUT_TYPE;
+  typedef mp::uint256_t OUTPUT_TYPE;
+#elif NUM_BITS == 256
+  typedef mp::uint256_t INPUT_TYPE;
+  typedef mp::uint512_t OUTPUT_TYPE;
+#elif NUM_BITS == 512
+  typedef mp::uint512_t INPUT_TYPE;
+  typedef mp::uint1024_t OUTPUT_TYPE;
+#elif NUM_BITS == 1024
+  typedef mp::uint1024_t INPUT_TYPE;
+  typedef mp::number<mp::cpp_int_backend<2048, 2048,
+      mp::unsigned_magnitude, mp::unchecked, void>> OUTPUT_TYPE;
+#elif NUM_BITS == 2048
+  typedef mp::number<mp::cpp_int_backend<2048, 2048,
+      mp::unsigned_magnitude, mp::unchecked, void>> INPUT_TYPE;
+  typedef mp::number<mp::cpp_int_backend<4096, 4096,
+      mp::unsigned_magnitude, mp::unchecked, void>> OUTPUT_TYPE;
+#elif NUM_BITS == 4096
+  typedef mp::number<mp::cpp_int_backend<4096, 4096,
+      mp::unsigned_magnitude, mp::unchecked, void>> INPUT_TYPE;
+  typedef mp::number<mp::cpp_int_backend<8192, 8192,
+      mp::unsigned_magnitude, mp::unchecked, void>> OUTPUT_TYPE;
+#endif
 
 
 // =============================================================================
@@ -65,8 +145,8 @@ extern const unsigned int Moduli[numberOfMultRelations];
 */
 class MultRelation {
 public:
-    /// Number of bits per operand (64 for standard multiplication)
-    static const int numBits = 64;
+    /// Number of bits per operand (configured by NUM_BITS)
+    static const int numBits = NUM_BITS;
 
     /// Array of moduli (first 26 odd primes)
     unsigned int ModuliArray[numberOfMultRelations];
@@ -100,18 +180,17 @@ public:
     bool operator==(const MultRelation& other) const;
 
     /**
-      @brief Multiplies two 64-bit values using CRT and Garner's algorithm.
+      @brief Multiplies two values using CRT and Garner's algorithm.
 
       @details Evaluates each ADD to get remainders, then reconstructs the
-      128-bit result using Garner's algorithm.
+      double-width result using Garner's algorithm.
 
-      @param a  First 64-bit operand
-      @param b  Second 64-bit operand
+      @param a  First operand (INPUT_TYPE)
+      @param b  Second operand (INPUT_TYPE)
 
-      @return The 128-bit product (as two 64-bit values: high and low)
+      @return The product (OUTPUT_TYPE)
     */
-    void Multiply(unsigned long long a, unsigned long long b,
-                  unsigned long long& resultHigh, unsigned long long& resultLow) const;
+    OUTPUT_TYPE Multiply(INPUT_TYPE a, INPUT_TYPE b) const;
 
     /**
       @brief Prints statistics about all ADDs in the relation.
@@ -180,14 +259,14 @@ ADD ADD_MultModK(Cudd& mgr, int n, int k);
   @param mgr      CUDD manager
   @param f        ADD to evaluate
   @param n        Number of bits per operand
-  @param x        First n-bit operand value
-  @param y        Second n-bit operand value
+  @param x        First n-bit operand value (INPUT_TYPE)
+  @param y        Second n-bit operand value (INPUT_TYPE)
 
   @return The leaf value (double) for the given input.
 
 */
 CUDD_VALUE_TYPE ADD_Evaluate(Cudd& mgr, const ADD& f, int n,
-                              unsigned long long x, unsigned long long y);
+                              INPUT_TYPE x, INPUT_TYPE y);
 
 
 /**
@@ -216,6 +295,160 @@ bool verifyMultModK(Cudd& mgr, int n, int k);
 
 */
 void printADDStats(const ADD& f, const char* name);
+
+
+// =============================================================================
+// Shift-and-Add Multiplication
+// =============================================================================
+
+/**
+  @brief Builds multiplication mod k using the shift-and-add algorithm.
+
+  @details Algorithm:
+  result = 0
+  for i = 0 to n-1 (high-order to low-order):
+      p = projection of bit i of first input
+      addend = p * b mod k
+      result = result * 2 mod k
+      result = result + addend mod k
+
+  This mirrors ShiftAndAddMultiplicationModK in multiplication_crt.cpp.
+
+  @param mgr  CUDD manager
+  @param n    Number of bits per operand
+  @param k    Modulus
+
+  @return ADD representing shift-and-add multiplication mod k
+*/
+ADD ADD_ShiftAndAddMultiplicationModK(Cudd& mgr, int n, int k);
+
+/**
+  @brief Verifies shift-and-add multiplication for a single modulus.
+
+  @param mgr  CUDD manager
+  @param n    Number of bits per operand
+  @param k    Modulus
+
+  @return true if verification passes
+*/
+bool ADD_VerifyShiftAndAddMultiplicationModK(Cudd& mgr, int n, int k);
+
+/**
+  @brief Verifies shift-and-add multiplication for all moduli.
+
+  @param mgr  CUDD manager
+  @param n    Number of bits per operand
+
+  @return true if all verifications pass
+*/
+bool ADD_VerifyShiftAndAddMultiplicationModuliwise(Cudd& mgr, int n);
+
+
+// =============================================================================
+// Karatsuba Multiplication
+// =============================================================================
+
+/**
+  @brief Builds one level of subtractive Karatsuba multiplication mod k.
+
+  @details Algorithm:
+  Split X = X1*2^m + X0, Y = Y1*2^m + Y0 where m = n/2
+  Z0 = X0 * Y0 mod k
+  Z2 = X1 * Y1 mod k
+  Z1 = (X1 - X0) * (Y0 - Y1) mod k
+  result = Z2*2^(2m) + (Z1 + Z2 + Z0)*2^m + Z0 (all mod k)
+
+  This mirrors SubtractiveKaratsubaOneLevel in multiplication_crt.cpp.
+
+  @param mgr  CUDD manager
+  @param n    Number of bits per operand (must be even)
+  @param k    Modulus
+
+  @return ADD representing Karatsuba multiplication mod k
+*/
+ADD ADD_SubtractiveKaratsubaOneLevel(Cudd& mgr, int n, int k);
+
+/**
+  @brief Verifies Karatsuba multiplication for a single modulus.
+
+  @param mgr  CUDD manager
+  @param n    Number of bits per operand
+  @param k    Modulus
+
+  @return true if verification passes
+*/
+bool ADD_VerifySubtractiveKaratsubaOneLevel(Cudd& mgr, int n, int k);
+
+/**
+  @brief Verifies Karatsuba multiplication for all moduli.
+
+  @param mgr  CUDD manager
+  @param n    Number of bits per operand
+
+  @return true if all verifications pass
+*/
+bool ADD_VerifySubtractiveKaratsubaOneLevelModuliwise(Cudd& mgr, int n);
+
+
+// =============================================================================
+// Helper functions for modular arithmetic
+// =============================================================================
+
+/**
+  @brief Computes val(x) mod k for a positioned input.
+
+  @details Maps Position enum to variable ranges:
+  - A: variables 0..n-1 (first input)
+  - B: variables n..2n-1 (second input)
+  - AA: variables 0..n/2-1 (high half of first input)
+  - AB: variables n/2..n-1 (low half of first input)
+  - BA: variables n..n+n/2-1 (high half of second input)
+  - BB: variables n+n/2..2n-1 (low half of second input)
+
+  @param mgr  CUDD manager
+  @param n    Total number of bits per operand
+  @param k    Modulus
+  @param p    Position specifier
+
+  @return ADD representing val(x) mod k for the specified position
+*/
+ADD ADD_NumsModKPositioned(Cudd& mgr, int n, int k, Position p);
+
+/**
+  @brief Adds two ADDs element-wise modulo k.
+
+  @param mgr  CUDD manager
+  @param a    First ADD operand
+  @param b    Second ADD operand
+  @param k    Modulus
+
+  @return ADD representing (a + b) mod k
+*/
+ADD ADD_AddModK(Cudd& mgr, const ADD& a, const ADD& b, int k);
+
+/**
+  @brief Subtracts two ADDs element-wise modulo k.
+
+  @param mgr  CUDD manager
+  @param a    First ADD operand
+  @param b    Second ADD operand
+  @param k    Modulus
+
+  @return ADD representing (a - b + k) mod k
+*/
+ADD ADD_SubtractModK(Cudd& mgr, const ADD& a, const ADD& b, int k);
+
+/**
+  @brief Multiplies two ADDs element-wise modulo k.
+
+  @param mgr  CUDD manager
+  @param a    First ADD operand
+  @param b    Second ADD operand
+  @param k    Modulus
+
+  @return ADD representing (a * b) mod k
+*/
+ADD ADD_MultiplyModK(Cudd& mgr, const ADD& a, const ADD& b, int k);
 
 
 #endif /* ADD_MULTIPLICATION_HH_ */

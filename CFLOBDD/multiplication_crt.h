@@ -41,6 +41,7 @@
 // - Bit order is high-order to low-order
 
 #include "cflobdd_int.h"
+#include <cstdint>
 #include <boost/multiprecision/cpp_int.hpp>
 
 namespace CFL_OBDD {
@@ -50,24 +51,35 @@ const unsigned int logLogOfMaxModulus = 4;  // Each modulus must be <= 65536
 const unsigned int maxModulus = 1 << (1 << logLogOfMaxModulus);  // = 65536
 
 // To indicate the role of a Grouping in a recursive call (Figure 7, line 13)
-enum Position { TopLevel, A, B };
+enum Position { TopLevel, A, B, AA, AB, BA, BB };
 
 // First 999 odd primes 
-const unsigned int numberOfMultRelations = 75;
+const unsigned int numberOfMultRelations = 44;   // BITWIDTH
 const unsigned int numberOfOddPrimes = 999;
 extern const unsigned int Moduli[numberOfOddPrimes];
 
-// For 64-bit multiplication
-// typedef unsigned long long INPUT_TYPE;
+
+//-----------------------------------------------------------------
+// INPUT_TYPE and OUTPUT_TYPE
+//
+// Pick whichever is appropriate for the BITWIDTH setting
+//-----------------------------------------------------------------
+
+// // For 32-bit multiplication
+// typedef uint32_t INPUT_TYPE;
+// typedef uint64_t OUTPUT_TYPE;
+
+// // For 64-bit multiplication
+// typedef uint64_t INPUT_TYPE;
 // typedef boost::multiprecision::uint128_t OUTPUT_TYPE;
 
-// // For 128-bit multiplication
-// typedef boost::multiprecision::uint128_t INPUT_TYPE;
-// typedef boost::multiprecision::uint256_t OUTPUT_TYPE;
+// For 128-bit multiplication
+typedef boost::multiprecision::uint128_t INPUT_TYPE;
+typedef boost::multiprecision::uint256_t OUTPUT_TYPE;
 
-// For 256-bit multiplication
-typedef boost::multiprecision::uint256_t INPUT_TYPE;
-typedef boost::multiprecision::uint512_t OUTPUT_TYPE;
+// // For 256-bit multiplication
+// typedef boost::multiprecision::uint256_t INPUT_TYPE;
+// typedef boost::multiprecision::uint512_t OUTPUT_TYPE;
 
 // // For 512-bit multiplication
 // typedef boost::multiprecision::uint512_t INPUT_TYPE;
@@ -96,6 +108,13 @@ typedef boost::multiprecision::uint512_t OUTPUT_TYPE;
 //         boost::multiprecision::unchecked, void>> uint8192_t;
 // typedef uint4096_t INPUT_TYPE;
 // typedef uint8192_t OUTPUT_TYPE;
+
+//
+// PrintSize
+//
+// Utility procedure to print the number of groupings and edges
+//
+extern void PrintSize(CFLOBDD C);
 
 //
 // ProtoCFLOBDDNumsModK
@@ -164,7 +183,6 @@ public:
 
     MultRelation();  // Constructor
     bool operator==(const MultRelation& other) const;
-    static bool VerifyShiftAndAddMultiplicationModuliwise();
     static bool VerifyShiftAndAddMultiplication();
 
     // Multiply two m-bit values using CRT and Garner's algorithm
@@ -193,7 +211,6 @@ public:
 //
 extern CFLOBDD FactorViaCRT(unsigned int v);
 
-
 // -----------------------------------------------------------------------------
 // ShiftAndAddMultiplicationModK
 //
@@ -213,6 +230,40 @@ extern CFLOBDD ShiftAndAddMultiplicationModK(unsigned int k);
 //   A bool indicating whether the result == the specification (i.e., 1 means "correct")
 // -----------------------------------------------------------------------------
 extern bool VerifyShiftAndAddMultiplicationModK(unsigned int k);
+
+// -----------------------------------------------------------------------------
+// VerifyShiftAndAddMultiplicationModuliwise
+//
+// Operation to check whether a shift-and-add multiplier produces the correct result
+//
+// Iterate through moduli, and check whether a shift-and-add multiplier produces
+// the correct result for all moduli
+// -----------------------------------------------------------------------------
+extern bool VerifyShiftAndAddMultiplicationModuliwise();
+
+// -----------------------------------------------------------------------------
+// SubtractiveKaratsubaOneLevel
+//
+// Create the CFLOBDD for the multiplication relation mod k by a one-level
+// subtractive Karatsuba multiplier produces
+// -----------------------------------------------------------------------------
+extern CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k);
+
+// -----------------------------------------------------------------------------
+// VerifySubtractiveKaratsubaOneLevel
+//
+// Check whether one level of a subtractive Karatsuba multiplier produces 
+// the correct result for input modulus k
+// -----------------------------------------------------------------------------
+extern bool VerifySubtractiveKaratsubaOneLevel(unsigned int k);
+
+// -----------------------------------------------------------------------------
+// VerifySubtractiveKaratsubaOneLevelModuliwise
+//
+// Iterate through moduli, and check whether a one-level Karatsuba multiplier produces
+// the correct result for all moduli
+// -----------------------------------------------------------------------------
+extern bool VerifySubtractiveKaratsubaOneLevelModuliwise();
 
 // Multiply two m-bit values using shift-and-add multiplication
 // Return the 2*m-bit product

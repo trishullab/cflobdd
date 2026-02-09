@@ -142,6 +142,18 @@ const unsigned int Moduli[numberOfOddPrimes] = {
 };
 
 // -----------------------------------------------------------------------------
+// PrintSize
+//
+// Utility procedure to print the number of groupings and edges
+// -----------------------------------------------------------------------------
+void PrintSize(CFLOBDD C) {
+    unsigned int nodeCount, edgeCount;
+    unsigned int returnEdgesCount, returnEdgesObjCount;
+    C.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
+    std::cout << nodeCount << ", " << edgeCount << std::endl;
+}
+
+// -----------------------------------------------------------------------------
 // ProtoCFLOBDDNumsModK
 //
 // Utility procedure for construction of a Grouping that represents numbers mod k.
@@ -242,6 +254,7 @@ CFLOBDDNodeHandle ProtoCFLOBDDNumsModK(unsigned int lev, unsigned int k) {
 // Construction of a CFLOBDD that represents numbers mod k (either in the
 // topmost Grouping's A-connection or B-connection, as specified by the
 // Position argument). (Figure 8 in the document)
+// Extended with AA, AB, BA, and BB positions to support Karatsuba multiplication
 // -----------------------------------------------------------------------------
 CFLOBDD NumsModK(unsigned int k, Position p) {
     // Document line [4]: assert(2 <= k && k <= maxModulus)
@@ -252,7 +265,14 @@ CFLOBDD NumsModK(unsigned int k, Position p) {
 
     // Document line [6]: assert(maxLevel >= logLogOfMaxModulus + 1)
     // Ensures that there are k exit vertices
-    assert(CFLOBDDMaxLevel >= logLogOfMaxModulus + 1);
+    // Changed to support Karatsuba multiplication: ensures that A, B, AA, AB, BA, and BB variants all have k exit vertices
+    assert(CFLOBDDMaxLevel - 2 >= logLogOfMaxModulus);
+
+    CFLOBDDReturnMapHandle IdReturnMap;
+    for (unsigned int i = 0; i < k; i++) {
+        IdReturnMap.AddToEnd(i);
+    }
+    IdReturnMap.Canonicalize();
 
     // Document line [7]: Create internal grouping at maxLevel
     CFLOBDDInternalNode* g = new CFLOBDDInternalNode(CFLOBDDMaxLevel);
@@ -265,13 +285,7 @@ CFLOBDD NumsModK(unsigned int k, Position p) {
 
         // Document line [10]: AReturnTuple = [1, ..., k]
         // 0-indexed: AReturnMap = {0, 1, ..., k-1}
-        CFLOBDDReturnMapHandle AReturnMap;
-        for (unsigned int i = 0; i < k; i++) {
-            AReturnMap.AddToEnd(i);
-        }
-        AReturnMap.Canonicalize();
-
-        g->AConnection = Connection(AConn, AReturnMap);
+        g->AConnection = Connection(AConn, IdReturnMap);
 
         // Document line [11]: numberOfBConnections = k
         g->numBConnections = k;
@@ -315,13 +329,147 @@ CFLOBDD NumsModK(unsigned int k, Position p) {
 
         // Document line [22]: BReturnTuples[1] = [1, ..., k]
         // 0-indexed: BReturnMap = {0, 1, ..., k-1}
-        CFLOBDDReturnMapHandle BReturnMap;
+        g->BConnection[0] = Connection(BConn, IdReturnMap);
+    }
+    else if (p == AA) {
+        // Create the AConnection, with ProtoCFLOBDDNumsModK in the AA position and NoDistinction in the AB positions
+        CFLOBDDInternalNode* gA = new CFLOBDDInternalNode(CFLOBDDMaxLevel-1);
+        CFLOBDDNodeHandle AAConn = ProtoCFLOBDDNumsModK(CFLOBDDMaxLevel - 2, k);
+        gA->AConnection = Connection(AAConn, IdReturnMap);
+        gA->numBConnections = k;
+        gA->BConnection = new Connection[k];
         for (unsigned int i = 0; i < k; i++) {
+            CFLOBDDReturnMapHandle BReturnMap;
             BReturnMap.AddToEnd(i);
-        }
-        BReturnMap.Canonicalize();
+            BReturnMap.Canonicalize();
 
-        g->BConnection[0] = Connection(BConn, BReturnMap);
+            gA->BConnection[i] = Connection(
+                CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 2],
+                BReturnMap
+            );
+        }       
+        gA->numExits = k;
+#ifdef PATH_COUNTING_ENABLED
+        gA->InstallPathCounts();
+#endif
+    	CFLOBDDNodeHandle AConn(gA);
+
+        g->AConnection = Connection(AConn, IdReturnMap);
+        g->numBConnections = k;
+        g->BConnection = new Connection[k];
+        for (unsigned int i = 0; i < k; i++) {
+            CFLOBDDReturnMapHandle BReturnMap;
+            BReturnMap.AddToEnd(i);
+            BReturnMap.Canonicalize();
+
+            g->BConnection[i] = Connection(
+                CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 1],
+                BReturnMap
+            );
+        }
+    }
+    else if (p == AB) {
+        // Create the AConnection, with NoDistinction in the AA position and ProtoCFLOBDDNumsModK in the AB position
+        CFLOBDDInternalNode* gA = new CFLOBDDInternalNode(CFLOBDDMaxLevel-1);
+
+        CFLOBDDReturnMapHandle AAReturnMap;
+        AAReturnMap.AddToEnd(0);
+        AAReturnMap.Canonicalize();
+
+        gA->AConnection = Connection(
+            CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 2],
+            AAReturnMap
+        );
+
+        gA->numBConnections = 1;
+        gA->BConnection = new Connection[1];
+        CFLOBDDNodeHandle ABConn = ProtoCFLOBDDNumsModK(CFLOBDDMaxLevel - 2, k);
+        gA->BConnection[0] = Connection(ABConn, IdReturnMap);
+        gA->numExits = k;
+#ifdef PATH_COUNTING_ENABLED
+        gA->InstallPathCounts();
+#endif
+    	CFLOBDDNodeHandle AConn(gA);
+
+        g->AConnection = Connection(AConn, IdReturnMap);
+        g->numBConnections = k;
+        g->BConnection = new Connection[k];
+         for (unsigned int i = 0; i < k; i++) {
+            CFLOBDDReturnMapHandle BReturnMap;
+            BReturnMap.AddToEnd(i);
+            BReturnMap.Canonicalize();
+
+            g->BConnection[i] = Connection(
+                CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 1],
+                BReturnMap
+            );
+        }
+    }
+    else if (p == BA) {
+        CFLOBDDReturnMapHandle AReturnMap;
+        AReturnMap.AddToEnd(0);
+        AReturnMap.Canonicalize();
+
+        g->AConnection = Connection(
+            CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 1],
+            AReturnMap
+        );
+        g->numBConnections = 1;
+        g->BConnection = new Connection[1];
+
+        // Create the BConnection, with ProtoCFLOBDDNumsModK in the BA position and NoDistinction in the BB position
+        CFLOBDDInternalNode* gB = new CFLOBDDInternalNode(CFLOBDDMaxLevel-1);
+        CFLOBDDNodeHandle BAConn = ProtoCFLOBDDNumsModK(CFLOBDDMaxLevel - 2, k);
+        gB->AConnection = Connection(BAConn, IdReturnMap);
+        gB->numBConnections = k;
+        gB->BConnection = new Connection[k];
+        for (unsigned int i = 0; i < k; i++) {
+            CFLOBDDReturnMapHandle BReturnMap;
+            BReturnMap.AddToEnd(i);
+            BReturnMap.Canonicalize();
+
+            gB->BConnection[i] = Connection(
+                CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 2],
+                BReturnMap
+            );
+        }       
+        gB->numExits = k;
+#ifdef PATH_COUNTING_ENABLED
+        gB->InstallPathCounts();
+#endif
+    	CFLOBDDNodeHandle BConn(gB);
+
+        g->BConnection[0] = Connection(BConn, IdReturnMap);
+    }
+    else if (p = BB) {
+        CFLOBDDReturnMapHandle AReturnMap;
+        AReturnMap.AddToEnd(0);
+        AReturnMap.Canonicalize();
+
+        g->AConnection = Connection(
+            CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 1],
+            AReturnMap
+        );
+        g->numBConnections = 1;
+        g->BConnection = new Connection[1];
+
+        // Create the BConnection, with NoDistinction in the BA position and ProtoCFLOBDDNumsModK in the BB position
+        CFLOBDDInternalNode* gB = new CFLOBDDInternalNode(CFLOBDDMaxLevel-1);
+        gB->AConnection = Connection(
+            CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 2],
+            AReturnMap
+        );
+        gB->numBConnections = 1;
+        gB->BConnection = new Connection[1];
+        CFLOBDDNodeHandle BBConn = ProtoCFLOBDDNumsModK(CFLOBDDMaxLevel - 2, k);
+        gB->BConnection[0] = Connection(BBConn, IdReturnMap);
+        gB->numExits = k;
+#ifdef PATH_COUNTING_ENABLED
+        gB->InstallPathCounts();
+#endif
+    	CFLOBDDNodeHandle BConn(gB);
+
+        g->BConnection[0] = Connection(BConn, IdReturnMap);
     }
 
     // Document line [24]: numberOfExits = k
@@ -395,7 +543,7 @@ MultRelation::MultRelation() {
     // Document line [32]: assert(n < 2^(2^(maxLevel-1)))
     // With 26 primes, product > 2^133, sufficient for 64-bit multiplication
     // Requires CFLOBDDMaxLevel >= 7
-    assert(CFLOBDDMaxLevel >= 9);  // TWR TEST
+    assert(CFLOBDDMaxLevel >= 8);  // BITWIDTH -- also change cflobdd_node.h
 
     // Document lines [33-35]: Build CFLOBDDs for each prime
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
@@ -513,19 +661,15 @@ CFLOBDD ShiftAndAddMultiplicationModK(unsigned int k) {
 // Operation to check whether a shift-and-add multiplier produces the correct result
 // -----------------------------------------------------------------------------
 bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
-  currentModulus = k;
-  CFLOBDD result = ShiftAndAddMultiplicationModK(k);
+    currentModulus = k;
+    CFLOBDD result = ShiftAndAddMultiplicationModK(k);
 
-  // Check whether result holds the correct value
-  CFLOBDD specification = MultModK(currentModulus);
-  std::cout << "Comparison of result with the specification of multiplication mod " << currentModulus << ": " << (result == specification) << std::endl;
+    // Check whether result holds the correct value
+    CFLOBDD specification = MultModK(currentModulus);
+    std::cout << "Comparison of result with the specification of multiplication mod " << currentModulus << ": " << (result == specification) << std::endl;
 
-  unsigned int nodeCount, edgeCount;
-  unsigned int returnEdgesCount, returnEdgesObjCount;
-  specification.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
-  std::cout << nodeCount << ", " << edgeCount << std::endl;
-  result.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
-  std::cout << nodeCount << ", " << edgeCount << std::endl;
+    PrintSize(specification);
+    PrintSize(result);
 
   	// Lookup a selection of products in specification and result
 	// Create assignments for 2*numBits variables from two values with numBits bits
@@ -556,21 +700,18 @@ bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
 // Iterate through moduli, and check whether a shift-and-add multiplier produces
 // the correct result for all moduli
 // -----------------------------------------------------------------------------
-bool MultRelation::VerifyShiftAndAddMultiplicationModuliwise() {
+bool VerifyShiftAndAddMultiplicationModuliwise() {
     // Emit the sizes of the CFLOBDDs in the specification 
-     std::cout << "Sizes of the specification's CFLOBDDs" << std::endl;
-    unsigned int nodeCount, edgeCount;
-    unsigned int returnEdgesCount, returnEdgesObjCount;
+    std::cout << "Sizes of the specification's CFLOBDDs" << std::endl;
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
         std::cout << "Size of the multiplication relation for the " << i+1 << "th odd prime: " << Moduli[i] << std::endl;
         CFLOBDD curSpec = MultModK(Moduli[i]);
-        curSpec.CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
-        std::cout << nodeCount << ", " << edgeCount << std::endl;
+        PrintSize(curSpec);
     }
  
     auto start = std::chrono::high_resolution_clock::now();
 
-    for (unsigned int i = 44; i < numberOfMultRelations; i++) {   // 44 is temporary
+    for (unsigned int i = 0; i < numberOfMultRelations; i++) {
         std::cout << "Testing multiplication modulo the " << i+1 << "th odd prime: " << Moduli[i] << std::endl;
         CFLOBDD curSpec = MultModK(Moduli[i]);
         CFLOBDD curShiftAndAddResult = ShiftAndAddMultiplicationModK(Moduli[i]);
@@ -587,41 +728,6 @@ bool MultRelation::VerifyShiftAndAddMultiplicationModuliwise() {
     std::cout << "VerifyShiftAndAddMultiplicationModuliwise took " << duration.count() << " ms" << std::endl;
 
     return true;
-
-    // // Create MultRelation
-    // MultRelation specification;
-
-    // MultRelation result;
-    // for (unsigned int i = 0; i < numberOfMultRelations; i++) {
-    //     std::cout << "ModularMultRelations[" << i << "]" << std::endl;
-    //     result.ModularMultRelations[i] = ShiftAndAddMultiplicationModK(result.ModuliArray[i]);
-    // }
-
-    // // Compare result and specification
-    // bool equal = (result == specification);
-    // std::cout << "MultRelation::VerifyShiftAndAddMultiplication: " << equal << std::endl;
-
-    // auto end = std::chrono::high_resolution_clock::now();
-    // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    // std::cout << "MultRelation::VerifyShiftAndAddMultiplication took " << duration.count() << " ms" << std::endl;
-
-    // // Emit the sizes of result.ModularMultRelations[]
-    // // If equal == false, emit the sizes of specification.ModularMultRelations[]
-    // unsigned int nodeCount, edgeCount;
-    // unsigned int returnEdgesCount, returnEdgesObjCount;
-    // for (unsigned int i = 0; i < numberOfMultRelations; i++) {
-    //     std::cout << "result.ModularMultRelations[" << i << "]: " << std::endl;
-    //     result.ModularMultRelations[i].CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
-    //     std::cout << nodeCount << ", " << edgeCount << std::endl;
-    //     if (!equal) {
-    //         std::cout << "specification.ModularMultRelations[" << i << "]: " << std::endl;
-    //         specification.ModularMultRelations[i].CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
-    //         std::cout << nodeCount << ", " << edgeCount << std::endl;
-    //     }
-    // }
-
-
-    // return equal;
 }
 
 // -----------------------------------------------------------------------------
@@ -652,22 +758,195 @@ bool MultRelation::VerifyShiftAndAddMultiplication() {
 
     // Emit the sizes of result.ModularMultRelations[]
     // If equal == false, emit the sizes of specification.ModularMultRelations[]
-    unsigned int nodeCount, edgeCount;
-    unsigned int returnEdgesCount, returnEdgesObjCount;
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
         std::cout << "result.ModularMultRelations[" << i << "]: " << std::endl;
-        result.ModularMultRelations[i].CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
-        std::cout << nodeCount << ", " << edgeCount << std::endl;
+        PrintSize(result.ModularMultRelations[i]);
         if (!equal) {
             std::cout << "specification.ModularMultRelations[" << i << "]: " << std::endl;
-            specification.ModularMultRelations[i].CountNodesAndEdges(nodeCount, edgeCount, returnEdgesCount, returnEdgesObjCount);
-            std::cout << nodeCount << ", " << edgeCount << std::endl;
+            PrintSize(specification.ModularMultRelations[i]);
         }
     }
 
-
     return equal;
 }
+
+int SubtractModKFunc(int a_val, int b_val) {
+    return (a_val + currentModulus - b_val) % currentModulus;
+}
+
+CFLOBDD SubtractViaTerminalNegation(CFLOBDD A, CFLOBDD B, unsigned int k) {
+    currentModulus = k;
+    return CFLOBDD(ApplyAndReduce<int>(A.root, B.root, SubtractModKFunc));
+}
+
+// -----------------------------------------------------------------------------
+// SubtractiveKaratsubaOneLevel
+//
+// Create the CFLOBDD for the multiplication relation mod k by a one-level
+// subtractive Karatsuba multiplier produces
+// -----------------------------------------------------------------------------
+CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k) {
+    unsigned int m = 1 << (CFLOBDDMaxLevel - 2);  // half of the number of bits in an input number
+
+    // Create constant CFLOBDDs for const_m = \x.2^m mod k and const_2m = \x.2^{2*m} mod k
+    // for multiplying a CFLOBDD by these powers of 2 mod k
+    unsigned int shift_m = 1;
+    for (unsigned int i = 0; i < m; i++) {
+        shift_m = (shift_m * 2) % k;
+    }
+    CFLOBDD const_m = MkConstantCFLOBDD(shift_m);
+    unsigned int shift_2m = (shift_m * shift_m) % k;
+    CFLOBDD const_2m = MkConstantCFLOBDD(shift_2m);
+    // std::cout << "shift_m = " << shift_m << "; shift_2m = " << shift_2m << std::endl;
+
+    // Create representations of the sets of half-size numbers
+    CFLOBDD X1 = NumsModK(k, AA);      // High bits of first input X
+    CFLOBDD X0 = NumsModK(k, AB);      // Low bits of first input X
+    CFLOBDD Y1 = NumsModK(k, BA);      // High bits of second input Y
+    CFLOBDD Y0 = NumsModK(k, BB);      // Low bits of second input Y
+
+// #define DebugSizes 1
+#ifdef DebugSizes
+    std::cout << "Sizes of X1, X0, Y1, and Y0" << std::endl;
+    PrintSize(X1);
+    PrintSize(X0);
+    PrintSize(Y1);
+    PrintSize(Y0);
+#endif
+
+#ifdef DebugArguments
+    // For debugging
+    CFLOBDD X = NumsModK(k, A);        // Set of all first inputs
+    CFLOBDD Y = NumsModK(k, B);        // Set of all second inputs
+    CFLOBDD X01 = CFLOBDD(ApplyAndReduce<int>(X1.root, const_m.root, MultiplyModKFunc));
+    X01 = CFLOBDD(ApplyAndReduce<int>(X01.root, X0.root, AddModKFunc));
+    CFLOBDD Y01 = CFLOBDD(ApplyAndReduce<int>(Y1.root, const_m.root, MultiplyModKFunc));
+    Y01 = CFLOBDD(ApplyAndReduce<int>(Y01.root, Y0.root, AddModKFunc)); 
+    std::cout << "X == X01: " << (X == X01) << std::endl;
+    std::cout << "Y == Y01: " << (Y == Y01) << std::endl;
+#endif
+    
+    // Compute three products: Z0 = X0 * Y0; Z2 = X1 * Y1; Z1 = (X1 - X0)(Y0 - Y1)
+    CFLOBDD X_diff = SubtractViaTerminalNegation(X1, X0, k);
+    CFLOBDD Y_diff = SubtractViaTerminalNegation(Y0, Y1, k);  // Y0 - Y1 !
+    currentModulus = k;
+    CFLOBDD Z0 = CFLOBDD(ApplyAndReduce<int>(X0.root, Y0.root, MultiplyModKFunc));
+    CFLOBDD Z2 = CFLOBDD(ApplyAndReduce<int>(X1.root, Y1.root, MultiplyModKFunc));
+    CFLOBDD Z1 = CFLOBDD(ApplyAndReduce<int>(X_diff.root, Y_diff.root, MultiplyModKFunc));
+
+#ifdef DebugSizes
+    std::cout << "Sizes of X_diff, Y_diff, Z0, Z2, Z1" << std::endl;
+    PrintSize(X_diff);
+    PrintSize(Y_diff);
+    PrintSize(Z0);
+    PrintSize(Z2);
+    PrintSize(Z1);
+#endif
+    
+    // Middle term: Z1 + Z2 + Z0
+    CFLOBDD middle = CFLOBDD(ApplyAndReduce<int>(Z1.root, Z2.root, AddModKFunc));
+#ifdef DebugSizes
+    std::cout << "Size of middle = Z1 + Z2" << std::endl;
+    PrintSize(middle);
+#endif
+    middle = CFLOBDD(ApplyAndReduce<int>(middle.root, Z0.root, AddModKFunc));
+#ifdef DebugSizes
+    std::cout << "Size of middle = Z1 + Z2 + Z0" << std::endl;
+    PrintSize(middle);
+#endif
+    
+    // Set karatsuba = Z2·2^(2m) + middle·2^m + Z0
+    CFLOBDD term_Z2 = CFLOBDD(ApplyAndReduce<int>(
+        Z2.root, const_2m.root, MultiplyModKFunc
+    ));
+#ifdef DebugSizes
+    std::cout << "Size of term_Z2 = Z2*2^(2m)" << std::endl;
+    PrintSize(term_Z2);
+#endif
+    CFLOBDD term_middle = CFLOBDD(ApplyAndReduce<int>(
+        middle.root, const_m.root, MultiplyModKFunc
+    ));
+#ifdef DebugSizes
+    std::cout << "Size of term_middle = middle*2^m" << std::endl;
+    PrintSize(term_middle);
+#endif
+    CFLOBDD karatsuba = CFLOBDD(ApplyAndReduce<int>(
+        term_Z2.root, term_middle.root, AddModKFunc
+    ));
+#ifdef DebugSizes
+    std::cout << "Size of karatsuba = Z2*2^(2m) + middle*2^m" << std::endl;
+    PrintSize(karatsuba);
+#endif
+    karatsuba = CFLOBDD(ApplyAndReduce<int>(
+        karatsuba.root, Z0.root, AddModKFunc
+    ));
+#ifdef DebugSizes
+    std::cout << "Size of karatsuba = Z2·2^(2m) + middle·2^m + Z0" << std::endl;
+    PrintSize(karatsuba);
+#endif
+
+    return karatsuba;    
+}
+
+// -----------------------------------------------------------------------------
+// VerifySubtractiveKaratsubaOneLevel
+//
+// Check whether one level of a subtractive Karatsuba multiplier produces 
+// the correct result for input modulus k
+// -----------------------------------------------------------------------------
+bool VerifySubtractiveKaratsubaOneLevel(unsigned int k) {
+    std::cout << "Verifying subtractive one-level Karatsuba mod " << k << " : ";
+  auto start = std::chrono::high_resolution_clock::now();
+
+    // Build specification
+    CFLOBDD spec = MultModK(k);
+
+    CFLOBDD karatsuba = SubtractiveKaratsubaOneLevel(k);
+    
+    // Compare spec and karatuba
+    bool passed = (spec == karatsuba);
+    
+    if (passed) {
+        std::cout << "  PASSED" << std::endl;
+    } else {
+        std::cout << "  FAILED" << std::endl;
+    }
+
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  std::cout << "VerifySubtractiveKaratsubaOneLevel took " << duration.count() << " ms" << std::endl;
+    
+    return passed;
+}
+
+// -----------------------------------------------------------------------------
+// VerifySubtractiveKaratsubaOneLevelModuliwise
+//
+// Iterate through moduli, and check whether a one-level Karatsuba multiplier produces
+// the correct result for all moduli
+// -----------------------------------------------------------------------------
+bool VerifySubtractiveKaratsubaOneLevelModuliwise() {
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for (int i = numberOfMultRelations-1; i >= 0; i--) {
+        std::cout << "Testing multiplication modulo the " << i+1 << "th odd prime: " << Moduli[i] << std::endl;
+        CFLOBDD curSpec = MultModK(Moduli[i]);
+        CFLOBDD curResult = SubtractiveKaratsubaOneLevel(Moduli[i]);
+        bool equal = (curSpec == curResult);
+        if (!equal) {
+            std::cout << "Failure" << std::endl;
+            return false;
+        }
+    }
+    std::cout << "Success" << std::endl;
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "VerifySubtractiveKaratsubaOneLevelModuliwise took " << duration.count() << " ms" << std::endl;
+
+    return true;    
+}
+
 
 // -----------------------------------------------------------------------------
 // Helper function: Extended Euclidean Algorithm for computing modular inverse

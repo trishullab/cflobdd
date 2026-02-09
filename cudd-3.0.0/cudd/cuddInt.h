@@ -108,7 +108,7 @@
 				     computed table if resizing enabled) */
 #define DD_STASH_FRACTION	64 /* 1 / (fraction of memory set
 				      aside for emergencies) */
-#define DD_MAX_CACHE_TO_SLOTS_RATIO 4 /* used to limit the cache size */
+#define DD_MAX_CACHE_TO_SLOTS_RATIO 1024 /* used to limit the cache size */
 
 /* Variable ordering default parameter values. */
 #define DD_SIFT_MAX_VAR		1000

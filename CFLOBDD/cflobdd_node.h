@@ -29,7 +29,7 @@
 
 
 // Configuration flags --------------------------------------------
-#define PATH_COUNTING_ENABLED 1
+// #define PATH_COUNTING_ENABLED 1
 
 namespace CFL_OBDD {
 
@@ -171,7 +171,7 @@ namespace CFL_OBDD {
 
 	// Note: If CFLOBDDMaxLevel >= 27, allocating an Assignment may cause
 	//       virtual memory to be exceeded.
-#define CFLOBDD_MAX_LEVEL 9
+#define CFLOBDD_MAX_LEVEL 8
 	unsigned int const CFLOBDDMaxLevel = CFLOBDD_MAX_LEVEL;
 
 	//********************************************************************

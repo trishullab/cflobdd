@@ -29,7 +29,7 @@
 
 
 // Configuration flags --------------------------------------------
-#define PATH_COUNTING_ENABLED 1
+// #define PATH_COUNTING_ENABLED 1
 
 namespace CFL_OBDD {
 

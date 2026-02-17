@@ -118,5 +118,6 @@ cflobdd2048: $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=2048 PROJECT=cflobdd2048.exe
 
 cflobdd4096: $(NUM_BITS_OBJS)
+	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=4096 PROJECT=cflobdd4096.exe
 

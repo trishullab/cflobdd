@@ -8,8 +8,7 @@
 
 const bool DEBUG_HASHSET = false;
 
-const unsigned int HASHSETBASE = 8388593;
-const int HASHSET_NUM_BUCKETS = 200000;
+const int HASHSET_NUM_BUCKETS = 2000000;
 
 // Implementation of Hashset template.
 // See hashset.h for documentation.
@@ -78,7 +77,7 @@ Hashset<ItemT> & Hashset<ItemT>::operator = (const Hashset & H)
 template<class ItemT>
 void Hashset<ItemT>::Insert(ItemT *item)
 {
-  unsigned int j = item->Hash(HASHSETBASE) % numBuckets;
+  unsigned int j = item->Hash() % numBuckets;
 
   if (DEBUG_HASHSET) {
     std::cerr << "hashcode: " << j << std::endl;
@@ -109,7 +108,7 @@ void Hashset<ItemT>::Insert(ItemT *item, unsigned int hash)
 template<class ItemT>
 bool Hashset<ItemT>::Delete(ItemT *item)
 {
-  unsigned int j = item->Hash(HASHSETBASE) % numBuckets;
+  unsigned int j = item->Hash() % numBuckets;
 
   (*myItems)[j].Reset();
   while (!(*myItems)[j].AtEnd()) {
@@ -131,7 +130,7 @@ bool Hashset<ItemT>::Delete(ItemT *item)
 template<class ItemT>
 bool Hashset<ItemT>::DeleteEq(ItemT *item)
 {
-  unsigned int j = item->Hash(HASHSETBASE) % numBuckets;
+  unsigned int j = item->Hash() % numBuckets;
 
   (*myItems)[j].Reset();
   while (!(*myItems)[j].AtEnd()) {
@@ -149,7 +148,7 @@ bool Hashset<ItemT>::DeleteEq(ItemT *item)
 // Size
 //   return the number of items currently in this table
 // **********************************************************************
-template<class ItemT> int Hashset<ItemT>::Size() const
+template<class ItemT> unsigned long Hashset<ItemT>::Size() const
 {
   return(mySize);
 }
@@ -164,7 +163,7 @@ template<class ItemT> int Hashset<ItemT>::Size() const
 template<class ItemT>
 ItemT *Hashset<ItemT>::Lookup(ItemT *item) const
 {
-  unsigned int j = item->Hash(HASHSETBASE) % numBuckets;
+  unsigned int j = item->Hash() % numBuckets;
 
   ListIterator<ItemT *> li((*myItems)[j]);
   li.Reset();
@@ -205,7 +204,7 @@ ItemT *Hashset<ItemT>::Lookup(ItemT *item, unsigned int hash) const
 template<class ItemT>
 unsigned int Hashset<ItemT>::GetHash(ItemT *item) const
 {
-	return item->Hash(HASHSETBASE);
+	return item->Hash() % numBuckets;
 }
 
 // **********************************************************************

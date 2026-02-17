@@ -319,9 +319,9 @@ CFLOBDDNodeHandle::~CFLOBDDNodeHandle()
 }
 
 // Hash
-unsigned int CFLOBDDNodeHandle::Hash(unsigned long modsize)
+size_t CFLOBDDNodeHandle::Hash()
 {
-  return ((unsigned int) reinterpret_cast<uintptr_t>(handleContents) >> 2) % modsize;
+  return reinterpret_cast<uintptr_t>(handleContents) >> PTR_ALIGN_SHIFT;
 }
 
 // Overloaded !=
@@ -389,9 +389,14 @@ void CFLOBDDNodeHandle::InitReduceCache()
 
 void CFLOBDDNodeHandle::DisposeOfReduceCache()
 {
-	//std::cout << "Reduce cache size: " << reduceCache->Size() << std::endl;
 	delete reduceCache;
 	reduceCache = NULL;
+}
+
+unsigned long CFLOBDDNodeHandle::ReduceCacheSize()
+{
+	if (reduceCache == NULL) return 0;
+	return reduceCache->Size();
 }
 
 // Canonicalization --------------------------------------------
@@ -1277,10 +1282,10 @@ CFLReduceKey::CFLReduceKey(CFLOBDDNodeHandle nodeHandle, ReductionMapHandle redM
 }
 
 // Hash
-unsigned int CFLReduceKey::Hash(unsigned long modsize)
+size_t CFLReduceKey::Hash()
 {
-  unsigned int hvalue = 0;
-  hvalue = (997 * nodeHandle.Hash(modsize) + redMapHandle.Hash(modsize)) % modsize;
+  size_t hvalue = 0;
+  hvalue = (997 * nodeHandle.Hash() + redMapHandle.Hash());
   return hvalue;
 }
 
@@ -1574,11 +1579,11 @@ CFLOBDDNodeHandle CFLOBDDInternalNode::Reduce(ReductionMapHandle& redMapHandle, 
   return CFLOBDDNodeHandle(n);
 } // CFLOBDDInternalNode::Reduce
 
-unsigned int CFLOBDDInternalNode::Hash(unsigned long modsize)
+size_t CFLOBDDInternalNode::Hash()
 {
-  unsigned int hvalue = AConnection.Hash(modsize);
+  size_t hvalue = AConnection.Hash();
   for (unsigned int j = 0; j < numBConnections; j++) {
-    hvalue = (997 * hvalue + BConnection[j].Hash(modsize)) % modsize;
+    hvalue = (997 * hvalue + BConnection[j].Hash());
   }
   return hvalue;
 }
@@ -1909,9 +1914,9 @@ CFLOBDDNodeHandle CFLOBDDForkNode::Reduce(ReductionMapHandle&, unsigned int repl
 	}
 }
 
-unsigned int CFLOBDDForkNode::Hash(unsigned long modsize)
+size_t CFLOBDDForkNode::Hash()
 {
-  return ((unsigned int)reinterpret_cast<uintptr_t>(this) >> 2) % modsize;
+  return reinterpret_cast<uintptr_t>(this) >> PTR_ALIGN_SHIFT;
 }
 
 // Overloaded !=
@@ -1983,9 +1988,9 @@ CFLOBDDNodeHandle CFLOBDDDontCareNode::Reduce(ReductionMapHandle&, unsigned int,
   return CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle;
 }
 
-unsigned int CFLOBDDDontCareNode::Hash(unsigned long modsize)
+size_t CFLOBDDDontCareNode::Hash()
 {
-  return ((unsigned int) reinterpret_cast<uintptr_t>(this) >> 2) % modsize;
+  return reinterpret_cast<uintptr_t>(this) >> PTR_ALIGN_SHIFT;
 }
 
 // Overloaded !=

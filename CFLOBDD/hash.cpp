@@ -8,8 +8,7 @@
 
 const bool DEBUG_HASH = false;
 
-static const unsigned int HASHBASE = 8388593;
-const int HASH_NUM_BUCKETS = 200000;
+const int HASH_NUM_BUCKETS = 2000000;
 
 // Implementation of Hashtable template.
 // See hash.h for documentation.
@@ -85,7 +84,7 @@ Hashtable<KeyT, ItemT> & Hashtable<KeyT, ItemT>::operator = (const Hashtable & H
 template<class KeyT, class ItemT>
 void Hashtable<KeyT, ItemT>::Insert(KeyT k, ItemT item)
 {
-  int j = k.Hash(HASHBASE) % numBuckets;
+  int j = k.Hash() % numBuckets;
   Pair<KeyT, ItemT> *p = new Pair<KeyT, ItemT>(k, item);
 
   if (DEBUG_HASH) {
@@ -100,7 +99,7 @@ void Hashtable<KeyT, ItemT>::Insert(KeyT k, ItemT item)
 // Size
 //   return the number of items currently in this table
 // **********************************************************************
-template<class KeyT, class ItemT> int Hashtable<KeyT, ItemT>::Size() const
+template<class KeyT, class ItemT> unsigned long Hashtable<KeyT, ItemT>::Size() const
 {
   return(mySize);
 }
@@ -112,7 +111,7 @@ template<class KeyT, class ItemT> int Hashtable<KeyT, ItemT>::Size() const
 template<class KeyT, class ItemT>
 bool Hashtable<KeyT, ItemT>::Lookup(KeyT k) const
 {
-  int j = k.Hash(HASHBASE) % numBuckets;
+  int j = k.Hash() % numBuckets;
   
   ListIterator<Pair<KeyT, ItemT> *> li((*myItems)[j]);
   li.Reset();
@@ -142,7 +141,7 @@ bool Hashtable<KeyT, ItemT>::Lookup(KeyT k) const
 template<class KeyT, class ItemT>
 bool Hashtable<KeyT, ItemT>::Fetch(KeyT k, ItemT &i) const
 {
-  int j = k.Hash(HASHBASE) % numBuckets;
+  int j = k.Hash() % numBuckets;
   
   ListIterator<Pair<KeyT, ItemT> *> li((*myItems)[j]);
   li.Reset();

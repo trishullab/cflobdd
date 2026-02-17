@@ -87,8 +87,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-build_triplet = x86_64-unknown-linux-gnu
-host_triplet = x86_64-unknown-linux-gnu
+build_triplet = x86_64-pc-mingw64
+host_triplet = x86_64-pc-mingw64
 #am__append_1 = dddmp/dddmp.h
 #am__append_2 = cplusplus/cuddObj.hh
 check_PROGRAMS = cudd/testcudd$(EXEEXT) cudd/testextra$(EXEEXT) \
@@ -104,8 +104,8 @@ am__append_3 = cudd/test_cudd.test \
 am__append_5 = dddmp/libdddmp.la
 #am__append_6 = $(cplusplus_sources)
 am__append_7 = cplusplus/libobj.la
-#am__append_8 = doc/cudd.pdf doc/cudd.aux doc/cudd.idx doc/cudd.ilg doc/cudd.ind \
-#  doc/cudd.log doc/cudd.out doc/cudd.toc
+am__append_8 = doc/cudd.pdf doc/cudd.aux doc/cudd.idx doc/cudd.ilg doc/cudd.ind \
+  doc/cudd.log doc/cudd.out doc/cudd.toc
 
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -707,9 +707,9 @@ am__set_TESTS_bases = \
 AM_TESTSUITE_SUMMARY_HEADER = ' for $(PACKAGE_STRING)'
 RECHECK_LOGS = $(TEST_LOGS)
 TEST_SUITE_LOG = test-suite.log
-TEST_EXTENSIONS =  .test
+TEST_EXTENSIONS = .exe .test
 am__test_logs1 = $(TESTS:=.log)
-am__test_logs2 = $(am__test_logs1:.log=.log)
+am__test_logs2 = $(am__test_logs1:.exe.log=.log)
 TEST_LOGS = $(am__test_logs2:.test.log=.log)
 TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
 	$(TEST_LOG_FLAGS)
@@ -768,14 +768,14 @@ distuninstallcheck_listfiles = find . -type f -print
 am__distuninstallcheck_listfiles = $(distuninstallcheck_listfiles) \
   | sed 's|^\./|$(prefix)/|' | grep -v '$(infodir)/dir$$'
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} '/home/ubuntu/Research/cudd-3.0.0/build-aux/missing' aclocal-1.16
+ACLOCAL = ${SHELL} '/c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd/cudd-3.0.0/build-aux/missing' aclocal-1.16
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
 AR = ar
 AS = as
-AUTOCONF = ${SHELL} '/home/ubuntu/Research/cudd-3.0.0/build-aux/missing' autoconf
-AUTOHEADER = ${SHELL} '/home/ubuntu/Research/cudd-3.0.0/build-aux/missing' autoheader
-AUTOMAKE = ${SHELL} '/home/ubuntu/Research/cudd-3.0.0/build-aux/missing' automake-1.16
+AUTOCONF = ${SHELL} '/c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd/cudd-3.0.0/build-aux/missing' autoconf
+AUTOHEADER = ${SHELL} '/c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd/cudd-3.0.0/build-aux/missing' autoheader
+AUTOMAKE = ${SHELL} '/c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd/cudd-3.0.0/build-aux/missing' automake-1.16
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -787,10 +787,10 @@ CXX = g++
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -Wall -Wextra -std=c++0x -g -O3
-CYGPATH_W = echo
+CYGPATH_W = cygpath -w
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
-DLLTOOL = false
+DLLTOOL = dlltool
 DOXYGEN = 
 DSYMUTIL = 
 DUMPBIN = 
@@ -799,7 +799,7 @@ ECHO_N = -n
 ECHO_T = 
 EGREP = /usr/bin/grep -E
 ETAGS = etags
-EXEEXT = 
+EXEEXT = .exe
 FGREP = /usr/bin/grep -F
 GREP = /usr/bin/grep
 INSTALL = /usr/bin/install -c
@@ -807,19 +807,19 @@ INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
-LD = /usr/bin/ld -m elf_x86_64
+LD = C:/msys64/ucrt64/x86_64-w64-mingw32/bin/ld.exe
 LDFLAGS = 
 LIBOBJS = 
-LIBS = -lm 
+LIBS = -lpsapi -lws2_32 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIPO = 
-LN_S = ln -s
+LN_S = cp -pR
 LTLIBOBJS = 
-MAKEINDEX = 
-MAKEINFO = ${SHELL} '/home/ubuntu/Research/cudd-3.0.0/build-aux/missing' makeinfo
+MAKEINDEX = makeindex
+MAKEINFO = ${SHELL} '/c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd/cudd-3.0.0/build-aux/missing' makeinfo
 MANIFEST_TOOL = :
 MKDIR_P = /usr/bin/mkdir -p
-NM = /usr/bin/nm -B
+NM = /c/msys64/ucrt64/bin/nm -B
 NMEDIT = 
 OBJDUMP = objdump
 OBJEXT = o
@@ -833,17 +833,17 @@ PACKAGE_TARNAME = cudd
 PACKAGE_URL = 
 PACKAGE_VERSION = 3.0.0
 PATH_SEPARATOR = :
-PDFLATEX = 
+PDFLATEX = pdflatex
 RANLIB = ranlib
 SED = /usr/bin/sed
 SET_MAKE = 
-SHELL = /bin/bash
+SHELL = /bin/sh
 STRIP = strip
 VERSION = 3.0.0
-abs_builddir = /home/ubuntu/Research/cudd-3.0.0
-abs_srcdir = /home/ubuntu/Research/cudd-3.0.0
-abs_top_builddir = /home/ubuntu/Research/cudd-3.0.0
-abs_top_srcdir = /home/ubuntu/Research/cudd-3.0.0
+abs_builddir = /c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd/cudd-3.0.0
+abs_srcdir = /c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd/cudd-3.0.0
+abs_top_builddir = /c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd/cudd-3.0.0
+abs_top_srcdir = /c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd/cudd-3.0.0
 ac_ct_AR = ar
 ac_ct_CC = gcc
 ac_ct_CXX = g++
@@ -854,26 +854,26 @@ am__quote =
 am__tar = $${TAR-tar} chof - "$$tardir"
 am__untar = $${TAR-tar} xf -
 bindir = ${exec_prefix}/bin
-build = x86_64-unknown-linux-gnu
+build = x86_64-pc-mingw64
 build_alias = 
 build_cpu = x86_64
-build_os = linux-gnu
-build_vendor = unknown
+build_os = mingw64
+build_vendor = pc
 builddir = .
 datadir = ${datarootdir}
 datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
-host = x86_64-unknown-linux-gnu
+host = x86_64-pc-mingw64
 host_alias = 
 host_cpu = x86_64
-host_os = linux-gnu
-host_vendor = unknown
+host_os = mingw64
+host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/ubuntu/Research/cudd-3.0.0/build-aux/install-sh
+install_sh = ${SHELL} /c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd/cudd-3.0.0/build-aux/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -990,7 +990,7 @@ cudd_testcudd_LDADD = cudd/libcudd.la
 cudd_testextra_SOURCES = cudd/testextra.c
 cudd_testextra_CPPFLAGS = $(cudd_libcudd_la_CPPFLAGS)
 cudd_testextra_LDADD = cudd/libcudd.la
-##cudd_libcudd_la_LIBADD = -lws2_32 -lpsapi
+#cudd_libcudd_la_LIBADD = -lws2_32 -lpsapi
 st_testst_SOURCES = st/testst.c
 st_testst_CPPFLAGS = $(cudd_libcudd_la_CPPFLAGS)
 st_testst_LDADD = cudd/libcudd.la
@@ -1099,8 +1099,8 @@ distclean-hdr:
 	-rm -f config.h stamp-h1
 #Doxyfile: $(top_builddir)/config.status $(srcdir)/Doxyfile.in
 #	cd $(top_builddir) && $(SHELL) ./config.status $@
-#doc/cudd.tex: $(top_builddir)/config.status $(top_srcdir)/doc/cudd.tex.in
-#	cd $(top_builddir) && $(SHELL) ./config.status $@
+doc/cudd.tex: $(top_builddir)/config.status $(top_srcdir)/doc/cudd.tex.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
 dddmp/exp/test1.sh: $(top_builddir)/config.status $(top_srcdir)/dddmp/exp/test1.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 dddmp/exp/test2.sh: $(top_builddir)/config.status $(top_srcdir)/dddmp/exp/test2.sh.in
@@ -2893,13 +2893,13 @@ recheck: all $(check_PROGRAMS) $(check_SCRIPTS) $(dist_check_DATA)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-#.test$(EXEEXT).log:
-#	@p='$<'; \
-#	$(am__set_b); \
-#	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
-#	--log-file $$b.log --trs-file $$b.trs \
-#	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
-#	"$$tst" $(AM_TESTS_FD_REDIRECT)
+.test$(EXEEXT).log:
+	@p='$<'; \
+	$(am__set_b); \
+	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 distdir: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) distdir-am
 
@@ -3500,14 +3500,14 @@ nanotrav/test_ntrv.test: nanotrav/test_ntrv.test.in Makefile
 	$(do_subst) $< > $@
 	chmod +x $@
 
-#doc/cudd.pdf: doc/cudd.tex $(top_srcdir)/doc/phase.pdf
-#	@if $(AM_V_P); then dest='2>&1'; else dest='> /dev/null 2>&1'; fi; \
-#	cd doc && eval "$(PDFLATEX) cudd $${dest}" && \
-#	eval "$(MAKEINDEX) cudd $${dest}" && \
-#	eval "$(PDFLATEX) cudd $${dest}" && \
-#	eval "$(PDFLATEX) cudd $${dest}"
+doc/cudd.pdf: doc/cudd.tex $(top_srcdir)/doc/phase.pdf
+	@if $(AM_V_P); then dest='2>&1'; else dest='> /dev/null 2>&1'; fi; \
+	cd doc && eval "$(PDFLATEX) cudd $${dest}" && \
+	eval "$(MAKEINDEX) cudd $${dest}" && \
+	eval "$(PDFLATEX) cudd $${dest}" && \
+	eval "$(PDFLATEX) cudd $${dest}"
 
-doc/cudd.pdf:
+#doc/cudd.pdf:
 
 dist-hook:
 	rm -rf `find $(distdir) -name .svn`

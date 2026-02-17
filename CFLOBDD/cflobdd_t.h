@@ -63,7 +63,7 @@ class CFLOBDD_T {
 #endif
   bool FindOneSatisfyingAssignment(SH_OBDD::Assignment * &assignment);
                                                 // Find a satisfying assignment
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   bool operator!= (const CFLOBDD_T & C) const;          // Overloaded !=
   bool operator== (const CFLOBDD_T & C) const;          // Overloaded ==
   CFLOBDD_T& operator= (const CFLOBDD_T &c);       // assignment
@@ -186,9 +186,9 @@ bool CFLOBDD_T<T>::FindOneSatisfyingAssignment(SH_OBDD::Assignment * &assignment
 
 // Hash
 template<typename T>
-unsigned int CFLOBDD_T<T>::Hash(unsigned long modsize)
+size_t CFLOBDD_T<T>::Hash()
 {
-	return root->Hash(modsize);
+	return root->Hash();
 }
 
 // Count Nodes

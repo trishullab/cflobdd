@@ -38,7 +38,7 @@ class WeightedCFLOBDDTopNodeT {
   //mpz_class NumSatisfyingAssignments();
 #endif
   bool FindOneSatisfyingAssignment(SH_OBDD::Assignment * &assignment);
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   void DumpConnections(Hashset<WeightedCFLOBDDNodeHandleT<T, Op>> *visited, std::ostream & out = std::cout);
   void CountNodesAndEdges(Hashset<WeightedCFLOBDDNodeHandleT<T, Op>> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount, unsigned int &returnEdgesObjCount);

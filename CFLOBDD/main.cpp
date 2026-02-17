@@ -28,6 +28,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 #include "tests_cfl.h"
 #include <iomanip>
 #define _CRTDBG_MAP_ALLOC
@@ -37,24 +38,31 @@ static long seed_value = 27;
 
 int main(int argc, char * argv[])
 {
+	// Parse flags (--verbose / -v) and collect positional arguments
+	std::vector<std::string> posArgs;
+	for (int i = 1; i < argc; i++) {
+		std::string arg = argv[i];
+		if (arg == "--verbose" || arg == "-v") {
+			CFL_OBDD::CFLTests::verbose = true;
+		} else {
+			posArgs.push_back(arg);
+		}
+	}
 
 	// Supply a default argument for when invoking from Windows (e.g., for debugging)
-	if (argc == 1) {
-		std::string default_string = "And";
-		CFL_OBDD::CFLTests::runTests(default_string.c_str());
+	if (posArgs.empty()) {
+		CFL_OBDD::CFLTests::runTests("And");
 	}
-	else {
-		if (argc == 3){
-			CFL_OBDD::CFLTests::runTests(argv[1], atoi(argv[2]));
-        }
-        else if (argc == 4) {
-            CFL_OBDD::CFLTests::runTests(argv[1], atoi(argv[2]), atoi(argv[3]));
-        }
-		else if (argc == 5) {
-            CFL_OBDD::CFLTests::runTests(argv[1], atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
-        } 
-		else{
-			CFL_OBDD::CFLTests::runTests(argv[1]);
-		}
+	else if (posArgs.size() == 1) {
+		CFL_OBDD::CFLTests::runTests(posArgs[0].c_str());
+	}
+	else if (posArgs.size() == 2) {
+		CFL_OBDD::CFLTests::runTests(posArgs[0].c_str(), atoi(posArgs[1].c_str()));
+	}
+	else if (posArgs.size() == 3) {
+		CFL_OBDD::CFLTests::runTests(posArgs[0].c_str(), atoi(posArgs[1].c_str()), atoi(posArgs[2].c_str()));
+	}
+	else if (posArgs.size() >= 4) {
+		CFL_OBDD::CFLTests::runTests(posArgs[0].c_str(), atoi(posArgs[1].c_str()), atoi(posArgs[2].c_str()), atoi(posArgs[3].c_str()));
 	}
 }

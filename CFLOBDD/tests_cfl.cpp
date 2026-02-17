@@ -31,6 +31,7 @@
 #include "matmult_map.h"
 // #include "matrix1234_node.h"
 #include "matrix1234_int.h"
+#ifdef WCFLOBDD_SUPPORTED
 #include "wmatrix1234_fb_mul.h"
 #include "weighted_cross_product.h"
 #include "wvector_fb_mul.h"
@@ -41,10 +42,15 @@
 #include "weighted_bdd_node_t.h"
 #include "weighted_cross_product_bdd.h"
 #include "wvector_complex_fb_mul_bdd_node.h"
+#endif
 #include "multiplication_crt.h"
 using namespace CFL_OBDD;
 using namespace SH_OBDD;
 using namespace std::chrono;
+
+// Verbose flag: controls printing of intermediate structure sizes and
+// cache diagnostics.  Set via --verbose / -v on the command line.
+bool CFLTests::verbose = false;
 
 void CFLTests::testTopNodes(){
 	std::cout << "Test of TopNodes --------------------------------------" << std::endl;
@@ -1329,6 +1335,7 @@ void CFLTests::testMatMul(int p)
 			<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
 }
 
+#ifdef WCFLOBDD_SUPPORTED
 void CFLTests::testWeightedOps(unsigned int level)
 {
 	int cflobdd_kind = 1;
@@ -1866,6 +1873,7 @@ void CFLTests::testSynBenchmark7_CFLOBDD(int size)
 	ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
 	std::cout << "Duration: " << duration.count() << " Memory: " << (nodeCount + edgeCount) << std::endl;
 }
+#endif // WCFLOBDD_SUPPORTED
 
 void CFLTests::InitModules()
 {
@@ -1878,10 +1886,11 @@ void CFLTests::InitModules()
 	Matrix1234Int::Matrix1234Initializer();
 	VectorFloatBoost::VectorInitializer();
 
+#ifdef WCFLOBDD_SUPPORTED
 	// typedef double BIG_FLOAT;
 	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitNoDistinctionTable();
 	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitNoDistinctionTable_Ann();
-	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitIdentityNodeTable();	
+	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitIdentityNodeTable();
 	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitReduceCache();
 	WeightedMatrix1234FloatBoostMul::Matrix1234Initializer();
 	WeightedVectorFloatBoostMul::VectorInitializer();
@@ -1889,7 +1898,7 @@ void CFLTests::InitModules()
 
 	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitNoDistinctionTable();
 	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitNoDistinctionTable_Ann();
-	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitIdentityNodeTable();	
+	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitIdentityNodeTable();
 	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitReduceCache();
 	WeightedMatrix1234ComplexFloatBoostMul::Matrix1234Initializer();
 	WeightedVectorComplexFloatBoostMul::VectorInitializer();
@@ -1897,7 +1906,7 @@ void CFLTests::InitModules()
 
 	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitNoDistinctionTable();
 	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitNoDistinctionTable_Ann();
-	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitIdentityNodeTable();	
+	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitIdentityNodeTable();
 	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitReduceCache();
 	WeightedMatrix1234FourierMul::Matrix1234Initializer();
 	WeightedVectorFourierMul::VectorInitializer();
@@ -1905,6 +1914,7 @@ void CFLTests::InitModules()
 
 	WeightedBDDNodeHandle<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitLeafNodes();
 	InitWeightedBDDPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
+#endif
 }
 
 void CFLTests::ClearModules()
@@ -1912,189 +1922,13 @@ void CFLTests::ClearModules()
 	DisposeOfTripleProductCache();
 	DisposeOfPairProductCache();
 	CFLOBDDNodeHandle::DisposeOfReduceCache();
+#ifdef WCFLOBDD_SUPPORTED
 	DisposeOfWeightedPairProductCache<BIG_FLOAT, std::multiplies<BIG_FLOAT>>();
 	DisposeOfWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
 	DisposeOfWeightedPairProductCache<fourierSemiring, std::multiplies<fourierSemiring>>();
 
 	DisposeOfWeightedBDDPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
-}
-
-// -----------------------------------------------------------------------------
-// Test for Multiplication via Chinese Remainder Theorem
-// -----------------------------------------------------------------------------
-void CFLTests::testMultiplicationCRT()
-{
-	// std::cout << "Testing Multiplication via CRT ------------" << std::endl;
-
-#ifdef MultCRT_NumsModK_SmallModuli
-	// Test NumsModK for small modulus
-	std::cout << "Testing NumsModK..." << std::endl;
-	CFLOBDD numsModA5 = NumsModK(5, A);
-	std::cout << "NumsModK(5, A) created successfully" << std::endl;
-
-	CFLOBDD numsModB5 = NumsModK(5, B);
-	std::cout << "NumsModK(5, B) created successfully" << std::endl;
-
-	// Lookup the first 20 values in numsModA5 and numsModB5
-	// Create assignments for 128 variables from a 64-bit value
-	INPUT_TYPE junk = 0x123456789ABCDEF0ULL;
-	for(INPUT_TYPE i = 0; i < 20; i++) {
-		// Create two 2*m-bit assignments:
-		//   a with the intended value in the A position
-		//   b with the intended value in the B position
-		SH_OBDD::Assignment a(2*MultRelation::numBits);
-		SH_OBDD::Assignment b(2*MultRelation::numBits);
-		// Most significant bit first (high-order to low-order as in the CRT document)
-		for (unsigned int j = 0; j < MultRelation::numBits; j++) {
-			a[j] = static_cast<int>((i >> (MultRelation::numBits - 1 - j)) & 1);
-			b[j] = static_cast<int>((junk >> (MultRelation::numBits - 1 - j)) & 1);  // junk
-		}
-		for (unsigned int j = 0; j < MultRelation::numBits; j++) {
-			a[MultRelation::numBits+j] = static_cast<int>((junk >> (MultRelation::numBits - 1 - j)) & 1);  // junk
-			b[MultRelation::numBits+j] = static_cast<int>((i >> (MultRelation::numBits - 1 - j)) & 1);
-		}
-		// std::cout << "a: ";  a.print(std::cout);  std::cout << std::endl;
-		int a_result = numsModA5.root->Evaluate(a);
-		std::cout << "a_result: " << a_result << std::endl;
-		// std::cout << "b: ";  b.print(std::cout);  std::cout << std::endl;
-		int b_result = numsModB5.root->Evaluate(b);
-		std::cout << "b_result: " << b_result << std::endl;
-	}
-    std::cout << std:: endl;
 #endif
-
-#ifdef MultCRT_MultModK_SmallModuli
-	// Test MultModK for small modulus
-	std::cout << "Testing MultModK..." << std::endl;
-	CFLOBDD multMod5 = MultModK(5);
-	std::cout << "MultModK(5) created successfully" << std::endl;
-
-	CFLOBDD multMod7 = MultModK(7);
-	std::cout << "MultModK(7) created successfully" << std::endl;
-
-	// Lookup a selection of products in multMod5 and multMod7
-	// Create assignments for 128 variables from two 64-bit values
-	for(INPUT_TYPE i = 18; i < 20; i++) {
-		for(INPUT_TYPE k = 20; k < 24; k++) {
-			// Create a 2*m-bit assignment with i in the A position and k in the B position
-			SH_OBDD::Assignment a(2*MultRelation::numBits);
-			// Most significant bit first (high-order to low-order as in the CRT document)
-			for (unsigned int j = 0; j < MultRelation::numBits; j++) {
-				a[j] = static_cast<int>((i >> (MultRelation::numBits - 1 - j)) & 1);
-				a[MultRelation::numBits+j] = static_cast<int>((k >> (MultRelation::numBits - 1 - j)) & 1);
-			}
-			// std::cout << "a: ";  a.print(std::cout);  std::cout << std::endl;
-			int a_result = multMod5.root->Evaluate(a);
-			std::cout << i << " * " << k << " mod 5 = " << a_result << " Expected: " << i*k % 5 << std::endl;
-			a_result = multMod7.root->Evaluate(a);
-			std::cout << i << " * " << k << " mod 7 = " << a_result << " Expected: " << i*k % 7  << std::endl;
-		}
-	}
-    std::cout << std:: endl;
-#endif
-
-#ifdef MultCRT_MultRelation_SeveralProducts
-	// Test MultRelation
-	std::cout << "Testing MultRelation..." << std::endl;
-	// Lookup a selection of products in a MultRelation
-	{
-	    // Create MultRelation
-		MultRelation R;
-		for(INPUT_TYPE i = 18; i < 20; i++) {
-			for(INPUT_TYPE k = 20; k < 24; k++) {
-				// Create a 2*m-bit assignment with i in the A position and k in the B position
-				SH_OBDD::Assignment a(2*MultRelation::numBits);
-				// Most significant bit first (high-order to low-order as in the CRT document)
-				for (unsigned int j = 0; j < MultRelation::numBits; j++) {
-					a[j] = static_cast<int>((i >> (MultRelation::numBits - 1 - j)) & 1);
-					a[MultRelation::numBits+j] = static_cast<int>((k >> (MultRelation::numBits - 1 - j)) & 1);
-				}
-				for (unsigned int m = 0; m < numberOfMultRelations; m++) {
-					// std::cout << "a: ";  a.print(std::cout);  std::cout << std::endl;
-					int a_result = R.ModularMultRelations[m].root->Evaluate(a);
-					std::cout << i << " * " << k << " mod " << R.ModuliArray[m] << " = " << a_result << " Expected: " << i*k % R.ModuliArray[m] << std::endl;
-				}
-			}
-		}
-		std::cout << std:: endl;
-    }
-#endif
-
-#ifdef MultCRT_MultRelation_OneLargeProduct
-	{
-	    // Create MultRelation
-		MultRelation R;
-
-		// Test MultRelation::Multiply()
-		std::cout << "Testing MultRelation::Multiply()" << std::endl;
-		OUTPUT_TYPE answer = R.Multiply(INPUT_TYPE(5000000000), INPUT_TYPE(6000000000));
-		OUTPUT_TYPE expected = ShiftAndAddMultiplication(INPUT_TYPE(5000000000), INPUT_TYPE(6000000000));
-		std::cout << "answer = " << answer << "; expected: " << expected << std::endl;
-		std::cout << std:: endl;
-	}
-#endif
-
-#ifdef MultCRT_FactorViaCRT
-	// Test FactorViaCRT for some simple cases
-	std::cout << "Testing FactorViaCRT..." << std::endl;
-
-	// Test factoring 6 = 2 * 3
-	std::cout << "Factoring 6..." << std::endl;
-	CFLOBDD factors6 = FactorViaCRT(6);
-	std::cout << "FactorViaCRT(6) created successfully" << std::endl;
-
-	// Test factoring 15 = 3 * 5
-	std::cout << "Factoring 15..." << std::endl;
-	CFLOBDD factors15 = FactorViaCRT(15);
-	std::cout << "FactorViaCRT(15) created successfully" << std::endl;
-
-	// Test factoring a prime (7 = 1 * 7 or 7 * 1 only)
-	std::cout << "Factoring 7 (prime)..." << std::endl;
-	CFLOBDD factors7 = FactorViaCRT(7);
-	std::cout << "FactorViaCRT(7) created successfully" << std::endl;
-	std::cout << std:: endl;
-#endif
-
-#ifdef MultCRT_VerifyShiftAndAddMultiplicationModK
-	// Test VerifyShiftAndAddMultiplicationModK
-	std::cout << "Testing VerifyShiftAndAddMultiplicationModK for 5" << std::endl;
-	VerifyShiftAndAddMultiplicationModK(5);
-	std::cout << std:: endl;
-	std::cout << "Testing VerifyShiftAndAddMultiplicationModK for 7" << std::endl;
-	VerifyShiftAndAddMultiplicationModK(7);
-	std::cout << std:: endl;
-#endif
-
-#ifdef MultCRT_VerifyShiftAndAddMultiplication
-	// Test VerifyShiftAndAddMultiplication
-	std::cout << "Testing VerifyShiftAndAddMultiplication" << std::endl;
-	MultRelation::VerifyShiftAndAddMultiplication();
-#endif
-
-// #define MultCRT_VerifyShiftAndAddMultiplicationModuliwise 1
-#ifdef MultCRT_VerifyShiftAndAddMultiplicationModuliwise
-	// Test VerifyShiftAndAddMultiplicationModuliwise
-	std::cout << "Testing VerifyShiftAndAddMultiplicationModuliwise" << std::endl;
-	VerifyShiftAndAddMultiplicationModuliwise();
-#endif
-
-#define MultCRT_VerifySubtractiveKaratsubaOneLevel 1
-#ifdef MultCRT_VerifySubtractiveKaratsubaOneLevel
-	// Test VerifySubtractiveKaratsubaOneLevel
-	std::cout << "Testing VerifySubtractiveKaratsubaOneLevel(197)" << std::endl;
-	VerifySubtractiveKaratsubaOneLevel(197);
-	// std::cout << "Testing VerifySubtractiveKaratsubaOneLevel(383)" << std::endl;
-	// VerifySubtractiveKaratsubaOneLevel(383);
-#endif
-
-// #define MultCRT_VerifySubtractiveKaratsubaOneLevelModuliwise 1
-#ifdef MultCRT_VerifySubtractiveKaratsubaOneLevelModuliwise
-	// Test VerifySubtractiveKaratsubaOneLevelModuliwise
-	std::cout << "Testing VerifySubtractiveKaratsubaOneLevelModuliwise" << std::endl;
-	VerifySubtractiveKaratsubaOneLevelModuliwise();
-#endif
-
-	std::cout << "Multiplication via CRT tests completed." << std::endl;
 }
 
 bool CFLTests::runTests(const char *arg, int size, int seed, int a){
@@ -2178,6 +2012,7 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 		CFLTests::testMatMul(size);
 	} else if (curTest == "testQFT") {
 		CFLTests::testQFT(size, seed);
+#ifdef WCFLOBDD_SUPPORTED
 	} else if (curTest == "testWeightedOps") {
 		CFLTests::testWeightedOps(size);
 	} else if (curTest == "testGHZAlgo_W") {
@@ -2220,15 +2055,104 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 		CFLTests::testSynBenchmark6_CFLOBDD(size);
 	} else if (curTest == "testSyn7_CFL") {
 		CFLTests::testSynBenchmark7_CFLOBDD(size);
-	} else if (curTest == "MultiplicationCRT") {
-		CFLTests::testMultiplicationCRT();
+#endif
+	} else if (curTest == "NumsModK") {
+		// Test NumsModK for small modulus
+		std::cout << "Testing NumsModK..." << std::endl;
+		CFLOBDD numsModA5 = NumsModK(5, A);
+		std::cout << "NumsModK(5, A) created successfully" << std::endl;
+		CFLOBDD numsModB5 = NumsModK(5, B);
+		std::cout << "NumsModK(5, B) created successfully" << std::endl;
+		INPUT_TYPE junk = INPUT_TYPE(0x123456789ABCDEF0ULL);
+		for(INPUT_TYPE i = 0; i < 20; i++) {
+			SH_OBDD::Assignment a = MultRelation::MakeAssignment(i, junk);
+			SH_OBDD::Assignment b = MultRelation::MakeAssignment(junk, i);
+			int a_result = numsModA5.root->Evaluate(a);
+			std::cout << "a_result: " << a_result << std::endl;
+			int b_result = numsModB5.root->Evaluate(b);
+			std::cout << "b_result: " << b_result << std::endl;
+		}
+	} else if (curTest == "MultModK") {
+		// Test MultModK for small modulus
+		std::cout << "Testing MultModK..." << std::endl;
+		CFLOBDD multMod5 = MultModK(5);
+		std::cout << "MultModK(5) created successfully" << std::endl;
+		CFLOBDD multMod7 = MultModK(7);
+		std::cout << "MultModK(7) created successfully" << std::endl;
+		for(INPUT_TYPE i = 18; i < 20; i++) {
+			for(INPUT_TYPE k = 20; k < 24; k++) {
+				SH_OBDD::Assignment a = MultRelation::MakeAssignment(i, k);
+				int a_result = multMod5.root->Evaluate(a);
+				std::cout << i << " * " << k << " mod 5 = " << a_result << " Expected: " << i*k % 5 << std::endl;
+				a_result = multMod7.root->Evaluate(a);
+				std::cout << i << " * " << k << " mod 7 = " << a_result << " Expected: " << i*k % 7  << std::endl;
+			}
+		}
+	} else if (curTest == "MultRelation") {
+		// Test MultRelation: lookup a selection of products
+		std::cout << "Testing MultRelation..." << std::endl;
+		MultRelation R;
+		for(INPUT_TYPE i = 18; i < 20; i++) {
+			for(INPUT_TYPE k = 20; k < 24; k++) {
+				SH_OBDD::Assignment a = MultRelation::MakeAssignment(i, k);
+				for (unsigned int m = 0; m < numberOfMultRelations; m++) {
+					int a_result = R.ModularMultRelations[m].root->Evaluate(a);
+					std::cout << i << " * " << k << " mod " << R.ModuliArray[m] << " = " << a_result << " Expected: " << i*k % R.ModuliArray[m] << std::endl;
+				}
+			}
+		}
+	} else if (curTest == "crt-multiply") {
+		// Test MultRelation::Multiply()
+		MultRelation R;
+		std::cout << "Testing MultRelation::Multiply()" << std::endl;
+		OUTPUT_TYPE answer = R.Multiply(INPUT_TYPE(5000000000), INPUT_TYPE(6000000000));
+		OUTPUT_TYPE expected = ShiftAndAddMultiplication(INPUT_TYPE(5000000000), INPUT_TYPE(6000000000));
+		std::cout << "answer = " << answer << "; expected: " << expected << std::endl;
+	} else if (curTest == "factor") {
+		// Test FactorViaCRT for some simple cases
+		std::cout << "Testing FactorViaCRT..." << std::endl;
+		std::cout << "Factoring 6..." << std::endl;
+		CFLOBDD factors6 = FactorViaCRT(6);
+		std::cout << "FactorViaCRT(6) created successfully" << std::endl;
+		std::cout << "Factoring 15..." << std::endl;
+		CFLOBDD factors15 = FactorViaCRT(15);
+		std::cout << "FactorViaCRT(15) created successfully" << std::endl;
+		std::cout << "Factoring 7 (prime)..." << std::endl;
+		CFLOBDD factors7 = FactorViaCRT(7);
+		std::cout << "FactorViaCRT(7) created successfully" << std::endl;
+	} else if (curTest == "shiftadd") {
+		// Test VerifyShiftAndAddMultiplicationModK for a single modulus
+		unsigned int k = (size > 0) ? size : 5;
+		std::cout << "Testing VerifyShiftAndAddMultiplicationModK for " << k << std::endl;
+		VerifyShiftAndAddMultiplicationModK(k);
+	} else if (curTest == "shiftadd-all") {
+		// Test VerifyShiftAndAddMultiplicationModuliwise
+		std::cout << "Testing VerifyShiftAndAddMultiplicationModuliwise" << std::endl;
+		VerifyShiftAndAddMultiplicationModuliwise();
+	} else if (curTest == "verify-shiftadd") {
+		// Test VerifyShiftAndAddMultiplication (MultRelation-based)
+		std::cout << "Testing VerifyShiftAndAddMultiplication" << std::endl;
+		MultRelation::VerifyShiftAndAddMultiplication();
+	} else if (curTest == "karatsuba") {
+		// Test VerifySubtractiveKaratsubaOneLevel for a single modulus
+		unsigned int k = Moduli[numberOfMultRelations-1];
+		std::cout << "Testing VerifySubtractiveKaratsubaOneLevel(" << k << ")" << std::endl;
+		VerifySubtractiveKaratsubaOneLevel(k);
+	} else if (curTest == "karatsuba-all") {
+		// Test VerifySubtractiveKaratsubaOneLevelModuliwise
+		std::cout << "Testing VerifySubtractiveKaratsubaOneLevelModuliwise" << std::endl;
+		VerifySubtractiveKaratsubaOneLevelModuliwise();
 	}
 	else {
 		std::cout << "Unrecognized test name: " << curTest << std::endl;
 	}
 
+	// Print cache sizes
+	std::cout << "reduceCache size: " << CFLOBDDNodeHandle::ReduceCacheSize() << std::endl;
+	std::cout << "pairProductCache size: " << PairProductCacheSize() << std::endl;
+	std::cout << "tripleProductCache size: " << TripleProductCacheSize() << std::endl;
 
-	CFLTests::ClearModules();
+	// CFLTests::ClearModules();
 
 	return false;
 }

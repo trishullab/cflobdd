@@ -56,14 +56,12 @@ void ZeroIndicesMapBody::DecrRef()
 	}
 }
 
-unsigned int ZeroIndicesMapBody::Hash(unsigned long modsize)
+size_t ZeroIndicesMapBody::Hash()
 {
-	/*if (modsize == HASHSETBASE)
-	return hashCheck;*/
-	unsigned int hvalue = (997 * a_index) % modsize;
+	size_t hvalue = (997 * a_index);
 	for (auto &i : b_indices)
 	{
-		hvalue = (997 * hvalue + (int)(i)) % modsize;
+		hvalue = (997 * hvalue + (int)(i));
 	}
 	return hvalue;
 }
@@ -193,7 +191,7 @@ std::ostream& operator<< (std::ostream & out, const ZeroIndicesMapHandle &r)
 	return(out);
 }
 
-unsigned int ZeroIndicesMapHandle::Hash(unsigned long modsize)
+size_t ZeroIndicesMapHandle::Hash()
 {
 	if (!(mapContents->isCanonical)) {
 		std::cout << "Hash of a non-canonical LinearMapHandle occurred" << std::endl;
@@ -201,7 +199,7 @@ unsigned int ZeroIndicesMapHandle::Hash(unsigned long modsize)
 		this->Canonicalize();
 	}
 	assert(mapContents->isCanonical);
-	return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
+	return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
 }
 
 void ZeroIndicesMapHandle::Add_BIndex(int v)

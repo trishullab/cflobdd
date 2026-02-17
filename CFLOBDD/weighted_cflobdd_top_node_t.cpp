@@ -295,9 +295,9 @@ namespace CFL_OBDD {
 
     // Hash
     template <typename T, typename Op>
-    unsigned int WeightedCFLOBDDTopNodeT<T, Op>::Hash(unsigned long modsize)
+    size_t WeightedCFLOBDDTopNodeT<T, Op>::Hash()
     {
-        return rootConnection.Hash(modsize);
+        return rootConnection.Hash();
     }
 
     // Overloaded !=

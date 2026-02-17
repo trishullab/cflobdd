@@ -53,12 +53,12 @@ void WeightedValuesListBody<T>::DecrRef()
 }
 
 template <typename T>
-unsigned int WeightedValuesListBody<T>::Hash(unsigned long modsize)
+size_t WeightedValuesListBody<T>::Hash()
 {
   boost::hash<T> boost_hash;
-  unsigned int hvalue = 0;
+  size_t hvalue = 0;
   for (unsigned int i = 0; i < mapArray.size(); i++){
-	  hvalue = (117 * (hvalue + 1) + boost_hash(mapArray[i])) % modsize;
+	  hvalue = (117 * (hvalue + 1) + boost_hash(mapArray[i]));
   }
 
   return hvalue;
@@ -235,9 +235,9 @@ std::ostream& operator<< (std::ostream & out, const WeightedValuesListHandle<T> 
 }
 
 template <typename T>
-unsigned int WeightedValuesListHandle<T>::Hash(unsigned long modsize)
+size_t WeightedValuesListHandle<T>::Hash()
 {
-  return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
+  return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
 }
 
 template <typename T>

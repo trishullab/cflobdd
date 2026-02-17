@@ -53,61 +53,118 @@ const unsigned int maxModulus = 1 << (1 << logLogOfMaxModulus);  // = 65536
 // To indicate the role of a Grouping in a recursive call (Figure 7, line 13)
 enum Position { TopLevel, A, B, AA, AB, BA, BB };
 
-// First 999 odd primes 
-const unsigned int numberOfMultRelations = 44;   // BITWIDTH
+// =============================================================================
+// Bit-width configuration
+// =============================================================================
+
+#ifndef NUM_BITS
+#define NUM_BITS 2048   // BITWIDTH
+#endif
+
+// =============================================================================
+// Constants for CRT-based multiplication (Figure 12 in Multiplication_via_CRT.pdf)
+// =============================================================================
+
+// Number of primes needed per bit-width (product must exceed 2^(2*bitwidth))
+#if NUM_BITS == 32
+  const unsigned int numberOfMultRelations = 16;
+#elif NUM_BITS == 64
+  const unsigned int numberOfMultRelations = 26;
+#elif NUM_BITS == 128
+  const unsigned int numberOfMultRelations = 44;
+#elif NUM_BITS == 256
+  const unsigned int numberOfMultRelations = 75;
+#elif NUM_BITS == 512
+  const unsigned int numberOfMultRelations = 131;
+#elif NUM_BITS == 1024
+  const unsigned int numberOfMultRelations = 233;
+#elif NUM_BITS == 2048
+  const unsigned int numberOfMultRelations = 418;
+#elif NUM_BITS == 4096
+  const unsigned int numberOfMultRelations = 758;
+#else
+  #error "Unsupported NUM_BITS value. Use 32, 64, 128, 256, 512, 1024, 2048, or 4096."
+#endif
+
+// Number of levels needed per bit-width (2**(level))
+#if NUM_BITS == 32
+  const unsigned int virtualMaxLevel = 6;
+#elif NUM_BITS == 64
+  const unsigned int virtualMaxLevel = 7;
+#elif NUM_BITS == 128
+  const unsigned int virtualMaxLevel = 8;
+#elif NUM_BITS == 256
+  const unsigned int virtualMaxLevel = 9;
+#elif NUM_BITS == 512
+  const unsigned int virtualMaxLevel = 10;
+#elif NUM_BITS == 1024
+  const unsigned int virtualMaxLevel = 11;
+#elif NUM_BITS == 2048
+  const unsigned int virtualMaxLevel = 12;
+#elif NUM_BITS == 4096
+  const unsigned int virtualMaxLevel = 13;
+#else
+  #error "Unsupported NUM_BITS value. Use 32, 64, 128, 256, 512, 1024, 2048, or 4096."
+#endif
+
+// Compile-time check: virtualMaxLevel must fit within CFLOBDDMaxLevel
+static_assert(virtualMaxLevel <= CFLOBDDMaxLevel,
+    "NUM_BITS requires virtualMaxLevel > CFLOBDD_MAX_LEVEL. "
+    "Increase CFLOBDD_MAX_LEVEL in cflobdd_node.h.");
+
+// Topmost-embedding constants (work for any CFLOBDDMaxLevel >= virtualMaxLevel)
+const unsigned int bottomLevel = CFLOBDDMaxLevel - virtualMaxLevel;
+const unsigned int stride = 1u << bottomLevel;
+const unsigned int totalVars = 1u << CFLOBDDMaxLevel;
+const unsigned int halfVars = 1u << (CFLOBDDMaxLevel - 1);
+
+/// Total number of odd primes available
 const unsigned int numberOfOddPrimes = 999;
-extern const unsigned int Moduli[numberOfOddPrimes];
+
+/// Array of first 999 odd primes
+extern const unsigned int AllModuli[numberOfOddPrimes];
+
+/// Pointer to the moduli array (for backward compatibility)
+extern const unsigned int* Moduli;
 
 
-//-----------------------------------------------------------------
-// INPUT_TYPE and OUTPUT_TYPE
-//
-// Pick whichever is appropriate for the BITWIDTH setting
-//-----------------------------------------------------------------
+// =============================================================================
+// INPUT_TYPE and OUTPUT_TYPE for varying bit-widths
+// =============================================================================
 
-// // For 32-bit multiplication
-// typedef uint32_t INPUT_TYPE;
-// typedef uint64_t OUTPUT_TYPE;
+namespace mp = boost::multiprecision;
 
-// // For 64-bit multiplication
-// typedef uint64_t INPUT_TYPE;
-// typedef boost::multiprecision::uint128_t OUTPUT_TYPE;
+#if NUM_BITS == 32
+  typedef uint32_t INPUT_TYPE;
+  typedef uint64_t OUTPUT_TYPE;
+#elif NUM_BITS == 64
+  typedef uint64_t INPUT_TYPE;
+  typedef mp::uint128_t OUTPUT_TYPE;
+#elif NUM_BITS == 128
+  typedef mp::uint128_t INPUT_TYPE;
+  typedef mp::uint256_t OUTPUT_TYPE;
+#elif NUM_BITS == 256
+  typedef mp::uint256_t INPUT_TYPE;
+  typedef mp::uint512_t OUTPUT_TYPE;
+#elif NUM_BITS == 512
+  typedef mp::uint512_t INPUT_TYPE;
+  typedef mp::uint1024_t OUTPUT_TYPE;
+#elif NUM_BITS == 1024
+  typedef mp::uint1024_t INPUT_TYPE;
+  typedef mp::number<mp::cpp_int_backend<2048, 2048,
+      mp::unsigned_magnitude, mp::unchecked, void>> OUTPUT_TYPE;
+#elif NUM_BITS == 2048
+  typedef mp::number<mp::cpp_int_backend<2048, 2048,
+      mp::unsigned_magnitude, mp::unchecked, void>> INPUT_TYPE;
+  typedef mp::number<mp::cpp_int_backend<4096, 4096,
+      mp::unsigned_magnitude, mp::unchecked, void>> OUTPUT_TYPE;
+#elif NUM_BITS == 4096
+  typedef mp::number<mp::cpp_int_backend<4096, 4096,
+      mp::unsigned_magnitude, mp::unchecked, void>> INPUT_TYPE;
+  typedef mp::number<mp::cpp_int_backend<8192, 8192,
+      mp::unsigned_magnitude, mp::unchecked, void>> OUTPUT_TYPE;
+#endif
 
-// For 128-bit multiplication
-typedef boost::multiprecision::uint128_t INPUT_TYPE;
-typedef boost::multiprecision::uint256_t OUTPUT_TYPE;
-
-// // For 256-bit multiplication
-// typedef boost::multiprecision::uint256_t INPUT_TYPE;
-// typedef boost::multiprecision::uint512_t OUTPUT_TYPE;
-
-// // For 512-bit multiplication
-// typedef boost::multiprecision::uint512_t INPUT_TYPE;
-// typedef boost::multiprecision::uint1024_t OUTPUT_TYPE;
-
-// // For 1024-bit multiplication
-// typedef boost::multiprecision::number<
-//     boost::multiprecision::cpp_int_backend<2048, 2048,
-//         boost::multiprecision::unsigned_magnitude,
-//         boost::multiprecision::unchecked, void>> uint2048_t;
-// typedef boost::multiprecision::uint1024_t INPUT_TYPE;
-// typedef uint2048_t OUTPUT_TYPE;
-
-// // For 2048-bit multiplication
-// typedef boost::multiprecision::number<
-//     boost::multiprecision::cpp_int_backend<4096, 4096,
-//         boost::multiprecision::unsigned_magnitude,
-//         boost::multiprecision::unchecked, void>> uint4096_t;
-// typedef uint2048_t INPUT_TYPE;
-// typedef uint4096_t OUTPUT_TYPE;
-
-// // For 4096-bit multiplication
-// typedef boost::multiprecision::number<
-//     boost::multiprecision::cpp_int_backend<8192, 8192,
-//         boost::multiprecision::unsigned_magnitude,
-//         boost::multiprecision::unchecked, void>> uint8192_t;
-// typedef uint4096_t INPUT_TYPE;
-// typedef uint8192_t OUTPUT_TYPE;
 
 //
 // PrintSize
@@ -172,12 +229,12 @@ extern CFLOBDD MultModK(unsigned int k);
 // Represents the multiplication relation via the Chinese Remainder Theorem.
 // (Figures 11-12 in the document)
 //
-// With the first 26 odd primes, we can represent 133-bit numbers, which is
-// sufficient for handling multiplication mod 2^64. Requires CFLOBDDMaxLevel >= 7.
+// Uses the first numberOfMultRelations odd primes, whose product exceeds
+// 2^(2*NUM_BITS), which is sufficient for handling NUM_BITS-bit multiplication.
 //
 class MultRelation {
 public:
-    static const unsigned int numBits = 1 << (CFLOBDDMaxLevel - 1);
+    static const unsigned int numBits = NUM_BITS;
     unsigned int ModuliArray[numberOfMultRelations];
     CFLOBDD ModularMultRelations[numberOfMultRelations];
 
@@ -188,6 +245,10 @@ public:
     // Multiply two m-bit values using CRT and Garner's algorithm
     // Return the 2*m-bit product
     OUTPUT_TYPE Multiply(INPUT_TYPE a, INPUT_TYPE b) const;
+
+    // Create an assignment mapping a_val to the A-position variables
+    // and b_val to the B-position variables, using stride-based embedding
+    static SH_OBDD::Assignment MakeAssignment(INPUT_TYPE a_val, INPUT_TYPE b_val);
 };
 
 //

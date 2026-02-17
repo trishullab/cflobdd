@@ -89,7 +89,7 @@ class CFLOBDDNodeHandle {
   CFLOBDDNodeHandle(CFLOBDDNode *n);                          // Constructor
   CFLOBDDNodeHandle(const CFLOBDDNodeHandle &nh);              // Copy constructor
   ~CFLOBDDNodeHandle();                                       // Destructor
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   bool operator!= (const CFLOBDDNodeHandle &nh);              // Overloaded !=
   bool operator== (const CFLOBDDNodeHandle &nh) const;              // Overloaded ==
   CFLOBDDNodeHandle & operator= (const CFLOBDDNodeHandle &nh); // assignment
@@ -118,6 +118,7 @@ class CFLOBDDNodeHandle {
      CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
      static void InitReduceCache();
      static void DisposeOfReduceCache();
+     static unsigned long ReduceCacheSize();
 
 	public:
 	 std::ostream& print(std::ostream & out = std::cout) const;
@@ -125,7 +126,7 @@ class CFLOBDDNodeHandle {
 	 struct CFLOBDDNodeHandle_Hash {
 	 public:
 		 size_t operator()(const CFLOBDDNodeHandle& c) const {
-			 return ((reinterpret_cast<std::uintptr_t>(c.handleContents) >> 2) % 997);
+			 return ((reinterpret_cast<std::uintptr_t>(c.handleContents) >> PTR_ALIGN_SHIFT) % 997);
 		 }
 	 };
 };
@@ -171,7 +172,7 @@ namespace CFL_OBDD {
 
 	// Note: If CFLOBDDMaxLevel >= 27, allocating an Assignment may cause
 	//       virtual memory to be exceeded.
-#define CFLOBDD_MAX_LEVEL 8
+#define CFLOBDD_MAX_LEVEL 13
 	unsigned int const CFLOBDDMaxLevel = CFLOBDD_MAX_LEVEL;
 
 	//********************************************************************
@@ -182,7 +183,7 @@ namespace CFL_OBDD {
 
 	public:
 		CFLReduceKey(CFLOBDDNodeHandle nodeHandle, ReductionMapHandle redMap); // Constructor
-		unsigned int Hash(unsigned long modsize);
+		size_t Hash();
 		CFLReduceKey& operator= (const CFLReduceKey& p);  // Overloaded assignment
 		bool operator!= (const CFLReduceKey& p);        // Overloaded !=
 		bool operator== (const CFLReduceKey& p);        // Overloaded ==
@@ -229,7 +230,7 @@ class CFLOBDDNode {
   virtual void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index) = 0;
   virtual int Traverse(SH_OBDD::AssignmentIterator &ai) = 0;
   virtual CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false) = 0;
-  virtual unsigned int Hash(unsigned long modsize) = 0;
+  virtual size_t Hash() = 0;
   virtual void DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out = std::cout) = 0;
   virtual void CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int &returnEdgesCount) = 0;
@@ -278,7 +279,7 @@ class CFLOBDDInternalNode : public CFLOBDDNode {
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   void DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out = std::cout);
   void CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount);
@@ -322,7 +323,7 @@ class CFLOBDDLeafNode : public CFLOBDDNode {
   virtual void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index) = 0;
   virtual int Traverse(SH_OBDD::AssignmentIterator &ai) = 0;
   virtual CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false) = 0;
-  virtual unsigned int Hash(unsigned long modsize) = 0;
+  virtual size_t Hash() = 0;
   void DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out = std::cout);
   void CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount);
@@ -350,7 +351,7 @@ class CFLOBDDForkNode : public CFLOBDDLeafNode {
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   bool operator!= (const CFLOBDDNode & n);        // Overloaded !=
   bool operator== (const CFLOBDDNode & n);        // Overloaded ==
 
@@ -375,7 +376,7 @@ class CFLOBDDDontCareNode : public CFLOBDDLeafNode {
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   bool operator!= (const CFLOBDDNode & n);        // Overloaded !=
   bool operator== (const CFLOBDDNode & n);        // Overloaded ==
 

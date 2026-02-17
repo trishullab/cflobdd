@@ -34,10 +34,10 @@ ConnectionT<Handle>::~ConnectionT()
 
 // Hash
 template <typename Handle>
-unsigned int ConnectionT<Handle>::Hash(unsigned long modsize)
+size_t ConnectionT<Handle>::Hash()
 {
-	unsigned int hvalue = 0;
-	hvalue = (997 * returnMapHandle.Hash(modsize) + entryPointHandle->Hash(modsize)) % modsize;
+	size_t hvalue = 0;
+	hvalue = (997 * returnMapHandle.Hash() + entryPointHandle->Hash());
 	return hvalue;
 }
 

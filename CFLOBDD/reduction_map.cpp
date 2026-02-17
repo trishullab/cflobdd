@@ -75,18 +75,11 @@ void ReductionMapBody::DecrRef()
   }
 }
 
-unsigned int ReductionMapBody::Hash(unsigned long modsize)
+size_t ReductionMapBody::Hash()
 {
-  unsigned int hvalue = 0;
-  /*ReductionMapBodyIterator mi(*this);
-
-  mi.Reset();
-  while (!mi.AtEnd()) {
-    hvalue = (hvalue + (unsigned int)mi.Current()) % modsize;
-    mi.Next();
-  }*/
+  size_t hvalue = 0;
   for (unsigned int i = 0; i < mapArray.size(); i++){
-	  hvalue = (117 * (hvalue + 1) + (unsigned int)mapArray[i]) % modsize;
+	  hvalue = (117 * (hvalue + 1) + (unsigned int)mapArray[i]);
   }
 
   return hvalue;
@@ -213,9 +206,9 @@ std::ostream& operator<< (std::ostream & out, const ReductionMapHandle &r)
   return(out);
 }
 
-unsigned int ReductionMapHandle::Hash(unsigned long modsize)
+size_t ReductionMapHandle::Hash()
 {
-  return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
+  return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
 }
 
 unsigned int ReductionMapHandle::Size()

@@ -73,7 +73,7 @@ class WeightedCFLOBDDNodeHandleT {
   WeightedCFLOBDDNodeHandleT(WeightedCFLOBDDNode<T,Op> *n);                          // Constructor
   WeightedCFLOBDDNodeHandleT(const WeightedCFLOBDDNodeHandleT<T,Op> &nh);              // Copy constructor
   ~WeightedCFLOBDDNodeHandleT();                                       // Destructor
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   bool operator!= (const WeightedCFLOBDDNodeHandleT &nh);              // Overloaded !=
   bool operator== (const WeightedCFLOBDDNodeHandleT &nh) const;              // Overloaded ==
   WeightedCFLOBDDNodeHandleT<T,Op> & operator= (const WeightedCFLOBDDNodeHandleT<T,Op> &nh); // assignment
@@ -115,7 +115,7 @@ class WeightedCFLOBDDNodeHandleT {
 	 struct WeightedCFLOBDDNodeHandleT_Hash {
 	 public:
 		 size_t operator()(const WeightedCFLOBDDNodeHandleT<T,Op>& c) const {
-			 return ((reinterpret_cast<std::uintptr_t>(c.handleContents) >> 2) % 997);
+			 return ((reinterpret_cast<std::uintptr_t>(c.handleContents) >> PTR_ALIGN_SHIFT) % 997);
 		 }
 	 };
 };
@@ -169,7 +169,7 @@ namespace CFL_OBDD {
 
 	public:
 		WeightedCFLReduceKey(WeightedCFLOBDDNodeHandleT<T, Op> nodeHandle, ReductionMapHandle redMap, WeightedValuesListHandle<T> valList ); // Constructor
-		unsigned int Hash(unsigned long modsize);
+		size_t Hash();
 		WeightedCFLReduceKey& operator= (const WeightedCFLReduceKey& p);  // Overloaded assignment
 		bool operator!= (const WeightedCFLReduceKey& p);        // Overloaded !=
 		bool operator== (const WeightedCFLReduceKey& p);        // Overloaded ==
@@ -224,7 +224,7 @@ class WeightedCFLOBDDNode {
   virtual void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index) = 0;
   virtual int Traverse(SH_OBDD::AssignmentIterator &ai) = 0;
   virtual std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, WeightedValuesListHandle<T>& valList, bool forceReduce = false) = 0;
-  virtual unsigned int Hash(unsigned long modsize) = 0;
+  virtual size_t Hash() = 0;
   virtual void DumpConnections(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visited, std::ostream & out = std::cout) = 0;
   virtual void CountNodesAndEdges(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
         unsigned int &nodeCount, unsigned int &edgeCount, unsigned int &returnEdgesCount) = 0;
@@ -277,7 +277,7 @@ class WeightedCFLOBDDInternalNode : public WeightedCFLOBDDNode<T,Op> {
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, WeightedValuesListHandle<T>& valList, bool forceReduce = false);
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   void DumpConnections(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visited, std::ostream & out = std::cout);
   void CountNodesAndEdges(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount);
@@ -324,7 +324,7 @@ class WeightedCFLOBDDLeafNode : public WeightedCFLOBDDNode<T,Op> {
   virtual void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index) = 0;
   virtual int Traverse(SH_OBDD::AssignmentIterator &ai) = 0;
   virtual std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, WeightedValuesListHandle<T>& valList, bool forceReduce = false) = 0;
-  virtual unsigned int Hash(unsigned long modsize) = 0;
+  virtual size_t Hash() = 0;
   void DumpConnections(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visited, std::ostream & out = std::cout);
   void CountNodesAndEdges(Hashset<WeightedCFLOBDDNodeHandleT<T,Op>> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount);
@@ -358,7 +358,7 @@ class WeightedCFLOBDDForkNode : public WeightedCFLOBDDLeafNode<T,Op> {
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, WeightedValuesListHandle<T>& valList, bool forceReduce = false);
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   bool operator!= (const WeightedCFLOBDDNode<T,Op> & n);        // Overloaded !=
   bool operator== (const WeightedCFLOBDDNode<T,Op> & n);        // Overloaded ==
   void InstallWeightsOfPathsAsAmpsToExits(); 
@@ -386,7 +386,7 @@ class WeightedCFLOBDDDontCareNode : public WeightedCFLOBDDLeafNode<T,Op> {
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, WeightedValuesListHandle<T>& valList, bool forceReduce = false);
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   bool operator!= (const WeightedCFLOBDDNode<T,Op> & n);        // Overloaded !=
   bool operator== (const WeightedCFLOBDDNode<T,Op> & n);        // Overloaded ==
   void InstallWeightsOfPathsAsAmpsToExits();
@@ -408,7 +408,7 @@ class WeightedBDDTopNode : public WeightedCFLOBDDNode<T,Op> {
     WCFLOBDD_NODEKIND NodeKind() const { return W_BDD_TOPNODE; }
     bool operator!= (const WeightedCFLOBDDNode<T,Op> &n);
     bool operator== (const WeightedCFLOBDDNode<T,Op> &n);
-    unsigned int Hash(unsigned long modsize);
+    size_t Hash();
     void IncrRef();
     void DecrRef();
     WeightedBDDNodeHandle<T, Op> bddContents;

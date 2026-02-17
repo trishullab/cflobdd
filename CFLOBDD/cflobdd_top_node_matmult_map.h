@@ -61,8 +61,8 @@ namespace CFL_OBDD {
 			{
 				CFLOBDDNodeHandle t1 = p.m1;
 				CFLOBDDNodeHandle t2 = p.m2;
-				auto hash1 = t1.Hash(997);
-				auto hash2 = t2.Hash(997);
+				auto hash1 = t1.Hash();
+				auto hash2 = t2.Hash();
 				return 117 * (hash1 + 1) + hash2;
 			}
 		};
@@ -96,8 +96,8 @@ namespace CFL_OBDD {
 			{
 				CFLOBDDNodeHandle t1 = p.m1;
 				CFLOBDDNodeHandle t2 = p.m2;
-				auto hash1 = t1.Hash(997);
-				auto hash2 = t2.Hash(997);
+				auto hash1 = t1.Hash();
+				auto hash2 = t2.Hash();
 				return 117 * (hash1 + 1) + 97 * 97 * hash2 + (size_t)(97 * p.c1_index + p.c2_index);
 			}
 		};
@@ -127,8 +127,8 @@ namespace CFL_OBDD {
 			{
 				CFLOBDDTopNodeMatMultMapRefPtr t1 = p.m1;
 				CFLOBDDTopNodeMatMultMapRefPtr t2 = p.m2;
-				auto hash1 = t1->Hash(997);
-				auto hash2 = t2->Hash(997);
+				auto hash1 = t1->Hash();
+				auto hash2 = t2->Hash();
 				return 117 * hash1 + hash2;
 			}
 		};
@@ -155,7 +155,7 @@ namespace CFL_OBDD {
 			size_t operator()(const ZeroValNodeInfo& p) const
 			{
 				CFLOBDDNodeHandle t1 = p.m;
-				auto hash1 = t1.Hash(997);
+				auto hash1 = t1.Hash();
 				return 117 * (hash1 + 1) + 997 * p.index;
 			}
 		};

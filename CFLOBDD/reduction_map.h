@@ -52,7 +52,7 @@ class ReductionMapHandle {
   ReductionMapHandle& operator= (const ReductionMapHandle &r); // Overloaded assignment
   bool operator!= (const ReductionMapHandle &r);      // Overloaded !=
   bool operator== (const ReductionMapHandle &r);      // Overloaded ==
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   unsigned int Size();
   void AddToEnd(int y);
   int& operator[](unsigned int i);                       // Overloaded []
@@ -81,7 +81,7 @@ class ReductionMapBody {//: public List<int> {
   ReductionMapBody(unsigned int capacity);
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   void setHashCheck();
   void AddToEnd(int y);          // Override AddToEnd
   unsigned int refCount;         // reference-count value

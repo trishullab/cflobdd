@@ -34,7 +34,7 @@ class WeightedPairProductMapHandle {
   WeightedPairProductMapHandle& operator= (const WeightedPairProductMapHandle<T> &r); // Overloaded assignment
   bool operator!= (const WeightedPairProductMapHandle<T> &r);      // Overloaded !=
   bool operator== (const WeightedPairProductMapHandle<T> &r);      // Overloaded ==
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   unsigned int Size();
   std::pair<intpair, Pair_T<T,T>> operator[](unsigned int i);                       // Overloaded []
   void AddToEnd(const intpair& p, const Pair_T<T,T>& v);
@@ -59,7 +59,7 @@ class WeightedPairProductMapBody {//: public List<intpair> {
   WeightedPairProductMapBody();    // Constructor
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   unsigned int refCount;         // reference-count value
   void setHashCheck();
   void AddToEnd(const intpair& y, const Pair_T<T,T>& v);          // Override AddToEnd
@@ -91,7 +91,7 @@ class WeightedPairProductKey {
  public:
   WeightedPairProductKey(WeightedCFLOBDDNodeHandleT<T,Op> nodeHandle1, WeightedCFLOBDDNodeHandleT<T,Op> nodeHandle2); // Constructor
   WeightedPairProductKey(WeightedCFLOBDDNodeHandleT<T,Op> nodeHandle1, WeightedCFLOBDDNodeHandleT<T,Op> nodeHandle2, T factor1, T factor2); // Constructor
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   WeightedPairProductKey& operator= (const WeightedPairProductKey& p);  // Overloaded assignment
   bool operator!= (const WeightedPairProductKey& p);        // Overloaded !=
   bool operator== (const WeightedPairProductKey& p);        // Overloaded ==

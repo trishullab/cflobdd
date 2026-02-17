@@ -33,7 +33,9 @@
 #include "cflobdd_node.h"
 #include "matmult_map.h"
 #include "fourier_semiring.h"
+#ifdef WCFLOBDD_SUPPORTED
 #include "weighted_matmult_map.h"
+#endif
 
 
 #include <boost/multiprecision/cpp_dec_float.hpp>
@@ -46,7 +48,7 @@ typedef boost::multiprecision::cpp_complex_100 BIG_COMPLEX_FLOAT;
 // Instantiation and specialization of class ReturnMapHandle<LinearMapHandle> ----------
 
 // template<>
-// unsigned int ReturnMapBody<LinearMapHandle>::Hash(unsigned long modsize)
+// unsigned int ReturnMapBody<LinearMapHandle>::Hash()
 // {
 // 	unsigned int hvalue = 0;
 
@@ -73,17 +75,18 @@ void ReturnMapBody<MatMultMapHandle>::setHashCheck()
 }
 
 template<>
-unsigned int ReturnMapBody<MatMultMapHandle>::Hash(unsigned long modsize)
+size_t ReturnMapBody<MatMultMapHandle>::Hash()
 {
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (997 * hvalue + mapArray[i].Hash(modsize)) % modsize;
+		hvalue = (997 * hvalue + mapArray[i].Hash());
 	}
 	return hvalue;
 }
 
+#ifdef WCFLOBDD_SUPPORTED
 template<>
 void ReturnMapBody<WeightedMatMultMapHandle<BIG_FLOAT>>::setHashCheck()
 {
@@ -100,13 +103,13 @@ void ReturnMapBody<WeightedMatMultMapHandle<BIG_FLOAT>>::setHashCheck()
 }
 
 template<>
-unsigned int ReturnMapBody<WeightedMatMultMapHandle<BIG_FLOAT>>::Hash(unsigned long modsize)
+size_t ReturnMapBody<WeightedMatMultMapHandle<BIG_FLOAT>>::Hash()
 {
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (997 * hvalue + mapArray[i].Hash(modsize)) % modsize;
+		hvalue = (997 * hvalue + mapArray[i].Hash());
 	}
 	return hvalue;
 }
@@ -127,13 +130,13 @@ void ReturnMapBody<WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>>::setHashCheck()
 }
 
 template<>
-unsigned int ReturnMapBody<WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>>::Hash(unsigned long modsize)
+size_t ReturnMapBody<WeightedMatMultMapHandle<BIG_COMPLEX_FLOAT>>::Hash()
 {
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (997 * hvalue + mapArray[i].Hash(modsize)) % modsize;
+		hvalue = (997 * hvalue + mapArray[i].Hash());
 	}
 	return hvalue;
 }
@@ -154,16 +157,17 @@ void ReturnMapBody<WeightedMatMultMapHandle<fourierSemiring>>::setHashCheck()
 }
 
 template<>
-unsigned int ReturnMapBody<WeightedMatMultMapHandle<fourierSemiring>>::Hash(unsigned long modsize)
+size_t ReturnMapBody<WeightedMatMultMapHandle<fourierSemiring>>::Hash()
 {
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (997 * hvalue + mapArray[i].Hash(modsize)) % modsize;
+		hvalue = (997 * hvalue + mapArray[i].Hash());
 	}
 	return hvalue;
 }
+#endif // WCFLOBDD_SUPPORTED
 
 
 // template<>
@@ -217,13 +221,13 @@ std::ostream& operator<< (std::ostream & out, const ReturnMapBody<LinearMapHandl
 // Instantiation and specialization of class ReturnMapHandle<int> ---------------------
 
 template<>
-unsigned int ReturnMapBody<int>::Hash(unsigned long modsize)
+size_t ReturnMapBody<int>::Hash()
 {
-  unsigned int hvalue = 0;
+  size_t hvalue = 0;
 
   for (unsigned i = 0; i < mapArray.size(); i++)
   {
-	  hvalue = (997* hvalue + mapArray[i]) % modsize;
+	  hvalue = (997* hvalue + mapArray[i]);
   }
   return hvalue;
 }
@@ -274,14 +278,14 @@ CFL_OBDD::CFLOBDDReturnMapHandle CFL_OBDD::CFLOBDDReturnMapHandle::Complement()
 // Instantiation and specialization of class ReturnMapHandle<double> ---------------------
 
 template<>
-unsigned int ReturnMapBody<double>::Hash(unsigned long modsize)
+size_t ReturnMapBody<double>::Hash()
 {
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 	std::hash<double> double_hash;
 
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (997 * hvalue + double_hash(mapArray[i])) % modsize;
+		hvalue = (997 * hvalue + double_hash(mapArray[i]));
 	}
 	return hvalue;
 }
@@ -312,14 +316,14 @@ ReturnMapHandle<double> ReturnMapHandle<double>::Complement()
 // double_hash needs to be changed
 
 template<>
-unsigned int ReturnMapBody<BIG_FLOAT>::Hash(unsigned long modsize)
+size_t ReturnMapBody<BIG_FLOAT>::Hash()
 {
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 	std::hash<BIG_FLOAT> big_float_hash;
 
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (997 * hvalue + big_float_hash(mapArray[i])) % modsize;
+		hvalue = (997 * hvalue + big_float_hash(mapArray[i]));
 	}
 	return hvalue;
 }
@@ -350,14 +354,14 @@ ReturnMapHandle<BIG_FLOAT> ReturnMapHandle<BIG_FLOAT>::Complement()
 // double_hash needs to be changed
 
 template<>
-unsigned int ReturnMapBody<BIG_COMPLEX_FLOAT>::Hash(unsigned long modsize)
+size_t ReturnMapBody<BIG_COMPLEX_FLOAT>::Hash()
 {
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 	std::hash<BIG_COMPLEX_FLOAT> big_float_hash;
 
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (997 * hvalue + big_float_hash(mapArray[i])) % modsize;
+		hvalue = (997 * hvalue + big_float_hash(mapArray[i]));
 	}
 	return hvalue;
 }
@@ -387,7 +391,7 @@ ReturnMapHandle<BIG_COMPLEX_FLOAT> ReturnMapHandle<BIG_COMPLEX_FLOAT>::Complemen
 // double_hash needs to be changed
 
 // template<>
-// unsigned int ReturnMapBody<GeneralMapHandle>::Hash(unsigned long modsize)
+// unsigned int ReturnMapBody<GeneralMapHandle>::Hash()
 // {
 // 	unsigned int hvalue = 0;
 // 	std::hash<double> double_hash;
@@ -424,14 +428,14 @@ ReturnMapHandle<BIG_COMPLEX_FLOAT> ReturnMapHandle<BIG_COMPLEX_FLOAT>::Complemen
 // Instantiation and specialization of class ReturnMapHandle<intPair> ---------------------
 
 template<>
-unsigned int ReturnMapBody<intpair>::Hash(unsigned long modsize)
+size_t ReturnMapBody<intpair>::Hash()
 {
-  unsigned int hvalue = 0;
+  size_t hvalue = 0;
 
   for (unsigned i = 0; i < mapArray.size(); i++)
   {
-	  hvalue = (997 * hvalue + mapArray[i].First() + mapArray[i].Second()) % modsize;
-  } 
+	  hvalue = (997 * hvalue + mapArray[i].First() + mapArray[i].Second());
+  }
   return hvalue;
 }
 
@@ -465,18 +469,18 @@ ReturnMapHandle<intpair> ReturnMapHandle<intpair>::Complement()
 // Instantiation and specialization of class ReturnMapHandle<fourierSemiring> ---------------------
 
 template<>
-unsigned int ReturnMapBody<fourierSemiring>::Hash(unsigned long modsize)
+size_t ReturnMapBody<fourierSemiring>::Hash()
 {
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 	boost::hash<BIG_INT> boost_hash;
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
 		if (!mapArray[i].isComplexValueSet)
-			hvalue = (997 * hvalue + 117 * boost_hash(mapArray[i].GetVal()) + boost_hash(mapArray[i].GetRingSize())) % modsize;
+			hvalue = (997 * hvalue + 117 * boost_hash(mapArray[i].GetVal()) + boost_hash(mapArray[i].GetRingSize()));
 		else
 		{
 			boost::hash<BIG_COMPLEX> h;
-			hvalue = (997 * hvalue + 97 * h(mapArray[i].complex_value)) % modsize;	
+			hvalue = (997 * hvalue + 97 * h(mapArray[i].complex_value));
 		}
 	}
 	return hvalue;
@@ -524,13 +528,13 @@ std::size_t hash_value(std::complex<double> c)
 */
 
 template<>
-unsigned int ReturnMapBody<std::complex<double>>::Hash(unsigned long modsize)
+size_t ReturnMapBody<std::complex<double>>::Hash()
 {
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 
 	for (unsigned i = 0; i < mapArray.size(); i++)
 	{
-		hvalue = (997 * hvalue + hash_complex_double(mapArray[i])) % modsize;
+		hvalue = (997 * hvalue + hash_complex_double(mapArray[i]));
 	}
 	return hvalue;
 }

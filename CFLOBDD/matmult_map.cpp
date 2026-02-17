@@ -57,15 +57,13 @@ void MatMultMapBody::DecrRef()
 	}
 }
 
-unsigned int MatMultMapBody::Hash(unsigned long modsize)
+size_t MatMultMapBody::Hash()
 {
-	/*if (modsize == HASHSETBASE)
-		return hashCheck;*/
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 	boost::hash<VAL_TYPE> boost_hash;
 	for (auto &i : map)
 	{
-		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second))) % modsize;
+		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second)));
 	}
 	return hvalue;
 }
@@ -184,7 +182,7 @@ std::ostream& operator<< (std::ostream & out, const MatMultMapHandle &r)
 	return(out);
 }
 
-unsigned int MatMultMapHandle::Hash(unsigned long modsize)
+size_t MatMultMapHandle::Hash()
 {
 	if (!(mapContents->isCanonical)) {
 		std::cout << "Hash of a non-canonical LinearMapHandle occurred" << std::endl;
@@ -192,7 +190,7 @@ unsigned int MatMultMapHandle::Hash(unsigned long modsize)
 		this->Canonicalize();
 	}
 	assert(mapContents->isCanonical);
-	return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
+	return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
 }
 
 void MatMultMapHandle::Add(const INT_PAIR& p, VAL_TYPE& v)

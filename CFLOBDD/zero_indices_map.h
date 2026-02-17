@@ -50,7 +50,7 @@ public:
 	bool operator!= (const ZeroIndicesMapHandle &r) const;      // Overloaded !=
 	bool operator== (const ZeroIndicesMapHandle &r) const;      // Overloaded ==
 	int operator[](int i);                        // Overloaded []
-	unsigned int Hash(unsigned long modsize);
+	size_t Hash();
 	void Add_BIndex(const int i);
 	bool Member(int i);
 	int Lookup(int x);
@@ -73,13 +73,13 @@ extern std::size_t hash_value(const ZeroIndicesMapHandle& val);
 class ZeroIndicesMapBody {
 
 	friend void ZeroIndicesMapHandle::Canonicalize();
-	friend unsigned int ZeroIndicesMapHandle::Hash(unsigned long modsize);
+	friend size_t ZeroIndicesMapHandle::Hash();
 
 public:
 	ZeroIndicesMapBody();    // Constructor
 	void IncrRef();
 	void DecrRef();
-	unsigned int Hash(unsigned long modsize);
+	size_t Hash();
 	void setHashCheck();
 	unsigned int refCount;         // reference-count value
 	std::vector<int> b_indices;

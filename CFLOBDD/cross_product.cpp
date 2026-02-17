@@ -71,23 +71,12 @@ void PairProductMapBody::DecrRef()
   }
 }
 
-unsigned int PairProductMapBody::Hash(unsigned long modsize)
+size_t PairProductMapBody::Hash()
 {
-  unsigned int hvalue = 0;
-
-  /*
-  PairProductMapBodyIterator mi(*this);
-
-  mi.Reset();
-  while (!mi.AtEnd()) {
-    hvalue = (997 * (997 * hvalue + (unsigned int)mi.Current().First())
-                                  + (unsigned int)mi.Current().Second() ) % modsize;
-    mi.Next();
-  }
-  */
+  size_t hvalue = 0;
 
   for (unsigned int i = 0; i < mapArray.size(); i++){
-	  hvalue = (997*hvalue + (unsigned int)97*mapArray[i].First() + (unsigned int)mapArray[i].Second()) % modsize;
+	  hvalue = (997*hvalue + (unsigned int)97*mapArray[i].First() + (unsigned int)mapArray[i].Second());
   }
 
   return hvalue;
@@ -195,9 +184,9 @@ std::ostream& operator<< (std::ostream & out, const PairProductMapHandle &r)
   return(out);
 }
 
-unsigned int PairProductMapHandle::Hash(unsigned long modsize)
+size_t PairProductMapHandle::Hash()
 {
-  return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
+  return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
 }
 
 unsigned int PairProductMapHandle::Size()
@@ -309,10 +298,10 @@ PairProductKey::PairProductKey(CFLOBDDNodeHandle nodeHandle1, CFLOBDDNodeHandle 
 }
 
 // Hash
-unsigned int PairProductKey::Hash(unsigned long modsize)
+size_t PairProductKey::Hash()
 {
-  unsigned int hvalue = 0;
-  hvalue = (997 * nodeHandle1.Hash(modsize) + nodeHandle2.Hash(modsize)) % modsize;
+  size_t hvalue = 0;
+  hvalue = (997 * nodeHandle1.Hash() + nodeHandle2.Hash());
   return hvalue;
 }
 
@@ -589,9 +578,14 @@ void InitPairProductCache()
 
 void DisposeOfPairProductCache()
 {
-	//std::cout << "PairProductCache Size: " << pairProductCache->Size() << std::endl;
 	delete pairProductCache;
 	pairProductCache = NULL;
+}
+
+unsigned long PairProductCacheSize()
+{
+	if (pairProductCache == NULL) return 0;
+	return pairProductCache->Size();
 }
 }
 // ********************************************************************
@@ -603,7 +597,7 @@ void DisposeOfPairProductCache()
 //***************************************************************
 
 // Initializations of static members ---------------------------------
-Hashset<TripleProductMapBody> *TripleProductMapBody::canonicalTripleProductMapBodySet = new Hashset<TripleProductMapBody>;
+Hashset<TripleProductMapBody> *TripleProductMapBody::canonicalTripleProductMapBodySet = new Hashset<TripleProductMapBody>(HASHSET_NUM_BUCKETS);
 
 // Constructor
 TripleProductMapBody::TripleProductMapBody()
@@ -626,16 +620,16 @@ void TripleProductMapBody::DecrRef()
   }
 }
 
-unsigned int TripleProductMapBody::Hash(unsigned long modsize)
+size_t TripleProductMapBody::Hash()
 {
-  unsigned int hvalue = 0;
+  size_t hvalue = 0;
   TripleProductMapBodyIterator mi(*this);
 
   mi.Reset();
   while (!mi.AtEnd()) {
     hvalue = (997 * (997 * (997 * hvalue + (unsigned int)mi.Current().First())
                                          + (unsigned int)mi.Current().Second())
-                                         + (unsigned int)mi.Current().Third()) % modsize;
+                                         + (unsigned int)mi.Current().Third());
     mi.Next();
   }
   return hvalue;
@@ -702,9 +696,9 @@ std::ostream& operator<< (std::ostream & out, const TripleProductMapHandle &r)
   return(out);
 }
 
-unsigned int TripleProductMapHandle::Hash(unsigned long modsize)
+size_t TripleProductMapHandle::Hash()
 {
-  return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
+  return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
 }
 
 unsigned int TripleProductMapHandle::Size()
@@ -776,10 +770,10 @@ TripleProductKey::TripleProductKey(CFLOBDDNodeHandle nodeHandle1, CFLOBDDNodeHan
 }
 
 // Hash
-unsigned int TripleProductKey::Hash(unsigned long modsize)
+size_t TripleProductKey::Hash()
 {
-  unsigned int hvalue = 0;
-  hvalue = (997 * (997 * nodeHandle1.Hash(modsize) + nodeHandle2.Hash(modsize)) + nodeHandle3.Hash(modsize)) % modsize;
+  size_t hvalue = 0;
+  hvalue = (997 * (997 * nodeHandle1.Hash() + nodeHandle2.Hash()) + nodeHandle3.Hash());
   return hvalue;
 }
 
@@ -1139,12 +1133,18 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDNodeHandle n1,
 
 void InitTripleProductCache()
 {
-  tripleProductCache = new Hashtable<TripleProductKey, TripleProductMemo>(40000);
+  tripleProductCache = new Hashtable<TripleProductKey, TripleProductMemo>(HASH_NUM_BUCKETS);
 }
 
 void DisposeOfTripleProductCache()
 {
 	delete tripleProductCache;
 	tripleProductCache = NULL;
+}
+
+unsigned long TripleProductCacheSize()
+{
+	if (tripleProductCache == NULL) return 0;
+	return tripleProductCache->Size();
 }
 }

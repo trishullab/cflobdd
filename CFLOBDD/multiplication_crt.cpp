@@ -37,8 +37,11 @@
 
 namespace CFL_OBDD {
 
-// First 999 odd primes
-const unsigned int Moduli[numberOfOddPrimes] = {
+// =============================================================================
+// First 999 odd primes (from multiplication_crt.cpp)
+// =============================================================================
+
+const unsigned int AllModuli[numberOfOddPrimes] = {
     3, 5, 7, 11, 13, 17, 19, 23, 29, 31,
     37, 41, 43, 47, 53, 59, 61, 67, 71, 73,
     79, 83, 89, 97, 101, 103, 107, 109, 113, 127,
@@ -141,6 +144,9 @@ const unsigned int Moduli[numberOfOddPrimes] = {
     7853, 7867, 7873, 7877, 7879, 7883, 7901, 7907, 7919
 };
 
+/// Pointer to moduli array (for backward compatibility)
+const unsigned int* Moduli = AllModuli;
+
 // -----------------------------------------------------------------------------
 // PrintSize
 //
@@ -165,33 +171,46 @@ void PrintSize(CFLOBDD C) {
 // - Document's BReturnTuples[i] = [i] becomes BConnection[i-1].returnMapHandle = {i-1}
 // -----------------------------------------------------------------------------
 CFLOBDDNodeHandle ProtoCFLOBDDNumsModK(unsigned int lev, unsigned int k) {
-    // Base case: level 0 returns a Fork node
-    if (lev == 0) {
-        return CFLOBDDNodeHandle::CFLOBDDForkNodeHandle;
+    // Base case: at bottomLevel, return a "lifted fork" node
+    // MkDistinction(bottomLevel, 0) is a level-bottomLevel node with 2 exits,
+    // semantically equivalent to ForkNode but padded with NoDistinctionNodes below.
+    if (lev == bottomLevel) {
+        if (bottomLevel == 0)
+            return CFLOBDDNodeHandle::CFLOBDDForkNodeHandle;
+        else
+            return MkDistinction(bottomLevel, 0);
     }
 
+    // virtualLevel = level in the non-embedded structure (pairs with virtualMaxLevel)
+    // Used for modular arithmetic (how many bits this subtree handles: 2^virtualLevel)
+    unsigned int virtualLevel = lev - bottomLevel;
+
     // Adjust for low-level Groupings that don't have k middle vertices
-    // Document line [3]: numberOfMidVertices = ((lev-1) >= logLogOfMaxModulus) ? k : min(k, 2^(2^(lev-1)))
+    // Document line [3]: numberOfMidVertices = ((virtualLevel-1) >= logLogOfMaxModulus) ? k : min(k, 2^(2^(virtualLevel-1)))
     unsigned int numberOfMidVertices;
-    if ((lev - 1) >= logLogOfMaxModulus) {
+    if ((virtualLevel - 1) >= logLogOfMaxModulus) {
         numberOfMidVertices = k;
     } else {
-        INPUT_TYPE maxMidVerts = INPUT_TYPE(1) << (1u << (lev - 1));  // 2^(2^(lev-1))
+        INPUT_TYPE maxMidVerts = INPUT_TYPE(1) << (1u << (virtualLevel - 1));  // 2^(2^(virtualLevel-1))
         numberOfMidVertices = static_cast<unsigned int>(std::min((INPUT_TYPE)k, maxMidVerts));
     }
 
     // Adjust for low-level Groupings that don't have k exit vertices
-    // Document line [4]: numberOfExits = (lev >= logLogOfMaxModulus) ? k : min(k, 2^(2^lev))
+    // Document line [4]: numberOfExits = (virtualLevel >= logLogOfMaxModulus) ? k : min(k, 2^(2^virtualLevel))
     unsigned int numberOfExits;
-    if (lev >= logLogOfMaxModulus) {
+    if (virtualLevel >= logLogOfMaxModulus) {
         numberOfExits = k;
     } else {
-        INPUT_TYPE maxExits = INPUT_TYPE(1) << (1u << lev);  // 2^(2^lev)
+        INPUT_TYPE maxExits = INPUT_TYPE(1) << (1u << virtualLevel);  // 2^(2^virtualLevel)
         numberOfExits = static_cast<unsigned int>(std::min((INPUT_TYPE)k, maxExits));
     }
 
-    // Document line [5]: AConnectionPathsModK = 2^(2^(lev-1)) mod k
-    unsigned long long AConnectionPathsModK = static_cast<unsigned long long>((INPUT_TYPE(1) << (1u << (lev - 1))) % k);
+    // Document line [5]: AConnectionPathsModK = 2^(2^(virtualLevel-1)) mod k
+    // Computed via repeated squaring to avoid overflow
+    unsigned long long AConnectionPathsModK = 2 % k;
+    for (unsigned int s = 0; s < (virtualLevel - 1); s++) {
+        AConnectionPathsModK = (AConnectionPathsModK * AConnectionPathsModK) % k;
+    }
 
     // Create internal node at this level
     CFLOBDDInternalNode* g = new CFLOBDDInternalNode(lev);
@@ -266,7 +285,7 @@ CFLOBDD NumsModK(unsigned int k, Position p) {
     // Document line [6]: assert(maxLevel >= logLogOfMaxModulus + 1)
     // Ensures that there are k exit vertices
     // Changed to support Karatsuba multiplication: ensures that A, B, AA, AB, BA, and BB variants all have k exit vertices
-    assert(CFLOBDDMaxLevel - 2 >= logLogOfMaxModulus);
+    assert(virtualMaxLevel - 2 >= logLogOfMaxModulus);
 
     CFLOBDDReturnMapHandle IdReturnMap;
     for (unsigned int i = 0; i < k; i++) {
@@ -441,7 +460,7 @@ CFLOBDD NumsModK(unsigned int k, Position p) {
 
         g->BConnection[0] = Connection(BConn, IdReturnMap);
     }
-    else if (p = BB) {
+    else if (p == BB) {
         CFLOBDDReturnMapHandle AReturnMap;
         AReturnMap.AddToEnd(0);
         AReturnMap.Canonicalize();
@@ -531,19 +550,17 @@ CFLOBDD MultModK(unsigned int k) {
 // -----------------------------------------------------------------------------
 // MultRelation Constructor
 //
-// Initializes the modular multiplication relations for all 26 primes.
+// Initializes the modular multiplication relations for all numberOfMultRelations primes.
 // (Figure 12 in the document)
 // -----------------------------------------------------------------------------
 MultRelation::MultRelation() {
-    // Initialize ModuliArray with first 26 odd primes
+    // Initialize ModuliArray with the appropriate set of odd primes
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
         ModuliArray[i] = Moduli[i];
     }
 
-    // Document line [32]: assert(n < 2^(2^(maxLevel-1)))
-    // With 26 primes, product > 2^133, sufficient for 64-bit multiplication
-    // Requires CFLOBDDMaxLevel >= 7
-    assert(CFLOBDDMaxLevel >= 8);  // BITWIDTH -- also change cflobdd_node.h
+    // Ensures that the AA, AB, BA, and BB variants of NumsModK all have k exit vertices
+    assert(virtualMaxLevel - 2 >= logLogOfMaxModulus);
 
     // Document lines [33-35]: Build CFLOBDDs for each prime
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
@@ -646,7 +663,7 @@ CFLOBDD ShiftAndAddMultiplicationModK(unsigned int k) {
   CFLOBDD two = MkConstantCFLOBDD(2);
   for (int i = 0; i < MultRelation::numBits; i++) {
     // std::cout << "Iteration " << i << std::endl;
-    CFLOBDD p = MkProjection(i);   // i = 0, 1, ..., numBits corresponds to high-order bit to low-order bit
+    CFLOBDD p = MkProjection(i * stride);   // i = 0, 1, ..., numBits corresponds to high-order bit to low-order bit
     CFLOBDD addend = CFLOBDD(ApplyAndReduce<int>(p.root, b.root, MultiplyModKFunc));
     CFLOBDD temp = CFLOBDD(ApplyAndReduce<int>(two.root, result.root, MultiplyModKFunc));
     result = CFLOBDD(ApplyAndReduce<int>(temp.root, addend.root, AddModKFunc));
@@ -672,17 +689,9 @@ bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
     PrintSize(result);
 
   	// Lookup a selection of products in specification and result
-	// Create assignments for 2*numBits variables from two values with numBits bits
  	for(INPUT_TYPE i = 20; i < 30; i++) {
 		for(INPUT_TYPE m = 20; m < 30; m++) {
-			// Create a double-length assignment with i in the A position and m in the B position
-			SH_OBDD::Assignment a(2*MultRelation::numBits);
-			// Most significant bit first (high-order to low-order as in the CRT document)
-			for (unsigned int j = 0; j < MultRelation::numBits; j++) {
-				a[j] = static_cast<int>((i >> (MultRelation::numBits - 1 - j)) & 1);
-				a[MultRelation::numBits+j] = static_cast<int>((m >> (MultRelation::numBits - 1 - j)) & 1);
-			}
-			// std::cout << "a: ";  a.print(std::cout);  std::cout << std::endl;
+			SH_OBDD::Assignment a = MultRelation::MakeAssignment(i, m);
 			int a_result = specification.root->Evaluate(a);
 			std::cout << i << " * " << m << " specification = " << a_result << " Expected: " << i*m % k << std::endl;
 			a_result = result.root->Evaluate(a);
@@ -786,7 +795,7 @@ CFLOBDD SubtractViaTerminalNegation(CFLOBDD A, CFLOBDD B, unsigned int k) {
 // subtractive Karatsuba multiplier produces
 // -----------------------------------------------------------------------------
 CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k) {
-    unsigned int m = 1 << (CFLOBDDMaxLevel - 2);  // half of the number of bits in an input number
+    unsigned int m = MultRelation::numBits / 2;  // half of the number of bits in an input number
 
     // Create constant CFLOBDDs for const_m = \x.2^m mod k and const_2m = \x.2^{2*m} mod k
     // for multiplying a CFLOBDD by these powers of 2 mod k
@@ -854,8 +863,8 @@ CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k) {
     std::cout << "Size of middle = Z1 + Z2 + Z0" << std::endl;
     PrintSize(middle);
 #endif
-    
-    // Set karatsuba = Z2·2^(2m) + middle·2^m + Z0
+   
+    // Set karatsuba = Z2*2^(2m) + middle*2^m + Z0
     CFLOBDD term_Z2 = CFLOBDD(ApplyAndReduce<int>(
         Z2.root, const_2m.root, MultiplyModKFunc
     ));
@@ -881,7 +890,7 @@ CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k) {
         karatsuba.root, Z0.root, AddModKFunc
     ));
 #ifdef DebugSizes
-    std::cout << "Size of karatsuba = Z2·2^(2m) + middle·2^m + Z0" << std::endl;
+    std::cout << "Size of karatsuba = Z2*2^(2m) + middle*2^m + Z0" << std::endl;
     PrintSize(karatsuba);
 #endif
 
@@ -928,7 +937,7 @@ bool VerifySubtractiveKaratsubaOneLevel(unsigned int k) {
 bool VerifySubtractiveKaratsubaOneLevelModuliwise() {
     auto start = std::chrono::high_resolution_clock::now();
 
-    for (int i = numberOfMultRelations-1; i >= 0; i--) {
+    for (int i = 0; i < numberOfMultRelations; i++) {
         std::cout << "Testing multiplication modulo the " << i+1 << "th odd prime: " << Moduli[i] << std::endl;
         CFLOBDD curSpec = MultModK(Moduli[i]);
         CFLOBDD curResult = SubtractiveKaratsubaOneLevel(Moduli[i]);
@@ -984,14 +993,8 @@ static unsigned int ModularInverse(unsigned int a, unsigned int m) {
 OUTPUT_TYPE MultRelation::Multiply(INPUT_TYPE a, INPUT_TYPE b) const {
     using namespace boost::multiprecision;
 
-    // Create 2*m-bit assignment with a in the A position and b in the B position
-    SH_OBDD::Assignment assignment(2 * MultRelation::numBits);
-
-    // Most significant bit first (high-order to low-order as in the CRT document)
-    for (unsigned int j = 0; j < MultRelation::numBits; j++) {
-        assignment[j] = static_cast<int>((a >> (MultRelation::numBits - 1 - j)) & 1);
-        assignment[MultRelation::numBits + j] = static_cast<int>((b >> (MultRelation::numBits - 1 - j)) & 1);
-    }
+    // Create assignment with a in the A position and b in the B position
+    SH_OBDD::Assignment assignment = MakeAssignment(a, b);
 
     // Evaluate each CFLOBDD to get remainders modulo each prime
     unsigned int remainders[numberOfMultRelations];
@@ -1028,6 +1031,29 @@ OUTPUT_TYPE MultRelation::Multiply(INPUT_TYPE a, INPUT_TYPE b) const {
     }
 
     return result;
+}
+
+// -----------------------------------------------------------------------------
+// MultRelation::MakeAssignment
+//
+// Create an assignment mapping a_val to the A-position variables and b_val to
+// the B-position variables, using stride-based embedding.
+// A bit j maps to variable j * stride; B bit j maps to halfVars + j * stride.
+// -----------------------------------------------------------------------------
+SH_OBDD::Assignment MultRelation::MakeAssignment(INPUT_TYPE a_val, INPUT_TYPE b_val) {
+    SH_OBDD::Assignment assignment(totalVars);
+    // Zero-initialize all variables (the don't-care bits at lower levels
+    // pass through NoDistinctionNodes, so their values don't matter,
+    // but we initialize for cleanliness)
+    for (unsigned int j = 0; j < totalVars; j++) {
+        assignment[j] = 0;
+    }
+    // Map input bits to their stride-based positions
+    for (unsigned int j = 0; j < MultRelation::numBits; j++) {
+        assignment[j * stride] = static_cast<int>((a_val >> (MultRelation::numBits - 1 - j)) & 1);
+        assignment[halfVars + j * stride] = static_cast<int>((b_val >> (MultRelation::numBits - 1 - j)) & 1);
+    }
+    return assignment;
 }
 
 // -----------------------------------------------------------------------------

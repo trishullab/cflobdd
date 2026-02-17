@@ -35,10 +35,10 @@ WConnection<T, Op>::~WConnection()
 
 // Hash
 template <typename T, typename Op>
-unsigned int WConnection<T, Op>::Hash(unsigned long modsize)
+size_t WConnection<T, Op>::Hash()
 {
-	unsigned int hvalue = 0;
-	hvalue = (997 * returnMapHandle.Hash(modsize) + entryPointHandle->Hash(modsize)) % modsize;
+	size_t hvalue = 0;
+	hvalue = (997 * returnMapHandle.Hash() + entryPointHandle->Hash());
 	return hvalue;
 }
 

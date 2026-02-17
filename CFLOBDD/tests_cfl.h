@@ -55,6 +55,7 @@ class CFLTests
         static void testMatMul(int size);
         static void testQFT(int size, int seed);
 
+#ifdef WCFLOBDD_SUPPORTED
         static void testWeightedOps(unsigned int size);
 		static void testGHZAlgo_W(int size);
 		static void testBVAlgo_W(int size, int seed);
@@ -77,10 +78,11 @@ class CFLTests
         static void testSynBenchmark5_CFLOBDD(int size);
         static void testSynBenchmark6_CFLOBDD(int size);
         static void testSynBenchmark7_CFLOBDD(int size);
-        static void testMultiplicationCRT();
+#endif
 
         static void InitModules();
 	    static void ClearModules();
+        static bool verbose;
 		static bool runTests(const char *arg, int size = 0, int seed = 0, int a = 0);
 };
 }

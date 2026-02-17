@@ -38,7 +38,7 @@ public:
 	bool operator!= (const WeightedMatMultMapHandle<T> &r) const;      // Overloaded !=
 	bool operator== (const WeightedMatMultMapHandle<T> &r) const;      // Overloaded ==
 	T& operator[](INT_PAIR& p);                        // Overloaded []
-	unsigned int Hash(unsigned long modsize);
+	size_t Hash();
 	void Add(const INT_PAIR& p, T& v);
 	void ForceAdd(const INT_PAIR& p, T& v);
 	bool Member(INT_PAIR& p);
@@ -55,7 +55,7 @@ public:
 	struct mapHash {
 	 public:
 		 size_t operator()(const WeightedMatMultMapHandle<T>& c) const {
-			 return c.mapContents->Hash(UINT64_MAX);
+			 return c.mapContents->Hash();
 		 }
 	 };
 };
@@ -78,13 +78,13 @@ template <typename T>
 class WeightedMatMultMapBody {
 
 	friend void WeightedMatMultMapHandle<T>::Canonicalize();
-	friend unsigned int WeightedMatMultMapHandle<T>::Hash(unsigned long modsize);
+	friend size_t WeightedMatMultMapHandle<T>::Hash();
 
 public:
 	WeightedMatMultMapBody();    // Constructor
 	void IncrRef();
 	void DecrRef();
-	unsigned int Hash(unsigned long modsize);
+	size_t Hash();
 	void setHashCheck();
 	unsigned int refCount;         // reference-count value
 	std::map<INT_PAIR, T> map;

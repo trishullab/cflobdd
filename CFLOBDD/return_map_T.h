@@ -60,7 +60,7 @@ class ReturnMapHandle {
   bool operator!= (const ReturnMapHandle<T> &r);      // Overloaded !=
   bool operator== (const ReturnMapHandle<T> &r);      // Overloaded ==
   T& operator[](unsigned int i);                       // Overloaded []
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   unsigned int Size();
   void AddToEnd(T y);
   bool Member(T y);
@@ -88,7 +88,7 @@ template <typename T>
 class ReturnMapBody {
 
   friend void ReturnMapHandle<T>::Canonicalize();
-  friend unsigned int ReturnMapHandle<T>::Hash(unsigned long modsize);
+  friend size_t ReturnMapHandle<T>::Hash();
 
  public:
   ReturnMapBody();    // Constructor
@@ -96,7 +96,7 @@ class ReturnMapBody {
   //~ReturnMapBody();
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   void setHashCheck();
   unsigned int refCount;         // reference-count value
   std::vector<T> mapArray;
@@ -287,7 +287,7 @@ std::ostream& operator<< (std::ostream & out, const ReturnMapHandle<T> &r)
 }
 
 template <typename T>
-unsigned int ReturnMapHandle<T>::Hash(unsigned long modsize)
+size_t ReturnMapHandle<T>::Hash()
 {
 	if (!(mapContents->isCanonical)) {
 		std::cout << "Hash of a non-canonical ReturnMapHandle occurred" << std::endl;
@@ -295,7 +295,7 @@ unsigned int ReturnMapHandle<T>::Hash(unsigned long modsize)
 		this->Canonicalize();
 	}
 	assert(mapContents->isCanonical);
-	return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
+	return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
 }
 
 template <typename T>

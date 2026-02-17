@@ -2,17 +2,23 @@
 #define HASHSETGUARD
 
 #include <iostream>
+#include <bit>
+#include <cstddef>
 #include "apvector_T.h"
 #include "list_T.h"
 #include "list_TPtr.h"
+
+// Number of always-zero low bits in addresses returned by operator new.
+// Equal to log2(alignof(max_align_t)); used in pointer-based Hash functions.
+constexpr unsigned PTR_ALIGN_SHIFT = std::bit_width(alignof(std::max_align_t)) - 1;
 
 // **********************************************************************
 // The Hashset template implements a set of "pointers to ItemT", with fast
 // lookup and insert operations.
 //
 // NOTE: The item type (ItemT) must provide:
-//       1. a Hash member function that takes one parameter k and
-//          returns an integer in the range 0..k-1
+//       1. a Hash member function that returns a size_t hash value
+//          (the table performs % numBuckets internally)
 //       2. a definition of std::ostream &operator<<(std::ostream, const KeyT &)
 //       3. a definition of bool operator==(const ItemT &)
 //
@@ -66,7 +72,7 @@ template <class ItemT> class Hashset
         
     // other operations
 
-    int Size() const;
+    unsigned long Size() const;
 	unsigned int GetHash(ItemT *item) const;
     ItemT *Lookup(ItemT *item) const;
 	ItemT *Lookup(ItemT *item, unsigned int hash) const;
@@ -77,7 +83,7 @@ template <class ItemT> class Hashset
 
   private:
     const int numBuckets;
-    int mySize;                        // current size
+    unsigned long mySize;                // current size
     apvector<List<ItemT *> > *myItems; // pointer to array of list of ItemT*'s
 };
 
@@ -104,7 +110,7 @@ template <class ItemT> class HashsetIterator
 
   private:
     apvector<List<ItemT *> > *myItems; // pointer to array of items
-    int mySize;                        // current size
+    unsigned long mySize;                // current size
     int numBuckets;
     int k;
     int numAccessed;

@@ -384,13 +384,19 @@ CFLOBDDNodeHandle CFLOBDDNodeHandle::Reduce(ReductionMapHandle& redMapHandle, un
 
 void CFLOBDDNodeHandle::InitReduceCache()
 {
-  reduceCache = new Hashtable<CFLReduceKey, CFLOBDDNodeHandle>(HASH_NUM_BUCKETS);
+  reduceCache = new Hashtable<CFLReduceKey, CFLOBDDNodeHandle>(HASH_NUM_BUCKETS, 0.8);
 }
 
 void CFLOBDDNodeHandle::DisposeOfReduceCache()
 {
 	delete reduceCache;
 	reduceCache = NULL;
+}
+
+void CFLOBDDNodeHandle::ClearReduceCache()
+{
+	if (reduceCache != NULL)
+		reduceCache->Clear();
 }
 
 unsigned long CFLOBDDNodeHandle::ReduceCacheSize()

@@ -573,13 +573,19 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDNodeHandle n1,
 
 void InitPairProductCache()
 {
-  pairProductCache = new Hashtable<PairProductKey, PairProductMemo>(HASH_NUM_BUCKETS);
+  pairProductCache = new Hashtable<PairProductKey, PairProductMemo>(HASH_NUM_BUCKETS, 0.8);
 }
 
 void DisposeOfPairProductCache()
 {
 	delete pairProductCache;
 	pairProductCache = NULL;
+}
+
+void ClearPairProductCache()
+{
+	if (pairProductCache != NULL)
+		pairProductCache->Clear();
 }
 
 unsigned long PairProductCacheSize()
@@ -1133,7 +1139,7 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDNodeHandle n1,
 
 void InitTripleProductCache()
 {
-  tripleProductCache = new Hashtable<TripleProductKey, TripleProductMemo>(HASH_NUM_BUCKETS);
+  tripleProductCache = new Hashtable<TripleProductKey, TripleProductMemo>(HASH_NUM_BUCKETS, 0.8);
 }
 
 void DisposeOfTripleProductCache()
@@ -1142,9 +1148,22 @@ void DisposeOfTripleProductCache()
 	tripleProductCache = NULL;
 }
 
+void ClearTripleProductCache()
+{
+	if (tripleProductCache != NULL)
+		tripleProductCache->Clear();
+}
+
 unsigned long TripleProductCacheSize()
 {
 	if (tripleProductCache == NULL) return 0;
 	return tripleProductCache->Size();
+}
+
+void FlushCaches()
+{
+	ClearPairProductCache();
+	ClearTripleProductCache();
+	CFLOBDDNodeHandle::ClearReduceCache();
 }
 }

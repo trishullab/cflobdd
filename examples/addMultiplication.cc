@@ -572,6 +572,34 @@ bool ADD_VerifyShiftAndAddMultiplicationModK(Cudd& mgr, int n, int k)
 }
 
 
+void ADD_BuildMultiplicationSpecsModuliwise(Cudd& mgr, int n)
+{
+    std::cout << "Building specification ADDs for all " << numberOfMultRelations
+              << " moduli for " << n << "-bit operands..." << std::endl;
+
+    auto totalStart = high_resolution_clock::now();
+
+    for (unsigned int i = 0; i < numberOfMultRelations; i++) {
+        std::cout << "  Modulus " << Moduli[i] << " (" << i+1 << "/"
+                  << numberOfMultRelations << ")..." << std::flush;
+        auto start = high_resolution_clock::now();
+        ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(end - start);
+        std::cout << " nodes=" << spec.nodeCount()
+                  << ", leaves=" << spec.CountLeaves();
+        if (i == numberOfMultRelations - 1) {
+            std::cout << " (" << duration.count() << " ms)";
+        }
+        std::cout << std::endl;
+    }
+
+    auto totalEnd = high_resolution_clock::now();
+    auto totalDuration = duration_cast<milliseconds>(totalEnd - totalStart);
+    std::cout << "ADD_BuildMultiplicationSpecsModuliwise took " << totalDuration.count() << " ms" << std::endl;
+}
+
+
 bool ADD_VerifyShiftAndAddMultiplicationModuliwise(Cudd& mgr, int n)
 {
     std::cout << "Verifying shift-and-add across all " << numberOfMultRelations
@@ -1253,6 +1281,10 @@ int main(int argc, char* argv[])
             return 1;
         }
         return ADD_VerifyShiftAndAddMultiplicationModK(mgr, n, testK) ? 0 : 1;
+    }
+    else if (testName == "spec-all") {
+        ADD_BuildMultiplicationSpecsModuliwise(mgr, n);
+        return 0;
     }
     else if (testName == "shiftadd-all") {
         return ADD_VerifyShiftAndAddMultiplicationModuliwise(mgr, n) ? 0 : 1;

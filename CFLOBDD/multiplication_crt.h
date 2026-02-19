@@ -293,6 +293,13 @@ extern CFLOBDD ShiftAndAddMultiplicationModK(unsigned int k);
 extern bool VerifyShiftAndAddMultiplicationModK(unsigned int k);
 
 // -----------------------------------------------------------------------------
+// BuildMultiplicationSpecsModuliwise
+//
+// Build the specification CFLOBDDs for all moduli and report sizes and timing
+// -----------------------------------------------------------------------------
+extern void BuildMultiplicationSpecsModuliwise();
+
+// -----------------------------------------------------------------------------
 // VerifyShiftAndAddMultiplicationModuliwise
 //
 // Operation to check whether a shift-and-add multiplier produces the correct result

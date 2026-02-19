@@ -70,6 +70,7 @@ template <class KeyT, class ItemT> class Hashtable
   public:
     Hashtable();                       // constructor (default)
     Hashtable(int size);               // constructor
+    Hashtable(int size, double loadThreshold); // constructor with eviction
     ~Hashtable();                      // destructor
     Hashtable(const Hashtable<KeyT, ItemT> & H); // copy constructor
 	RefCounter count;
@@ -81,6 +82,7 @@ template <class KeyT, class ItemT> class Hashtable
     // other operations
 
     unsigned long Size() const;
+    void Clear();
     bool Lookup(KeyT k) const;
     bool Fetch(KeyT k, ItemT &i) const;
 	//ItemT & operator [] (KeyT k);
@@ -90,6 +92,7 @@ template <class KeyT, class ItemT> class Hashtable
   private:
     const int numBuckets;
     unsigned long mySize;                // current size
+    unsigned long maxLoad;               // eviction threshold (0 = no eviction)
     apvector<List<Pair<KeyT, ItemT> *> > *myItems; // pointer to array of items
 };
 

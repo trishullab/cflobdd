@@ -8,7 +8,7 @@
 
 const bool DEBUG_HASH = false;
 
-const int HASH_NUM_BUCKETS = 2000000;
+const int HASH_NUM_BUCKETS = 200000;
 
 // Implementation of Hashtable template.
 // See hash.h for documentation.
@@ -19,6 +19,7 @@ const int HASH_NUM_BUCKETS = 2000000;
 template<class KeyT, class ItemT> Hashtable<KeyT, ItemT>::Hashtable():
   numBuckets(1000),
   mySize(0),
+  maxLoad(0),
   myItems(new apvector<List <Pair<KeyT, ItemT> *> > (numBuckets))
 { }
 
@@ -28,6 +29,18 @@ template<class KeyT, class ItemT> Hashtable<KeyT, ItemT>::Hashtable():
 template<class KeyT, class ItemT> Hashtable<KeyT, ItemT>::Hashtable(int size):
   numBuckets(size),
   mySize(0),
+  maxLoad(0),
+  myItems(new apvector<List <Pair<KeyT, ItemT> *> > (numBuckets))
+{ }
+
+// **********************************************************************
+// Hashtable constructor 3 (with eviction)
+//   loadThreshold: fraction (e.g. 0.8) at which Insert evicts entries
+// **********************************************************************
+template<class KeyT, class ItemT> Hashtable<KeyT, ItemT>::Hashtable(int size, double loadThreshold):
+  numBuckets(size),
+  mySize(0),
+  maxLoad((unsigned long)(loadThreshold * size)),
   myItems(new apvector<List <Pair<KeyT, ItemT> *> > (numBuckets))
 { }
 
@@ -47,6 +60,7 @@ template<class KeyT, class ItemT>
 Hashtable<KeyT, ItemT>::Hashtable(const Hashtable<KeyT, ItemT> & H):
   numBuckets(H.numBuckets),
   mySize(H.mySize),
+  maxLoad(H.maxLoad),
   myItems(new apvector< List<Pair<KeyT, ItemT> *> > (numBuckets))
 // postcondition: table is a copy of H
 {
@@ -93,6 +107,29 @@ void Hashtable<KeyT, ItemT>::Insert(KeyT k, ItemT item)
   }
   (*myItems)[j].AddToEnd(p);
   mySize++;
+
+  // Evict if load threshold exceeded
+  if (maxLoad > 0 && mySize > maxLoad) {
+    // Find first non-empty bucket starting from (j+1) % numBuckets
+    int e = (j + 1) % numBuckets;
+    while ((*myItems)[e].Length() == 0) {
+      e = (e + 1) % numBuckets;
+      if (e == j) break;  // don't evict the bucket we just inserted into
+    }
+    if (e != j && (*myItems)[e].Length() > 0) {
+      // Delete Pair objects and free ListNodes
+      ListIterator<Pair<KeyT, ItemT> *> li((*myItems)[e]);
+      li.Reset();
+      unsigned int evicted = 0;
+      while (!li.AtEnd()) {
+        delete li.Current();
+        li.Next();
+        evicted++;
+      }
+      (*myItems)[e].FreeList();
+      mySize -= evicted;
+    }
+  }
 }
 
 // **********************************************************************
@@ -102,6 +139,28 @@ void Hashtable<KeyT, ItemT>::Insert(KeyT k, ItemT item)
 template<class KeyT, class ItemT> unsigned long Hashtable<KeyT, ItemT>::Size() const
 {
   return(mySize);
+}
+
+// **********************************************************************
+// Clear
+//   remove all entries, freeing the Pair objects and ListNodes but
+//   keeping the bucket array and sentinel nodes intact
+// **********************************************************************
+template<class KeyT, class ItemT>
+void Hashtable<KeyT, ItemT>::Clear()
+{
+  for (int i = 0; i < numBuckets; i++) {
+    // Delete the Pair objects (allocated by Insert via new)
+    ListIterator<Pair<KeyT, ItemT> *> li((*myItems)[i]);
+    li.Reset();
+    while (!li.AtEnd()) {
+      delete li.Current();
+      li.Next();
+    }
+    // Free ListNodes but keep sentinel header
+    (*myItems)[i].FreeList();
+  }
+  mySize = 0;
 }
 
 // **********************************************************************

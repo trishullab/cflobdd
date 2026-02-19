@@ -19,7 +19,7 @@ COMMANDLINE_OPTIONS = #/dev/ttyS0
 # Compiler options during compilation
 # -MMD: generate .d dependency files as a side effect of compilation
 # -MP:  add phony targets for headers so deleting a header doesn't break make
-COMPILE_OPTIONS = -g -O2 -std=c++2a -w -DCFLOBDD_C_EXPORTS -MMD -MP
+COMPILE_OPTIONS = -g -O3 -std=c++2a -w -DCFLOBDD_C_EXPORTS -MMD -MP
 ifdef NUM_BITS
 COMPILE_OPTIONS += -DNUM_BITS=$(NUM_BITS)
 endif
@@ -89,35 +89,37 @@ clean-all: clean depclean
 # delete them to force recompilation when switching widths or build modes.
 NUM_BITS_OBJS = multiplication_crt.o tests_cfl.o cflobdd_c.o return_map_specializations.o
 
-cflobdd32: $(NUM_BITS_OBJS)
+.PHONY: cflobdd32 cflobdd64 cflobdd128 cflobdd256 cflobdd512 cflobdd1024 cflobdd2048 cflobdd4096
+
+cflobdd32:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=32 PROJECT=cflobdd32.exe
 
-cflobdd64: $(NUM_BITS_OBJS)
+cflobdd64:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=64 PROJECT=cflobdd64.exe
 
-cflobdd128: $(NUM_BITS_OBJS)
+cflobdd128:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=128 PROJECT=cflobdd128.exe
 
-cflobdd256: $(NUM_BITS_OBJS)
+cflobdd256:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=256 PROJECT=cflobdd256.exe
 
-cflobdd512: $(NUM_BITS_OBJS)
+cflobdd512:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=512 PROJECT=cflobdd512.exe
 
-cflobdd1024: $(NUM_BITS_OBJS)
+cflobdd1024:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=1024 PROJECT=cflobdd1024.exe
 
-cflobdd2048: $(NUM_BITS_OBJS)
+cflobdd2048:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=2048 PROJECT=cflobdd2048.exe
 
-cflobdd4096: $(NUM_BITS_OBJS)
+cflobdd4096:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=4096 PROJECT=cflobdd4096.exe
 

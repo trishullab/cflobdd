@@ -334,6 +334,14 @@ ADD ADD_ShiftAndAddMultiplicationModK(Cudd& mgr, int n, int k);
 bool ADD_VerifyShiftAndAddMultiplicationModK(Cudd& mgr, int n, int k);
 
 /**
+  @brief Builds specification ADDs for all moduli with aggregate and final-modulus timing.
+
+  @param mgr  CUDD manager
+  @param n    Number of bits per operand
+*/
+void ADD_BuildMultiplicationSpecsModuliwise(Cudd& mgr, int n);
+
+/**
   @brief Verifies shift-and-add multiplication for all moduli.
 
   @param mgr  CUDD manager

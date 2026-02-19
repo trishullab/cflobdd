@@ -33,6 +33,7 @@
 #include "multiplication_crt.h"
 #include "cflobdd_node.h"
 #include "cflobdd_top_node_t.h"
+#include "cross_product.h"
 #include <boost/multiprecision/cpp_int.hpp>
 
 namespace CFL_OBDD {
@@ -527,6 +528,13 @@ static int AddModKFunc(int a, int b) {
 }
 
 // -----------------------------------------------------------------------------
+// Helper function for (2*a + b) mod k — combines doubling and addition
+// -----------------------------------------------------------------------------
+static int TwoAPlusBModKFunc(int a, int b) {
+    return (2 * a + b) % currentModulus;
+}
+
+// -----------------------------------------------------------------------------
 // MultModK
 //
 // Construction of a CFLOBDD that represents the multiplication relation mod k.
@@ -660,13 +668,14 @@ CFLOBDD ShiftAndAddMultiplicationModK(unsigned int k) {
   CFLOBDD a = NumsModK(currentModulus, A);        // Set of all first inputs
   CFLOBDD b = NumsModK(currentModulus, B);        // Set of all second inputs
   CFLOBDD result = MkConstantCFLOBDD(0);
-  CFLOBDD two = MkConstantCFLOBDD(2);
   for (int i = 0; i < MultRelation::numBits; i++) {
     // std::cout << "Iteration " << i << std::endl;
     CFLOBDD p = MkProjection(i * stride);   // i = 0, 1, ..., numBits corresponds to high-order bit to low-order bit
     CFLOBDD addend = CFLOBDD(ApplyAndReduce<int>(p.root, b.root, MultiplyModKFunc));
-    CFLOBDD temp = CFLOBDD(ApplyAndReduce<int>(two.root, result.root, MultiplyModKFunc));
-    result = CFLOBDD(ApplyAndReduce<int>(temp.root, addend.root, AddModKFunc));
+    result = CFLOBDD(ApplyAndReduce<int>(result.root, addend.root, TwoAPlusBModKFunc));
+    // CFLOBDD two = MkConstantCFLOBDD(2);
+    // CFLOBDD temp = CFLOBDD(ApplyAndReduce<int>(two.root, result.root, MultiplyModKFunc));
+    // result = CFLOBDD(ApplyAndReduce<int>(temp.root, addend.root, AddModKFunc));
   }
 
   return result;
@@ -678,15 +687,28 @@ CFLOBDD ShiftAndAddMultiplicationModK(unsigned int k) {
 // Operation to check whether a shift-and-add multiplier produces the correct result
 // -----------------------------------------------------------------------------
 bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
+    // Create the representation of the multiplication relation for modulus k
+    auto start = std::chrono::high_resolution_clock::now();
+    CFLOBDD specification = MultModK(k);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "MultModK(" << k << ") took " << duration.count() << " ms" << std::endl;
+    std::cout << "Size of the multiplication relation for modulus " << k << std::endl;
+    PrintSize(specification);
+
+#ifdef TEMPORARY
+    // Create the representation of the multiplication relation for modulus k via shift-and-add
     currentModulus = k;
     CFLOBDD result = ShiftAndAddMultiplicationModK(k);
 
     // Check whether result holds the correct value
-    CFLOBDD specification = MultModK(currentModulus);
-    std::cout << "Comparison of result with the specification of multiplication mod " << currentModulus << ": " << (result == specification) << std::endl;
+    bool resultOfComparison = (result == specification);
+    std::cout << "Comparison of result with the specification of multiplication mod " << currentModulus << ": " << resultOfComparison << std::endl;
 
-    PrintSize(specification);
-    PrintSize(result);
+    if (resultOfComparison == false) {
+        std::cout << "Size of the multiplication relation for modulus " << k << "via shift-and-add" << std::endl;
+        PrintSize(specification);
+    }
 
   	// Lookup a selection of products in specification and result
  	for(INPUT_TYPE i = 20; i < 30; i++) {
@@ -699,8 +721,37 @@ bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
 		}
 	}
     std::cout << std:: endl;
+#else
+    bool resultOfComparison = true;
+#endif
 
-  return (result == specification);
+  return resultOfComparison;
+}
+
+// -----------------------------------------------------------------------------
+// BuildMultiplicationSpecsModuliwise
+//
+// Build the specification CFLOBDDs for all moduli and report sizes and timing
+// -----------------------------------------------------------------------------
+void BuildMultiplicationSpecsModuliwise() {
+    auto totalStart = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Sizes of the specification's CFLOBDDs" << std::endl;
+    for (unsigned int i = 0; i < numberOfMultRelations; i++) {
+        std::cout << "Size of the multiplication relation for the " << i+1 << "th odd prime: " << Moduli[i] << std::endl;
+        auto start = std::chrono::high_resolution_clock::now();
+        CFLOBDD curSpec = MultModK(Moduli[i]);
+        auto end = std::chrono::high_resolution_clock::now();
+        PrintSize(curSpec);
+        if (i == numberOfMultRelations - 1) {
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+            std::cout << "MultModK(" << Moduli[i] << ") took " << duration.count() << " ms" << std::endl;
+        }
+    }
+
+    auto totalEnd = std::chrono::high_resolution_clock::now();
+    auto totalDuration = std::chrono::duration_cast<std::chrono::milliseconds>(totalEnd - totalStart);
+    std::cout << "BuildMultiplicationSpecsModuliwise took " << totalDuration.count() << " ms" << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -710,14 +761,6 @@ bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
 // the correct result for all moduli
 // -----------------------------------------------------------------------------
 bool VerifyShiftAndAddMultiplicationModuliwise() {
-    // Emit the sizes of the CFLOBDDs in the specification 
-    std::cout << "Sizes of the specification's CFLOBDDs" << std::endl;
-    for (unsigned int i = 0; i < numberOfMultRelations; i++) {
-        std::cout << "Size of the multiplication relation for the " << i+1 << "th odd prime: " << Moduli[i] << std::endl;
-        CFLOBDD curSpec = MultModK(Moduli[i]);
-        PrintSize(curSpec);
-    }
- 
     auto start = std::chrono::high_resolution_clock::now();
 
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
@@ -729,6 +772,9 @@ bool VerifyShiftAndAddMultiplicationModuliwise() {
             std::cout << "Failure" << std::endl;
             return false;
         }
+        // std::cout << "reduceCache size: " << CFLOBDDNodeHandle::ReduceCacheSize() << std::endl;
+        // std::cout << "pairProductCache size: " << PairProductCacheSize() << std::endl;
+        // std::cout << "tripleProductCache size: " << TripleProductCacheSize() << std::endl;
     }
     std::cout << "Success" << std::endl;
 

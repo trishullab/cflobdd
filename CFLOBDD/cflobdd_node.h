@@ -118,6 +118,7 @@ class CFLOBDDNodeHandle {
      CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
      static void InitReduceCache();
      static void DisposeOfReduceCache();
+     static void ClearReduceCache();
      static unsigned long ReduceCacheSize();
 
 	public:

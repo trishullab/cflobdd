@@ -155,6 +155,7 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 
 void InitPairProductCache();
 void DisposeOfPairProductCache();
+void ClearPairProductCache();
 unsigned long PairProductCacheSize();
 }
 // ********************************************************************
@@ -278,7 +279,10 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDInternalNode *n1,
 
 void InitTripleProductCache();
 void DisposeOfTripleProductCache();
+void ClearTripleProductCache();
 unsigned long TripleProductCacheSize();
+
+void FlushCaches();
 
 } // namespace CFL_OBDD
 

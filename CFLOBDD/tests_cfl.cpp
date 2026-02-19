@@ -2125,6 +2125,10 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 		unsigned int k = (size > 0) ? size : 5;
 		std::cout << "Testing VerifyShiftAndAddMultiplicationModK for " << k << std::endl;
 		VerifyShiftAndAddMultiplicationModK(k);
+	} else if (curTest == "spec-all") {
+		// Build specification CFLOBDDs for all moduli
+		std::cout << "Building specification CFLOBDDs for all moduli" << std::endl;
+		BuildMultiplicationSpecsModuliwise();
 	} else if (curTest == "shiftadd-all") {
 		// Test VerifyShiftAndAddMultiplicationModuliwise
 		std::cout << "Testing VerifyShiftAndAddMultiplicationModuliwise" << std::endl;

@@ -739,13 +739,16 @@ void BuildMultiplicationSpecsModuliwise() {
     std::cout << "Sizes of the specification's CFLOBDDs" << std::endl;
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
         std::cout << "Size of the multiplication relation for the " << i+1 << "th odd prime: " << Moduli[i] << std::endl;
-        auto start = std::chrono::high_resolution_clock::now();
-        CFLOBDD curSpec = MultModK(Moduli[i]);
-        auto end = std::chrono::high_resolution_clock::now();
-        PrintSize(curSpec);
         if (i == numberOfMultRelations - 1) {
+            auto start = std::chrono::high_resolution_clock::now();
+            CFLOBDD curSpec = MultModK(Moduli[i]);
+            auto end = std::chrono::high_resolution_clock::now();
+            PrintSize(curSpec);
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
             std::cout << "MultModK(" << Moduli[i] << ") took " << duration.count() << " ms" << std::endl;
+        } else {
+            CFLOBDD curSpec = MultModK(Moduli[i]);
+            PrintSize(curSpec);
         }
     }
 
@@ -765,16 +768,27 @@ bool VerifyShiftAndAddMultiplicationModuliwise() {
 
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
         std::cout << "Testing multiplication modulo the " << i+1 << "th odd prime: " << Moduli[i] << std::endl;
-        CFLOBDD curSpec = MultModK(Moduli[i]);
-        CFLOBDD curShiftAndAddResult = ShiftAndAddMultiplicationModK(Moduli[i]);
-        bool equal = (curSpec == curShiftAndAddResult);
-        if (!equal) {
-            std::cout << "Failure" << std::endl;
-            return false;
+        if (i == numberOfMultRelations - 1) {
+            auto lastStart = std::chrono::high_resolution_clock::now();
+            CFLOBDD curSpec = MultModK(Moduli[i]);
+            CFLOBDD curShiftAndAddResult = ShiftAndAddMultiplicationModK(Moduli[i]);
+            auto lastEnd = std::chrono::high_resolution_clock::now();
+            bool equal = (curSpec == curShiftAndAddResult);
+            if (!equal) {
+                std::cout << "Failure" << std::endl;
+                return false;
+            }
+            auto lastDuration = std::chrono::duration_cast<std::chrono::milliseconds>(lastEnd - lastStart);
+            std::cout << "Verification of modulus " << Moduli[i] << " took " << lastDuration.count() << " ms" << std::endl;
+        } else {
+            CFLOBDD curSpec = MultModK(Moduli[i]);
+            CFLOBDD curShiftAndAddResult = ShiftAndAddMultiplicationModK(Moduli[i]);
+            bool equal = (curSpec == curShiftAndAddResult);
+            if (!equal) {
+                std::cout << "Failure" << std::endl;
+                return false;
+            }
         }
-        // std::cout << "reduceCache size: " << CFLOBDDNodeHandle::ReduceCacheSize() << std::endl;
-        // std::cout << "pairProductCache size: " << PairProductCacheSize() << std::endl;
-        // std::cout << "tripleProductCache size: " << TripleProductCacheSize() << std::endl;
     }
     std::cout << "Success" << std::endl;
 
@@ -985,12 +999,26 @@ bool VerifySubtractiveKaratsubaOneLevelModuliwise() {
 
     for (int i = 0; i < numberOfMultRelations; i++) {
         std::cout << "Testing multiplication modulo the " << i+1 << "th odd prime: " << Moduli[i] << std::endl;
-        CFLOBDD curSpec = MultModK(Moduli[i]);
-        CFLOBDD curResult = SubtractiveKaratsubaOneLevel(Moduli[i]);
-        bool equal = (curSpec == curResult);
-        if (!equal) {
-            std::cout << "Failure" << std::endl;
-            return false;
+        if (i == numberOfMultRelations - 1) {
+            auto lastStart = std::chrono::high_resolution_clock::now();
+            CFLOBDD curSpec = MultModK(Moduli[i]);
+            CFLOBDD curResult = SubtractiveKaratsubaOneLevel(Moduli[i]);
+            auto lastEnd = std::chrono::high_resolution_clock::now();
+            bool equal = (curSpec == curResult);
+            if (!equal) {
+                std::cout << "Failure" << std::endl;
+                return false;
+            }
+            auto lastDuration = std::chrono::duration_cast<std::chrono::milliseconds>(lastEnd - lastStart);
+            std::cout << "Verification of modulus " << Moduli[i] << " took " << lastDuration.count() << " ms" << std::endl;
+        } else {
+            CFLOBDD curSpec = MultModK(Moduli[i]);
+            CFLOBDD curResult = SubtractiveKaratsubaOneLevel(Moduli[i]);
+            bool equal = (curSpec == curResult);
+            if (!equal) {
+                std::cout << "Failure" << std::endl;
+                return false;
+            }
         }
     }
     std::cout << "Success" << std::endl;

@@ -123,3 +123,33 @@ cflobdd4096:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=4096 PROJECT=cflobdd4096.exe
 
+MULT = cflobdd32.exe
+spec-all-test:
+	./$(MULT) spec-all
+	./$(MULT) spec-all
+	./$(MULT) spec-all
+	./$(MULT) spec-all
+
+shiftadd-all-test:
+	./$(MULT) shiftadd-all
+	./$(MULT) shiftadd-all
+	./$(MULT) shiftadd-all
+	./$(MULT) shiftadd-all
+
+karatsuba-all-test:
+	./$(MULT) karatsuba-all
+	./$(MULT) karatsuba-all
+	./$(MULT) karatsuba-all
+	./$(MULT) karatsuba-all
+
+mult-tests:
+	make spec-all-test MULT=cflobdd32.exe
+	make shiftadd-all-test MULT=cflobdd32.exe
+	make karatsuba-all-test MULT=cflobdd32.exe
+	make spec-all-test MULT=cflobdd64.exe
+	make shiftadd-all-test MULT=cflobdd64.exe
+	make karatsuba-all-test MULT=cflobdd64.exe
+	make spec-all-test MULT=cflobdd128.exe
+	make shiftadd-all-test MULT=cflobdd128.exe
+	make spec-all-test MULT=cflobdd256.exe
+	make shiftadd-all-test MULT=cflobdd256.exe

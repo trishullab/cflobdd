@@ -86,6 +86,36 @@ multmod-4096: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=4096 -c -o addMultiplication.o addMultiplication.cc
 	g++ $(CUDD_CXXFLAGS) -o addMultiplication4096 addMultiplication.o cudd_build/libcudd.a
 
+MULT = addMultiplication32.exe
+spec-all-test:
+	./$(MULT) spec-all
+	./$(MULT) spec-all
+	./$(MULT) spec-all
+	./$(MULT) spec-all
+
+shiftadd-all-test:
+	./$(MULT) shiftadd-all
+	./$(MULT) shiftadd-all
+	./$(MULT) shiftadd-all
+	./$(MULT) shiftadd-all
+
+karatsuba-all-test:
+	./$(MULT) karatsuba-all
+	./$(MULT) karatsuba-all
+	./$(MULT) karatsuba-all
+	./$(MULT) karatsuba-all
+
+mult-tests:
+	make spec-all-test MULT=addMultiplication32.exe
+	make shiftadd-all-test MULT=addMultiplication32.exe
+	make karatsuba-all-test MULT=addMultiplication32.exe
+	make spec-all-test MULT=addMultiplication64.exe
+	make shiftadd-all-test MULT=addMultiplication64.exe
+	make spec-all-test MULT=addMultiplication128.exe
+	make shiftadd-all-test MULT=addMultiplication128.exe
+	make spec-all-test MULT=addMultiplication256.exe
+	make shiftadd-all-test MULT=addMultiplication256.exe
+
 complex:
 	gcc -DHAVE_CONFIG_H -I./$(C_DIR)  -I./$(C_DIR)/cudd -I./$(C_DIR)/mtr -I./$(C_DIR)/epd -I./$(C_DIR)/st -I./$(C_DIR)/util  -MT complex_test.o -MD -MP -MF complex_test.Tpo -c -o complex_test.o `test -f 'complex_test.c' || echo './'`complex_test.c
 	/bin/sh ./$(REL_C_DIR)/libtool  --tag=CXX   --mode=link gcc  -Wall -Wextra -g -O3   -o complex_test complex_test.o $(C_DIR)/cudd/libcudd.la 

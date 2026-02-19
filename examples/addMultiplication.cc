@@ -582,16 +582,19 @@ void ADD_BuildMultiplicationSpecsModuliwise(Cudd& mgr, int n)
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
         std::cout << "  Modulus " << Moduli[i] << " (" << i+1 << "/"
                   << numberOfMultRelations << ")..." << std::flush;
-        auto start = high_resolution_clock::now();
-        ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
-        auto end = high_resolution_clock::now();
-        auto duration = duration_cast<milliseconds>(end - start);
-        std::cout << " nodes=" << spec.nodeCount()
-                  << ", leaves=" << spec.CountLeaves();
         if (i == numberOfMultRelations - 1) {
-            std::cout << " (" << duration.count() << " ms)";
+            auto start = high_resolution_clock::now();
+            ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
+            auto end = high_resolution_clock::now();
+            auto duration = duration_cast<milliseconds>(end - start);
+            std::cout << " nodes=" << spec.nodeCount()
+                      << ", leaves=" << spec.CountLeaves()
+                      << " (" << duration.count() << " ms)" << std::endl;
+        } else {
+            ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
+            std::cout << " nodes=" << spec.nodeCount()
+                      << ", leaves=" << spec.CountLeaves() << std::endl;
         }
-        std::cout << std::endl;
     }
 
     auto totalEnd = high_resolution_clock::now();
@@ -611,14 +614,26 @@ bool ADD_VerifyShiftAndAddMultiplicationModuliwise(Cudd& mgr, int n)
         std::cout << "  Modulus " << Moduli[i] << " (" << i+1 << "/"
                   << numberOfMultRelations << ")..." << std::flush;
 
-        ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
-        ADD result = ADD_ShiftAndAddMultiplicationModK(mgr, n, Moduli[i]);
-
-        if (!(spec == result)) {
-            std::cout << " FAILED" << std::endl;
-            return false;
+        if (i == numberOfMultRelations - 1) {
+            auto lastStart = high_resolution_clock::now();
+            ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
+            ADD result = ADD_ShiftAndAddMultiplicationModK(mgr, n, Moduli[i]);
+            auto lastEnd = high_resolution_clock::now();
+            if (!(spec == result)) {
+                std::cout << " FAILED" << std::endl;
+                return false;
+            }
+            auto lastDuration = duration_cast<milliseconds>(lastEnd - lastStart);
+            std::cout << " OK (" << lastDuration.count() << " ms)" << std::endl;
+        } else {
+            ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
+            ADD result = ADD_ShiftAndAddMultiplicationModK(mgr, n, Moduli[i]);
+            if (!(spec == result)) {
+                std::cout << " FAILED" << std::endl;
+                return false;
+            }
+            std::cout << " OK" << std::endl;
         }
-        std::cout << " OK" << std::endl;
     }
 
     auto end = high_resolution_clock::now();
@@ -705,14 +720,26 @@ bool ADD_VerifySubtractiveKaratsubaOneLevelModuliwise(Cudd& mgr, int n)
         std::cout << "  Modulus " << Moduli[i] << " (" << (i + 1) << "/"
                   << numberOfMultRelations << ")..." << std::flush;
 
-        ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
-        ADD karatsuba = ADD_SubtractiveKaratsubaOneLevel(mgr, n, Moduli[i]);
-
-        if (!(spec == karatsuba)) {
-            std::cout << " FAILED" << std::endl;
-            return false;
+        if (i == numberOfMultRelations - 1) {
+            auto lastStart = high_resolution_clock::now();
+            ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
+            ADD karatsuba = ADD_SubtractiveKaratsubaOneLevel(mgr, n, Moduli[i]);
+            auto lastEnd = high_resolution_clock::now();
+            if (!(spec == karatsuba)) {
+                std::cout << " FAILED" << std::endl;
+                return false;
+            }
+            auto lastDuration = duration_cast<milliseconds>(lastEnd - lastStart);
+            std::cout << " OK (" << lastDuration.count() << " ms)" << std::endl;
+        } else {
+            ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
+            ADD karatsuba = ADD_SubtractiveKaratsubaOneLevel(mgr, n, Moduli[i]);
+            if (!(spec == karatsuba)) {
+                std::cout << " FAILED" << std::endl;
+                return false;
+            }
+            std::cout << " OK" << std::endl;
         }
-        std::cout << " OK" << std::endl;
     }
 
     auto end = high_resolution_clock::now();

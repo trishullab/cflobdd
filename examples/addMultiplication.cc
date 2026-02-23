@@ -579,27 +579,37 @@ void ADD_BuildMultiplicationSpecsModuliwise(Cudd& mgr, int n)
 
     auto totalStart = high_resolution_clock::now();
 
+    ADD spec;
+    auto lastDuration = duration_cast<milliseconds>(high_resolution_clock::duration::zero());
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
-        std::cout << "  Modulus " << Moduli[i] << " (" << i+1 << "/"
-                  << numberOfMultRelations << ")..." << std::flush;
+        if (verbose) {
+            std::cout << "  Modulus " << Moduli[i] << " (" << i+1 << "/"
+                      << numberOfMultRelations << ")..." << std::flush;
+        }
         if (i == numberOfMultRelations - 1) {
             auto start = high_resolution_clock::now();
-            ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
+            spec = ADD_MultModK(mgr, n, Moduli[i]);
             auto end = high_resolution_clock::now();
-            auto duration = duration_cast<milliseconds>(end - start);
-            std::cout << " nodes=" << spec.nodeCount()
-                      << ", leaves=" << spec.CountLeaves()
-                      << " (" << duration.count() << " ms)" << std::endl;
+            lastDuration = duration_cast<milliseconds>(end - start);
+            if (verbose) {
+                std::cout << " nodes=" << spec.nodeCount()
+                          << ", leaves=" << spec.CountLeaves() << std::endl;
+            }
         } else {
-            ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
-            std::cout << " nodes=" << spec.nodeCount()
-                      << ", leaves=" << spec.CountLeaves() << std::endl;
+            spec = ADD_MultModK(mgr, n, Moduli[i]);
+            if (verbose) {
+                std::cout << " nodes=" << spec.nodeCount()
+                          << ", leaves=" << spec.CountLeaves() << std::endl;
+            }
         }
     }
 
     auto totalEnd = high_resolution_clock::now();
     auto totalDuration = duration_cast<milliseconds>(totalEnd - totalStart);
     std::cout << "ADD_BuildMultiplicationSpecsModuliwise took " << totalDuration.count() << " ms" << std::endl;
+    std::cout << "ADD_MultModK(" << Moduli[numberOfMultRelations - 1] << ") took " << lastDuration.count() << " ms" << std::endl;
+    std::cout << "  nodes=" << spec.nodeCount()
+              << ", leaves=" << spec.CountLeaves() << std::endl;
 }
 
 
@@ -610,9 +620,12 @@ bool ADD_VerifyShiftAndAddMultiplicationModuliwise(Cudd& mgr, int n)
 
     auto start = high_resolution_clock::now();
 
+    auto lastDuration = duration_cast<milliseconds>(high_resolution_clock::duration::zero());
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
-        std::cout << "  Modulus " << Moduli[i] << " (" << i+1 << "/"
-                  << numberOfMultRelations << ")..." << std::flush;
+        if (verbose) {
+            std::cout << "  Modulus " << Moduli[i] << " (" << i+1 << "/"
+                      << numberOfMultRelations << ")..." << std::flush;
+        }
 
         if (i == numberOfMultRelations - 1) {
             auto lastStart = high_resolution_clock::now();
@@ -620,26 +633,28 @@ bool ADD_VerifyShiftAndAddMultiplicationModuliwise(Cudd& mgr, int n)
             ADD result = ADD_ShiftAndAddMultiplicationModK(mgr, n, Moduli[i]);
             auto lastEnd = high_resolution_clock::now();
             if (!(spec == result)) {
-                std::cout << " FAILED" << std::endl;
+                std::cout << "FAILED at modulus " << Moduli[i] << std::endl;
                 return false;
             }
-            auto lastDuration = duration_cast<milliseconds>(lastEnd - lastStart);
-            std::cout << " OK (" << lastDuration.count() << " ms)" << std::endl;
+            lastDuration = duration_cast<milliseconds>(lastEnd - lastStart);
+            if (verbose) std::cout << " OK" << std::endl;
         } else {
             ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
             ADD result = ADD_ShiftAndAddMultiplicationModK(mgr, n, Moduli[i]);
             if (!(spec == result)) {
-                std::cout << " FAILED" << std::endl;
+                std::cout << "FAILED at modulus " << Moduli[i] << std::endl;
                 return false;
             }
-            std::cout << " OK" << std::endl;
+            if (verbose) std::cout << " OK" << std::endl;
         }
     }
+    std::cout << "Success" << std::endl;
 
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(end - start);
 
-    std::cout << "SUCCESS! All moduli verified in " << duration.count() << " ms" << std::endl;
+    std::cout << "ADD_VerifyShiftAndAddMultiplicationModuliwise took " << duration.count() << " ms" << std::endl;
+    std::cout << "Verification of modulus " << Moduli[numberOfMultRelations - 1] << " took " << lastDuration.count() << " ms" << std::endl;
     return true;
 }
 
@@ -716,9 +731,12 @@ bool ADD_VerifySubtractiveKaratsubaOneLevelModuliwise(Cudd& mgr, int n)
     // Process in forward order (smallest primes first).
     // ADDs blow up for larger k (intermediate results grow as O(k^4*n)),
     // so do small moduli first to get results before hitting the limit.
+    auto lastDuration = duration_cast<milliseconds>(high_resolution_clock::duration::zero());
     for (unsigned int i = 0; i < numberOfMultRelations; i++) {
-        std::cout << "  Modulus " << Moduli[i] << " (" << (i + 1) << "/"
-                  << numberOfMultRelations << ")..." << std::flush;
+        if (verbose) {
+            std::cout << "  Modulus " << Moduli[i] << " (" << (i + 1) << "/"
+                      << numberOfMultRelations << ")..." << std::flush;
+        }
 
         if (i == numberOfMultRelations - 1) {
             auto lastStart = high_resolution_clock::now();
@@ -726,26 +744,28 @@ bool ADD_VerifySubtractiveKaratsubaOneLevelModuliwise(Cudd& mgr, int n)
             ADD karatsuba = ADD_SubtractiveKaratsubaOneLevel(mgr, n, Moduli[i]);
             auto lastEnd = high_resolution_clock::now();
             if (!(spec == karatsuba)) {
-                std::cout << " FAILED" << std::endl;
+                std::cout << "FAILED at modulus " << Moduli[i] << std::endl;
                 return false;
             }
-            auto lastDuration = duration_cast<milliseconds>(lastEnd - lastStart);
-            std::cout << " OK (" << lastDuration.count() << " ms)" << std::endl;
+            lastDuration = duration_cast<milliseconds>(lastEnd - lastStart);
+            if (verbose) std::cout << " OK" << std::endl;
         } else {
             ADD spec = ADD_MultModK(mgr, n, Moduli[i]);
             ADD karatsuba = ADD_SubtractiveKaratsubaOneLevel(mgr, n, Moduli[i]);
             if (!(spec == karatsuba)) {
-                std::cout << " FAILED" << std::endl;
+                std::cout << "FAILED at modulus " << Moduli[i] << std::endl;
                 return false;
             }
-            std::cout << " OK" << std::endl;
+            if (verbose) std::cout << " OK" << std::endl;
         }
     }
+    std::cout << "Success" << std::endl;
 
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(end - start);
 
-    std::cout << "SUCCESS! All moduli verified in " << duration.count() << " ms" << std::endl;
+    std::cout << "ADD_VerifySubtractiveKaratsubaOneLevelModuliwise took " << duration.count() << " ms" << std::endl;
+    std::cout << "Verification of modulus " << Moduli[numberOfMultRelations - 1] << " took " << lastDuration.count() << " ms" << std::endl;
     return true;
 }
 

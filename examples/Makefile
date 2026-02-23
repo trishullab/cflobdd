@@ -100,10 +100,10 @@ shiftadd-all-test:
 	./$(MULT) shiftadd-all
 
 karatsuba-all-test:
-	./$(MULT) karatsuba-all
-	./$(MULT) karatsuba-all
-	./$(MULT) karatsuba-all
-	./$(MULT) karatsuba-all
+	./$(MULT) karatsuba-all --big-cache
+	./$(MULT) karatsuba-all --big-cache
+	./$(MULT) karatsuba-all --big-cache
+	./$(MULT) karatsuba-all --big-cache
 
 mult-tests:
 	make spec-all-test MULT=addMultiplication32.exe
@@ -115,6 +115,10 @@ mult-tests:
 	make shiftadd-all-test MULT=addMultiplication128.exe
 	make spec-all-test MULT=addMultiplication256.exe
 	make shiftadd-all-test MULT=addMultiplication256.exe
+
+more-tests:
+	make spec-all-test MULT=addMultiplication512.exe
+	make shiftadd-all-test MULT=addMultiplication512.exe
 
 complex:
 	gcc -DHAVE_CONFIG_H -I./$(C_DIR)  -I./$(C_DIR)/cudd -I./$(C_DIR)/mtr -I./$(C_DIR)/epd -I./$(C_DIR)/st -I./$(C_DIR)/util  -MT complex_test.o -MD -MP -MF complex_test.Tpo -c -o complex_test.o `test -f 'complex_test.c' || echo './'`complex_test.c

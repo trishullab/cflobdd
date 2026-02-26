@@ -2139,7 +2139,7 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 		MultRelation::VerifyShiftAndAddMultiplication();
 	} else if (curTest == "karatsuba") {
 		// Test VerifySubtractiveKaratsubaOneLevel for a single modulus
-		unsigned int k = Moduli[numberOfMultRelations-1];
+		unsigned int k = (size > 0) ? size : Moduli[numberOfMultRelations-1];
 		std::cout << "Testing VerifySubtractiveKaratsubaOneLevel(" << k << ")" << std::endl;
 		VerifySubtractiveKaratsubaOneLevel(k);
 	} else if (curTest == "karatsuba-all") {

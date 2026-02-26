@@ -30,6 +30,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <unordered_map>
+#include <vector>
 #include "cflobdd_node.h"
 #include "list_T.h"
 #include "list_TPtr.h"
@@ -453,56 +454,102 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
          n->BConnection = new Connection[n->numBConnections];
          //PairProductMapBodyIterator AMapIterator(*AMap.mapContents);
          //AMapIterator.Reset();
-		 unsigned int Aiterator = 0;
-		 std::unordered_map<intpair, unsigned int, intpair::intpair_hash> pair_to_index;
-         //while (!AMapIterator.AtEnd()) {
-		 while (Aiterator < AMap.Size()) {
-           PairProductMapHandle BMap;
-		   b1 = AMap[Aiterator].First();//AMapIterator.Current().First();
-		   b2 = AMap[Aiterator].Second();//AMapIterator.Current().Second();
-       CFLOBDDNodeHandle bHandle = 
-                 PairProduct(*(n1->BConnection[b1].entryPointHandle),
-                             *(n2->BConnection[b2].entryPointHandle),
-                             BMap
-                            );
-        CFLOBDDReturnMapHandle bReturnHandle;
-           // Fill in n->BConnection[j].returnMapHandle and add new pairs (as appropriate)
-           // to pairProductMapHandle
-              //PairProductMapBodyIterator BMapIterator(*BMap.mapContents);
-              //BMapIterator.Reset();
-		   //while (!BMapIterator.AtEnd()) {
-		   unsigned int Biterator = 0;
-		   while (Biterator < BMap.Size()){
-                int c1, c2;
-					//c1 = n1->BConnection[b1].returnMapHandle.Lookup(BMapIterator.Current().First());
-					//c2 = n2->BConnection[b2].returnMapHandle.Lookup(BMapIterator.Current().Second());
-				c1 = n1->BConnection[b1].returnMapHandle.Lookup(BMap[Biterator].First());
-				c2 = n2->BConnection[b2].returnMapHandle.Lookup(BMap[Biterator].Second());
-                // Test whether the pair (c1,c2) occurs in pairProductMapHandle
-			  intpair p = intpair(c1, c2);
-				auto it = pair_to_index.find(p);
-                   //if (pairProductMapHandle.Member(intpair(c1,c2))) {
-				if (it != pair_to_index.end()){
-					bReturnHandle.AddToEnd(it->second);
-                     //int index = pairProductMapHandle.Lookup(intpair(c1,c2));
-                     //n->BConnection[j].returnMapHandle.AddToEnd(index);
-                     // std::cout << "[PairProduct] Duplicate found: j = " << j << "; index = " << index << std::endl;
-                   }
-                   else {   // New pair found (i.e., new exit node found)
-                     pairProductMapHandle.AddToEnd(p);
-                     bReturnHandle.AddToEnd(curExit);
-					 pair_to_index.emplace(p, curExit);
-                     curExit++;
-                   }
-                //BMapIterator.Next();
+		 // Hybrid exit-pair lookup: we need to map each pair (c1, c2) of parent
+		 // exit indices to a unique index in pairProductMapHandle.
+		 //
+		 // When the pair space n1->numExits * n2->numExits is small enough
+		 // (≤ 2^20 entries = 4MB), use a flat 2D array for O(1) direct-indexed
+		 // lookup with no hashing or pointer chasing.  This eliminates the
+		 // overhead of std::unordered_map (heap-allocated nodes, hash computation,
+		 // cache-hostile pointer chasing), which can dominate runtime.
+		 //
+		 // For larger pair spaces, fall back to std::unordered_map to avoid
+		 // excessive memory allocation.
+		 const unsigned int maxC1 = n1->numExits;
+		 const unsigned int maxC2 = n2->numExits;
+		 const unsigned long long pairSpaceSize = (unsigned long long)maxC1 * maxC2;
+		 constexpr unsigned long long FLAT_LOOKUP_THRESHOLD = 1048576; // 2^20
+
+		 if (pairSpaceSize <= FLAT_LOOKUP_THRESHOLD) {
+		   // Flat 2D array path: flatLookup[c1 * maxC2 + c2] holds the exit
+		   // index assigned to pair (c1, c2), or -1 if not yet seen.
+		   unsigned int Aiterator = 0;
+		   std::vector<int> flatLookup(pairSpaceSize, -1);
+		   while (Aiterator < AMap.Size()) {
+			   PairProductMapHandle BMap;
+			   b1 = AMap[Aiterator].First();
+			   b2 = AMap[Aiterator].Second();
+			   CFLOBDDNodeHandle bHandle =
+					 PairProduct(*(n1->BConnection[b1].entryPointHandle),
+								 *(n2->BConnection[b2].entryPointHandle),
+								 BMap
+								);
+			   CFLOBDDReturnMapHandle bReturnHandle;
+			   // Fill in bReturnHandle and add new pairs to pairProductMapHandle
+			   unsigned int Biterator = 0;
+			   while (Biterator < BMap.Size()){
+				   int c1 = n1->BConnection[b1].returnMapHandle.Lookup(BMap[Biterator].First());
+				   int c2 = n2->BConnection[b2].returnMapHandle.Lookup(BMap[Biterator].Second());
+				   int &slot = flatLookup[c1 * maxC2 + c2];
+				   if (slot >= 0) {
+					   // Pair already seen: reuse its exit index
+					   bReturnHandle.AddToEnd(slot);
+				   } else {
+					   // New pair: assign next exit index
+					   pairProductMapHandle.AddToEnd(intpair(c1, c2));
+					   bReturnHandle.AddToEnd(curExit);
+					   slot = curExit;
+					   curExit++;
+				   }
 				   Biterator++;
-              }
-           bReturnHandle.Canonicalize();
-           //AMapIterator.Next();
-           n->BConnection[j] = Connection(bHandle, bReturnHandle);
-		   Aiterator++;
-           j++;
-         }
+			   }
+			   bReturnHandle.Canonicalize();
+			   n->BConnection[j] = Connection(bHandle, bReturnHandle);
+			   Aiterator++;
+			   j++;
+		   }
+		 } else {
+		   // Fallback: unordered_map for very large exit-pair spaces
+		   // (> 2^20 entries, which can arise when both nodes have many exits)
+		   unsigned int Aiterator = 0;
+		   std::unordered_map<intpair, unsigned int, intpair::intpair_hash> pair_to_index;
+		   pair_to_index.reserve(256);
+		   pair_to_index.max_load_factor(0.5);
+		   while (Aiterator < AMap.Size()) {
+			   PairProductMapHandle BMap;
+			   b1 = AMap[Aiterator].First();
+			   b2 = AMap[Aiterator].Second();
+			   CFLOBDDNodeHandle bHandle =
+					 PairProduct(*(n1->BConnection[b1].entryPointHandle),
+								 *(n2->BConnection[b2].entryPointHandle),
+								 BMap
+								);
+			   CFLOBDDReturnMapHandle bReturnHandle;
+			   // Fill in bReturnHandle and add new pairs to pairProductMapHandle
+			   unsigned int Biterator = 0;
+			   while (Biterator < BMap.Size()){
+				   int c1 = n1->BConnection[b1].returnMapHandle.Lookup(BMap[Biterator].First());
+				   int c2 = n2->BConnection[b2].returnMapHandle.Lookup(BMap[Biterator].Second());
+				   intpair p = intpair(c1, c2);
+				   auto it = pair_to_index.find(p);
+				   if (it != pair_to_index.end()){
+					   // Pair already seen: reuse its exit index
+					   bReturnHandle.AddToEnd(it->second);
+				   } else {
+					   // New pair: assign next exit index
+					   pairProductMapHandle.AddToEnd(p);
+					   bReturnHandle.AddToEnd(curExit);
+					   pair_to_index.emplace(p, curExit);
+					   curExit++;
+				   }
+				   Biterator++;
+			   }
+			   bReturnHandle.Canonicalize();
+			   n->BConnection[j] = Connection(bHandle, bReturnHandle);
+			   Aiterator++;
+			   j++;
+		   }
+		 }
          n->numExits = curExit;
 #ifdef PATH_COUNTING_ENABLED
          n->InstallPathCounts();

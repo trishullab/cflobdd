@@ -223,11 +223,11 @@ std::ostream& operator<< (std::ostream & out, const ReturnMapBody<LinearMapHandl
 template<>
 size_t ReturnMapBody<int>::Hash()
 {
-  size_t hvalue = 0;
+  size_t hvalue = mapArray.size();  // Seed with size to avoid absorbing-zero problem
 
   for (unsigned i = 0; i < mapArray.size(); i++)
   {
-	  hvalue = (997* hvalue + mapArray[i]);
+	  hvalue = (997 * hvalue + mapArray[i]);
   }
   return hvalue;
 }
@@ -239,7 +239,7 @@ void ReturnMapBody<int>::setHashCheck()
 
   for (unsigned i = 0; i < mapArray.size(); i++)
   {
-	  hvalue = (117*(hvalue+1) + mapArray[i]);
+	  hvalue = (131*(hvalue+1) + mapArray[i]);
   }
   hashCheck = hvalue;
 }

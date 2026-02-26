@@ -42,7 +42,8 @@ class intpair {
   int Second() const { return second; }   // Access function
   struct intpair_hash {
 	  size_t operator()(const intpair& p) const {
-		  return 117 * (p.First() + 1) + p.Second();
+		  // return 117 * (p.First() + 1) + p.Second();
+      return (p.First() * 131) ^ (p.Second() * 524287 + 1);
 	  }
   };
  private:

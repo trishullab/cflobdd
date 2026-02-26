@@ -142,6 +142,58 @@ karatsuba-all-test:
 	./$(MULT) karatsuba-all
 	./$(MULT) karatsuba-all
 
+karatsuba-individual-test:
+	./cflobdd128.exe karatsuba 3
+	./cflobdd128.exe karatsuba 5
+	./cflobdd128.exe karatsuba 7
+	./cflobdd128.exe karatsuba 11
+	./cflobdd128.exe karatsuba 13
+	./cflobdd128.exe karatsuba 17
+	./cflobdd128.exe karatsuba 19
+	./cflobdd128.exe karatsuba 23
+	./cflobdd128.exe karatsuba 29
+	./cflobdd128.exe karatsuba 31
+	./cflobdd128.exe karatsuba 37
+	./cflobdd128.exe karatsuba 41
+	./cflobdd128.exe karatsuba 43
+	./cflobdd128.exe karatsuba 47
+	./cflobdd128.exe karatsuba 53
+	./cflobdd128.exe karatsuba 59
+	./cflobdd128.exe karatsuba 61
+	./cflobdd128.exe karatsuba 67
+	./cflobdd128.exe karatsuba 71
+	./cflobdd128.exe karatsuba 73
+	./cflobdd128.exe karatsuba 79
+	./cflobdd128.exe karatsuba 83
+	./cflobdd128.exe karatsuba 89
+	./cflobdd128.exe karatsuba 97
+	./cflobdd128.exe karatsuba 101
+	./cflobdd128.exe karatsuba 103
+	./cflobdd128.exe karatsuba 107
+	./cflobdd128.exe karatsuba 109
+	./cflobdd128.exe karatsuba 113
+	./cflobdd128.exe karatsuba 127
+	./cflobdd128.exe karatsuba 131
+	./cflobdd128.exe karatsuba 137
+	./cflobdd128.exe karatsuba 139
+	./cflobdd128.exe karatsuba 149
+	./cflobdd128.exe karatsuba 151
+	./cflobdd128.exe karatsuba 157
+	./cflobdd128.exe karatsuba 163
+	./cflobdd128.exe karatsuba 167
+	./cflobdd128.exe karatsuba 173
+	./cflobdd128.exe karatsuba 179
+	./cflobdd128.exe karatsuba 181
+	./cflobdd128.exe karatsuba 191
+	./cflobdd128.exe karatsuba 193
+	./cflobdd128.exe karatsuba 197
+
+karatsuba128:
+	make karatsuba-individual-test
+	make karatsuba-individual-test
+	make karatsuba-individual-test
+	make karatsuba-individual-test
+
 mult-tests:
 	make spec-all-test MULT=cflobdd32.exe
 	make shiftadd-all-test MULT=cflobdd32.exe
@@ -151,9 +203,11 @@ mult-tests:
 	make karatsuba-all-test MULT=cflobdd64.exe
 	make spec-all-test MULT=cflobdd128.exe
 	make shiftadd-all-test MULT=cflobdd128.exe
+	make karatsuba128
 	make spec-all-test MULT=cflobdd256.exe
 	make shiftadd-all-test MULT=cflobdd256.exe
-
-more-tests:
 	make spec-all-test MULT=cflobdd512.exe
 	make shiftadd-all-test MULT=cflobdd512.exe
+    make spec-all-test MULT=cflobdd1024.exe
+
+

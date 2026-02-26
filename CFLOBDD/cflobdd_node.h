@@ -62,6 +62,10 @@ class CFLOBDDNodeHandle;
 namespace CFL_OBDD {
 	typedef ReturnMapBody<int> CFLOBDDReturnMapBody;
 	typedef ReturnMapHandle<int> CFLOBDDReturnMapHandle;
+
+	// Return a canonicalized identity return map [0, 1, 2, ..., k-1].
+	// Results are cached: flat array for k <= 1024, unordered_map for larger k.
+	CFLOBDDReturnMapHandle MakeIdentityReturnMap(unsigned int k);
 }
 #include "connectionT.h"
 namespace CFL_OBDD {

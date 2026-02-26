@@ -28,6 +28,8 @@
 #include <cassert>
 #include <complex>
 #include <functional>
+#include <unordered_map>
+#include <vector>
 // #include "return_map_T.h"
 #include "intpair.h"
 #include "cflobdd_node.h"
@@ -574,5 +576,61 @@ ReturnMapHandle<std::complex<double>> ReturnMapHandle<std::complex<double>>::Com
 	return *this;   // Should never be executed; included to supporess VS 2013 error report
 }
 
+// ============================================================================
+// MakeIdentityReturnMap -- cached construction of identity return maps
+// ============================================================================
+//
+// Returns a canonicalized CFLOBDDReturnMapHandle [0, 1, 2, ..., k-1].
+// Previously computed maps are cached:
+//   - For k <= IDENTITY_MAP_ARRAY_THRESHOLD (1024): flat array with O(1) lookup.
+//   - For k > threshold: std::unordered_map for sparse large-size cases.
+//
+// The flat array uses a parallel bool vector to distinguish "not yet computed"
+// from "computed" (since a default-constructed CFLOBDDReturnMapHandle is a
+// valid but empty map, not a usable sentinel).
 
+namespace CFL_OBDD {
+
+static constexpr unsigned int IDENTITY_MAP_ARRAY_THRESHOLD = 1024;
+
+// Flat array cache for small sizes (indices 0..THRESHOLD)
+static std::vector<CFLOBDDReturnMapHandle> identityMapArray(IDENTITY_MAP_ARRAY_THRESHOLD + 1);
+static std::vector<bool> identityMapValid(IDENTITY_MAP_ARRAY_THRESHOLD + 1, false);
+
+// Overflow cache for large sizes (> THRESHOLD)
+static std::unordered_map<unsigned int, CFLOBDDReturnMapHandle> identityMapOverflow;
+
+CFLOBDDReturnMapHandle MakeIdentityReturnMap(unsigned int k)
+{
+    if (k <= IDENTITY_MAP_ARRAY_THRESHOLD) {
+        if (identityMapValid[k]) {
+            return identityMapArray[k];
+        }
+        // Build, canonicalize, and cache the identity map of size k
+        CFLOBDDReturnMapHandle idMap;
+        for (unsigned int i = 0; i < k; i++) {
+            idMap.AddToEnd(i);
+        }
+        idMap.Canonicalize();
+        identityMapArray[k] = idMap;
+        identityMapValid[k] = true;
+        return idMap;
+    }
+    else {
+        // Large-size path: use unordered_map
+        auto it = identityMapOverflow.find(k);
+        if (it != identityMapOverflow.end()) {
+            return it->second;
+        }
+        CFLOBDDReturnMapHandle idMap;
+        for (unsigned int i = 0; i < k; i++) {
+            idMap.AddToEnd(i);
+        }
+        idMap.Canonicalize();
+        identityMapOverflow.emplace(k, idMap);
+        return idMap;
+    }
+}
+
+} // namespace CFL_OBDD
 

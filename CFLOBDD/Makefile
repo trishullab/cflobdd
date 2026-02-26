@@ -208,6 +208,6 @@ mult-tests:
 	make shiftadd-all-test MULT=cflobdd256.exe
 	make spec-all-test MULT=cflobdd512.exe
 	make shiftadd-all-test MULT=cflobdd512.exe
-    make spec-all-test MULT=cflobdd1024.exe
+	make spec-all-test MULT=cflobdd1024.exe
 
 

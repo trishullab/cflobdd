@@ -441,11 +441,7 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
                             );
       // Fill in n->AConnection.returnMapHandle
       // Correctness relies on AMap having no duplicates
-      CFLOBDDReturnMapHandle aReturnHandle;
-        for (unsigned int k = 0; k < AMap.Size(); k++) {
-            aReturnHandle.AddToEnd(k);
-        }
-        aReturnHandle.Canonicalize();
+        CFLOBDDReturnMapHandle aReturnHandle = MakeIdentityReturnMap(AMap.Size());
         n->AConnection = Connection(aHandle, aReturnHandle);
       // Perform the appropriate cross products of the BConnections
          j = 0;
@@ -1029,7 +1025,7 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDInternalNode *n1,
         CFLOBDDInternalNode *n = new CFLOBDDInternalNode(n1->level);
       
         // Perform the cross product of the AConnections
-           *(n->AConnection.entryPointHandle) =
+           CFLOBDDNodeHandle aHandle =
                    TripleProduct(*(n1->AConnection.entryPointHandle),
                                  *(n2->AConnection.entryPointHandle),
                                  *(n3->AConnection.entryPointHandle),
@@ -1037,10 +1033,8 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDInternalNode *n1,
                                 );
            // Fill in n->AConnection.returnMapHandle
            // Correctness relies on AMap having no duplicates
-              for (unsigned int k = 0; k < AMap.Size(); k++) {
-                 n->AConnection.returnMapHandle.AddToEnd(k);
-              }
-              n->AConnection.returnMapHandle.Canonicalize();
+              CFLOBDDReturnMapHandle aReturnHandle = MakeIdentityReturnMap(AMap.Size());
+              n->AConnection = Connection(aHandle, aReturnHandle);
       
         // Perform the appropriate cross products of the BConnections
            j = 0;

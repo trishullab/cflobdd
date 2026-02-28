@@ -381,7 +381,7 @@ void WeightedMatMultMapHandle<T>::Canonicalize()
 	mapContents->setHashCheck();
 
 	if (!mapContents->isCanonical) {
-		unsigned int hash = canonicalWeightedMatMultMapBodySet->GetHash(mapContents);
+		size_t hash = canonicalWeightedMatMultMapBodySet->GetHash(mapContents);
 		answerContents = canonicalWeightedMatMultMapBodySet->Lookup(mapContents, hash);
 		if (answerContents == NULL) {
 			canonicalWeightedMatMultMapBodySet->Insert(mapContents, hash);
@@ -409,7 +409,7 @@ void WeightedMatMultMapHandle<fourierSemiring>::Canonicalize()
 	mapContents->setHashCheck();
 
 	if (!mapContents->isCanonical) {
-		unsigned int hash = canonicalWeightedMatMultMapBodySet->GetHash(mapContents);
+		size_t hash = canonicalWeightedMatMultMapBodySet->GetHash(mapContents);
 		answerContents = canonicalWeightedMatMultMapBodySet->Lookup(mapContents, hash);
 		if (answerContents == NULL) {
 			canonicalWeightedMatMultMapBodySet->Insert(mapContents, hash);

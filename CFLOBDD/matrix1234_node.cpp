@@ -187,8 +187,7 @@ namespace CFL_OBDD {
 		assert(i >= 1);
 		CFLOBDDInternalNode *n = new CFLOBDDInternalNode(i);
 		if (i == 1) {  // Base case
-			CFLOBDDReturnMapHandle m01;
-			m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+			CFLOBDDReturnMapHandle m01 = MakeIdentityReturnMap(2);
 			n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);//m01
 
 			n->numBConnections = 2;
@@ -200,13 +199,12 @@ namespace CFL_OBDD {
 		}
 		else {
 			CFLOBDDNodeHandle temp = MkPauliYInterleavedNode(i - 1);
-			CFLOBDDReturnMapHandle m012;
-			m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+			CFLOBDDReturnMapHandle m012 = MakeIdentityReturnMap(3);
 			n->AConnection = Connection(temp, m012);
 			n->numBConnections = 3;
 			n->BConnection = new Connection[n->numBConnections];
 			CFLOBDDReturnMapHandle m0, m021;
-			m0.AddToEnd(0); m0.Canonicalize();
+			m0 = MakeIdentityReturnMap(1);
 			m021.AddToEnd(0); m021.AddToEnd(2); m021.AddToEnd(1); m021.Canonicalize();
 			n->BConnection[0] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[i - 1], m0);
 			n->BConnection[1] = Connection(temp, m012);
@@ -224,8 +222,7 @@ namespace CFL_OBDD {
 		assert(i >= 1);
 		CFLOBDDInternalNode *n = new CFLOBDDInternalNode(i);
 		if (i == 1) {  // Base case
-			CFLOBDDReturnMapHandle m01;
-			m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+			CFLOBDDReturnMapHandle m01 = MakeIdentityReturnMap(2);
 			n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);//m01
 
 			n->numBConnections = 2;
@@ -237,8 +234,7 @@ namespace CFL_OBDD {
 		}
 		else {
 			CFLOBDDNodeHandle temp = MkPauliZInterleavedNode(i - 1);
-			CFLOBDDReturnMapHandle m012;
-			m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+			CFLOBDDReturnMapHandle m012 = MakeIdentityReturnMap(3);
 			n->AConnection = Connection(temp, m012);
 			n->numBConnections = 3;
 			n->BConnection = new Connection[n->numBConnections];
@@ -334,12 +330,12 @@ namespace CFL_OBDD {
 	{
 		assert(i == 1);
 		CFLOBDDInternalNode *n = new CFLOBDDInternalNode(i);
-		CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+		CFLOBDDReturnMapHandle m01 = MakeIdentityReturnMap(2);
 		n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);
 		n->numBConnections = 2;
 		n->BConnection = new Connection[n->numBConnections];
 		n->BConnection[0] = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);
-		CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+		CFLOBDDReturnMapHandle m0 = MakeIdentityReturnMap(1);
 		n->BConnection[1] = Connection(CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle, m01); 
 		n->numExits = 2;
 #ifdef PATH_COUNTING_ENABLED
@@ -558,10 +554,7 @@ namespace CFL_OBDD {
 			else
 				ANodeHandle = MkCNOTNode(level - 1, n, controller_A, controlled_A);
 			g->numBConnections = ANodeHandle.handleContents->numExits;
-			CFLOBDDReturnMapHandle mI;
-			for (int i = 0; i < g->numBConnections; i++)
-				mI.AddToEnd(i);
-			mI.Canonicalize();
+			CFLOBDDReturnMapHandle mI = MakeIdentityReturnMap(g->numBConnections);
 			g->AConnection = Connection(ANodeHandle, mI);
 			g->BConnection = new Connection[g->numBConnections];
 
@@ -578,10 +571,7 @@ namespace CFL_OBDD {
 				}
 				else
 					B0 = MkCNOTNode(level - 1, n, controller_B, controlled_B);
-				CFLOBDDReturnMapHandle mI_B;
-				for (int i = 0; i < B0.handleContents->numExits; i++)
-					mI_B.AddToEnd(i);
-				mI_B.Canonicalize();
+				CFLOBDDReturnMapHandle mI_B = MakeIdentityReturnMap(B0.handleContents->numExits);
 				g->BConnection[0] = Connection(B0, mI_B);
 				// NoDistinct Node
 				if (controlled_A != -1){
@@ -3228,12 +3218,7 @@ namespace CFL_OBDD {
 		if (nhNode->level == 1)
 		{
 			CFLOBDDNodeHandle tempHandle(nh);
-			CFLOBDDReturnMapHandle m1;
-			for (int i = 0; i < tempHandle.handleContents->numExits; i++)
-			{
-				m1.AddToEnd(i);
-			}
-			m1.Canonicalize();
+			CFLOBDDReturnMapHandle m1 = MakeIdentityReturnMap(tempHandle.handleContents->numExits);
 			n->AConnection = Connection(nh, m1);
 			n->numBConnections = tempHandle.handleContents->numExits;
 			n->BConnection = new Connection[n->numBConnections];
@@ -3645,11 +3630,7 @@ namespace CFL_OBDD {
 			gA->InstallPathCounts();
 #endif
 			CFLOBDDNodeHandle gAHandle(gA);  // Create handle and canonicalize
-			CFLOBDDReturnMapHandle mId;
-			for (unsigned int j = 0; j < n->numExits; j++) {
-				mId.AddToEnd(j);
-			}
-			mId.Canonicalize();
+			CFLOBDDReturnMapHandle mId = MakeIdentityReturnMap(n->numExits);
 
 			g->AConnection = Connection(gAHandle, mId);
 			g->numBConnections = n->numExits;
@@ -3851,11 +3832,7 @@ namespace CFL_OBDD {
 		else {
 
 			unsigned long int M = 1UL + (1UL << (1 << (i - 2)));
-			CFLOBDDReturnMapHandle mA;
-			for (unsigned long int j = 0; j < M; j++) {
-				mA.AddToEnd(j);
-			}
-			mA.Canonicalize();
+			CFLOBDDReturnMapHandle mA = MakeIdentityReturnMap(M);
 
 			CFLOBDDNodeHandle temp = MkFourierDiagonalComponentNode(i - 1);
 			n->AConnection = Connection(temp, mA);
@@ -3899,11 +3876,7 @@ namespace CFL_OBDD {
 		CFLOBDDInternalNode *g = new CFLOBDDInternalNode(n->level + 1);
 
 		if (n->level == 1) {
-			CFLOBDDReturnMapHandle mId;
-			for (unsigned int k = 0; k < n->numExits; k++) {
-				mId.AddToEnd(k);
-			}
-			mId.Canonicalize();
+			CFLOBDDReturnMapHandle mId = MakeIdentityReturnMap(n->numExits);
 			g->AConnection = Connection(nh, mId);
 			g->numBConnections = n->numExits;
 			g->BConnection = new Connection[g->numBConnections];
@@ -3991,11 +3964,7 @@ namespace CFL_OBDD {
 		CFLOBDDInternalNode *g = new CFLOBDDInternalNode(n->level + 1);
 
 		if (n->level == 0) {
-			CFLOBDDReturnMapHandle mId;
-			for (unsigned int k = 0; k < n->numExits; k++) {
-				mId.AddToEnd(k);
-			}
-			mId.Canonicalize();
+			CFLOBDDReturnMapHandle mId = MakeIdentityReturnMap(n->numExits);
 			g->AConnection = Connection(nh, mId);
 			g->numBConnections = n->numExits;
 			g->BConnection = new Connection[g->numBConnections];
@@ -4052,12 +4021,7 @@ namespace CFL_OBDD {
 		else
 		{
 			CFLOBDDNodeHandle tempHandle = SMatrixNode(s.substr(0, s.length() / 2));
-			CFLOBDDReturnMapHandle m;
-			for (unsigned int i = 0; i < tempHandle.handleContents->numExits; i++)
-			{
-				m.AddToEnd(i);
-			}
-			m.Canonicalize();
+			CFLOBDDReturnMapHandle m = MakeIdentityReturnMap(tempHandle.handleContents->numExits);
 			n->AConnection = Connection(tempHandle, m);
 			n->numBConnections = tempHandle.handleContents->numExits;
 			n->BConnection = new Connection[n->numBConnections];

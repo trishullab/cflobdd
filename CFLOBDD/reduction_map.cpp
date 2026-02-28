@@ -319,10 +319,10 @@ int ReductionMapHandle::LookupInv(int y)
 void ReductionMapHandle::Canonicalize()
 {
   ReductionMapBody *answerContents;
-  mapContents->setHashCheck();
 
   if (!mapContents->isCanonical) {
-	unsigned int hash = canonicalReductionMapBodySet->GetHash(mapContents);
+	mapContents->setHashCheck();
+	size_t hash = canonicalReductionMapBodySet->GetHash(mapContents);
     answerContents = canonicalReductionMapBodySet->Lookup(mapContents, hash);
     if (answerContents == NULL) {
       canonicalReductionMapBodySet->Insert(mapContents, hash);

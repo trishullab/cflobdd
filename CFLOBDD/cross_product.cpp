@@ -254,7 +254,7 @@ int PairProductMapHandle::Lookup(intpair& p)
 void PairProductMapHandle::Canonicalize()
 {
   PairProductMapBody *answerContents;
-  unsigned int hash = PairProductMapBody::canonicalPairProductMapBodySet->GetHash(mapContents);
+  size_t hash = PairProductMapBody::canonicalPairProductMapBodySet->GetHash(mapContents);
   answerContents = PairProductMapBody::canonicalPairProductMapBodySet->Lookup(mapContents, hash);
   if (answerContents == NULL) {
     PairProductMapBody::canonicalPairProductMapBodySet->Insert(mapContents, hash);
@@ -795,7 +795,7 @@ int TripleProductMapHandle::Lookup(inttriple t)
 void TripleProductMapHandle::Canonicalize()
 {
   TripleProductMapBody *answerContents;
-  unsigned int hash = TripleProductMapBody::canonicalTripleProductMapBodySet->GetHash(mapContents);
+  size_t hash = TripleProductMapBody::canonicalTripleProductMapBodySet->GetHash(mapContents);
   answerContents = TripleProductMapBody::canonicalTripleProductMapBodySet->Lookup(mapContents, hash);
   if (answerContents == NULL) {
     TripleProductMapBody::canonicalTripleProductMapBodySet->Insert(mapContents, hash);

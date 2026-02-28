@@ -148,9 +148,7 @@ CFLOBDDTopNodeIntRefPtr MkDistinction(unsigned int i, int level)
 	tempHandle = MkDistinction(CFLOBDDTopNode::maxLevel, i);
   else
 	  tempHandle = MkDistinction(level, i);
-  m.AddToEnd(0);
-  m.AddToEnd(1);
-  m.Canonicalize();
+  m = MakeIdentityReturnMap(2);
   v = new CFLOBDDTopNode(tempHandle, m);
   return v;
 }

@@ -86,6 +86,16 @@ multmod-4096: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=4096 -c -o addMultiplication.o addMultiplication.cc
 	g++ $(CUDD_CXXFLAGS) -o addMultiplication4096 addMultiplication.o cudd_build/libcudd.a
 
+multmod-all: cudd_build/libcudd.a
+	make multmod-32
+	make multmod-64
+	make multmod-128
+	make multmod-256
+	make multmod-512
+	make multmod-1024
+	make multmod-2048
+	make multmod-4096
+
 MULT = addMultiplication32.exe
 spec-all-test:
 	./$(MULT) spec-all
@@ -115,9 +125,8 @@ mult-tests:
 	make shiftadd-all-test MULT=addMultiplication128.exe
 	make spec-all-test MULT=addMultiplication256.exe
 	make shiftadd-all-test MULT=addMultiplication256.exe
-
-more-tests:
 	make spec-all-test MULT=addMultiplication512.exe
+	make spec-all-test MULT=addMultiplication1024.exe
 	make shiftadd-all-test MULT=addMultiplication512.exe
 
 complex:

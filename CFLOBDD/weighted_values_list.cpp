@@ -281,7 +281,7 @@ void WeightedValuesListHandle<T>::Canonicalize()
   mapContents->setHashCheck();
 
   if (!mapContents->isCanonical) {
-	unsigned int hash = canonicalWeightedValuesListBodySet->GetHash(mapContents);
+	size_t hash = canonicalWeightedValuesListBodySet->GetHash(mapContents);
     answerContents = canonicalWeightedValuesListBodySet->Lookup(mapContents, hash);
     if (answerContents == NULL) {
       canonicalWeightedValuesListBodySet->Insert(mapContents, hash);

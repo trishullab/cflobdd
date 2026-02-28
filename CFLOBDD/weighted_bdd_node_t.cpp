@@ -94,7 +94,7 @@ void WeightedBDDNodeHandle<T,Op>::Canonicalize()
   WeightedBDDNode<T,Op> *answerContents;
 
   if (!handleContents->IsCanonical()) {
-	unsigned int hash = canonicalBDDNodeTable->GetHash(handleContents);
+	size_t hash = canonicalBDDNodeTable->GetHash(handleContents);
     answerContents = canonicalBDDNodeTable->Lookup(handleContents, hash);
     if (answerContents == NULL) {
       canonicalBDDNodeTable->Insert(handleContents, hash);

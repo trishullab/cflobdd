@@ -71,13 +71,10 @@ std::vector<ReturnMapHandle<int>> commonly_used_return_maps;// m0, m1, m01, m10
 
 void InitReturnMapHandles(){
 	ReturnMapHandle<int> m0, m1, m01, m10;
-	m0.AddToEnd(0);
-	m0.Canonicalize();
+	m0 = MakeIdentityReturnMap(1);
 	m1.AddToEnd(1);
 	m1.Canonicalize();
-	m01.AddToEnd(0);
-	m01.AddToEnd(1);
-	m01.Canonicalize();
+	m01 = MakeIdentityReturnMap(2);
 	m10.AddToEnd(1);
 	m10.AddToEnd(0);
 	m10.Canonicalize();
@@ -179,10 +176,7 @@ void CFLOBDDNodeHandle::InitAdditionInterleavedTable()
 	m20.AddToEnd(0);
 	m20.Canonicalize();
 
-	m012.AddToEnd(0);
-	m012.AddToEnd(1);
-	m012.AddToEnd(2);
-	m012.Canonicalize();
+	m012 = MakeIdentityReturnMap(3);
 
 	m102.AddToEnd(1);
 	m102.AddToEnd(0);
@@ -411,7 +405,7 @@ void CFLOBDDNodeHandle::Canonicalize()
   CFLOBDDNode *answerContents;
 
   if (!handleContents->IsCanonical()) {
-	  unsigned int hash = canonicalNodeTable->GetHash(handleContents);
+	size_t hash = canonicalNodeTable->GetHash(handleContents);
     answerContents = canonicalNodeTable->Lookup(handleContents, hash);
     if (answerContents == NULL) {
       canonicalNodeTable->Insert(handleContents, hash);
@@ -455,17 +449,14 @@ CFLOBDDNodeHandle MkDistinction(unsigned int level, unsigned int i)
     CFLOBDDInternalNode *n = new CFLOBDDInternalNode(level);
     CFLOBDDReturnMapHandle m1, m2, m3;
     if (i < (unsigned int)(1 << (level-1))) { // i falls in AConnection range
-      m1.AddToEnd(0);
-      m1.AddToEnd(1);
-      m1.Canonicalize();
+      m1 = MakeIdentityReturnMap(2);
       CFLOBDDNodeHandle temp;
 	  temp = MkDistinction(level-1, i);
       n->AConnection = Connection(temp, m1);
 
       n->numBConnections = 2;
       n->BConnection = new Connection[n->numBConnections];
-      m2.AddToEnd(0);
-      m2.Canonicalize();
+      m2 = MakeIdentityReturnMap(1);
       n->BConnection[0] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m2);
       m3.AddToEnd(1);
       m3.Canonicalize();
@@ -476,16 +467,13 @@ CFLOBDDNodeHandle MkDistinction(unsigned int level, unsigned int i)
 #endif
     }
     else {         // i falls in BConnection range
-      m1.AddToEnd(0);
-      m1.Canonicalize();
+      m1 = MakeIdentityReturnMap(1);
       n->AConnection = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m1);
 
       i = i ^ (1 << (level-1));  // Mask off high-order bit for recursive call
       n->numBConnections = 1;
       n->BConnection = new Connection[n->numBConnections];
-      m2.AddToEnd(0);
-      m2.AddToEnd(1);
-      m2.Canonicalize();
+      m2 = MakeIdentityReturnMap(2);
       CFLOBDDNodeHandle temp = MkDistinction(level-1, i);
       n->BConnection[0] = Connection(temp, m2);
       n->numExits = 2;
@@ -534,10 +522,7 @@ CFLOBDDNodeHandle MkAdditionInterleavedRecursive(unsigned int level, bool carry)
   m20.AddToEnd(0);
   m20.Canonicalize();
 
-  m012.AddToEnd(0);
-  m012.AddToEnd(1);
-  m012.AddToEnd(2);
-  m012.Canonicalize();
+  m012 = MakeIdentityReturnMap(3);
 
   m102.AddToEnd(1);
   m102.AddToEnd(0);
@@ -655,9 +640,7 @@ CFLOBDDNodeHandle MkStepOneFourth(unsigned int level)
   
   if (level == 1) {
     CFLOBDDReturnMapHandle m1, m2;
-    m1.AddToEnd(0);
-    m1.AddToEnd(1);
-    m1.Canonicalize();
+    m1 = MakeIdentityReturnMap(2);
     n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m1);
 
     n->numBConnections = 2;
@@ -669,16 +652,13 @@ CFLOBDDNodeHandle MkStepOneFourth(unsigned int level)
   }
   else {  // Create an appropriate CFLOBDDInternalNode
     CFLOBDDReturnMapHandle m1, m2, m3;
-    m1.AddToEnd(0);
-    m1.AddToEnd(1);
-    m1.Canonicalize();
+    m1 = MakeIdentityReturnMap(2);
     CFLOBDDNodeHandle temp = MkStepOneFourth(level-1);
     n->AConnection = Connection(temp, m1);
 
     n->numBConnections = 2;
     n->BConnection = new Connection[n->numBConnections];
-    m2.AddToEnd(0);
-    m2.Canonicalize();
+    m2 = MakeIdentityReturnMap(1);
     n->BConnection[0] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[level-1], m2);
     m3.AddToEnd(1);
     m3.Canonicalize();
@@ -847,11 +827,7 @@ namespace CFL_OBDD {
 			int numberOfAExits = (a != 0) + (b != 0) + (c != 0);
 			assert(numberOfAExits != 0);
 
-			CFLOBDDReturnMapHandle m1;
-			for (int i = 0; i < numberOfAExits; i++) {
-				m1.AddToEnd(i);
-			}
-			m1.Canonicalize();
+			CFLOBDDReturnMapHandle m1 = MakeIdentityReturnMap(numberOfAExits);
 			CFLOBDDNodeHandle temp = MkStepNode(level-1, a, b, c);
 			n->AConnection = Connection(temp, m1);
 
@@ -1241,16 +1217,11 @@ namespace CFL_OBDD {
 			else {
 				assert(g->numBConnections == 2 && *(g->AConnection.entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle);
 				// Put a NoDistinctionNode[0] in BConnection[0]
-				CFLOBDDReturnMapHandle m0;
-				m0.AddToEnd(0);
-				m0.Canonicalize();
+				CFLOBDDReturnMapHandle m0 = MakeIdentityReturnMap(1);
 				n->BConnection[0] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[0], m0);
 
 				// Put a ForkNode in BConnection[1]
-				CFLOBDDReturnMapHandle m01;
-				m01.AddToEnd(0);
-				m01.AddToEnd(1);
-				m01.Canonicalize();
+				CFLOBDDReturnMapHandle m01 = MakeIdentityReturnMap(2);
 				n->BConnection[1] = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);
 				assert(n->BConnection[1] == g->AConnection);
 			}
@@ -2063,10 +2034,7 @@ CFLOBDDNodeHandle Restrict(CFLOBDDInternalNode *g, unsigned int i, bool val,
   if (i < (unsigned int)(1 << (g->level-1))) { // i falls in AConnection range
   	CFLOBDDNodeHandle aHandle = Restrict(*(g->AConnection.entryPointHandle), i, val, AMap);
     n->AConnection.entryPointHandle = &aHandle;
-    for (unsigned int k = 0; k < AMap.Size(); k++) {
-      n->AConnection.returnMapHandle.AddToEnd(k);
-    }
-    n->AConnection.returnMapHandle.Canonicalize();
+    n->AConnection.returnMapHandle = MakeIdentityReturnMap(AMap.Size());
     j = 0;
     curExit = 0;
     n->numBConnections = AMap.Size();

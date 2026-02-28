@@ -270,7 +270,7 @@ namespace CFL_OBDD {
     void WeightedBDDPairProductMapHandle<T>::Canonicalize()
     {
         WeightedBDDPairProductMapBody<T> *answerContents;
-        unsigned int hash = WeightedBDDPairProductMapBody<T>::canonicalWeightedBDDPairProductMapBodySet->GetHash(mapContents);
+        size_t hash = WeightedBDDPairProductMapBody<T>::canonicalWeightedBDDPairProductMapBodySet->GetHash(mapContents);
         answerContents = WeightedBDDPairProductMapBody<T>::canonicalWeightedBDDPairProductMapBodySet->Lookup(mapContents, hash);
         if (answerContents == NULL) {
             WeightedBDDPairProductMapBody<T>::canonicalWeightedBDDPairProductMapBodySet->Insert(mapContents, hash);

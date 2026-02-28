@@ -232,7 +232,7 @@ void ZeroIndicesMapHandle::Canonicalize()
 	mapContents->setHashCheck();
 
 	if (!mapContents->isCanonical) {
-		unsigned int hash = canonicalZeroIndicesMapBodySet->GetHash(mapContents);
+		size_t hash = canonicalZeroIndicesMapBodySet->GetHash(mapContents);
 		answerContents = canonicalZeroIndicesMapBodySet->Lookup(mapContents, hash);
 		if (answerContents == NULL) {
 			canonicalZeroIndicesMapBodySet->Insert(mapContents, hash);

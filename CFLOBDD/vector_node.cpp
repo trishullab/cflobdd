@@ -366,12 +366,7 @@ namespace CFL_OBDD {
 		if (nhNode->level == 0)
 		{
 			CFLOBDDNodeHandle tempHandle(nh);
-			CFLOBDDReturnMapHandle m1;
-			for (int i = 0; i < tempHandle.handleContents->numExits; i++)
-			{
-				m1.AddToEnd(i);
-			}
-			m1.Canonicalize();
+			CFLOBDDReturnMapHandle m1 = MakeIdentityReturnMap(tempHandle.handleContents->numExits);
 			n->AConnection = Connection(nh, m1);
 			n->numBConnections = tempHandle.handleContents->numExits;
 			n->BConnection = new Connection[n->numBConnections];

@@ -66,16 +66,16 @@ template <class ItemT> class Hashset
     // mutator/modifier member functions
 
     void Insert(ItemT *item);
-	void Insert(ItemT *item, unsigned int hash);
+	void Insert(ItemT *item, size_t hash);
     bool Delete(ItemT *item);
     bool DeleteEq(ItemT *item);
-        
+
     // other operations
 
     unsigned long Size() const;
-	unsigned int GetHash(ItemT *item) const;
+	size_t GetHash(ItemT *item) const;
     ItemT *Lookup(ItemT *item) const;
-	ItemT *Lookup(ItemT *item, unsigned int hash) const;
+	ItemT *Lookup(ItemT *item, size_t hash) const;
     Hashset & operator = (const Hashset<ItemT> & H); // assignment
   public:
 	  std::ostream& print(std::ostream & out = std::cout) const;

@@ -257,7 +257,7 @@ void MatMultMapHandle::Canonicalize()
 	mapContents->setHashCheck();
 
 	if (!mapContents->isCanonical) {
-		unsigned int hash = canonicalMatMultMapBodySet->GetHash(mapContents);
+		size_t hash = canonicalMatMultMapBodySet->GetHash(mapContents);
 		answerContents = canonicalMatMultMapBodySet->Lookup(mapContents, hash);
 		if (answerContents == NULL) {
 			canonicalMatMultMapBodySet->Insert(mapContents, hash);

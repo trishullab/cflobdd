@@ -88,7 +88,7 @@ void Hashset<ItemT>::Insert(ItemT *item)
 }
 
 template<class ItemT>
-void Hashset<ItemT>::Insert(ItemT *item, unsigned int hash)
+void Hashset<ItemT>::Insert(ItemT *item, size_t hash)
 {
 	unsigned int j = hash % numBuckets;
 
@@ -184,7 +184,7 @@ ItemT *Hashset<ItemT>::Lookup(ItemT *item) const
 }
 
 template<class ItemT>
-ItemT *Hashset<ItemT>::Lookup(ItemT *item, unsigned int hash) const
+ItemT *Hashset<ItemT>::Lookup(ItemT *item, size_t hash) const
 {
 	unsigned int j = hash % numBuckets;
 
@@ -202,9 +202,9 @@ ItemT *Hashset<ItemT>::Lookup(ItemT *item, unsigned int hash) const
 // GetHash
 // **********************************************************************
 template<class ItemT>
-unsigned int Hashset<ItemT>::GetHash(ItemT *item) const
+size_t Hashset<ItemT>::GetHash(ItemT *item) const
 {
-	return item->Hash() % numBuckets;
+	return item->Hash();
 }
 
 // **********************************************************************

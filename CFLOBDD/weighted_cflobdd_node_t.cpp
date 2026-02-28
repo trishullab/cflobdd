@@ -512,7 +512,7 @@ void WeightedCFLOBDDNodeHandleT<T,Op>::Canonicalize()
   WeightedCFLOBDDNode<T,Op> *answerContents;
 
   if (!handleContents->IsCanonical()) {
-	  unsigned int hash = canonicalNodeTable->GetHash(handleContents);
+	  size_t hash = canonicalNodeTable->GetHash(handleContents);
     answerContents = canonicalNodeTable->Lookup(handleContents, hash);
     if (answerContents == NULL) {
       canonicalNodeTable->Insert(handleContents, hash);

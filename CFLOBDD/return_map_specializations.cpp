@@ -593,15 +593,17 @@ namespace CFL_OBDD {
 
 static constexpr unsigned int IDENTITY_MAP_ARRAY_THRESHOLD = 1024;
 
-// Flat array cache for small sizes (indices 0..THRESHOLD)
-static std::vector<CFLOBDDReturnMapHandle> identityMapArray(IDENTITY_MAP_ARRAY_THRESHOLD + 1);
-static std::vector<bool> identityMapValid(IDENTITY_MAP_ARRAY_THRESHOLD + 1, false);
-
-// Overflow cache for large sizes (> THRESHOLD)
-static std::unordered_map<unsigned int, CFLOBDDReturnMapHandle> identityMapOverflow;
-
 CFLOBDDReturnMapHandle MakeIdentityReturnMap(unsigned int k)
 {
+    // Function-local statics: guaranteed to be initialized on first call
+    // (avoids static-initialization-order fiasco across translation units).
+
+    // Flat array cache for small sizes (indices 0..THRESHOLD)
+    static std::vector<CFLOBDDReturnMapHandle> identityMapArray(IDENTITY_MAP_ARRAY_THRESHOLD + 1);
+    static std::vector<bool> identityMapValid(IDENTITY_MAP_ARRAY_THRESHOLD + 1, false);
+    // Overflow cache for large sizes (> THRESHOLD)
+    static std::unordered_map<unsigned int, CFLOBDDReturnMapHandle> identityMapOverflow;
+
     if (k <= IDENTITY_MAP_ARRAY_THRESHOLD) {
         if (identityMapValid[k]) {
             return identityMapArray[k];

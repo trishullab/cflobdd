@@ -222,11 +222,7 @@ CFLOBDDNodeHandle ProtoCFLOBDDNumsModK(unsigned int lev, unsigned int k) {
 
     // Document line [8]: AReturnTuple = [1, ..., numberOfMidVertices]
     // 0-indexed: AReturnMap = {0, 1, ..., numberOfMidVertices-1}
-    CFLOBDDReturnMapHandle AReturnMap;
-    for (unsigned int i = 0; i < numberOfMidVertices; i++) {
-        AReturnMap.AddToEnd(i);
-    }
-    AReturnMap.Canonicalize();
+    CFLOBDDReturnMapHandle AReturnMap = MakeIdentityReturnMap(numberOfMidVertices);
 
     g->AConnection = Connection(AConn, AReturnMap);
 
@@ -289,11 +285,7 @@ CFLOBDD NumsModK(unsigned int k, Position p) {
     // Changed to support Karatsuba multiplication: ensures that A, B, AA, AB, BA, and BB variants all have k exit vertices
     assert(virtualMaxLevel - 2 >= logLogOfMaxModulus);
 
-    CFLOBDDReturnMapHandle IdReturnMap;
-    for (unsigned int i = 0; i < k; i++) {
-        IdReturnMap.AddToEnd(i);
-    }
-    IdReturnMap.Canonicalize();
+    CFLOBDDReturnMapHandle IdReturnMap = MakeIdentityReturnMap(k);
 
     // Document line [7]: Create internal grouping at maxLevel
     CFLOBDDInternalNode* g = new CFLOBDDInternalNode(CFLOBDDMaxLevel);
@@ -332,9 +324,7 @@ CFLOBDD NumsModK(unsigned int k, Position p) {
 
         // Document lines [18-19]: AConnection = NoDistinctionProtoCFLOBDD(level-1), AReturnTuple = [1]
         // 0-indexed: AReturnMap = {0}
-        CFLOBDDReturnMapHandle AReturnMap;
-        AReturnMap.AddToEnd(0);
-        AReturnMap.Canonicalize();
+        CFLOBDDReturnMapHandle AReturnMap = MakeIdentityReturnMap(1);
 
         g->AConnection = Connection(
             CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 1],
@@ -393,9 +383,7 @@ CFLOBDD NumsModK(unsigned int k, Position p) {
         // Create the AConnection, with NoDistinction in the AA position and ProtoCFLOBDDNumsModK in the AB position
         CFLOBDDInternalNode* gA = new CFLOBDDInternalNode(CFLOBDDMaxLevel-1);
 
-        CFLOBDDReturnMapHandle AAReturnMap;
-        AAReturnMap.AddToEnd(0);
-        AAReturnMap.Canonicalize();
+        CFLOBDDReturnMapHandle AAReturnMap = MakeIdentityReturnMap(1);
 
         gA->AConnection = Connection(
             CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 2],
@@ -427,9 +415,7 @@ CFLOBDD NumsModK(unsigned int k, Position p) {
         }
     }
     else if (p == BA) {
-        CFLOBDDReturnMapHandle AReturnMap;
-        AReturnMap.AddToEnd(0);
-        AReturnMap.Canonicalize();
+        CFLOBDDReturnMapHandle AReturnMap = MakeIdentityReturnMap(1);
 
         g->AConnection = Connection(
             CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 1],
@@ -463,9 +449,7 @@ CFLOBDD NumsModK(unsigned int k, Position p) {
         g->BConnection[0] = Connection(BConn, IdReturnMap);
     }
     else if (p == BB) {
-        CFLOBDDReturnMapHandle AReturnMap;
-        AReturnMap.AddToEnd(0);
-        AReturnMap.Canonicalize();
+        CFLOBDDReturnMapHandle AReturnMap = MakeIdentityReturnMap(1);
 
         g->AConnection = Connection(
             CFLOBDDNodeHandle::NoDistinctionNode[CFLOBDDMaxLevel - 1],

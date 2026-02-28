@@ -364,10 +364,10 @@ void ReturnMapHandle<T>::Canonicalize()
 { 
 	try{
 		ReturnMapBody<T> *answerContents;
-		mapContents->setHashCheck();
 
 		if (!mapContents->isCanonical) {
-			unsigned int hash = canonicalReturnMapBodySet->GetHash(mapContents);
+			mapContents->setHashCheck();
+			size_t hash = canonicalReturnMapBodySet->GetHash(mapContents);
 			answerContents = canonicalReturnMapBodySet->Lookup(mapContents, hash);
 			if (answerContents == NULL) {
 				canonicalReturnMapBodySet->Insert(mapContents, hash);

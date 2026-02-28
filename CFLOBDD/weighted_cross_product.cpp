@@ -265,7 +265,7 @@ namespace CFL_OBDD {
     void WeightedPairProductMapHandle<T>::Canonicalize()
     {
         WeightedPairProductMapBody<T> *answerContents;
-        unsigned int hash = WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->GetHash(mapContents);
+        size_t hash = WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->GetHash(mapContents);
         answerContents = WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->Lookup(mapContents, hash);
         if (answerContents == NULL) {
             WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->Insert(mapContents, hash);

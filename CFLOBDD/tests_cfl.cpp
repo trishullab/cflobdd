@@ -2120,6 +2120,11 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 		std::cout << "Factoring 7 (prime)..." << std::endl;
 		CFLOBDD factors7 = FactorViaCRT(7);
 		std::cout << "FactorViaCRT(7) created successfully" << std::endl;
+	} else if (curTest == "spec") {
+		// Build and time MultModK for a single modulus
+		unsigned int k = (size > 0) ? size : 5;
+		std::cout << "Building specification CFLOBDD for modulus " << k << std::endl;
+		BuildMultiplicationSpecModK(k);
 	} else if (curTest == "shiftadd") {
 		// Test VerifyShiftAndAddMultiplicationModK for a single modulus
 		unsigned int k = (size > 0) ? size : 5;

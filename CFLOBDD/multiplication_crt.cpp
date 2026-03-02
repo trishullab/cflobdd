@@ -667,12 +667,11 @@ CFLOBDD ShiftAndAddMultiplicationModK(unsigned int k) {
 }
 
 // -----------------------------------------------------------------------------
-// VerifyShiftAndAddMultiplicationModK
+// BuildMultiplicationSpecModK
 //
-// Operation to check whether a shift-and-add multiplier produces the correct result
+// Build and time the specification CFLOBDD for a single modulus k
 // -----------------------------------------------------------------------------
-bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
-    // Create the representation of the multiplication relation for modulus k
+void BuildMultiplicationSpecModK(unsigned int k) {
     auto start = std::chrono::high_resolution_clock::now();
     CFLOBDD specification = MultModK(k);
     auto end = std::chrono::high_resolution_clock::now();
@@ -680,8 +679,21 @@ bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
     std::cout << "MultModK(" << k << ") took " << duration.count() << " ms" << std::endl;
     std::cout << "Size of the multiplication relation for modulus " << k << std::endl;
     PrintSize(specification);
+}
 
-#ifdef TEMPORARY
+// -----------------------------------------------------------------------------
+// VerifyShiftAndAddMultiplicationModK
+//
+// Operation to check whether a shift-and-add multiplier produces the correct result
+// -----------------------------------------------------------------------------
+bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
+    auto totalStart = std::chrono::high_resolution_clock::now();
+
+    // Create the representation of the multiplication relation for modulus k
+    CFLOBDD specification = MultModK(k);
+    std::cout << "Size of the multiplication relation for modulus " << k << std::endl;
+    PrintSize(specification);
+
     // Create the representation of the multiplication relation for modulus k via shift-and-add
     currentModulus = k;
     CFLOBDD result = ShiftAndAddMultiplicationModK(k);
@@ -691,10 +703,11 @@ bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
     std::cout << "Comparison of result with the specification of multiplication mod " << currentModulus << ": " << resultOfComparison << std::endl;
 
     if (resultOfComparison == false) {
-        std::cout << "Size of the multiplication relation for modulus " << k << "via shift-and-add" << std::endl;
-        PrintSize(specification);
+        std::cout << "Size of the multiplication relation for modulus " << k << " via shift-and-add" << std::endl;
+        PrintSize(result);
     }
 
+#ifdef ADDITIONAL_MULTIPLICATION_TESTS
   	// Lookup a selection of products in specification and result
  	for(INPUT_TYPE i = 20; i < 30; i++) {
 		for(INPUT_TYPE m = 20; m < 30; m++) {
@@ -706,11 +719,13 @@ bool VerifyShiftAndAddMultiplicationModK(unsigned int k) {
 		}
 	}
     std::cout << std:: endl;
-#else
-    bool resultOfComparison = true;
 #endif
 
-  return resultOfComparison;
+    auto totalEnd = std::chrono::high_resolution_clock::now();
+    auto totalDuration = std::chrono::duration_cast<std::chrono::milliseconds>(totalEnd - totalStart);
+    std::cout << "VerifyShiftAndAddMultiplicationModK(" << k << ") took " << totalDuration.count() << " ms" << std::endl;
+
+    return resultOfComparison;
 }
 
 // -----------------------------------------------------------------------------

@@ -280,6 +280,13 @@ extern CFLOBDD FactorViaCRT(unsigned int v);
 extern CFLOBDD ShiftAndAddMultiplicationModK(unsigned int k);
 
 // -----------------------------------------------------------------------------
+// BuildMultiplicationSpecModK
+//
+// Build and time the specification CFLOBDD for a single modulus k
+// -----------------------------------------------------------------------------
+extern void BuildMultiplicationSpecModK(unsigned int k);
+
+// -----------------------------------------------------------------------------
 // VerifyShiftAndAddMultiplicationModK
 //
 // Operation to check whether a shift-and-add multiplier produces the correct result

@@ -64,7 +64,6 @@ public:
 };
 
 std::ostream& operator<< (std::ostream & out, const ZeroIndicesMapHandle &r);
-extern std::size_t hash_value(const ZeroIndicesMapHandle& val);
 
 //***************************************************************
 // ZeroIndicesMapBody

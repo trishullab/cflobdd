@@ -273,6 +273,15 @@ public:
 extern CFLOBDD FactorViaCRT(unsigned int v);
 
 // -----------------------------------------------------------------------------
+// TimeFactorComponents
+//
+// For each modulus k = Moduli[0..numberOfMultRelations-1], times:
+//   (i)  construction of MultModK(k)
+//   (ii) construction of the "slice" of MultModK(k) with respect to value v
+// -----------------------------------------------------------------------------
+extern void TimeFactorComponents(unsigned int v);
+
+// -----------------------------------------------------------------------------
 // ShiftAndAddMultiplicationModK
 //
 // Operation to build the multiplication relation mod k by a shift-and-add construction

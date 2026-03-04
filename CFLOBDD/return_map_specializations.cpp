@@ -222,6 +222,16 @@ std::ostream& operator<< (std::ostream & out, const ReturnMapBody<LinearMapHandl
 
 // Instantiation and specialization of class ReturnMapHandle<int> ---------------------
 
+// Murmur3 finalizer — ensures full avalanche (each output bit depends on all input bits)
+static inline size_t fmix64(size_t h) {
+    h ^= h >> 33;
+    h *= 0xff51afd7ed558ccdULL;
+    h ^= h >> 33;
+    h *= 0xc4ceb9fe1a85ec53ULL;
+    h ^= h >> 33;
+    return h;
+}
+
 template<>
 size_t ReturnMapBody<int>::Hash()
 {
@@ -231,7 +241,7 @@ size_t ReturnMapBody<int>::Hash()
   {
 	  hvalue = (997 * hvalue + mapArray[i]);
   }
-  return hvalue;
+  return fmix64(hvalue);
 }
 
 template<>
@@ -520,14 +530,6 @@ size_t hash_complex_double(std::complex<double> c)
 	std::hash<double> double_hash;
 	return (997 * double_hash(real(c)) + double_hash(imag(c)));
 }
-
-/*
-std::size_t hash_value(std::complex<double> c)
-{
-	std::hash<double> double_hash;
-	return (997 * double_hash(real(c)) + double_hash(imag(c)));
-}
-*/
 
 template<>
 size_t ReturnMapBody<std::complex<double>>::Hash()

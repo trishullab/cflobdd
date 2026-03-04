@@ -40,6 +40,47 @@ class ReductionMapBody;
 
 
 //***************************************************************
+// ReductionMapBody
+//***************************************************************
+
+class ReductionMapBody {
+
+  friend class ReductionMapHandle;
+
+ public:
+  ReductionMapBody();    // Constructor
+  ReductionMapBody(unsigned int capacity);
+  void IncrRef();
+  void DecrRef();
+  size_t Hash();
+  void setHashCheck();
+  void AddToEnd(int y);          // Override AddToEnd
+  unsigned int refCount;         // reference-count value
+  bool isIdentityMap;            // Is this ReductionMapBody an identity map?
+  std::vector<int> mapArray;
+  bool operator==(const ReductionMapBody &o) const;
+  int& operator[](unsigned int i);                       // Overloaded []
+  unsigned int Size();
+
+ //protected:
+  unsigned int hashCheck;
+  bool isCanonical;              // Is this ReductionMapBody in *canonicalReductionMapBodySet?
+
+};
+
+std::ostream& operator<< (std::ostream & out, const ReductionMapBody &r);
+
+// Functors for std::unordered_set<ReductionMapBody*, ...>
+struct ReductionMapBodyPtrHash {
+    size_t operator()(ReductionMapBody* p) const { return p->Hash(); }
+};
+
+struct ReductionMapBodyPtrEq {
+    bool operator()(ReductionMapBody* a, ReductionMapBody* b) const { return *a == *b; }
+};
+
+
+//***************************************************************
 // ReductionMapHandle
 //***************************************************************
 
@@ -61,56 +102,18 @@ class ReductionMapHandle {
   int LookupInv(int y);
   void Canonicalize();
   ReductionMapBody *mapContents;
-  static Hashset<ReductionMapBody> *canonicalReductionMapBodySet;
+
+  using CanonicalReductionMapBodySet = std::unordered_set<ReductionMapBody*,
+                                                           ReductionMapBodyPtrHash,
+                                                           ReductionMapBodyPtrEq>;
+  static CanonicalReductionMapBodySet *canonicalReductionMapBodySet;
+
   std::ostream& print(std::ostream & out = std::cout) const;
+
+ private:
+  static CanonicalReductionMapBodySet *initCanonicalSet();
 };
 
 std::ostream& operator<< (std::ostream & out, const ReductionMapHandle &r);
-extern std::size_t hash_value(const ReductionMapHandle& val);
 
-//***************************************************************
-// ReductionMapBody
-//***************************************************************
-
-class ReductionMapBody {//: public List<int> {
-
-  friend void ReductionMapHandle::Canonicalize();
-
- public:
-  ReductionMapBody();    // Constructor
-  ReductionMapBody(unsigned int capacity);
-  void IncrRef();
-  void DecrRef();
-  size_t Hash();
-  void setHashCheck();
-  void AddToEnd(int y);          // Override AddToEnd
-  unsigned int refCount;         // reference-count value
-  bool isIdentityMap;            // Is this ReductionMapBody an identity map?
-  std::vector<int> mapArray;
-  bool operator==(const ReductionMapBody &o) const;
-  int& operator[](unsigned int i);                       // Overloaded []
-  unsigned int Size();
-
- //protected:
-  unsigned int hashCheck;
-  bool isCanonical;              // Is this ReductionMapBody in *canonicalReductionMapBodySet?
-
-  struct PointerHash {
-  public:
-	  size_t operator()(const ReductionMapBody* r){
-		  return r->hashCheck;
-	  }
-  };
-
-  struct PointerEqual {
-  public:
-	  bool operator()(const ReductionMapBody* r1, const ReductionMapBody* r2){
-		  return (r1->hashCheck == r2->hashCheck);
-	  };
-  };
-
-};
-
-std::ostream& operator<< (std::ostream & out, const ReductionMapBody &r);
-//static std::unordered_set<ReductionMapBody *, ReductionMapBody::PointerHash, ReductionMapBody::PointerEqual> canonicalReductionMapBodySet;
 #endif

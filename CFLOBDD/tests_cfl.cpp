@@ -2120,6 +2120,51 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 		std::cout << "Factoring 7 (prime)..." << std::endl;
 		CFLOBDD factors7 = FactorViaCRT(7);
 		std::cout << "FactorViaCRT(7) created successfully" << std::endl;
+	} else if (curTest == "dispose-test") {
+		// Test that DisposeOf*Cache() properly decrements reference counts (via Clear())
+		unsigned int k = (size > 0) ? size : 5;
+		std::cout << "Testing cache disposal with MultModK(" << k << ")" << std::endl;
+		{
+			CFLOBDD result = MultModK(k);
+
+			unsigned long nodesBefore      = CFLOBDDNodeHandle::canonicalNodeTable->size();
+			size_t        returnMapsBefore = CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->size();
+			unsigned long reductionsBefore = ReductionMapHandle::canonicalReductionMapBodySet->size();
+			std::cout << "Before disposal:" << std::endl;
+			std::cout << "  canonicalNodeTable:           " << nodesBefore      << std::endl;
+			std::cout << "  canonicalReturnMapBodySet:    " << returnMapsBefore << std::endl;
+			std::cout << "  canonicalReductionMapBodySet: " << reductionsBefore << std::endl;
+			std::cout << "  reduceCache:                  " << CFLOBDDNodeHandle::ReduceCacheSize() << std::endl;
+			std::cout << "  pairProductCache:             " << PairProductCacheSize()              << std::endl;
+			std::cout << "  tripleProductCache:           " << TripleProductCacheSize()            << std::endl;
+
+			DisposeOfTripleProductCache();
+			DisposeOfPairProductCache();
+			CFLOBDDNodeHandle::DisposeOfReduceCache();
+			CFLOBDDNodeHandle::InitReduceCache();
+			InitPairProductCache();
+			InitTripleProductCache();
+
+			unsigned long nodesAfter      = CFLOBDDNodeHandle::canonicalNodeTable->size();
+			size_t        returnMapsAfter = CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->size();
+			unsigned long reductionsAfter = ReductionMapHandle::canonicalReductionMapBodySet->size();
+			std::cout << "After disposal:" << std::endl;
+			std::cout << "  canonicalNodeTable:           " << nodesAfter      << std::endl;
+			std::cout << "  canonicalReturnMapBodySet:    " << returnMapsAfter << std::endl;
+			std::cout << "  canonicalReductionMapBodySet: " << reductionsAfter << " (expected: 0)" << std::endl;
+			std::cout << "  reduceCache:                  " << CFLOBDDNodeHandle::ReduceCacheSize() << std::endl;
+			std::cout << "  pairProductCache:             " << PairProductCacheSize()              << std::endl;
+			std::cout << "  tripleProductCache:           " << TripleProductCacheSize()            << std::endl;
+
+			assert(nodesAfter      < nodesBefore);
+			assert(returnMapsAfter < returnMapsBefore);
+			assert(reductionsAfter == 0);
+			std::cout << "All assertions passed" << std::endl;
+		}
+	} else if (curTest == "factor-timing") {
+		// Time MultModK(k) and slice construction for each modulus k
+		unsigned int v = (size > 0) ? (unsigned int)size : 35;
+		TimeFactorComponents(v);
 	} else if (curTest == "spec") {
 		// Build and time MultModK for a single modulus
 		unsigned int k = (size > 0) ? size : 5;

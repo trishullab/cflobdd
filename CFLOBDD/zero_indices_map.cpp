@@ -246,8 +246,3 @@ void ZeroIndicesMapHandle::Canonicalize()
 		}
 	}
 }
-
-std::size_t hash_value(const ZeroIndicesMapHandle& val)
-{
-	return val.mapContents->hashCheck;
-}

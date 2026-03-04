@@ -76,7 +76,6 @@ std::ostream& operator<< (std::ostream & out, const MatMultMapHandle &r);
 
 extern MatMultMapHandle operator* (const VAL_TYPE&, const MatMultMapHandle&);
 extern MatMultMapHandle operator* (const MatMultMapHandle&, const VAL_TYPE&);
-extern std::size_t hash_value(const MatMultMapHandle& val);
 
 //***************************************************************
 // MatMultMapBody

@@ -443,8 +443,8 @@ namespace CFL_OBDD {
 			a = Matrix1234FloatBoost::Demote12ToInterleaved(a);
 
 			printMemory();
-			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->Size() << std::endl;
-			std::cout << CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->Size() << std::endl;
+			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->size() << std::endl;
+			std::cout << CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->size() << std::endl;
 			UFunc = VectorFloatBoost::NoDistinctionNode(UFunc.root->level);
 			SumEx = VectorFloatBoost::NoDistinctionNode(SumEx.root->level);
 			e0 = VectorFloatBoost::NoDistinctionNode(e0.root->level);
@@ -453,8 +453,8 @@ namespace CFL_OBDD {
 			InitPairProductCache();
 			CFLOBDDNodeHandle::DisposeOfReduceCache();
 			CFLOBDDNodeHandle::InitReduceCache();
-			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->Size() << std::endl;
-			std::cout << CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->Size() << std::endl;
+			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->size() << std::endl;
+			std::cout << CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->size() << std::endl;
 			printMemory();
 			
 			std::cout << "a matrix created.." << std::endl;
@@ -553,7 +553,7 @@ namespace CFL_OBDD {
 			InitPairProductCache();
 			CFLOBDDNodeHandle::DisposeOfReduceCache();
 			CFLOBDDNodeHandle::InitReduceCache();
-			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->Size() << std::endl;
+			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->size() << std::endl;
 			std::cout << "UFunc returnMapSize: " << UFunc.root->rootConnection.returnMapHandle.Size() << std::endl;
 			std::cout << "UFunc created ..." << std::endl;
 			unsigned int level = ceil(log2(n));
@@ -816,13 +816,13 @@ namespace CFL_OBDD {
 			std::cout << "HF matrix created..." << std::endl;
 			CFLOBDDNodeHandle::DisposeOfReduceCache();
 			CFLOBDDNodeHandle::InitReduceCache();
-			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->Size() << std::endl;
+			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->size() << std::endl;
 			HF = Matrix1234FloatBoost::PromoteInterleavedTo12(HF);
 			C = Matrix1234FloatBoost::PromoteInterleavedTo12(C);
 			//CFLOBDD_FLOAT_BOOST temp = Matrix1234FloatBoost::MatrixMultiplyV4(HF, C);
 			CFLOBDDNodeHandle::DisposeOfReduceCache();
 			CFLOBDDNodeHandle::InitReduceCache();
-			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->Size() << std::endl;
+			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->size() << std::endl;
 
 			unsigned int level = ceil(log2(n));
 			CFLOBDD_FLOAT_BOOST SumEx = VectorFloatBoost::NoDistinctionNode(level, 1);

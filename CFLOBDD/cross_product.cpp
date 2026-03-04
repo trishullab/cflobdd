@@ -621,6 +621,7 @@ void InitPairProductCache()
 
 void DisposeOfPairProductCache()
 {
+	ClearPairProductCache();
 	delete pairProductCache;
 	pairProductCache = NULL;
 }
@@ -1185,6 +1186,7 @@ void InitTripleProductCache()
 
 void DisposeOfTripleProductCache()
 {
+	ClearTripleProductCache();
 	delete tripleProductCache;
 	tripleProductCache = NULL;
 }

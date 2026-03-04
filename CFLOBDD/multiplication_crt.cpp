@@ -30,6 +30,7 @@
 #include <cassert>
 #include <algorithm>
 #include <chrono>
+#include <iomanip>
 #include "multiplication_crt.h"
 #include "cflobdd_node.h"
 #include "cflobdd_top_node_t.h"
@@ -639,6 +640,100 @@ CFLOBDD FactorViaCRT(unsigned int v) {
 
     // Document line [12]: return ans
     return ans;
+}
+
+// -----------------------------------------------------------------------------
+// TimeFactorComponents
+//
+// For each modulus k = Moduli[0..numberOfMultRelations-1], times:
+//   (i)  construction of MultModK(k)
+//   (ii) construction of the "slice" of MultModK(k) with respect to value v,
+//        i.e., ApplyAndReduce(MultModK(k), ConstantCFLOBDD(v mod k), EqualityFunc)
+// -----------------------------------------------------------------------------
+void TimeFactorComponents(unsigned int v) {
+    std::cout << "TimeFactorComponents(v=" << v << ")" << std::endl;
+    std::cout << std::setw(4) << "i"
+              << "  " << std::setw(8) << "modulus"
+              << "  " << std::setw(12) << "MultModK(ms)"
+              << "  " << std::setw(10) << "slice(ms)"
+              << "  " << "slice-size" << std::endl;
+
+    CFLOBDD slices[numberOfMultRelations];
+    long long totalMs = 0;
+    for (unsigned int i = 0; i < numberOfMultRelations; i++) {
+        unsigned int k = Moduli[i];
+
+        auto t0 = std::chrono::high_resolution_clock::now();
+        CFLOBDD multMod = MultModK(k);
+        auto t1 = std::chrono::high_resolution_clock::now();
+
+        CFLOBDD P = MkConstantCFLOBDD(v % k);
+        slices[i] = CFLOBDD(ApplyAndReduce<int>(multMod.root, P.root, EqualityFunc));
+        auto t2 = std::chrono::high_resolution_clock::now();
+
+        auto multMs  = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+        auto sliceMs = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+        totalMs += multMs + sliceMs;
+
+        std::cout << std::setw(4) << i
+                  << "  " << std::setw(8) << k
+                  << "  " << std::setw(12) << multMs
+                  << "  " << std::setw(10) << sliceMs
+                  << "  ";
+        PrintSize(slices[i]);
+    }
+
+    std::cout << "TimeFactorComponents total: " << totalMs << " ms" << std::endl;
+
+    // Repeated pairwise AND from outside-in until a single CFLOBDD remains
+    std::vector<CFLOBDD> current(slices, slices + numberOfMultRelations);
+    unsigned int round = 0;
+    while (current.size() > 1) {
+        round++;
+        unsigned int n = current.size();
+        unsigned int half = n / 2;
+        bool isOdd = (n % 2 == 1);
+
+        std::cout << std::endl
+                  << "Round " << round << " pairwise AND (outside-in), "
+                  << n << " -> " << half + (isOdd ? 1 : 0) << ":" << std::endl;
+        std::cout << std::setw(4) << "i"
+                  << "  " << std::setw(4) << "j"
+                  << "  " << std::setw(10) << "and(ms)"
+                  << "  " << "and-size" << std::endl;
+
+        std::vector<CFLOBDD> next;
+        next.reserve(half + (isOdd ? 1 : 0));
+
+        for (unsigned int i = 0; i < half; i++) {
+            unsigned int j = n - 1 - i;
+
+            auto t0 = std::chrono::high_resolution_clock::now();
+            CFLOBDD andResult = MkAnd(current[i], current[j]);
+            auto t1 = std::chrono::high_resolution_clock::now();
+
+            auto andMs = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+
+            std::cout << std::setw(4) << i
+                      << "  " << std::setw(4) << j
+                      << "  " << std::setw(10) << andMs
+                      << "  ";
+            PrintSize(andResult);
+            next.push_back(std::move(andResult));
+        }
+
+        if (isOdd) {
+            unsigned int mid = n / 2;
+            std::cout << " mid" << std::setw(4) << mid
+                      << "  " << std::setw(4) << mid
+                      << "  " << std::setw(10) << "-"
+                      << "  ";
+            PrintSize(current[mid]);
+            next.push_back(std::move(current[mid]));
+        }
+
+        current = std::move(next);
+    }
 }
 
 // -----------------------------------------------------------------------------

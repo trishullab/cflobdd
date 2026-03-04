@@ -67,8 +67,6 @@ template <typename T>
 extern WeightedMatMultMapHandle<T> operator* (const T&, const WeightedMatMultMapHandle<T>&);
 template <typename T>
 extern WeightedMatMultMapHandle<T> operator* (const WeightedMatMultMapHandle<T>&, const T&);
-template <typename T>
-extern std::size_t hash_value(const WeightedMatMultMapHandle<T>& val);
 
 //***************************************************************
 // WeightedMatMultMapBody

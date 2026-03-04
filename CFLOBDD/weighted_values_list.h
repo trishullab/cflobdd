@@ -44,8 +44,6 @@ class WeightedValuesListHandle {
 
 template <typename T>
 std::ostream& operator<< (std::ostream & out, const WeightedValuesListHandle<T> &r);
-template <typename T>
-extern std::size_t hash_value(const WeightedValuesListHandle<T>& val);
 
 //***************************************************************
 // WeightedValuesListBody
@@ -77,23 +75,8 @@ class WeightedValuesListBody {//: public List<int> {
   unsigned int hashCheck;
   bool isCanonical;              // Is this WeightedValuesListBody in *canonicalWeightedValuesListBodySet?
 
-  struct PointerHash {
-  public:
-	  size_t operator()(const WeightedValuesListBody* r){
-		  return r->hashCheck;
-	  }
-  };
-
-  struct PointerEqual {
-  public:
-	  bool operator()(const WeightedValuesListBody* r1, const WeightedValuesListBody* r2){
-		  return (r1->hashCheck == r2->hashCheck);
-	  };
-  };
-
 };
 
 template <typename T>
 std::ostream& operator<< (std::ostream & out, const WeightedValuesListBody<T> &r);
-//static std::unordered_set<WeightedValuesListBody *, WeightedValuesListBody::PointerHash, WeightedValuesListBody::PointerEqual> canonicalWeightedValuesListBodySet;
 #endif

@@ -29,6 +29,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <unordered_set>
 #include <vector>
 #include "list_T.h"
 #include "list_TPtr.h"
@@ -42,6 +43,18 @@
 
 template <typename T> class ReturnMapHandle;
 template <typename T> class ReturnMapBody;
+
+// Content-based hash and equality functors for ReturnMapBody* pointers,
+// used by the std::unordered_set canonical store.
+template <typename T>
+struct ReturnMapBodyPtrHash {
+    size_t operator()(ReturnMapBody<T>* p) const { return p->Hash(); }
+};
+
+template <typename T>
+struct ReturnMapBodyPtrEq {
+    bool operator()(ReturnMapBody<T>* a, ReturnMapBody<T>* b) const { return *a == *b; }
+};
 
 //using namespace boost::multiprecision;
 
@@ -73,8 +86,13 @@ class ReturnMapHandle {
   void InducedReductionAndReturnMap(ReductionMapHandle &inducedReductionMapHandle,
 	                                ReturnMapHandle<T> &inducedReturnMapHandle);
   ReturnMapBody<T> *mapContents;
-  static Hashset<ReturnMapBody<T>> *canonicalReturnMapBodySet;
+  using CanonicalReturnMapBodySet = std::unordered_set<ReturnMapBody<T>*,
+                                                        ReturnMapBodyPtrHash<T>,
+                                                        ReturnMapBodyPtrEq<T>>;
+  static CanonicalReturnMapBodySet *canonicalReturnMapBodySet;
   std::ostream& print(std::ostream & out = std::cout) const;
+ private:
+  static CanonicalReturnMapBodySet *initCanonicalSet();
 };
 
 template <typename T>
@@ -142,7 +160,7 @@ void ReturnMapBody<T>::DecrRef()
 {
   if (--refCount == 0) {    // Warning: Saturation not checked
     if (isCanonical) {
-      ReturnMapHandle<T>::canonicalReturnMapBodySet->DeleteEq(this);
+      ReturnMapHandle<T>::canonicalReturnMapBodySet->erase(this);
     }
     delete this;
   }
@@ -196,8 +214,18 @@ std::ostream& operator<< (std::ostream & out, const ReturnMapBody<T> &r)
 // ReturnMapHandle
 //***************************************************************
 
+// Factory method for static canonical-set member
+template <typename T>
+typename ReturnMapHandle<T>::CanonicalReturnMapBodySet *ReturnMapHandle<T>::initCanonicalSet()
+{
+    auto *s = new CanonicalReturnMapBodySet(RETURN_MAP_NUM_BUCKETS);
+    s->max_load_factor(0.8f);
+    return s;
+}
+
 // Initializations of static members ---------------------------------
-template <typename T> Hashset<ReturnMapBody<T>> *ReturnMapHandle<T>::canonicalReturnMapBodySet = new Hashset<ReturnMapBody<T>>(HASHSET_NUM_BUCKETS);
+template <typename T> typename ReturnMapHandle<T>::CanonicalReturnMapBodySet
+    *ReturnMapHandle<T>::canonicalReturnMapBodySet = ReturnMapHandle<T>::initCanonicalSet();
 
 // Default constructor
 template <typename T>
@@ -367,13 +395,13 @@ void ReturnMapHandle<T>::Canonicalize()
 
 		if (!mapContents->isCanonical) {
 			mapContents->setHashCheck();
-			size_t hash = canonicalReturnMapBodySet->GetHash(mapContents);
-			answerContents = canonicalReturnMapBodySet->Lookup(mapContents, hash);
-			if (answerContents == NULL) {
-				canonicalReturnMapBodySet->Insert(mapContents, hash);
+			auto it = canonicalReturnMapBodySet->find(mapContents);
+			if (it == canonicalReturnMapBodySet->end()) {
+				canonicalReturnMapBodySet->insert(mapContents);
 				mapContents->isCanonical = true;
 			}
 			else {
+				answerContents = *it;
 				answerContents->IncrRef();
 				mapContents->DecrRef();
 				mapContents = answerContents;

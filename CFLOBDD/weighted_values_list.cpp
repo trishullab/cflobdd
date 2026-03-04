@@ -295,12 +295,6 @@ void WeightedValuesListHandle<T>::Canonicalize()
   }
 }
 
-template <typename T>
-std::size_t hash_value(const WeightedValuesListHandle<T>& val)
-{
-	return val.mapContents->hashCheck;
-}
-
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/cpp_complex.hpp>
 

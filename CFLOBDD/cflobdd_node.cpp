@@ -59,9 +59,26 @@ using namespace CFL_OBDD;
 // Contains a canonical CFLOBDDNode*
 //********************************************************************
 
+// MurmurHash3 finalizer for even bucket distribution
+static inline size_t fmix64(size_t h) {
+    h ^= h >> 33;
+    h *= 0xff51afd7ed558ccdULL;
+    h ^= h >> 33;
+    h *= 0xc4ceb9fe1a85ec53ULL;
+    h ^= h >> 33;
+    return h;
+}
+
+CFLOBDDNodeHandle::CanonicalNodeTable *CFLOBDDNodeHandle::initCanonicalNodeTable()
+{
+    auto *s = new CanonicalNodeTable(NODE_TABLE_NUM_BUCKETS);
+    s->max_load_factor(0.8f);
+    return s;
+}
+
 // Initializations of static members ---------------------------------
 
-Hashset<CFLOBDDNode> *CFLOBDDNodeHandle::canonicalNodeTable = new Hashset<CFLOBDDNode>(HASHSET_NUM_BUCKETS);
+CFLOBDDNodeHandle::CanonicalNodeTable *CFLOBDDNodeHandle::canonicalNodeTable = CFLOBDDNodeHandle::initCanonicalNodeTable();
 CFLOBDDNodeHandle *CFLOBDDNodeHandle::NoDistinctionNode = NULL;
 CFLOBDDNodeHandle CFLOBDDNodeHandle::CFLOBDDForkNodeHandle;
 CFLOBDDNodeHandle CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle;
@@ -383,6 +400,7 @@ void CFLOBDDNodeHandle::InitReduceCache()
 
 void CFLOBDDNodeHandle::DisposeOfReduceCache()
 {
+	ClearReduceCache();
 	delete reduceCache;
 	reduceCache = NULL;
 }
@@ -405,13 +423,13 @@ void CFLOBDDNodeHandle::Canonicalize()
   CFLOBDDNode *answerContents;
 
   if (!handleContents->IsCanonical()) {
-	size_t hash = canonicalNodeTable->GetHash(handleContents);
-    answerContents = canonicalNodeTable->Lookup(handleContents, hash);
-    if (answerContents == NULL) {
-      canonicalNodeTable->Insert(handleContents, hash);
+    auto it = canonicalNodeTable->find(handleContents);
+    if (it == canonicalNodeTable->end()) {
+      canonicalNodeTable->insert(handleContents);
       handleContents->SetCanonical();
     }
     else {
+      answerContents = *it;
       answerContents->IncrRef();
       handleContents->DecrRef();
       handleContents = answerContents;
@@ -1491,18 +1509,38 @@ CFLOBDDReturnMapHandle ComposeAndReduce(CFLOBDDReturnMapHandle& mapHandle, Reduc
 		inducedRedMapHandle = redMapHandle;
 		return mapHandle;
 	}
-	std::unordered_map<int, unsigned int> reductionMap (size);
-	for (int i = 0; i < size; i++)
-	{
-		c2 = mapHandle.mapContents->mapArray[i];
-		c3 = redMapHandle.Lookup(c2);
-		if (reductionMap.find(c3) == reductionMap.end()){
-			answer.AddToEnd(c3); 	  // Why not answer.AddToEnd(c3);
-			reductionMap.emplace(c3, answer.Size() - 1);
-			inducedRedMapHandle.AddToEnd(answer.Size() - 1);
+	unsigned int redSize = redMapHandle.Size();
+	if (redSize <= 8400000) {
+		// Flat array: c3 values are in 0..redSize-1
+		std::vector<int> reductionMap(redSize, -1);
+		for (int i = 0; i < size; i++)
+		{
+			c2 = mapHandle.mapContents->mapArray[i];
+			c3 = redMapHandle.Lookup(c2);
+			if (reductionMap[c3] == -1){
+				answer.AddToEnd(c3);
+				reductionMap[c3] = answer.Size() - 1;
+				inducedRedMapHandle.AddToEnd(answer.Size() - 1);
+			}
+			else{
+				inducedRedMapHandle.AddToEnd(reductionMap[c3]);
+			}
 		}
-		else{
-			inducedRedMapHandle.AddToEnd(reductionMap[c3]);
+	} else {
+		// Fallback: unordered_map for large reduction maps
+		std::unordered_map<int, unsigned int> reductionMap(size);
+		for (int i = 0; i < size; i++)
+		{
+			c2 = mapHandle.mapContents->mapArray[i];
+			c3 = redMapHandle.Lookup(c2);
+			if (reductionMap.find(c3) == reductionMap.end()){
+				answer.AddToEnd(c3);
+				reductionMap.emplace(c3, answer.Size() - 1);
+				inducedRedMapHandle.AddToEnd(answer.Size() - 1);
+			}
+			else{
+				inducedRedMapHandle.AddToEnd(reductionMap[c3]);
+			}
 		}
 	}
 	inducedRedMapHandle.Canonicalize();
@@ -1562,7 +1600,7 @@ size_t CFLOBDDInternalNode::Hash()
   for (unsigned int j = 0; j < numBConnections; j++) {
     hvalue = (997 * hvalue + BConnection[j].Hash());
   }
-  return hvalue;
+  return fmix64(hvalue);
 }
 
 void CFLOBDDInternalNode::DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out /* = std::cout */)
@@ -1673,7 +1711,7 @@ void CFLOBDDInternalNode::DecrRef()
 {
   if (--refCount == 0) {    // Warning: Saturation not checked
     if (isCanonical) {
-      CFLOBDDNodeHandle::canonicalNodeTable->DeleteEq(this);
+      CFLOBDDNodeHandle::canonicalNodeTable->erase(this);
     }
     delete this;
   }

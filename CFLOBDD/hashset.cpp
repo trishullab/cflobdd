@@ -9,6 +9,9 @@
 const bool DEBUG_HASHSET = false;
 
 const int HASHSET_NUM_BUCKETS = 2000000;
+const int RETURN_MAP_NUM_BUCKETS = 1000000;     // initial bucket count for canonical return-map sets (auto-resizes)
+const int REDUCTION_MAP_NUM_BUCKETS = 1000000;  // initial bucket count for canonical reduction-map sets (auto-resizes)
+const int NODE_TABLE_NUM_BUCKETS = 1000000;     // initial bucket count for canonical node table (auto-resizes)
 
 // Implementation of Hashset template.
 // See hashset.h for documentation.

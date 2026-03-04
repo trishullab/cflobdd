@@ -547,12 +547,6 @@ WeightedMatMultMapHandle<fourierSemiring> operator* (const WeightedMatMultMapHan
 	return ans;
 }
 
-template <typename T>
-std::size_t hash_value(const WeightedMatMultMapHandle<T>& val)
-{
-	return val.mapContents->hashCheck;
-}
-
 template class WeightedMatMultMapHandle<BIG_FLOAT>;
 template WeightedMatMultMapHandle<BIG_FLOAT> operator*<BIG_FLOAT>(const BIG_FLOAT&, const WeightedMatMultMapHandle<BIG_FLOAT>&);
 template WeightedMatMultMapHandle<BIG_FLOAT> operator*<BIG_FLOAT>(const WeightedMatMultMapHandle<BIG_FLOAT>&, const BIG_FLOAT&);

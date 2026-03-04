@@ -40,11 +40,14 @@ class CFLOBDDLeafNode;       //  : public CFLOBDDNode
 class CFLOBDDForkNode;       //  : public CFLOBDDLeafNode
 class CFLOBDDDontCareNode;   //  : public CFLOBDDLeafNode
 class CFLOBDDNodeHandle;
+struct CFLOBDDNodePtrHash;
+struct CFLOBDDNodePtrEq;
 }
 
 #include <iostream>
 #include <fstream>
 #include <cstdint>
+#include <unordered_set>
 //#include <mpirxx.h>
 //#include <boost/multiprecision/cpp_int.hpp>
 
@@ -114,8 +117,14 @@ class CFLOBDDNodeHandle {
 
  // Table of canonical nodes -------------------------
     public:
-     static Hashset<CFLOBDDNode> *canonicalNodeTable;
+     using CanonicalNodeTable = std::unordered_set<CFLOBDDNode*,
+                                                    CFLOBDDNodePtrHash,
+                                                    CFLOBDDNodePtrEq>;
+     static CanonicalNodeTable *canonicalNodeTable;
      void Canonicalize();
+
+    private:
+     static CanonicalNodeTable *initCanonicalNodeTable();
 
  // Reduce and its associated cache ---------------
     public:
@@ -260,6 +269,15 @@ class CFLOBDDNode {
 };
 
 std::ostream& operator<< (std::ostream & out, const CFLOBDDNode &n);
+
+// Functors for std::unordered_set<CFLOBDDNode*, ...>
+struct CFLOBDDNodePtrHash {
+    size_t operator()(CFLOBDDNode* p) const { return p->Hash(); }
+};
+
+struct CFLOBDDNodePtrEq {
+    bool operator()(CFLOBDDNode* a, CFLOBDDNode* b) const { return *a == *b; }
+};
 
 //********************************************************************
 // CFLOBDDInternalNode

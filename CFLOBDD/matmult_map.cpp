@@ -327,8 +327,3 @@ MatMultMapHandle operator* (const MatMultMapHandle& mapHandle, const VAL_TYPE& f
 	ans.Canonicalize();
 	return ans;
 }
-
-std::size_t hash_value(const MatMultMapHandle& val)
-{
-	return val.mapContents->hashCheck;
-}

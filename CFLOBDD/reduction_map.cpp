@@ -68,31 +68,38 @@ void ReductionMapBody::DecrRef()
 {
   if (--refCount == 0) {    // Warning: Saturation not checked
     if (isCanonical) {
-      ReductionMapHandle::canonicalReductionMapBodySet->DeleteEq(this);
-		//canonicalReductionMapBodySet.erase(this);
+      ReductionMapHandle::canonicalReductionMapBodySet->erase(this);
     }
     delete this;
   }
 }
 
+// Murmur3 finalizer — ensures full avalanche (each output bit depends on all input bits)
+static inline size_t fmix64(size_t h) {
+    h ^= h >> 33;
+    h *= 0xff51afd7ed558ccdULL;
+    h ^= h >> 33;
+    h *= 0xc4ceb9fe1a85ec53ULL;
+    h ^= h >> 33;
+    return h;
+}
+
 size_t ReductionMapBody::Hash()
 {
-  size_t hvalue = 0;
-  for (unsigned int i = 0; i < mapArray.size(); i++){
-	  hvalue = (117 * (hvalue + 1) + (unsigned int)mapArray[i]);
+  size_t hvalue = mapArray.size();  // Seed with size to avoid absorbing-zero problem
+  for (unsigned int i = 0; i < mapArray.size(); i++) {
+      hvalue = (997 * hvalue + mapArray[i]);
   }
-
-  return hvalue;
+  return fmix64(hvalue);
 }
 
 void ReductionMapBody::setHashCheck()
 {
-	unsigned int hvalue = 0;
-
-	for (auto &i : mapArray) {
-		hvalue = (117 * (hvalue + 1) + (int)(i));
-	}
-	hashCheck = hvalue;
+  unsigned int hvalue = 0;
+  for (unsigned int i = 0; i < mapArray.size(); i++) {
+      hvalue = (131 * (hvalue + 1) + mapArray[i]);
+  }
+  hashCheck = hvalue;
 }
 
 void ReductionMapBody::AddToEnd(int y)
@@ -140,7 +147,15 @@ std::ostream& operator<< (std::ostream & out, const ReductionMapBody &r)
 //***************************************************************
 
 // Initializations of static members ---------------------------------
-Hashset<ReductionMapBody> *ReductionMapHandle::canonicalReductionMapBodySet = new Hashset<ReductionMapBody>(HASHSET_NUM_BUCKETS);
+ReductionMapHandle::CanonicalReductionMapBodySet *ReductionMapHandle::initCanonicalSet()
+{
+    auto *s = new CanonicalReductionMapBodySet(REDUCTION_MAP_NUM_BUCKETS);
+    s->max_load_factor(0.8f);
+    return s;
+}
+
+ReductionMapHandle::CanonicalReductionMapBodySet
+    *ReductionMapHandle::canonicalReductionMapBodySet = ReductionMapHandle::initCanonicalSet();
 
 // Default constructor
 ReductionMapHandle::ReductionMapHandle()
@@ -321,38 +336,18 @@ void ReductionMapHandle::Canonicalize()
   ReductionMapBody *answerContents;
 
   if (!mapContents->isCanonical) {
-	mapContents->setHashCheck();
-	size_t hash = canonicalReductionMapBodySet->GetHash(mapContents);
-    answerContents = canonicalReductionMapBodySet->Lookup(mapContents, hash);
-    if (answerContents == NULL) {
-      canonicalReductionMapBodySet->Insert(mapContents, hash);
+    mapContents->setHashCheck();
+    auto it = canonicalReductionMapBodySet->find(mapContents);
+    if (it == canonicalReductionMapBodySet->end()) {
+      canonicalReductionMapBodySet->insert(mapContents);
       mapContents->isCanonical = true;
     }
     else {
+      answerContents = *it;
       answerContents->IncrRef();
       mapContents->DecrRef();
       mapContents = answerContents;
     }
-	/*
-	  auto it = canonicalReductionMapBodySet.find(mapContents);
-	  if (it == canonicalReductionMapBodySet.end()) {
-		  mapContents->isCanonical = true;
-		  canonicalReductionMapBodySet.insert(mapContents);
-	  }
-	  else {
-		  answerContents = *it;
-		answerContents->IncrRef();
-		mapContents->DecrRef();
-		mapContents = answerContents;
-	  }
-	  */
   }
 }
-
-std::size_t hash_value(const ReductionMapHandle& val)
-{
-	return val.mapContents->hashCheck;
-}
-
-
 

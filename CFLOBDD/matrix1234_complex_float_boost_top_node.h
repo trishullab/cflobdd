@@ -36,6 +36,7 @@ namespace CFL_OBDD {
 	typedef ReturnMapBody<BIG_COMPLEX_FLOAT> ComplexFloatBoostReturnMapBody;
 	typedef ReturnMapHandle<BIG_COMPLEX_FLOAT> ComplexFloatBoostReturnMapHandle;
 }
+#include "cflobdd_node.h"
 #include "connectionT.h"
 namespace CFL_OBDD {
 	typedef ConnectionT<ComplexFloatBoostReturnMapHandle> ComplexFloatBoostConnection;

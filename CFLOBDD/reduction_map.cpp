@@ -112,18 +112,20 @@ void ReductionMapBody::AddToEnd(int y)
 
 bool ReductionMapBody::operator==(const ReductionMapBody &o) const
 {
-	if (hashCheck != o.hashCheck)
+	if (hashCheck != o.hashCheck) {
 		return false;
-
-	if (mapArray.size() != o.mapArray.size())
+  } else if (mapArray.size() != o.mapArray.size()) {
 		return false;
-
-	for (unsigned int i = 0; i < mapArray.size(); i++){
-		if (mapArray[i] != o.mapArray[i])
-			return false;
-	}
+  } else {
+	  for (unsigned int i = 0; i < mapArray.size(); i++) {
+		  if (mapArray[i] != o.mapArray[i]) {
+			  return false;
+      }
+	  }
+  }
 	return true;
 }
+
 int& ReductionMapBody::operator[](unsigned int i){                       // Overloaded []
 	return mapArray[i];
 }

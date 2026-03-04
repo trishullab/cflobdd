@@ -32,8 +32,8 @@
 // #include <fstream>
 // #include <complex>
 #include "matmult_map.h"
-#include "connectionT.h"
 #include "cflobdd_top_node_t.h"
+#include "connectionT.h"
 // #include "matrix1234_complex_double_top_node.h"
 // #include "matrix1234_double_top_node.h"
 // #include "matrix1234_float_boost_top_node.h"

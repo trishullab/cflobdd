@@ -169,21 +169,16 @@ void ReturnMapBody<T>::DecrRef()
 template <typename T>
 bool ReturnMapBody<T>::operator==(const ReturnMapBody<T> &o) const
 {
-	if (hashCheck != o.hashCheck)
-	{
+	if (hashCheck != o.hashCheck) {
 		return false;
-	}
-	else if (mapArray.size() != o.mapArray.size())
-	{
+	} else if (mapArray.size() != o.mapArray.size()) {
 		return false;
 	} else {
-	  for (unsigned i = 0; i < mapArray.size(); i++)
-	  {
-		  if (mapArray[i] != o.mapArray[i])
-		  {
-			  return false;
-		  }
-	  }
+		for (unsigned i = 0; i < mapArray.size(); i++) {
+			if (mapArray[i] != o.mapArray[i]) {
+				return false;
+			}
+		}
 	}
 	return true;
 }

@@ -54,7 +54,7 @@ namespace CFL_OBDD {
 		{
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = VectorToMatrixInterleavedNode(memoTable, *(n->rootConnection.entryPointHandle));
+			CFLOBDDNodeHandle tempHandle = VectorToMatrixInterleavedNode(memoTable, n->rootConnection.entryPointHandle);
 			CFLOBDDTopNodeDoubleRefPtr v = new CFLOBDDTopNodeDouble(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -63,7 +63,7 @@ namespace CFL_OBDD {
 		{
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = MatrixToVectorNode(memoTable, *(n->rootConnection.entryPointHandle));
+			CFLOBDDNodeHandle tempHandle = MatrixToVectorNode(memoTable, n->rootConnection.entryPointHandle);
 			CFLOBDDTopNodeDoubleRefPtr v = new CFLOBDDTopNodeDouble(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -96,18 +96,18 @@ namespace CFL_OBDD {
 		CFLOBDDTopNodeDoubleRefPtr MkVectorWithVoc12Top(CFLOBDDTopNodeDoubleRefPtr n)
 		{
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
-			CFLOBDDNodeHandle tempHandle = MkVectorWithVoc12Node(memoTable, *(n->rootConnection.entryPointHandle));
+			CFLOBDDNodeHandle tempHandle = MkVectorWithVoc12Node(memoTable, n->rootConnection.entryPointHandle);
 			CFLOBDDTopNodeDoubleRefPtr v = new CFLOBDDTopNodeDouble(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
 
 		CFLOBDDTopNodeDoubleRefPtr VectorShiftVocs1To2Top(CFLOBDDTopNodeDoubleRefPtr n)
 		{
-			assert(n->rootConnection.entryPointHandle->handleContents->level >= 1);
+			assert(n->rootConnection.entryPointHandle.handleContents->level >= 1);
 
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = VectorShiftVocs1To2Node(memoTable, *(n->rootConnection.entryPointHandle));
+			CFLOBDDNodeHandle tempHandle = VectorShiftVocs1To2Node(memoTable, n->rootConnection.entryPointHandle);
 			CFLOBDDTopNodeDoubleRefPtr v = new CFLOBDDTopNodeDouble(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -126,7 +126,7 @@ namespace CFL_OBDD {
 			ReturnMapHandle<double> inducedReturnMap;
 			rhandle.InducedReductionAndReturnMap(inducedReductionMapHandle, inducedReturnMap);
 			//     CFLOBDDNodeHandle::InitReduceCache();
-			CFLOBDDNodeHandle reduced_n = n->rootConnection.entryPointHandle->Reduce(inducedReductionMapHandle, inducedReturnMap.Size());
+			CFLOBDDNodeHandle reduced_n = n->rootConnection.entryPointHandle.Reduce(inducedReductionMapHandle, inducedReturnMap.Size());
 			return (new CFLOBDDTopNodeDouble(reduced_n, inducedReturnMap));
 		}
 
@@ -150,7 +150,7 @@ namespace CFL_OBDD {
 				}
 				else{
 					long double amplitude = log2l(n->rootConnection.returnMapHandle.Lookup(i));
-					long double logNumPaths = n->rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
+					long double logNumPaths = n->rootConnection.entryPointHandle.handleContents->numPathsToExit[i];
 					//std::cout << amplitude << " " << logNumPaths << " " << (amplitude + logNumPaths) << std::endl;
 					values.push_back(std::make_pair(amplitude + logNumPaths, i));
 				}
@@ -187,14 +187,14 @@ namespace CFL_OBDD {
 				index = 1;
 			else
 				index = 0;*/
-			std::pair<std::string,std::string> stringPair = SamplingNode(*(n->rootConnection.entryPointHandle), index);
+			std::pair<std::string,std::string> stringPair = SamplingNode(n->rootConnection.entryPointHandle, index);
 			return stringPair.first + stringPair.second;
 		}
 #endif
 
 		void VectorPrintColumnMajorTop(CFLOBDDTopNodeDoubleRefPtr n, std::ostream & out)
 		{
-			unsigned int level = n->rootConnection.entryPointHandle->handleContents->level;
+			unsigned int level = n->rootConnection.entryPointHandle.handleContents->level;
 			if (level >= 2 && level <= 4) {
 				unsigned int indexBits = 1 << (level - 1);
 				unsigned int totalBits = 2 * indexBits;
@@ -233,7 +233,7 @@ namespace CFL_OBDD {
 
 		void VectorPrintColumnMajorInterleavedTop(CFLOBDDTopNodeDoubleRefPtr n, std::ostream & out)
 		{
-			unsigned int level = n->rootConnection.entryPointHandle->handleContents->level;
+			unsigned int level = n->rootConnection.entryPointHandle.handleContents->level;
 			if (level >= 1 && level <= 4) {
 				unsigned int indexBits = 1 << (level - 1);
 				unsigned int totalBits = 2 * indexBits;

@@ -70,10 +70,6 @@ namespace CFL_OBDD {
 	// Results are cached: flat array for k <= 1024, unordered_map for larger k.
 	CFLOBDDReturnMapHandle MakeIdentityReturnMap(unsigned int k);
 }
-#include "connectionT.h"
-namespace CFL_OBDD {
-	typedef ConnectionT<CFLOBDDReturnMapHandle> Connection;
-}
 #include "reduction_map.h"
 #include "hash.h"
 #include "hashset.h"
@@ -171,6 +167,11 @@ extern std::vector<double> ComputeProbabilityOfListNode(CFLOBDDNodeHandle g, std
 // extern std::vector<double> ComputeEntropyOfListNode(CFLOBDDNodeHandle g, std::vector<std::vector<double>>& var_probs, std::vector<std::vector<double>>& path_probs, std::vector<std::vector<double>>& entropy, int start, int end); 
 
 
+}
+
+#include "connectionT.h"
+namespace CFL_OBDD {
+	typedef ConnectionT<CFLOBDDReturnMapHandle> Connection;
 }
 
 #include "cross_product.h"

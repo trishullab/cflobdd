@@ -426,7 +426,7 @@ namespace CFL_OBDD {
 					rt1temp.AddToEnd(rt1[i]);
 			}
 			rt1temp.Canonicalize();
-			CFLOBDDNodeHandle nt1 = *(t1.root->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle nt1 = t1.root->rootConnection.entryPointHandle;
 			ReductionMapHandle inducedReductionMapHandle;
 			FloatBoostReturnMapHandle inducedReturnMap;
 			rt1temp.InducedReductionAndReturnMap(inducedReductionMapHandle, inducedReturnMap);
@@ -450,7 +450,7 @@ namespace CFL_OBDD {
 					rt2temp.AddToEnd(rt2[i]);
 			}
 			rt2temp.Canonicalize();
-			CFLOBDDNodeHandle nt2 = *(t2.root->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle nt2 = t2.root->rootConnection.entryPointHandle;
 			rt2temp.InducedReductionAndReturnMap(inducedReductionMapHandle_2, inducedReturnMap_2);
 			//CFLOBDDNodeHandle::InitReduceCache();
 			CFLOBDDNodeHandle reduced_n_2 = nt2.Reduce(inducedReductionMapHandle_2, inducedReturnMap_2.Size());
@@ -514,7 +514,7 @@ namespace CFL_OBDD {
 					rttemp.AddToEnd(rt[i]);
 			}
 			rttemp.Canonicalize();
-			CFLOBDDNodeHandle nt = *(c.root->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle nt = c.root->rootConnection.entryPointHandle;
 			rttemp.InducedReductionAndReturnMap(inducedReductionMapHandle_2, inducedReturnMap_2);
 			//CFLOBDDNodeHandle::InitReduceCache();
 			CFLOBDDNodeHandle reduced_n_2 = nt.Reduce(inducedReductionMapHandle_2, inducedReturnMap_2.Size());

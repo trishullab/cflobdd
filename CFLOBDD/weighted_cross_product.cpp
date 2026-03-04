@@ -265,16 +265,19 @@ namespace CFL_OBDD {
     void WeightedPairProductMapHandle<T>::Canonicalize()
     {
         WeightedPairProductMapBody<T> *answerContents;
-        size_t hash = WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->GetHash(mapContents);
-        answerContents = WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->Lookup(mapContents, hash);
-        if (answerContents == NULL) {
-            WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->Insert(mapContents, hash);
-            mapContents->isCanonical = true;
-        }
-        else {
-            answerContents->IncrRef();
-            mapContents->DecrRef();
-            mapContents = answerContents;
+
+        if (!mapContents->isCanonical) {
+            size_t hash = WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->GetHash(mapContents);
+            answerContents = WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->Lookup(mapContents, hash);
+            if (answerContents == NULL) {
+                WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->Insert(mapContents, hash);
+                mapContents->isCanonical = true;
+            }
+            else {
+                answerContents->IncrRef();
+                mapContents->DecrRef();
+                mapContents = answerContents;
+            }
         }
     }
 

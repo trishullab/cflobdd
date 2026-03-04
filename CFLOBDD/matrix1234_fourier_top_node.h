@@ -36,6 +36,7 @@ namespace CFL_OBDD {
 	typedef ReturnMapBody<fourierSemiring> FourierReturnMapBody;
 	typedef ReturnMapHandle<fourierSemiring> FourierReturnMapHandle;
 }
+#include "cflobdd_node.h"
 #include "connectionT.h"
 namespace CFL_OBDD {
 	typedef ConnectionT<FourierReturnMapHandle> FourierConnection;

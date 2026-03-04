@@ -46,7 +46,7 @@ namespace CFL_OBDD {
 		{
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = VectorToMatrixInterleavedNode(memoTable, *(n->rootConnection.entryPointHandle));
+			CFLOBDDNodeHandle tempHandle = VectorToMatrixInterleavedNode(memoTable, n->rootConnection.entryPointHandle);
 			CFLOBDDTopNodeIntRefPtr v = new CFLOBDDTopNode(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -55,7 +55,7 @@ namespace CFL_OBDD {
 		{
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = MatrixToVectorNode(memoTable, *(n->rootConnection.entryPointHandle));
+			CFLOBDDNodeHandle tempHandle = MatrixToVectorNode(memoTable, n->rootConnection.entryPointHandle);
 			CFLOBDDTopNodeIntRefPtr v = new CFLOBDDTopNode(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -88,18 +88,18 @@ namespace CFL_OBDD {
 		CFLOBDDTopNodeIntRefPtr MkVectorWithVoc12Top(CFLOBDDTopNodeIntRefPtr n)
 		{
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
-			CFLOBDDNodeHandle tempHandle = MkVectorWithVoc12Node(memoTable, *(n->rootConnection.entryPointHandle));
+			CFLOBDDNodeHandle tempHandle = MkVectorWithVoc12Node(memoTable, n->rootConnection.entryPointHandle);
 			CFLOBDDTopNodeIntRefPtr v = new CFLOBDDTopNode(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
 
 		CFLOBDDTopNodeIntRefPtr VectorShiftVocs1To2Top(CFLOBDDTopNodeIntRefPtr n)
 		{
-			assert(n->rootConnection.entryPointHandle->handleContents->level >= 1);
+			assert(n->rootConnection.entryPointHandle.handleContents->level >= 1);
 
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = VectorShiftVocs1To2Node(memoTable, *(n->rootConnection.entryPointHandle));
+			CFLOBDDNodeHandle tempHandle = VectorShiftVocs1To2Node(memoTable, n->rootConnection.entryPointHandle);
 			CFLOBDDTopNodeIntRefPtr v = new CFLOBDDTopNode(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}

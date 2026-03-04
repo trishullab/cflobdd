@@ -235,7 +235,7 @@ namespace CFL_OBDD {
 		}
 		else
 		{
-			CFLOBDDNodeHandle tempHandle = VectorToMatrixInterleavedNode(memoTable, *(nhNode->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle tempHandle = VectorToMatrixInterleavedNode(memoTable, nhNode->AConnection.entryPointHandle);
 			CFLOBDDReturnMapHandle mA;
 			for (unsigned int i = 0; i < nhNode->AConnection.returnMapHandle.Size(); i++)
 				mA.AddToEnd(nhNode->AConnection.returnMapHandle[i]);
@@ -250,7 +250,7 @@ namespace CFL_OBDD {
 				for (unsigned int j = 0; j < nhNode->BConnection[i].returnMapHandle.Size(); j++)
 					mB.AddToEnd(nhNode->BConnection[i].returnMapHandle[j]);
 				mB.Canonicalize();
-				CFLOBDDNodeHandle tempB = VectorToMatrixInterleavedNode(memoTable, *(nhNode->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle tempB = VectorToMatrixInterleavedNode(memoTable, nhNode->BConnection[i].entryPointHandle);
 				n->BConnection[i] = Connection(tempB, mB);
 			}
 		}
@@ -283,19 +283,19 @@ namespace CFL_OBDD {
 
 		if (nh.handleContents->level == 1)
 		{
-			return *(nhNode->AConnection.entryPointHandle);
+			return nhNode->AConnection.entryPointHandle;
 			
 		}
 		else
 		{
-			CFLOBDDNodeHandle tempHandle = MatrixToVectorNode(memoTable, *(nhNode->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle tempHandle = MatrixToVectorNode(memoTable, nhNode->AConnection.entryPointHandle);
 			n->AConnection = Connection(tempHandle, nhNode->AConnection.returnMapHandle);
 			//assert(nhNode->numExits == tempHandle.handleContents->numExits);
 			n->numBConnections = tempHandle.handleContents->numExits;
 			n->BConnection = new Connection[n->numBConnections];
 			for (int i = 0; i < n->numBConnections; i++)
 			{
-				CFLOBDDNodeHandle tmpB = MatrixToVectorNode(memoTable, *(nhNode->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle tmpB = MatrixToVectorNode(memoTable, nhNode->BConnection[i].entryPointHandle);
 				n->BConnection[i] = Connection(tmpB, nhNode->BConnection[i].returnMapHandle);
 			}
 		}
@@ -380,12 +380,12 @@ namespace CFL_OBDD {
 		}
 		else
 		{
-			CFLOBDDNodeHandle temp = MkVectorWithVoc12Node(memoTable, *(nhNode->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle temp = MkVectorWithVoc12Node(memoTable, nhNode->AConnection.entryPointHandle);
 			n->AConnection = Connection(temp, nhNode->AConnection.returnMapHandle);
 			n->numBConnections = nhNode->numBConnections;
 			n->BConnection = new Connection[n->numBConnections];
 			for (int i = 0; i < n->numBConnections; i++){
-				CFLOBDDNodeHandle tmpB = MkVectorWithVoc12Node(memoTable, *(nhNode->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle tmpB = MkVectorWithVoc12Node(memoTable, nhNode->BConnection[i].entryPointHandle);
 				n->BConnection[i] = Connection(tmpB, nhNode->BConnection[i].returnMapHandle);
 			}
 		}
@@ -420,7 +420,7 @@ namespace CFL_OBDD {
 				return nhNode;
 
 			for (int i = 0; i < nhNode->numBConnections; i++)
-				assert(*(nhNode->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::NoDistinctionNode[0]);
+				assert(nhNode->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::NoDistinctionNode[0]);
 
 			CFLOBDDReturnMapHandle m0;
 			m0.AddToEnd(0);
@@ -434,12 +434,12 @@ namespace CFL_OBDD {
 		}
 		else
 		{
-			CFLOBDDNodeHandle tmpA = VectorShiftVocs1To2Node(memoTable, *(nhNode->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle tmpA = VectorShiftVocs1To2Node(memoTable, nhNode->AConnection.entryPointHandle);
 			n->AConnection = Connection(tmpA, nhNode->AConnection.returnMapHandle);
 			n->numBConnections = nhNode->numBConnections;
 			n->BConnection = new Connection[n->numBConnections];
 			for (unsigned int i = 0; i < n->numBConnections; i++) {
-				CFLOBDDNodeHandle temp = VectorShiftVocs1To2Node(memoTable, *(nhNode->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle temp = VectorShiftVocs1To2Node(memoTable, nhNode->BConnection[i].entryPointHandle);
 				n->BConnection[i] = Connection(temp, nhNode->BConnection[i].returnMapHandle);
 			}
 			n->numExits = nhNode->numExits;
@@ -542,8 +542,8 @@ namespace CFL_OBDD {
 				numBPaths.push_back(std::make_pair(-1 * std::numeric_limits<long double>::infinity(), i));
 			}
 			else{
-				numBPaths.push_back(std::make_pair(nhNode->BConnection[i].entryPointHandle->handleContents->numPathsToExit[BIndex] + 
-					nhNode->AConnection.entryPointHandle->handleContents->numPathsToExit[i], i));
+				numBPaths.push_back(std::make_pair(nhNode->BConnection[i].entryPointHandle.handleContents->numPathsToExit[BIndex] + 
+					nhNode->AConnection.entryPointHandle.handleContents->numPathsToExit[i], i));
 			}
 				//numBPaths.push_back(nhNode->BConnection[i].entryPointHandle.handleContents->numPathsToExit[BIndex]);
 		}
@@ -593,8 +593,8 @@ namespace CFL_OBDD {
 		assert(nhNode->BConnection[BConnectionIndex].returnMapHandle.LookupInv(index) != -1);
 		assert(BConnectionIndex < nhNode->numBConnections);
 		assert(nhNode->BConnection[BConnectionIndex].returnMapHandle.LookupInv(index) < nhNode->BConnection[BConnectionIndex].returnMapHandle.mapContents->mapArray.size());
-		std::pair<std::string,std::string> AString = SamplingNode(*(nhNode->AConnection.entryPointHandle), BConnectionIndex, VocTwo);
-		std::pair<std::string, std::string> BString = SamplingNode(*(nhNode->BConnection[BConnectionIndex].entryPointHandle), nhNode->BConnection[BConnectionIndex].returnMapHandle.LookupInv(index), VocTwo);
+		std::pair<std::string,std::string> AString = SamplingNode(nhNode->AConnection.entryPointHandle, BConnectionIndex, VocTwo);
+		std::pair<std::string, std::string> BString = SamplingNode(nhNode->BConnection[BConnectionIndex].entryPointHandle, nhNode->BConnection[BConnectionIndex].returnMapHandle.LookupInv(index), VocTwo);
 		if (nhNode->level == 1)
 			return std::make_pair(AString.first, BString.first);
 		if (nhNode->level == 2 && !VocTwo)

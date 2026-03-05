@@ -38,8 +38,24 @@
 #include "intpair.h"
 #include <complex>
 #include <cstdint>
+#include <typeinfo>
+#ifdef _WIN32
+#include <windows.h>
+#include <psapi.h>
+#endif
 //#include <boost/multiprecision/cpp_int.hpp>
 //#include "hash_functions.h"
+
+inline void printProcessMemoryUsage() {
+#ifdef _WIN32
+    PROCESS_MEMORY_COUNTERS pmc;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+        std::cout << "WorkingSetSize: " << (pmc.WorkingSetSize / (1024*1024)) << " MB"
+                  << ", PeakWorkingSetSize: " << (pmc.PeakWorkingSetSize / (1024*1024)) << " MB"
+                  << std::endl;
+    }
+#endif
+}
 
 template <typename T> class ReturnMapHandle;
 template <typename T> class ReturnMapBody;
@@ -169,16 +185,21 @@ void ReturnMapBody<T>::DecrRef()
 template <typename T>
 bool ReturnMapBody<T>::operator==(const ReturnMapBody<T> &o) const
 {
-	if (hashCheck != o.hashCheck) {
+	if (hashCheck != o.hashCheck)
+	{
 		return false;
-	} else if (mapArray.size() != o.mapArray.size()) {
+	}
+	else if (mapArray.size() != o.mapArray.size())
+	{
 		return false;
 	} else {
-		for (unsigned i = 0; i < mapArray.size(); i++) {
-			if (mapArray[i] != o.mapArray[i]) {
-				return false;
-			}
-		}
+	  for (unsigned i = 0; i < mapArray.size(); i++)
+	  {
+		  if (mapArray[i] != o.mapArray[i])
+		  {
+			  return false;
+		  }
+	  }
 	}
 	return true;
 }
@@ -327,10 +348,11 @@ unsigned int ReturnMapHandle<T>::Size()
 	try{
 		return mapContents->mapArray.size();
 	}
-	catch (std::exception e){
+	catch (const std::exception& e){
+		std::cout << "Exception type: " << typeid(e).name() << std::endl;
 		std::cout << e.what() << std::endl;
-		std::cout << "Size error" << std::endl;
-		throw e;
+		std::cout << "Size error in ReturnMapHandle<" << typeid(T).name() << ">" << std::endl;
+		throw;
 	}
 }
 
@@ -341,13 +363,13 @@ void ReturnMapHandle<T>::AddToEnd(T y)
 		assert(mapContents->refCount <= 1);
 		mapContents->mapArray.push_back(y);
 	}
-	catch (std::exception e){
+	catch (const std::exception& e){
+		std::cout << "Exception type: " << typeid(e).name() << std::endl;
 		std::cout << e.what() << std::endl;
-		//std::cout << mapContents->refCount << " " << y << " " << Size() << std::endl;
-		std::cout << mapContents->refCount << " " << Size() << std::endl;
-		std::cout << "ReturnMapHandle" << std::endl;
-		//std::cout << y << std::endl;
-		throw e;
+		std::cout << "AddToEnd in ReturnMapHandle<" << typeid(T).name() << ">" << std::endl;
+		std::cout << "refCount: " << mapContents->refCount << ", Size: " << Size() << std::endl;
+		printProcessMemoryUsage();
+		throw;
 	}
 }
 
@@ -403,10 +425,11 @@ void ReturnMapHandle<T>::Canonicalize()
 			}
 		}
 	}
-	catch (std::exception e){
+	catch (const std::exception& e){
+		std::cout << "Exception type: " << typeid(e).name() << std::endl;
 		std::cout << e.what() << std::endl;
-		std::cout << "Canonicalize" << std::endl;
-		throw e;
+		std::cout << "Canonicalize in ReturnMapHandle<" << typeid(T).name() << ">" << std::endl;
+		throw;
 	}
 }
 
@@ -456,10 +479,11 @@ void ReturnMapHandle<T>::InducedReductionAndReturnMap(ReductionMapHandle &induce
 		inducedReturnMapHandle.Canonicalize();
 		inducedReductionMapHandle.Canonicalize();
 	}
-	catch (std::exception e){
+	catch (const std::exception& e){
+		std::cout << "Exception type: " << typeid(e).name() << std::endl;
 		std::cout << e.what() << std::endl;
-		std::cout << "InducedReductionAndReturnMap" << std::endl;
-		throw e;
+		std::cout << "InducedReductionAndReturnMap in ReturnMapHandle<" << typeid(T).name() << ">" << std::endl;
+		throw;
 	}
 }
 

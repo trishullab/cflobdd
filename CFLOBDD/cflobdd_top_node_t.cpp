@@ -83,7 +83,7 @@ namespace CFL_OBDD{
     T CFLOBDDTopNodeT<T>::Evaluate(SH_OBDD::Assignment &assignment)
     {
         SH_OBDD::AssignmentIterator ai(assignment);
-        int i = rootConnection.entryPointHandle.handleContents->Traverse(ai);
+        int i = rootConnection.entryPointHandle->handleContents->Traverse(ai);
         T ans = rootConnection.returnMapHandle.Lookup(i);
         return ans;
     }
@@ -101,7 +101,7 @@ namespace CFL_OBDD{
         TraverseState ts;
         T ans;
 
-        S = new ConsCell<TraverseState>(TraverseState(rootConnection.entryPointHandle.handleContents, FirstVisit), S);
+        S = new ConsCell<TraverseState>(TraverseState(rootConnection.entryPointHandle->handleContents, FirstVisit), S);
         while (S != NULL) {
             ts = S->Item();
             S = S->Next();
@@ -119,12 +119,12 @@ namespace CFL_OBDD{
 
                 if (ts.visitState == FirstVisit) {
                     S = new ConsCell<TraverseState>(TraverseState(n, SecondVisit), S);
-                    S = new ConsCell<TraverseState>(TraverseState(n->AConnection.entryPointHandle.handleContents, FirstVisit), S);
+                    S = new ConsCell<TraverseState>(TraverseState(n->AConnection.entryPointHandle->handleContents, FirstVisit), S);
                 }
                 else if (ts.visitState == SecondVisit) {
                     int i = n->AConnection.returnMapHandle.Lookup(exitIndex);
                     S = new ConsCell<TraverseState>(TraverseState(n, ThirdVisit, i), S);
-                    S = new ConsCell<TraverseState>(TraverseState(n->BConnection[i].entryPointHandle.handleContents, FirstVisit), S);
+                    S = new ConsCell<TraverseState>(TraverseState(n->BConnection[i].entryPointHandle->handleContents, FirstVisit), S);
                 }
                 else {  // if (ts.visitState == ThirdVisit)
                     exitIndex = n->BConnection[ts.index].returnMapHandle.Lookup(exitIndex);
@@ -171,12 +171,12 @@ namespace CFL_OBDD{
 
                 if (ts.visitState == FirstVisit) {
                     S = new ConsCell<TraverseState>(TraverseState(n, SecondVisit), S);
-                    S = new ConsCell<TraverseState>(TraverseState(n->AConnection.entryPointHandle.handleContents, FirstVisit), S);
+                    S = new ConsCell<TraverseState>(TraverseState(n->AConnection.entryPointHandle->handleContents, FirstVisit), S);
                 }
                 else if (ts.visitState == SecondVisit) {
                     int i = n->AConnection.returnMapHandle.Lookup(exitIndex);
                     S = new ConsCell<TraverseState>(TraverseState(n, ThirdVisit, i), S);
-                    S = new ConsCell<TraverseState>(TraverseState(n->BConnection[i].entryPointHandle.handleContents, FirstVisit), S);
+                    S = new ConsCell<TraverseState>(TraverseState(n->BConnection[i].entryPointHandle->handleContents, FirstVisit), S);
                 }
                 else {  // if (ts.visitState == ThirdVisit)
                     exitIndex = n->BConnection[ts.index].returnMapHandle.Lookup(exitIndex);
@@ -198,7 +198,7 @@ namespace CFL_OBDD{
         ConsCell<TraverseState> *S = NULL;   // Traversal stack
         List<ConsCell<TraverseState> *> L;   // Snapshot stack
 
-        S = new ConsCell<TraverseState>(TraverseState(rootConnection.entryPointHandle.handleContents, FirstVisit), S);
+        S = new ConsCell<TraverseState>(TraverseState(rootConnection.entryPointHandle->handleContents, FirstVisit), S);
         PrintYieldAux(out, L, S);
         while (!L.IsEmpty()) {
             S = L.RemoveFirst();
@@ -238,7 +238,7 @@ namespace CFL_OBDD{
     template<typename T>
     bool CFLOBDDTopNodeT<T>::IsValid()
     {
-        return rootConnection.entryPointHandle.handleContents->IsValid();
+        return rootConnection.entryPointHandle->handleContents->IsValid();
     }
 
 
@@ -250,20 +250,20 @@ namespace CFL_OBDD{
     template <typename T>
     void CFLOBDDTopNodeT<T>::DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out /* = std::cout */)
     {
-        rootConnection.entryPointHandle.handleContents->DumpConnections(visited, out);
+        rootConnection.entryPointHandle->handleContents->DumpConnections(visited, out);
         out << rootConnection << std::endl;
     }
 
     template <typename T>
     void CFLOBDDTopNodeT<T>::CountNodes(Hashset<CFLOBDDNodeHandle> *visitedNodes, unsigned int &nodeCount)
     {
-        rootConnection.entryPointHandle.handleContents->CountNodes(visitedNodes, nodeCount);
+        rootConnection.entryPointHandle->handleContents->CountNodes(visitedNodes, nodeCount);
     }
 
     template <typename T>
     void CFLOBDDTopNodeT<T>::CountPaths(Hashset<CFLOBDDNodeHandle> *visitedNodes)
     {
-        rootConnection.entryPointHandle.handleContents->CountPaths(visitedNodes);
+        rootConnection.entryPointHandle->handleContents->CountPaths(visitedNodes);
     }
 
 
@@ -271,7 +271,7 @@ namespace CFL_OBDD{
     void CFLOBDDTopNodeT<T>::CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
         unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount, unsigned int& returnEdgesObjCount)
     {
-        rootConnection.entryPointHandle.handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount, returnEdgesCount);
+        rootConnection.entryPointHandle->handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount, returnEdgesCount);
         edgeCount += rootConnection.returnMapHandle.Size();
     }
 
@@ -307,7 +307,7 @@ namespace CFL_OBDD{
     template <typename T>
     std::ostream& CFLOBDDTopNodeT<T>::print(std::ostream & out) const
     {
-        out << rootConnection.entryPointHandle << std::endl;
+        out << *(rootConnection.entryPointHandle) << std::endl;
         out << rootConnection.returnMapHandle << std::endl;
         return out;
     }
@@ -329,8 +329,8 @@ namespace CFL_OBDD{
     {
         // Perform 2-way cross product of n1 and n2
         PairProductMapHandle MapHandle;
-        CFLOBDDNodeHandle n = PairProduct(n1->rootConnection.entryPointHandle,
-            n2->rootConnection.entryPointHandle,
+        CFLOBDDNodeHandle n = PairProduct(*(n1->rootConnection.entryPointHandle),
+            *(n2->rootConnection.entryPointHandle),
             MapHandle);
 
         // Create returnMapHandle from MapHandle: Fold the pairs in MapHandle by applying
@@ -393,8 +393,8 @@ namespace CFL_OBDD{
         PairProductMapHandle MapHandle;
         /*DisposeOfPairProductCache();
         InitPairProductCache();*/
-        CFLOBDDNodeHandle n = PairProduct(n1->rootConnection.entryPointHandle,
-                n2->rootConnection.entryPointHandle,
+        CFLOBDDNodeHandle n = PairProduct(*(n1->rootConnection.entryPointHandle),
+                *(n2->rootConnection.entryPointHandle),
                 MapHandle);
 
         // Create returnMapHandle from MapHandle: Fold the pairs in MapHandle by applying
@@ -477,9 +477,9 @@ namespace CFL_OBDD{
     {
         // Perform 3-way cross product of n1, n2, and n3
         TripleProductMapHandle MapHandle;
-        CFLOBDDNodeHandle n = TripleProduct(n1->rootConnection.entryPointHandle,
-            n2->rootConnection.entryPointHandle,
-            n3->rootConnection.entryPointHandle,
+        CFLOBDDNodeHandle n = TripleProduct(*(n1->rootConnection.entryPointHandle),
+            *(n2->rootConnection.entryPointHandle),
+            *(n3->rootConnection.entryPointHandle),
             MapHandle);
 
         // Create returnMapHandle from MapHandle: Fold the pairs in MapHandle by applying
@@ -571,7 +571,7 @@ namespace CFL_OBDD{
     //		eph = CFLOBDDNodeHandle::NoDistinctionNode[g->level];
     //	}
     //	else {
-    //		eph = g->rootConnection.entryPointHandle;
+    //		eph = *(g->rootConnection.entryPointHandle);
     //	}
     //
     //	ReturnMapHandle<T> rmh = c * g->rootConnection.returnMapHandle;
@@ -601,7 +601,7 @@ namespace CFL_OBDD{
     //		eph = CFLOBDDNodeHandle::NoDistinctionNode[g->level];
     //	}
     //	else {
-    //		eph = g->rootConnection.entryPointHandle;
+    //		eph = *(g->rootConnection.entryPointHandle);
     //	}
     //
     //	ReturnMapHandle<T> rmh = c * g->rootConnection.returnMapHandle;
@@ -631,7 +631,7 @@ namespace CFL_OBDD{
     //		eph = CFLOBDDNodeHandle::NoDistinctionNode[g->level];
     //	}
     //	else {
-    //		eph = g->rootConnection.entryPointHandle;
+    //		eph = *(g->rootConnection.entryPointHandle);
     //	}
     //
     //	ReturnMapHandle<T> rmh = c * g->rootConnection.returnMapHandle;
@@ -672,7 +672,7 @@ namespace CFL_OBDD{
             return(new CFLOBDDTopNodeT<T>(reduced_eph, inducedReturnMap));
         }
         else {
-            eph = g->rootConnection.entryPointHandle;
+            eph = *(g->rootConnection.entryPointHandle);
             ReturnMapHandle<T> rmh = c * g->rootConnection.returnMapHandle;
             return(new CFLOBDDTopNodeT<T>(eph, rmh));
         }
@@ -720,7 +720,7 @@ namespace CFL_OBDD{
             return(new CFLOBDDTopNodeT<T>(reduced_eph, inducedReturnMap));
         }
         else {
-            eph = f->rootConnection.entryPointHandle;
+            eph = *(f->rootConnection.entryPointHandle);
             ReturnMapHandle<T> rmh = f->rootConnection.returnMapHandle * c;
             return(new CFLOBDDTopNodeT<T>(eph, rmh));
         }

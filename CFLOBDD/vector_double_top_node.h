@@ -11,7 +11,6 @@ namespace CFL_OBDD {
 	typedef ReturnMapBody<double> DoubleReturnMapBody;
 	typedef ReturnMapHandle<double> DoubleReturnMapHandle;
 }
-#include "cflobdd_node.h"
 #include "connectionT.h"
 namespace CFL_OBDD {
 	typedef ConnectionT<CFLOBDDReturnMapHandle> Connection;

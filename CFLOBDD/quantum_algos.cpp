@@ -735,7 +735,7 @@ namespace CFL_OBDD {
 			//ans = Matrix1234FloatBoost::Demote12ToInterleaved(ans);
 			tmp = Matrix1234FloatBoost::PromoteInterleavedTo12(tmp);
 			ans = Matrix1234FloatBoost::KroneckerProduct(tmp, ans);
-			CFLOBDDInternalNode* x = (CFLOBDDInternalNode *)ans.root->rootConnection.entryPointHandle.handleContents;
+			CFLOBDDInternalNode* x = (CFLOBDDInternalNode *)ans.root->rootConnection.entryPointHandle->handleContents;
 			std::cout << "numBConnections: " << x->numBConnections << std::endl;
 
 			tmp = Matrix1234FloatBoost::PromoteInterleavedTo12(tmp);
@@ -1426,7 +1426,7 @@ namespace CFL_OBDD {
 			//std::cout << "Step j : " << nodeCount << " " << edgeCount << " " << (nodeCount + edgeCount) << std::endl;
 			ans.CountPaths();
 			std::cout << ans.root->rootConnection.returnMapHandle << std::endl;
-			std::cout << ans.root->rootConnection.entryPointHandle.handleContents->numPathsToExit[1] << std::endl;
+			std::cout << ans.root->rootConnection.entryPointHandle->handleContents->numPathsToExit[1] << std::endl;
 			// std::cout << ans << std::endl;
 			std::string ans_s = "";
 			int count = 0;
@@ -1667,11 +1667,11 @@ namespace CFL_OBDD {
 			std::cout << "loop start" << std::endl;
 
 			// CFLOBDD_COMPLEX_BIG CP = Matrix1234ComplexFloatBoost::MkCPGate(level+1, 2, 3, 0.5);
-			// // std::cout << CP.root->rootConnection.entryPointHandle << std::endl;
+			// // std::cout << *(CP.root->rootConnection.entryPointHandle) << std::endl;
 			// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(CP, std::cout);
 			// CP.CountPaths();
-			// std::cout << CP.root->rootConnection.entryPointHandle.handleContents->numPathsToExit[0] << std::endl;
-			// std::cout << CP.root->rootConnection.entryPointHandle.handleContents->numPathsToExit[1] << std::endl;
+			// std::cout << CP.root->rootConnection.entryPointHandle->handleContents->numPathsToExit[0] << std::endl;
+			// std::cout << CP.root->rootConnection.entryPointHandle->handleContents->numPathsToExit[1] << std::endl;
 
 			for (long long int i = n-1; i >= 0; i--)
 			{

@@ -74,7 +74,7 @@ namespace CFL_OBDD {
 		{
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = VectorToMatrixInterleavedNode(memoTable, n->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle tempHandle = VectorToMatrixInterleavedNode(memoTable, *(n->rootConnection.entryPointHandle));
 
 			ComplexFloatBoostReturnMapHandle rhandle;
 			for (unsigned int i = 0; i < n->rootConnection.returnMapHandle.Size(); i++)
@@ -88,7 +88,7 @@ namespace CFL_OBDD {
 		{
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = MatrixToVectorNode(memoTable, n->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle tempHandle = MatrixToVectorNode(memoTable, *(n->rootConnection.entryPointHandle));
 			CFLOBDDTopNodeComplexFloatBoostRefPtr v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -121,18 +121,18 @@ namespace CFL_OBDD {
 		CFLOBDDTopNodeComplexFloatBoostRefPtr MkVectorWithVoc12Top(CFLOBDDTopNodeComplexFloatBoostRefPtr n)
 		{
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
-			CFLOBDDNodeHandle tempHandle = MkVectorWithVoc12Node(memoTable, n->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle tempHandle = MkVectorWithVoc12Node(memoTable, *(n->rootConnection.entryPointHandle));
 			CFLOBDDTopNodeComplexFloatBoostRefPtr v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
 
 		CFLOBDDTopNodeComplexFloatBoostRefPtr VectorShiftVocs1To2Top(CFLOBDDTopNodeComplexFloatBoostRefPtr n)
 		{
-			assert(n->rootConnection.entryPointHandle.handleContents->level >= 1);
+			assert(n->rootConnection.entryPointHandle->handleContents->level >= 1);
 
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = VectorShiftVocs1To2Node(memoTable, n->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle tempHandle = VectorShiftVocs1To2Node(memoTable, *(n->rootConnection.entryPointHandle));
 			CFLOBDDTopNodeComplexFloatBoostRefPtr v = new CFLOBDDTopNodeComplexFloatBoost(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -152,7 +152,7 @@ namespace CFL_OBDD {
 			ReturnMapHandle<BIG_COMPLEX_FLOAT> inducedReturnMap;
 			rhandle.InducedReductionAndReturnMap(inducedReductionMapHandle, inducedReturnMap);
 			//     CFLOBDDNodeHandle::InitReduceCache();
-			CFLOBDDNodeHandle reduced_n = n->rootConnection.entryPointHandle.Reduce(inducedReductionMapHandle, inducedReturnMap.Size());
+			CFLOBDDNodeHandle reduced_n = n->rootConnection.entryPointHandle->Reduce(inducedReductionMapHandle, inducedReturnMap.Size());
 			return (new CFLOBDDTopNodeComplexFloatBoost(reduced_n, inducedReturnMap));
 		}
 
@@ -164,7 +164,7 @@ namespace CFL_OBDD {
 			{
 				if (n->rootConnection.returnMapHandle.Lookup(i) != 0){
 					long double v = n->rootConnection.returnMapHandle.Lookup(i).real().convert_to<long double>();
-					long double logNumPaths = n->rootConnection.entryPointHandle.handleContents->numPathsToExit[i];
+					long double logNumPaths = n->rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
 					prob += v * std::pow(2, logNumPaths);
 				}
 			}
@@ -179,7 +179,7 @@ namespace CFL_OBDD {
 					long double v = n->rootConnection.returnMapHandle.Lookup(i).real().convert_to<long double>();
 					if (abs(v - p) < std::numeric_limits<double>::epsilon())
 					{
-						long double logNumPaths = n->rootConnection.entryPointHandle.handleContents->numPathsToExit[i];
+						long double logNumPaths = n->rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
 						return std::pow(2, logNumPaths);
 					}
 				}
@@ -201,7 +201,7 @@ namespace CFL_OBDD {
 				else{
 					BIG_FLOAT v = n->rootConnection.returnMapHandle.Lookup(i).real().convert_to<BIG_FLOAT>();
 					BIG_FLOAT amplitude = mp::log2(v);
-					long double logNumPaths = n->rootConnection.entryPointHandle.handleContents->numPathsToExit[i];
+					long double logNumPaths = n->rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
 					values.push_back(std::make_pair(amplitude + logNumPaths, i));
 				}
 			}
@@ -233,7 +233,7 @@ namespace CFL_OBDD {
 					break;
 				}
 			}
-			std::pair<std::string, std::string> stringPair = SamplingNode(n->rootConnection.entryPointHandle, index, VocTwo);
+			std::pair<std::string, std::string> stringPair = SamplingNode(*(n->rootConnection.entryPointHandle), index, VocTwo);
 			return stringPair.first + stringPair.second;
 		}
 
@@ -243,14 +243,14 @@ namespace CFL_OBDD {
 			unsigned int index = 0;
 			if (n->rootConnection.returnMapHandle.Size() == 2)
 				index = 1;
-			std::pair<std::string, std::string> stringPair = SamplingNode(n->rootConnection.entryPointHandle, index);
+			std::pair<std::string, std::string> stringPair = SamplingNode(*(n->rootConnection.entryPointHandle), index);
 			return stringPair.first + stringPair.second;
 		}
 		//#endif
 
 		void VectorPrintColumnMajorTop(CFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out)
 		{
-			unsigned int level = n->rootConnection.entryPointHandle.handleContents->level;
+			unsigned int level = n->rootConnection.entryPointHandle->handleContents->level;
 			if (level >= 2 && level <= 4 || true) {
 				unsigned int indexBits = 1 << (level - 1);
 				unsigned int totalBits = 2 * indexBits;
@@ -292,7 +292,7 @@ namespace CFL_OBDD {
 
 		void VectorPrintColumnMajorInterleavedTop(CFLOBDDTopNodeComplexFloatBoostRefPtr n, std::ostream & out)
 		{
-			unsigned int level = n->rootConnection.entryPointHandle.handleContents->level;
+			unsigned int level = n->rootConnection.entryPointHandle->handleContents->level;
 			if (level >= 1 && level <= 4) {
 				unsigned int indexBits = 1 << (level - 1);
 				unsigned int totalBits = 2 * indexBits;

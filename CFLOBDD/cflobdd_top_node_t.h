@@ -37,8 +37,8 @@
 #include "hash.h"
 #include "hashset.h"
 #include "ref_ptr.h"
-#include "cflobdd_node.h"
 #include "connectionT.h"
+#include "cflobdd_node.h"
 #include "matmult_map.h"
 
 namespace CFL_OBDD {

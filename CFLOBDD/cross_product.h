@@ -90,7 +90,7 @@ class PairProductMapBody {//: public List<intpair> {
   bool operator==(const PairProductMapBody &p) const;
   intpair& operator[](unsigned int i);                       // Overloaded []
   unsigned int Size();
-  size_t hashCheck;
+  unsigned int hashCheck;
  public:
   bool isCanonical;              // Is this PairProductMapBody in *canonicalPairProductMapBodySet?
   static Hashset<PairProductMapBody> *canonicalPairProductMapBodySet;

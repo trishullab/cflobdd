@@ -960,6 +960,7 @@ CFLOBDD SubtractViaTerminalNegation(CFLOBDD A, CFLOBDD B, unsigned int k) {
 // -----------------------------------------------------------------------------
 CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k) {
     unsigned int m = MultRelation::numBits / 2;  // half of the number of bits in an input number
+    CFLOBDD dead = MkTrue(CFLOBDDMaxLevel);
 
     // Create constant CFLOBDDs for const_m = \x.2^m mod k and const_2m = \x.2^{2*m} mod k
     // for multiplying a CFLOBDD by these powers of 2 mod k
@@ -967,9 +968,7 @@ CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k) {
     for (unsigned int i = 0; i < m; i++) {
         shift_m = (shift_m * 2) % k;
     }
-    CFLOBDD const_m = MkConstantCFLOBDD(shift_m);
     unsigned int shift_2m = (shift_m * shift_m) % k;
-    CFLOBDD const_2m = MkConstantCFLOBDD(shift_2m);
     // std::cout << "shift_m = " << shift_m << "; shift_2m = " << shift_2m << std::endl;
 
     // Create representations of the sets of half-size numbers
@@ -989,76 +988,93 @@ CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k) {
 
 #ifdef DebugArguments
     // For debugging
+    CFLOBDD const_m_dbg = MkConstantCFLOBDD(shift_m);
     CFLOBDD X = NumsModK(k, A);        // Set of all first inputs
     CFLOBDD Y = NumsModK(k, B);        // Set of all second inputs
-    CFLOBDD X01 = CFLOBDD(ApplyAndReduce<int>(X1.root, const_m.root, MultiplyModKFunc));
+    CFLOBDD X01 = CFLOBDD(ApplyAndReduce<int>(X1.root, const_m_dbg.root, MultiplyModKFunc));
     X01 = CFLOBDD(ApplyAndReduce<int>(X01.root, X0.root, AddModKFunc));
-    CFLOBDD Y01 = CFLOBDD(ApplyAndReduce<int>(Y1.root, const_m.root, MultiplyModKFunc));
-    Y01 = CFLOBDD(ApplyAndReduce<int>(Y01.root, Y0.root, AddModKFunc)); 
+    CFLOBDD Y01 = CFLOBDD(ApplyAndReduce<int>(Y1.root, const_m_dbg.root, MultiplyModKFunc));
+    Y01 = CFLOBDD(ApplyAndReduce<int>(Y01.root, Y0.root, AddModKFunc));
     std::cout << "X == X01: " << (X == X01) << std::endl;
     std::cout << "Y == Y01: " << (Y == Y01) << std::endl;
 #endif
-    
+
     // Compute three products: Z0 = X0 * Y0; Z2 = X1 * Y1; Z1 = (X1 - X0)(Y0 - Y1)
     CFLOBDD X_diff = SubtractViaTerminalNegation(X1, X0, k);
     CFLOBDD Y_diff = SubtractViaTerminalNegation(Y0, Y1, k);  // Y0 - Y1 !
     currentModulus = k;
+#ifdef TRACK_PROCESS_MEMORY_USAGE
+    std::cout << "Before Z0: "; printProcessMemoryUsage();
+#endif
     CFLOBDD Z0 = CFLOBDD(ApplyAndReduce<int>(X0.root, Y0.root, MultiplyModKFunc));
+    X0 = dead;  Y0 = dead;  // X0, Y0 no longer needed
+#ifdef TRACK_PROCESS_MEMORY_USAGE
+    std::cout << "After  Z0: "; printProcessMemoryUsage();
+#endif
     CFLOBDD Z2 = CFLOBDD(ApplyAndReduce<int>(X1.root, Y1.root, MultiplyModKFunc));
+    X1 = dead;  Y1 = dead;  // X1, Y1 no longer needed
+#ifdef TRACK_PROCESS_MEMORY_USAGE
+    std::cout << "After  Z2: "; printProcessMemoryUsage();
+#endif
     CFLOBDD Z1 = CFLOBDD(ApplyAndReduce<int>(X_diff.root, Y_diff.root, MultiplyModKFunc));
+    X_diff = dead;  Y_diff = dead;  // X_diff, Y_diff no longer needed
+#ifdef TRACK_PROCESS_MEMORY_USAGE
+    std::cout << "After  Z1: "; printProcessMemoryUsage();
+#endif
 
-#ifdef DebugSizes
-    std::cout << "Sizes of X_diff, Y_diff, Z0, Z2, Z1" << std::endl;
-    PrintSize(X_diff);
-    PrintSize(Y_diff);
-    PrintSize(Z0);
-    PrintSize(Z2);
-    PrintSize(Z1);
-#endif
-    
-    // Middle term: Z1 + Z2 + Z0
-    CFLOBDD middle = CFLOBDD(ApplyAndReduce<int>(Z1.root, Z2.root, AddModKFunc));
-#ifdef DebugSizes
-    std::cout << "Size of middle = Z1 + Z2" << std::endl;
-    PrintSize(middle);
-#endif
-    middle = CFLOBDD(ApplyAndReduce<int>(middle.root, Z0.root, AddModKFunc));
-#ifdef DebugSizes
-    std::cout << "Size of middle = Z1 + Z2 + Z0" << std::endl;
-    PrintSize(middle);
-#endif
-   
-    // Set karatsuba = Z2*2^(2m) + middle*2^m + Z0
+    // Reformulated Karatsuba to minimize additions:
+    //   result = Z2*(2^(2m) + 2^m) + Z1*2^m + Z0*(2^m + 1)
+    // This uses 3 cheap constant-multiplies + 2 additions,
+    // instead of the original 2 constant-multiplies + 4 additions.
+    unsigned int coeff_Z2 = (shift_2m + shift_m) % k;
+    unsigned int coeff_Z1 = shift_m;
+    unsigned int coeff_Z0 = (shift_m + 1) % k;
+
+    // Scale each term by its combined coefficient (cheap: constant has 1 exit)
+    CFLOBDD const_cZ2 = MkConstantCFLOBDD(coeff_Z2);
     CFLOBDD term_Z2 = CFLOBDD(ApplyAndReduce<int>(
-        Z2.root, const_2m.root, MultiplyModKFunc
+        Z2.root, const_cZ2.root, MultiplyModKFunc
     ));
-#ifdef DebugSizes
-    std::cout << "Size of term_Z2 = Z2*2^(2m)" << std::endl;
-    PrintSize(term_Z2);
+    Z2 = dead;  const_cZ2 = dead;
+#ifdef TRACK_PROCESS_MEMORY_USAGE
+    std::cout << "After  term_Z2:      "; printProcessMemoryUsage();
 #endif
-    CFLOBDD term_middle = CFLOBDD(ApplyAndReduce<int>(
-        middle.root, const_m.root, MultiplyModKFunc
+
+    CFLOBDD const_cZ1 = MkConstantCFLOBDD(coeff_Z1);
+    CFLOBDD term_Z1 = CFLOBDD(ApplyAndReduce<int>(
+        Z1.root, const_cZ1.root, MultiplyModKFunc
     ));
-#ifdef DebugSizes
-    std::cout << "Size of term_middle = middle*2^m" << std::endl;
-    PrintSize(term_middle);
+    Z1 = dead;  const_cZ1 = dead;
+#ifdef TRACK_PROCESS_MEMORY_USAGE
+    std::cout << "After  term_Z1:      "; printProcessMemoryUsage();
 #endif
+
+    CFLOBDD const_cZ0 = MkConstantCFLOBDD(coeff_Z0);
+    CFLOBDD term_Z0 = CFLOBDD(ApplyAndReduce<int>(
+        Z0.root, const_cZ0.root, MultiplyModKFunc
+    ));
+    Z0 = dead;  const_cZ0 = dead;
+#ifdef TRACK_PROCESS_MEMORY_USAGE
+    std::cout << "After  term_Z0:      "; printProcessMemoryUsage();
+#endif
+
+    // Combine with 2 additions (down from 4)
     CFLOBDD karatsuba = CFLOBDD(ApplyAndReduce<int>(
-        term_Z2.root, term_middle.root, AddModKFunc
+        term_Z2.root, term_Z1.root, AddModKFunc
     ));
-#ifdef DebugSizes
-    std::cout << "Size of karatsuba = Z2*2^(2m) + middle*2^m" << std::endl;
-    PrintSize(karatsuba);
+    term_Z2 = dead;  term_Z1 = dead;
+#ifdef TRACK_PROCESS_MEMORY_USAGE
+    std::cout << "After  kara=tZ2+tZ1: "; printProcessMemoryUsage();
 #endif
     karatsuba = CFLOBDD(ApplyAndReduce<int>(
-        karatsuba.root, Z0.root, AddModKFunc
+        karatsuba.root, term_Z0.root, AddModKFunc
     ));
-#ifdef DebugSizes
-    std::cout << "Size of karatsuba = Z2*2^(2m) + middle*2^m + Z0" << std::endl;
-    PrintSize(karatsuba);
+    term_Z0 = dead;
+#ifdef TRACK_PROCESS_MEMORY_USAGE
+    std::cout << "After  kara+=tZ0:    "; printProcessMemoryUsage();
 #endif
 
-    return karatsuba;    
+    return karatsuba;
 }
 
 // -----------------------------------------------------------------------------

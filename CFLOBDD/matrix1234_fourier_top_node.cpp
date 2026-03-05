@@ -57,7 +57,7 @@ namespace CFL_OBDD {
 		//
 		void MatrixPrintRowMajorInterleavedTop(CFLOBDDTopNodeFourierRefPtr n, std::ostream & out)
 		{
-			unsigned int level = n->rootConnection.entryPointHandle.handleContents->level;
+			unsigned int level = n->rootConnection.entryPointHandle->handleContents->level;
 			if (level >= 1 && level <= 4) {
 				unsigned int indexBits = 1 << (level - 1);
 				unsigned int totalBits = 2 * indexBits;
@@ -115,7 +115,7 @@ namespace CFL_OBDD {
 		//
 		void MatrixPrintRowMajorTop(CFLOBDDTopNodeFourierRefPtr n, std::ostream & out)
 		{
-			unsigned int level = n->rootConnection.entryPointHandle.handleContents->level;
+			unsigned int level = n->rootConnection.entryPointHandle->handleContents->level;
 			if (level >= 2 && level <= 4) {
 				unsigned int indexBits = 1 << (level - 1);
 				unsigned int totalBits = 2 * indexBits;
@@ -214,11 +214,11 @@ namespace CFL_OBDD {
 		// Vocabulary shift in the representation of a matrix
 		CFLOBDDTopNodeFourierRefPtr MatrixShiftVocs13To24Top(CFLOBDDTopNodeFourierRefPtr n)
 		{
-			assert(n->rootConnection.entryPointHandle.handleContents->level >= 2);
+			assert(n->rootConnection.entryPointHandle->handleContents->level >= 2);
 
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = MatrixShiftVocs13To24Node(memoTable, n->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle tempHandle = MatrixShiftVocs13To24Node(memoTable, *(n->rootConnection.entryPointHandle));
 			CFLOBDDTopNodeFourierRefPtr v = new CFLOBDDTopNodeFourier(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -226,34 +226,34 @@ namespace CFL_OBDD {
 		// Vocabulary shift in the representation of a matrix
 		CFLOBDDTopNodeFourierRefPtr MatrixShiftVocs12To34Top(CFLOBDDTopNodeFourierRefPtr n)
 		{
-			assert(n->rootConnection.entryPointHandle.handleContents->level >= 2);
+			assert(n->rootConnection.entryPointHandle->handleContents->level >= 2);
 
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = MatrixShiftVocs12To34Node(memoTable,n->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle tempHandle = MatrixShiftVocs12To34Node(memoTable,*(n->rootConnection.entryPointHandle));
 			CFLOBDDTopNodeFourierRefPtr v = new CFLOBDDTopNodeFourier(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
 
 		CFLOBDDTopNodeFourierRefPtr PromoteInterleavedTo12Top(CFLOBDDTopNodeFourierRefPtr n)
 		{
-			assert(1 <= n->rootConnection.entryPointHandle.handleContents->level);
-			assert(n->rootConnection.entryPointHandle.handleContents->level < CFLOBDDTopNodeFourier::maxLevel);
+			assert(1 <= n->rootConnection.entryPointHandle->handleContents->level);
+			assert(n->rootConnection.entryPointHandle->handleContents->level < CFLOBDDTopNodeFourier::maxLevel);
 
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = PromoteInterleavedTo12Node(memoTable, n->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle tempHandle = PromoteInterleavedTo12Node(memoTable, *(n->rootConnection.entryPointHandle));
 			CFLOBDDTopNodeFourierRefPtr v = new CFLOBDDTopNodeFourier(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
 
 		CFLOBDDTopNodeFourierRefPtr Demote12ToInterleavedTop(CFLOBDDTopNodeFourierRefPtr n)
 		{
-			assert(n->rootConnection.entryPointHandle.handleContents->level >= 2);
+			assert(n->rootConnection.entryPointHandle->handleContents->level >= 2);
 
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = Demote12ToInterleavedNode(memoTable, n->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle tempHandle = Demote12ToInterleavedNode(memoTable, *(n->rootConnection.entryPointHandle));
 			CFLOBDDTopNodeFourierRefPtr v = new CFLOBDDTopNodeFourier(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -262,11 +262,11 @@ namespace CFL_OBDD {
 		// Vocabulary shift in the representation of a matrix
 		CFLOBDDTopNodeFourierRefPtr MatrixShiftVoc43Top(CFLOBDDTopNodeFourierRefPtr n)
 		{
-			assert(n->rootConnection.entryPointHandle.handleContents->level >= 2);
+			assert(n->rootConnection.entryPointHandle->handleContents->level >= 2);
 
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = MatrixShiftVoc43Node(memoTable, n->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle tempHandle = MatrixShiftVoc43Node(memoTable, *(n->rootConnection.entryPointHandle));
 			CFLOBDDTopNodeFourierRefPtr v = new CFLOBDDTopNodeFourier(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -274,11 +274,11 @@ namespace CFL_OBDD {
 		// Vocabulary shift in the representation of a matrix
 		CFLOBDDTopNodeFourierRefPtr MatrixShiftVoc42Top(CFLOBDDTopNodeFourierRefPtr n)
 		{
-			assert(n->rootConnection.entryPointHandle.handleContents->level >= 2);
+			assert(n->rootConnection.entryPointHandle->handleContents->level >= 2);
 
 			CFLOBDDNodeMemoTableRefPtr memoTable = new CFLOBDDNodeMemoTable;
 
-			CFLOBDDNodeHandle tempHandle = MatrixShiftVoc42Node(memoTable, n->rootConnection.entryPointHandle);
+			CFLOBDDNodeHandle tempHandle = MatrixShiftVoc42Node(memoTable, *(n->rootConnection.entryPointHandle));
 			CFLOBDDTopNodeFourierRefPtr v = new CFLOBDDTopNodeFourier(tempHandle, n->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -461,7 +461,7 @@ namespace CFL_OBDD {
 			CFLOBDDTopNodeFourierRefPtr v;
 			CFLOBDDNodeHandle tempHandle;
 
-			tempHandle = MatrixShiftToAConnectionNode(c->rootConnection.entryPointHandle);
+			tempHandle = MatrixShiftToAConnectionNode(*(c->rootConnection.entryPointHandle));
 			v = new CFLOBDDTopNodeFourier(tempHandle, c->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -471,7 +471,7 @@ namespace CFL_OBDD {
 			CFLOBDDTopNodeFourierRefPtr v;
 			CFLOBDDNodeHandle tempHandle;
 
-			tempHandle = MatrixShiftToBConnectionNode(c->rootConnection.entryPointHandle);
+			tempHandle = MatrixShiftToBConnectionNode(*(c->rootConnection.entryPointHandle));
 			v = new CFLOBDDTopNodeFourier(tempHandle, c->rootConnection.returnMapHandle);
 			return v;
 		}
@@ -481,7 +481,7 @@ namespace CFL_OBDD {
 			std::unordered_map<MatMultPair, CFLOBDDTopNodeMatMultMapRefPtr, MatMultPair::MatMultPairHash> hashMap;
 			//if (c1->level >= 5)
 				//clearMultMap();
-			CFLOBDDTopNodeMatMultMapRefPtr c = MatrixMultiplyV4Node(hashMap, c1->rootConnection.entryPointHandle, c2->rootConnection.entryPointHandle);
+			CFLOBDDTopNodeMatMultMapRefPtr c = MatrixMultiplyV4Node(hashMap, *(c1->rootConnection.entryPointHandle), *(c2->rootConnection.entryPointHandle));
 			FourierReturnMapHandle v;
 			std::unordered_map<fourierSemiring, unsigned int, fourierSemiring::fourierSemiring_hash> reductionMap;
 			ReductionMapHandle reductionMapHandle;
@@ -508,7 +508,7 @@ namespace CFL_OBDD {
 			v.Canonicalize();
 			reductionMapHandle.Canonicalize();
 			//std::cout << v << std::endl;
-			CFLOBDDNodeHandle tempHandle = c->rootConnection.entryPointHandle;
+			CFLOBDDNodeHandle tempHandle = *(c->rootConnection.entryPointHandle);
 			// Perform reduction on tempHandle, with respect to the common elements that rmh maps together
 			/*ReductionMapHandle inducedReductionMapHandle;
 			FloatBoostReturnMapHandle inducedReturnMap;
@@ -530,7 +530,7 @@ namespace CFL_OBDD {
 			c1_zero_index = c1->rootConnection.returnMapHandle.LookupInv(zero);
 			c2_zero_index = c2->rootConnection.returnMapHandle.LookupInv(zero);
 			CFLOBDDTopNodeMatMultMapRefPtr c = MatrixMultiplyV4WithInfoNode
-				(hashMap, c1->rootConnection.entryPointHandle, c2->rootConnection.entryPointHandle,
+				(hashMap, *(c1->rootConnection.entryPointHandle), *(c2->rootConnection.entryPointHandle),
 				c1_zero_index, c2_zero_index);
 			FourierReturnMapHandle v;
 			std::unordered_map<fourierSemiring, unsigned int, fourierSemiring::fourierSemiring_hash> reductionMap;
@@ -559,7 +559,7 @@ namespace CFL_OBDD {
 			v.Canonicalize();
 			reductionMapHandle.Canonicalize();
 			//std::cout << v << std::endl;
-			CFLOBDDNodeHandle tempHandle = c->rootConnection.entryPointHandle;
+			CFLOBDDNodeHandle tempHandle = *(c->rootConnection.entryPointHandle);
 			// Perform reduction on tempHandle, with respect to the common elements that rmh maps together
 			/*ReductionMapHandle inducedReductionMapHandle;
 			FloatBoostReturnMapHandle inducedReturnMap;

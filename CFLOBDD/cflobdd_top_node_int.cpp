@@ -48,12 +48,12 @@ using namespace CFL_OBDD;
 template <>
 bool CFLOBDDTopNodeT<int>::FindOneSatisfyingAssignment(SH_OBDD::Assignment * &assignment)
 {
-	for (unsigned int i = 0; i < rootConnection.entryPointHandle.handleContents->numExits; i++) {
+	for (unsigned int i = 0; i < rootConnection.entryPointHandle->handleContents->numExits; i++) {
 		unsigned int k = rootConnection.returnMapHandle.Lookup(i);
 		if (k == 1) {  // A satisfying assignment must exist
 			unsigned int size = 1 << CFLOBDDTopNode::maxLevel;
 			assignment = new SH_OBDD::Assignment(size);
-			rootConnection.entryPointHandle.handleContents->FillSatisfyingAssignment(i, *assignment, size);
+			rootConnection.entryPointHandle->handleContents->FillSatisfyingAssignment(i, *assignment, size);
 			return true;
 		}
 	}
@@ -72,11 +72,11 @@ unsigned int CFLOBDDTopNodeT<int>::NumSatisfyingAssignments()
 {
 	unsigned int ans = 0;
 
-	for (unsigned int i = 0; i < rootConnection.entryPointHandle.handleContents->numExits; i++) {
+	for (unsigned int i = 0; i < rootConnection.entryPointHandle->handleContents->numExits; i++) {
 		unsigned int k = rootConnection.returnMapHandle.Lookup(i);
 		//unsigned int k = 1;
 		if (k == 1) {
-			ans += (int)rootConnection.entryPointHandle.handleContents->numPathsToExit[i];
+			ans += (int)rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
 		}
 	}
 	return ans;
@@ -87,7 +87,7 @@ unsigned int CFLOBDDTopNodeT<int>::NumSatisfyingAssignments()
 template <>
 void CFLOBDDTopNodeT<int>::CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, unsigned int &nodeCount, unsigned int &edgeCount)
 {
-	rootConnection.entryPointHandle.handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount);
+	rootConnection.entryPointHandle->handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount);
 	if (visitedEdges->Lookup(rootConnection.returnMapHandle.mapContents) == NULL) {
 		visitedEdges->Insert(rootConnection.returnMapHandle.mapContents);
 		edgeCount += rootConnection.returnMapHandle.Size();
@@ -276,7 +276,7 @@ CFLOBDDTopNodeIntRefPtr MkStepDownTop(unsigned int i)
 
 CFLOBDDTopNodeIntRefPtr shiftAtoBTop(CFLOBDDTopNodeIntRefPtr f, const unsigned int levelAtWhichToShift)
 {
-	CFLOBDDNodeHandle tempHandle = shiftAtoB(f->rootConnection.entryPointHandle, levelAtWhichToShift);
+	CFLOBDDNodeHandle tempHandle = shiftAtoB(*(f->rootConnection.entryPointHandle), levelAtWhichToShift);
 	CFLOBDDTopNodeIntRefPtr v = new CFLOBDDTopNode(tempHandle, f->rootConnection.returnMapHandle);
 
 	return v;
@@ -284,28 +284,28 @@ CFLOBDDTopNodeIntRefPtr shiftAtoBTop(CFLOBDDTopNodeIntRefPtr f, const unsigned i
 
 CFLOBDDTopNodeIntRefPtr shiftBtoATop(CFLOBDDTopNodeIntRefPtr f, const unsigned int levelAtWhichToShift)
 {
-	CFLOBDDNodeHandle tempHandle = shiftBtoA(f->rootConnection.entryPointHandle, levelAtWhichToShift);
+	CFLOBDDNodeHandle tempHandle = shiftBtoA(*(f->rootConnection.entryPointHandle), levelAtWhichToShift);
 	CFLOBDDTopNodeIntRefPtr v = new CFLOBDDTopNode(tempHandle, f->rootConnection.returnMapHandle);
 	return v;
 }
 
 CFLOBDDTopNodeIntRefPtr shiftAtoBAtLevelOneTop(Hashset<CFLOBDDNode> *visitedNodes, unsigned int &totalVisitCount, unsigned int &redundantVisitCount, CFLOBDDTopNodeIntRefPtr f)
 {
-	CFLOBDDNodeHandle tempHandle = shiftAtoBAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, f->rootConnection.entryPointHandle);
+	CFLOBDDNodeHandle tempHandle = shiftAtoBAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, *(f->rootConnection.entryPointHandle));
 	CFLOBDDTopNodeIntRefPtr v = new CFLOBDDTopNode(tempHandle, f->rootConnection.returnMapHandle);
 	return v;
 }
 
 CFLOBDDTopNodeIntRefPtr shiftBtoAAtLevelOneTop(Hashset<CFLOBDDNode> *visitedNodes, unsigned int &totalVisitCount, unsigned int &redundantVisitCount, CFLOBDDTopNodeIntRefPtr f)
 {
-	CFLOBDDNodeHandle tempHandle = shiftBtoAAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, f->rootConnection.entryPointHandle);
+	CFLOBDDNodeHandle tempHandle = shiftBtoAAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, *(f->rootConnection.entryPointHandle));
 	CFLOBDDTopNodeIntRefPtr v = new CFLOBDDTopNode(tempHandle, f->rootConnection.returnMapHandle);
 	return v;
 }
 
 CFLOBDDTopNodeIntRefPtr duplicateAinBAtLevelOneTop(CFLOBDDTopNodeIntRefPtr f)
 {
-	CFLOBDDNodeHandle tempHandle = duplicateAinBAtLevelOne(f->rootConnection.entryPointHandle);
+	CFLOBDDNodeHandle tempHandle = duplicateAinBAtLevelOne(*(f->rootConnection.entryPointHandle));
 	CFLOBDDTopNodeIntRefPtr v = new CFLOBDDTopNode(tempHandle, f->rootConnection.returnMapHandle);
 	return v;
 }
@@ -318,7 +318,7 @@ CFLOBDDTopNodeIntRefPtr MkNot(CFLOBDDTopNodeIntRefPtr f)
 {
   CFLOBDDTopNodeIntRefPtr answer;
   CFLOBDDReturnMapHandle m = f->rootConnection.returnMapHandle.Complement();
-  answer = new CFLOBDDTopNode(f->rootConnection.entryPointHandle, m);
+  answer = new CFLOBDDTopNode(*(f->rootConnection.entryPointHandle), m);
   return answer;
 }
 
@@ -439,7 +439,7 @@ CFLOBDDTopNodeIntRefPtr MkNegMajority(CFLOBDDTopNodeIntRefPtr f, CFLOBDDTopNodeI
 CFLOBDDTopNodeIntRefPtr MkRestrict(CFLOBDDTopNodeIntRefPtr n, unsigned int i, bool val)
 {
 	CFLOBDDReturnMapHandle MapHandle;
-	CFLOBDDNodeHandle g = Restrict(n->rootConnection.entryPointHandle, i, val,
+	CFLOBDDNodeHandle g = Restrict(*(n->rootConnection.entryPointHandle), i, val,
 		MapHandle);
 
 	// Create returnMapHandle from MapHandle
@@ -505,7 +505,7 @@ double ComputeProbabilityTop(CFLOBDDTopNodeIntRefPtr f, std::vector<double>& var
   if (index == 0 && f->rootConnection.returnMapHandle.Size() == 1)
     return 0;
   path_probs[index] = 0;
-  return ComputeProbabilityNode(f->rootConnection.entryPointHandle, var_probs, path_probs, 0, pow(2, f->level)-1);
+  return ComputeProbabilityNode(*(f->rootConnection.entryPointHandle), var_probs, path_probs, 0, pow(2, f->level)-1);
 }
 
 std::vector<double> ComputeProbabilityOfListTop(CFLOBDDTopNodeIntRefPtr f, std::vector<std::vector<double>>& var_probs)
@@ -525,7 +525,7 @@ std::vector<double> ComputeProbabilityOfListTop(CFLOBDDTopNodeIntRefPtr f, std::
     return std::vector<double>(var_probs[0].size(), 0);
   for (int i = 0; i < var_probs[0].size(); i++)
     path_probs[index][i] = 0;
-  return ComputeProbabilityOfListNode(f->rootConnection.entryPointHandle, var_probs, path_probs, 0, pow(2, f->level)-1);
+  return ComputeProbabilityOfListNode(*(f->rootConnection.entryPointHandle), var_probs, path_probs, 0, pow(2, f->level)-1);
 }
 
 // std::vector<double> ComputeEntropyOfListTop(CFLOBDDTopNodeIntRefPtr f, std::vector<std::vector<double>>& var_probs)
@@ -548,7 +548,7 @@ std::vector<double> ComputeProbabilityOfListTop(CFLOBDDTopNodeIntRefPtr f, std::
 //     path_probs[index][i] = 0;
 //     entropy[index][i] = 0;
 //   }
-//   return ComputeEntropyOfListNode(f->rootConnection.entryPointHandle, var_probs, path_probs, entropy, 0, pow(2, f->level)-1);
+//   return ComputeEntropyOfListNode(*(f->rootConnection.entryPointHandle), var_probs, path_probs, entropy, 0, pow(2, f->level)-1);
 // }
 
 

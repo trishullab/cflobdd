@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <cstdarg>
 #include <unordered_set>
+#include <unordered_map>
 #include <map>
 //#include <mpirxx.h>
 
@@ -52,6 +53,18 @@
 #include "hashset.h"
 
 using namespace CFL_OBDD;
+
+namespace {
+  // Hash and equality for Connection pointer pairs, used by InsertBConnection hash map
+  struct ConnectionPtrPairHash {
+    size_t operator()(const std::pair<void*, void*>& p) const {
+      auto h1 = reinterpret_cast<std::uintptr_t>(p.first);
+      auto h2 = reinterpret_cast<std::uintptr_t>(p.second);
+      // Combine with a large prime
+      return h1 * 2654435761ULL ^ h2;
+    }
+  };
+}
 
 //********************************************************************
 // CFLOBDDNodeHandle
@@ -121,14 +134,14 @@ void CFLOBDDNodeHandle::InitNoDistinctionTable()
       //CFLOBDDReturnMapHandle m1, m2;
 
       n = new CFLOBDDInternalNode(i);
-      n->AConnection.entryPointHandle = &(NoDistinctionNode[i-1]);
+      n->AConnection.entryPointHandle = NoDistinctionNode[i-1];
       //m1.AddToEnd(0);
       //m1.Canonicalize();
 	  n->AConnection.returnMapHandle = commonly_used_return_maps[0];//m1
   
       n->numBConnections = 1;
       n->BConnection = new Connection[1];
-      n->BConnection[0].entryPointHandle = &(NoDistinctionNode[i-1]);
+      n->BConnection[0].entryPointHandle = NoDistinctionNode[i-1];
       //m2.AddToEnd(0);
       //m2.Canonicalize();
 	  n->BConnection[0].returnMapHandle = commonly_used_return_maps[0];//m2
@@ -706,11 +719,11 @@ double ComputeProbabilityNode(CFLOBDDNodeHandle g, std::vector<double>& var_prob
 			for (int j = 0; j < gh->BConnection[i].returnMapHandle.Size(); j++){
 				BConnection_PathProbs.push_back(path_probs[gh->BConnection[i].returnMapHandle[j]]);
 			}
-			double prob = ComputeProbabilityNode(*(gh->BConnection[i].entryPointHandle), var_probs, BConnection_PathProbs, (end - start)/2 + 1 + start, end);
+			double prob = ComputeProbabilityNode(gh->BConnection[i].entryPointHandle, var_probs, BConnection_PathProbs, (end - start)/2 + 1 + start, end);
 			AConnection_PathProbs.push_back(prob);
 		}
 
-		double AProb = ComputeProbabilityNode(*(gh->AConnection.entryPointHandle), var_probs, AConnection_PathProbs, start, (end - start)/2 + start);
+		double AProb = ComputeProbabilityNode(gh->AConnection.entryPointHandle, var_probs, AConnection_PathProbs, start, (end - start)/2 + start);
 		return AProb;
 	}
 }
@@ -741,11 +754,11 @@ std::vector<double> ComputeProbabilityOfListNode(CFLOBDDNodeHandle g, std::vecto
 			for (int j = 0; j < gh->BConnection[i].returnMapHandle.Size(); j++){
 				BConnection_PathProbs.push_back(path_probs[gh->BConnection[i].returnMapHandle[j]]);
 			}
-			std::vector<double> prob = ComputeProbabilityOfListNode(*(gh->BConnection[i].entryPointHandle), var_probs, BConnection_PathProbs, (end - start)/2 + 1 + start, end);
+			std::vector<double> prob = ComputeProbabilityOfListNode(gh->BConnection[i].entryPointHandle, var_probs, BConnection_PathProbs, (end - start)/2 + 1 + start, end);
 			AConnection_PathProbs.push_back(prob);
 		}
 
-		std::vector<double> AProb = ComputeProbabilityOfListNode(*(gh->AConnection.entryPointHandle), var_probs, AConnection_PathProbs, start, (end - start)/2 + start);
+		std::vector<double> AProb = ComputeProbabilityOfListNode(gh->AConnection.entryPointHandle, var_probs, AConnection_PathProbs, start, (end - start)/2 + start);
 		return AProb;
 	}
 }
@@ -785,11 +798,11 @@ std::vector<double> ComputeProbabilityOfListNode(CFLOBDDNodeHandle g, std::vecto
 // 			for (int j = 0; j < gh->BConnection[i].returnMapHandle.Size(); j++){
 // 				BConnection_PathProbs.push_back(path_probs[gh->BConnection[i].returnMapHandle[j]]);
 // 			}
-// 			std::vector<double> prob = ComputeProbabilityOfListNode(*(gh->BConnection[i].entryPointHandle), var_probs, BConnection_PathProbs, (end - start)/2 + 1 + start, end);
+// 			std::vector<double> prob = ComputeProbabilityOfListNode(gh->BConnection[i].entryPointHandle, var_probs, BConnection_PathProbs, (end - start)/2 + 1 + start, end);
 // 			AConnection_PathProbs.push_back(prob);
 // 		}
 
-// 		std::vector<double> AProb = ComputeProbabilityOfListNode(*(gh->AConnection.entryPointHandle), var_probs, AConnection_PathProbs, start, (end - start)/2 + start);
+// 		std::vector<double> AProb = ComputeProbabilityOfListNode(gh->AConnection.entryPointHandle, var_probs, AConnection_PathProbs, start, (end - start)/2 + start);
 // 		return AProb;
 // 	}
 // }
@@ -923,12 +936,12 @@ namespace CFL_OBDD {
 
 		// Check that each BConnection of *g is a NoDistinctionNode[level-1]
 		for (unsigned int j = 0; j < g->numBConnections; j++) {
-			if (*(g->BConnection[j].entryPointHandle) != CFLOBDDNodeHandle::NoDistinctionNode[g->level - 1]) {
+			if (g->BConnection[j].entryPointHandle != CFLOBDDNodeHandle::NoDistinctionNode[g->level - 1]) {
 				std::cout << "g->level = " << g->level << std::endl;
-				std::cout << *(g->BConnection[j].entryPointHandle) << std::endl << std::endl;
+				std::cout << g->BConnection[j].entryPointHandle << std::endl << std::endl;
 				std::cout << CFLOBDDNodeHandle::NoDistinctionNode[g->level - 1] << std::endl << std::endl;
 			}
-			assert(*(g->BConnection[j].entryPointHandle) == CFLOBDDNodeHandle::NoDistinctionNode[g->level - 1]);
+			assert(g->BConnection[j].entryPointHandle == CFLOBDDNodeHandle::NoDistinctionNode[g->level - 1]);
 		}
 
 		// Create an appropriate CFLOBDDInternalNode
@@ -947,7 +960,7 @@ namespace CFL_OBDD {
 		}
 		else {    // Haven't reached the correct level yet, so . . .
 			// Apply shiftAtoB recursively to g's AConnection
-			CFLOBDDNodeHandle temp = shiftAtoB(*(g->AConnection.entryPointHandle), levelAtWhichToShift);
+			CFLOBDDNodeHandle temp = shiftAtoB(g->AConnection.entryPointHandle, levelAtWhichToShift);
 			n->AConnection = Connection(temp, g->AConnection.returnMapHandle);
 
 			// Copy over all BConnections from g
@@ -993,12 +1006,12 @@ namespace CFL_OBDD {
 		}
 
 		// Check that the AConnection of *g is a NoDistinctionNode[level-1]
-		if (*(g->AConnection.entryPointHandle) != CFLOBDDNodeHandle::NoDistinctionNode[g->level - 1]) {
+		if (g->AConnection.entryPointHandle != CFLOBDDNodeHandle::NoDistinctionNode[g->level - 1]) {
 			std::cout << "g->level = " << g->level << std::endl;
-			std::cout << *(g->AConnection.entryPointHandle) << std::endl << std::endl;
+			std::cout << g->AConnection.entryPointHandle << std::endl << std::endl;
 			std::cout << CFLOBDDNodeHandle::NoDistinctionNode[g->level - 1] << std::endl << std::endl;
 		}
-		assert(*(g->AConnection.entryPointHandle) == CFLOBDDNodeHandle::NoDistinctionNode[g->level - 1]);
+		assert(g->AConnection.entryPointHandle == CFLOBDDNodeHandle::NoDistinctionNode[g->level - 1]);
 
 		// Create an appropriate CFLOBDDInternalNode
 		CFLOBDDInternalNode *n = new CFLOBDDInternalNode(g->level);
@@ -1021,7 +1034,7 @@ namespace CFL_OBDD {
 			n->AConnection = g->AConnection;
 
 			// Apply shiftBtoA recursively to g's BConnection[0]
-			CFLOBDDNodeHandle temp = shiftBtoA(*(g->BConnection[0].entryPointHandle), levelAtWhichToShift);
+			CFLOBDDNodeHandle temp = shiftBtoA(g->BConnection[0].entryPointHandle, levelAtWhichToShift);
 			n->numBConnections = g->numBConnections;
 			n->BConnection = new Connection[n->numBConnections];
 			n->BConnection[0] = Connection(temp, g->BConnection[0].returnMapHandle);
@@ -1071,12 +1084,12 @@ namespace CFL_OBDD {
 		if (g->level == 1) {  // Base case: the current level is consistent with shift
 			// Check that each BConnection of *g is a NoDistinctionNode[0]
 			for (unsigned int j = 0; j < g->numBConnections; j++) {
-				if (*(g->BConnection[j].entryPointHandle) != CFLOBDDNodeHandle::NoDistinctionNode[0]) {
+				if (g->BConnection[j].entryPointHandle != CFLOBDDNodeHandle::NoDistinctionNode[0]) {
 					std::cout << "g->level = " << g->level << std::endl;
-					std::cout << *(g->BConnection[j].entryPointHandle) << std::endl << std::endl;
+					std::cout << g->BConnection[j].entryPointHandle << std::endl << std::endl;
 					std::cout << CFLOBDDNodeHandle::NoDistinctionNode[0] << std::endl << std::endl;
 				}
-				assert(*(g->BConnection[j].entryPointHandle) == CFLOBDDNodeHandle::NoDistinctionNode[0]);
+				assert(g->BConnection[j].entryPointHandle == CFLOBDDNodeHandle::NoDistinctionNode[0]);
 			}
 
 			// Put a NoDistinctionNode[0] in the AConnection
@@ -1092,14 +1105,14 @@ namespace CFL_OBDD {
 		}
 		else {    // Haven't reached the correct level yet, so apply shiftAtoBAtLevelOne recursively
 			// Create the AConnection
-			CFLOBDDNodeHandle temp1 = shiftAtoBAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, *(g->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle temp1 = shiftAtoBAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, g->AConnection.entryPointHandle);
 			n->AConnection = Connection(temp1, g->AConnection.returnMapHandle);
 
 			// Create the BConnections
 			n->numBConnections = g->numBConnections;
 			n->BConnection = new Connection[n->numBConnections];
 			for (unsigned int j = 0; j < g->numBConnections; j++) {
-				CFLOBDDNodeHandle temp2 = shiftAtoBAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, *(g->BConnection[j].entryPointHandle));
+				CFLOBDDNodeHandle temp2 = shiftAtoBAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, g->BConnection[j].entryPointHandle);
 				n->BConnection[j] = Connection(temp2, g->BConnection[j].returnMapHandle);
 			}
 		}
@@ -1145,12 +1158,12 @@ namespace CFL_OBDD {
 		CFLOBDDInternalNode *n = new CFLOBDDInternalNode(g->level);
 		if (g->level == 1) {  // Base case: the current level is consistent with shift
 			// Check that the AConnection of *g is a NoDistinctionNode[0]
-			if (*(g->AConnection.entryPointHandle) != CFLOBDDNodeHandle::NoDistinctionNode[0]) {
+			if (g->AConnection.entryPointHandle != CFLOBDDNodeHandle::NoDistinctionNode[0]) {
 				std::cout << "g->level = " << g->level << std::endl;
-				std::cout << *(g->AConnection.entryPointHandle) << std::endl << std::endl;
+				std::cout << g->AConnection.entryPointHandle << std::endl << std::endl;
 				std::cout << CFLOBDDNodeHandle::NoDistinctionNode[0] << std::endl << std::endl;
 			}
-			assert(*(g->AConnection.entryPointHandle) == CFLOBDDNodeHandle::NoDistinctionNode[0]);
+			assert(g->AConnection.entryPointHandle == CFLOBDDNodeHandle::NoDistinctionNode[0]);
 
 			// Transfer g's BConnection[0] to the AConnection
 			n->AConnection = g->BConnection[0];
@@ -1167,14 +1180,14 @@ namespace CFL_OBDD {
 		}
 		else {    // Haven't reached the correct level yet, so apply shiftBtoAAtLevelOne recursively
 			// Create the AConnection
-			CFLOBDDNodeHandle temp1 = shiftBtoAAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, *(g->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle temp1 = shiftBtoAAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, g->AConnection.entryPointHandle);
 			n->AConnection = Connection(temp1, g->AConnection.returnMapHandle);
 
 			// Create the BConnections
 			n->numBConnections = g->numBConnections;
 			n->BConnection = new Connection[n->numBConnections];
 			for (unsigned int j = 0; j < g->numBConnections; j++) {
-				CFLOBDDNodeHandle temp2 = shiftBtoAAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, *(g->BConnection[j].entryPointHandle));
+				CFLOBDDNodeHandle temp2 = shiftBtoAAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, g->BConnection[j].entryPointHandle);
 				n->BConnection[j] = Connection(temp2, g->BConnection[j].returnMapHandle);
 			}
 		}
@@ -1213,12 +1226,12 @@ namespace CFL_OBDD {
 		if (g->level == 1) {  // Base case: the level at which to create a node with duplicated AConnection
 			// Check that each BConnection of *g is a NoDistinctionNode[0]
 			for (unsigned int j = 0; j < g->numBConnections; j++) {
-				if (*(g->BConnection[j].entryPointHandle) != CFLOBDDNodeHandle::NoDistinctionNode[0]) {
+				if (g->BConnection[j].entryPointHandle != CFLOBDDNodeHandle::NoDistinctionNode[0]) {
 					std::cout << "g->level = " << g->level << std::endl;
 					std::cout << g->BConnection[j].entryPointHandle << std::endl << std::endl;
 					std::cout << CFLOBDDNodeHandle::NoDistinctionNode[0] << std::endl << std::endl;
 				}
-				assert(*(g->BConnection[j].entryPointHandle) == CFLOBDDNodeHandle::NoDistinctionNode[0]);
+				assert(g->BConnection[j].entryPointHandle == CFLOBDDNodeHandle::NoDistinctionNode[0]);
 			}
 
 			// Transfer g's AConnection to n
@@ -1228,12 +1241,12 @@ namespace CFL_OBDD {
 			n->numBConnections = g->numBConnections;
 			n->BConnection = new Connection[n->numBConnections];
 			if (g->numBConnections == 1) {
-				assert(*(g->AConnection.entryPointHandle) == CFLOBDDNodeHandle::NoDistinctionNode[0]);
+				assert(g->AConnection.entryPointHandle == CFLOBDDNodeHandle::NoDistinctionNode[0]);
 				// Transfer g's BConnection[0] to n; n should be equal to CFLOBDDNodeHandle::NoDistinctionNode[1]
 				n->BConnection[0] = g->AConnection;
 			}
 			else {
-				assert(g->numBConnections == 2 && *(g->AConnection.entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle);
+				assert(g->numBConnections == 2 && g->AConnection.entryPointHandle == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle);
 				// Put a NoDistinctionNode[0] in BConnection[0]
 				CFLOBDDReturnMapHandle m0 = MakeIdentityReturnMap(1);
 				n->BConnection[0] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[0], m0);
@@ -1246,14 +1259,14 @@ namespace CFL_OBDD {
 		}
 		else {    // Haven't reached the correct level yet, so apply duplicateAinBAtLevelOne recursively
 			// Create the AConnection
-			CFLOBDDNodeHandle temp1 = duplicateAinBAtLevelOne(*(g->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle temp1 = duplicateAinBAtLevelOne(g->AConnection.entryPointHandle);
 			n->AConnection = Connection(temp1, g->AConnection.returnMapHandle);
 
 			// Create the BConnections
 			n->numBConnections = g->numBConnections;
 			n->BConnection = new Connection[n->numBConnections];
 			for (unsigned int j = 0; j < g->numBConnections; j++) {
-				CFLOBDDNodeHandle temp2 = duplicateAinBAtLevelOne(*(g->BConnection[j].entryPointHandle));
+				CFLOBDDNodeHandle temp2 = duplicateAinBAtLevelOne(g->BConnection[j].entryPointHandle);
 				n->BConnection[j] = Connection(temp2, g->BConnection[j].returnMapHandle);
 			}
 		}
@@ -1382,14 +1395,14 @@ std::ostream& CFLOBDDInternalNode::print(std::ostream & out) const
         out << "  ";
     }
     out << "A: " << std::endl;
-    if (CFLOBDDNodeHandle::NoDistinctionNode[level - 1] == *AConnection.entryPointHandle) {
+    if (CFLOBDDNodeHandle::NoDistinctionNode[level - 1] == AConnection.entryPointHandle) {
 	    for (i = level-1; i < maxLevel; i++) {  // Indentation
 		    out << "  ";
 	    }
 	    out << "NoDistinctionNode[" << level - 1 << "]" << std::endl;
     }
     else {
-	    out << *AConnection.entryPointHandle;
+	    out << AConnection.entryPointHandle;
     }
     for (i = level; i < maxLevel; i++) {  // Indentation
         out << "  ";
@@ -1401,14 +1414,14 @@ std::ostream& CFLOBDDInternalNode::print(std::ostream & out) const
 	        out << "  ";
         }
         out << "B[" << j << "]:" << std::endl;
-	    if (CFLOBDDNodeHandle::NoDistinctionNode[level - 1] == *BConnection[j].entryPointHandle) {
+	    if (CFLOBDDNodeHandle::NoDistinctionNode[level - 1] == BConnection[j].entryPointHandle) {
 		    for (i = level - 1; i < maxLevel; i++) {  // Indentation
 			    out << "  ";
 		    }
 			out << "NoDistinctionNode[" << level - 1 << "]" << std::endl;
         }
         else {
-		    out << *BConnection[j].entryPointHandle;
+		    out << BConnection[j].entryPointHandle;
 	    }
 		for (i = level; i < maxLevel; i++) {  // Indentation
             out << "  ";
@@ -1423,10 +1436,10 @@ bool CFLOBDDInternalNode::IsValid()
 	if (isValid)
 		return true;
 	
-	if (!(level == (AConnection.entryPointHandle->handleContents->level + 1)))
+	if (!(level == (AConnection.entryPointHandle.handleContents->level + 1)))
 		return false;
 	for (unsigned int i = 0; i < numBConnections; i++){
-		if (!(level == (BConnection[i].entryPointHandle->handleContents->level + 1)))
+		if (!(level == (BConnection[i].entryPointHandle.handleContents->level + 1)))
 			return false;
 	}
 
@@ -1452,10 +1465,10 @@ bool CFLOBDDInternalNode::IsValid()
 	if (numExits != tempNumExits)
 		return false;
 
-	if (!AConnection.entryPointHandle->handleContents->IsValid())
+	if (!AConnection.entryPointHandle.handleContents->IsValid())
 		return false;
 	for (unsigned int i = 0; i < numBConnections; i++){
-		if (!BConnection[i].entryPointHandle->handleContents->IsValid())
+		if (!BConnection[i].entryPointHandle.handleContents->IsValid())
 			return false;
 	}
 	
@@ -1465,12 +1478,12 @@ bool CFLOBDDInternalNode::IsValid()
 
 void CFLOBDDInternalNode::FillSatisfyingAssignment(unsigned int exitNumber, SH_OBDD::Assignment &assignment, unsigned int &index)
 {
-  for (unsigned int i = 0; i < AConnection.entryPointHandle->handleContents->numExits; i++) {
-    for (unsigned int j = 0; j < BConnection[i].entryPointHandle->handleContents->numExits; j++) {
+  for (unsigned int i = 0; i < AConnection.entryPointHandle.handleContents->numExits; i++) {
+    for (unsigned int j = 0; j < BConnection[i].entryPointHandle.handleContents->numExits; j++) {
       unsigned int k = BConnection[i].returnMapHandle.Lookup(j);
       if (k == exitNumber) { // Found it
-        BConnection[i].entryPointHandle->handleContents->FillSatisfyingAssignment(j, assignment, index);
-        AConnection.entryPointHandle->handleContents->FillSatisfyingAssignment(i, assignment, index);
+        BConnection[i].entryPointHandle.handleContents->FillSatisfyingAssignment(j, assignment, index);
+        AConnection.entryPointHandle.handleContents->FillSatisfyingAssignment(i, assignment, index);
         return;
       }
     }
@@ -1492,9 +1505,9 @@ int CFLOBDDInternalNode::Traverse(SH_OBDD::AssignmentIterator &ai)
   }
   else {
     int i, j, k;
-    i = AConnection.entryPointHandle->handleContents->Traverse(ai);
+    i = AConnection.entryPointHandle.handleContents->Traverse(ai);
     j = AConnection.returnMapHandle.Lookup(i);
-    k = BConnection[j].entryPointHandle->handleContents->Traverse(ai);
+    k = BConnection[j].entryPointHandle.handleContents->Traverse(ai);
     ans = BConnection[j].returnMapHandle.Lookup(k);
   }
   return ans;
@@ -1568,15 +1581,26 @@ CFLOBDDNodeHandle CFLOBDDInternalNode::Reduce(ReductionMapHandle& redMapHandle, 
   // Reduce the B connections
      n->BConnection = new Connection[numBConnections];   // May create shorter version later
      n->numBConnections = 0;
+     std::unordered_map<std::pair<void*,void*>, unsigned int, ConnectionPtrPairHash> bConnectionMap;
      for (unsigned int i = 0; i < numBConnections; i++) {
         ReductionMapHandle inducedReductionMapHandle(redMapHandle.Size());
         CFLOBDDReturnMapHandle inducedReturnMap;
 		inducedReturnMap = ComposeAndReduce(BConnection[i].returnMapHandle, redMapHandle, inducedReductionMapHandle);
         //CFLOBDDReturnMapHandle reducedReturnMap = BConnection[i].returnMapHandle.Compose(redMapHandle);
         //reducedReturnMap.InducedReductionAndReturnMap(inducedReductionMapHandle, inducedReturnMap);
-        CFLOBDDNodeHandle temp = BConnection[i].entryPointHandle->Reduce(inducedReductionMapHandle, inducedReturnMap.Size(), forceReduce);
+        CFLOBDDNodeHandle temp = BConnection[i].entryPointHandle.Reduce(inducedReductionMapHandle, inducedReturnMap.Size(), forceReduce);
         Connection c(temp, inducedReturnMap);
-        unsigned int position = n->InsertBConnection(n->numBConnections, c);
+        auto key = std::make_pair((void*)c.entryPointHandle.handleContents, (void*)c.returnMapHandle.mapContents);
+        auto it = bConnectionMap.find(key);
+        unsigned int position;
+        if (it != bConnectionMap.end()) {
+          position = it->second;
+        } else {
+          position = n->numBConnections;
+          n->BConnection[position] = c;
+          n->numBConnections++;
+          bConnectionMap[key] = position;
+        }
         AReductionMapHandle.AddToEnd(position);
      }
      AReductionMapHandle.Canonicalize();
@@ -1595,7 +1619,7 @@ CFLOBDDNodeHandle CFLOBDDInternalNode::Reduce(ReductionMapHandle& redMapHandle, 
 	 inducedAReturnMap = ComposeAndReduce(AConnection.returnMapHandle, AReductionMapHandle, inducedAReductionMapHandle);
      //CFLOBDDReturnMapHandle reducedAReturnMap = AConnection.returnMapHandle.Compose(AReductionMapHandle);
      //reducedAReturnMap.InducedReductionAndReturnMap(inducedAReductionMapHandle, inducedAReturnMap);
-     CFLOBDDNodeHandle tempHandle = AConnection.entryPointHandle->Reduce(inducedAReductionMapHandle, inducedAReturnMap.Size(), forceReduce);
+     CFLOBDDNodeHandle tempHandle = AConnection.entryPointHandle.Reduce(inducedAReductionMapHandle, inducedAReturnMap.Size(), forceReduce);
      n->AConnection = Connection(tempHandle, inducedAReturnMap);
 
   // Other material that has to be filled in
@@ -1620,9 +1644,9 @@ void CFLOBDDInternalNode::DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, s
 	if (visited->Lookup(new CFLOBDDNodeHandle(this)) == NULL) {
     unsigned int i;
 	visited->Insert(new CFLOBDDNodeHandle(this));
-    AConnection.entryPointHandle->handleContents->DumpConnections(visited, out);
+    AConnection.entryPointHandle.handleContents->DumpConnections(visited, out);
     for (i = 0; i < numBConnections; i++) {
-      BConnection[i].entryPointHandle->handleContents->DumpConnections(visited, out);
+      BConnection[i].entryPointHandle.handleContents->DumpConnections(visited, out);
     }
     out << AConnection << std::endl;
     for (i = 0; i < numBConnections; i++) {
@@ -1638,9 +1662,9 @@ void CFLOBDDInternalNode::CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visited
     visitedNodes->Insert(new CFLOBDDNodeHandle(this));
     nodeCount++;
     edgeCount += 2* (1 + numBConnections);
-	/*AConnection.entryPointHandle->handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount);
+	/*AConnection.entryPointHandle.handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount);
 	for (unsigned int i = 0; i < numBConnections; i++){
-		BConnection[i].entryPointHandle->handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount);
+		BConnection[i].entryPointHandle.handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount);
 		edgeCount += BConnection[i].returnMapHandle.Size();
 	}*/
     if (visitedEdges->Lookup(AConnection.returnMapHandle.mapContents) == NULL) {
@@ -1648,9 +1672,9 @@ void CFLOBDDInternalNode::CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visited
       edgeCount += AConnection.returnMapHandle.Size();
 	  returnEdgesCount += AConnection.returnMapHandle.Size();
     }
-    AConnection.entryPointHandle->handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount, returnEdgesCount);
+    AConnection.entryPointHandle.handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount, returnEdgesCount);
     for (unsigned int i = 0; i < numBConnections; i++) {
-      BConnection[i].entryPointHandle->handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount, returnEdgesCount);
+      BConnection[i].entryPointHandle.handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount, returnEdgesCount);
       if (visitedEdges->Lookup(BConnection[i].returnMapHandle.mapContents) == NULL) {
         visitedEdges->Insert(BConnection[i].returnMapHandle.mapContents);
         edgeCount += BConnection[i].returnMapHandle.Size();
@@ -1666,9 +1690,9 @@ void CFLOBDDInternalNode::CountNodes(Hashset<CFLOBDDNodeHandle> *visitedNodes, u
 	if (visitedNodes->Lookup(new CFLOBDDNodeHandle(this)) == NULL) {
 		visitedNodes->Insert(new CFLOBDDNodeHandle(this));
 		nodeCount++;
-		AConnection.entryPointHandle->handleContents->CountNodes(visitedNodes, nodeCount);
+		AConnection.entryPointHandle.handleContents->CountNodes(visitedNodes, nodeCount);
 		for (unsigned int i = 0; i < numBConnections; i++) {
-			BConnection[i].entryPointHandle->handleContents->CountNodes(visitedNodes, nodeCount);
+			BConnection[i].entryPointHandle.handleContents->CountNodes(visitedNodes, nodeCount);
 		}
 	}
 }
@@ -1678,9 +1702,9 @@ void CFLOBDDInternalNode::CountPaths(Hashset<CFLOBDDNodeHandle> *visitedNodes)
 	CFLOBDDNodeHandle* handle = new CFLOBDDNodeHandle(this);
 	if (visitedNodes->Lookup(handle) == NULL) {
 		visitedNodes->Insert(handle);
-		AConnection.entryPointHandle->handleContents->CountPaths(visitedNodes);
+		AConnection.entryPointHandle.handleContents->CountPaths(visitedNodes);
 		for (unsigned int i = 0; i < numBConnections; i++) {
-			BConnection[i].entryPointHandle->handleContents->CountPaths(visitedNodes);
+			BConnection[i].entryPointHandle.handleContents->CountPaths(visitedNodes);
 		}
 		InstallPathCounts();
 	}
@@ -1786,21 +1810,21 @@ void CFLOBDDInternalNode::InstallPathCounts()
 
   std::map<unsigned int, std::vector<long double>> storingNumPathsToExit;
 
-  for (unsigned int i = 0; i < AConnection.entryPointHandle->handleContents->numExits; i++) {
-    for (unsigned int j = 0; j < BConnection[i].entryPointHandle->handleContents->numExits; j++) {
+  for (unsigned int i = 0; i < AConnection.entryPointHandle.handleContents->numExits; i++) {
+    for (unsigned int j = 0; j < BConnection[i].entryPointHandle.handleContents->numExits; j++) {
       unsigned int k = BConnection[i].returnMapHandle.Lookup(j);
 	  //std::cout << "Install Paths --------------------------------------\n";
 	  //for (unsigned int l = 0; l < BConnection[i].returnMapHandle.mapContents->mapArray.size(); l++)
 		 // std::cout << l << " " << BConnection[i].returnMapHandle.mapContents->mapArray[l] << " " << BConnection[i].returnMapHandle.Lookup(l) << std::endl;
 	  //std::cout << i << " " << j << " " << k << std::endl;
 	  ///*std::cout << (AConnection) << std::endl;
-	  //std::cout << (AConnection.entryPointHandle->handleContents == NULL) << std::endl;
-	  //std::cout << AConnection.entryPointHandle->handleContents->numPathsToExit[i] << std::endl;
+	  //std::cout << (AConnection.entryPointHandle.handleContents == NULL) << std::endl;
+	  //std::cout << AConnection.entryPointHandle.handleContents->numPathsToExit[i] << std::endl;
 	  //std::cout << (BConnection[i]) << std::endl;
-	  //std::cout << (BConnection[i].entryPointHandle->handleContents == NULL) << std::endl;
-	  //std::cout << BConnection[i].entryPointHandle->handleContents->numPathsToExit[j] << std::endl;*/
+	  //std::cout << (BConnection[i].entryPointHandle.handleContents == NULL) << std::endl;
+	  //std::cout << BConnection[i].entryPointHandle.handleContents->numPathsToExit[j] << std::endl;*/
 	  //std::cout << "-------------------------------------------------------\n";
-	  long double numPathsValue = AConnection.entryPointHandle->handleContents->numPathsToExit[i] + BConnection[i].entryPointHandle->handleContents->numPathsToExit[j];
+	  long double numPathsValue = AConnection.entryPointHandle.handleContents->numPathsToExit[i] + BConnection[i].entryPointHandle.handleContents->numPathsToExit[j];
 	  if (storingNumPathsToExit.find(k) == storingNumPathsToExit.end()){
 		  std::vector<long double> logOfPaths;
 		  logOfPaths.push_back(numPathsValue);
@@ -2082,8 +2106,8 @@ CFLOBDDNodeHandle Restrict(CFLOBDDInternalNode *g, unsigned int i, bool val,
   int b;
 
   if (i < (unsigned int)(1 << (g->level-1))) { // i falls in AConnection range
-  	CFLOBDDNodeHandle aHandle = Restrict(*(g->AConnection.entryPointHandle), i, val, AMap);
-    n->AConnection.entryPointHandle = &aHandle;
+  	CFLOBDDNodeHandle aHandle = Restrict(g->AConnection.entryPointHandle, i, val, AMap);
+    n->AConnection.entryPointHandle = aHandle;
     n->AConnection.returnMapHandle = MakeIdentityReturnMap(AMap.Size());
     j = 0;
     curExit = 0;
@@ -2122,9 +2146,10 @@ CFLOBDDNodeHandle Restrict(CFLOBDDInternalNode *g, unsigned int i, bool val,
     curExit = 0;
     n->BConnection = new Connection[g->numBConnections];   // May create shorter version later
     n->numBConnections = 0;
+    std::unordered_map<std::pair<void*,void*>, unsigned int, ConnectionPtrPairHash> bConnectionMap;
     for (j = 0; j < g->numBConnections; j++) { // Perform a Restrict for each middle vertex
       CFLOBDDReturnMapHandle BMap;
-      CFLOBDDNodeHandle m = Restrict(*(g->BConnection[j].entryPointHandle), i-(unsigned int)(1 << (g->level-1)), val, BMap);
+      CFLOBDDNodeHandle m = Restrict(g->BConnection[j].entryPointHandle, i-(unsigned int)(1 << (g->level-1)), val, BMap);
 
       // Fill in inducedReturnMapHandleB and add new items (as appropriate) to MapHandle
       CFLOBDDReturnMapHandle inducedReturnMapHandleB;
@@ -2145,7 +2170,17 @@ CFLOBDDNodeHandle Restrict(CFLOBDDInternalNode *g, unsigned int i, bool val,
       }
       inducedReturnMapHandleB.Canonicalize();
       Connection candidate(m, inducedReturnMapHandleB);
-      unsigned int position = n->InsertBConnection(n->numBConnections, candidate);
+      auto key = std::make_pair((void*)candidate.entryPointHandle.handleContents, (void*)candidate.returnMapHandle.mapContents);
+      auto it = bConnectionMap.find(key);
+      unsigned int position;
+      if (it != bConnectionMap.end()) {
+        position = it->second;
+      } else {
+        position = n->numBConnections;
+        n->BConnection[position] = candidate;
+        n->numBConnections++;
+        bConnectionMap[key] = position;
+      }
       AReductionMapHandle.AddToEnd(position);
     }
     AReductionMapHandle.Canonicalize();
@@ -2164,7 +2199,7 @@ CFLOBDDNodeHandle Restrict(CFLOBDDInternalNode *g, unsigned int i, bool val,
        CFLOBDDReturnMapHandle inducedAReturnMap;
        CFLOBDDReturnMapHandle reducedAReturnMap = g->AConnection.returnMapHandle.Compose(AReductionMapHandle);
        reducedAReturnMap.InducedReductionAndReturnMap(inducedAReductionMapHandle, inducedAReturnMap);
-       CFLOBDDNodeHandle tempHandle = g->AConnection.entryPointHandle->Reduce(inducedAReductionMapHandle, inducedAReturnMap.Size());
+       CFLOBDDNodeHandle tempHandle = g->AConnection.entryPointHandle.Reduce(inducedAReductionMapHandle, inducedAReturnMap.Size());
        n->AConnection = Connection(tempHandle, inducedAReturnMap);
   }
 

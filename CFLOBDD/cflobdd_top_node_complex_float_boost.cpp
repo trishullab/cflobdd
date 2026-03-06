@@ -23,12 +23,12 @@ using namespace CFL_OBDD;
 template <>
 bool CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::FindOneSatisfyingAssignment(SH_OBDD::Assignment * &assignment)
 {
-	for (unsigned int i = 0; i < rootConnection.entryPointHandle->handleContents->numExits; i++) {
+	for (unsigned int i = 0; i < rootConnection.entryPointHandle.handleContents->numExits; i++) {
 		unsigned int k = rootConnection.returnMapHandle.Lookup(i).convert_to<unsigned int>();
 		if (k == 1) {  // A satisfying assignment must exist
 			unsigned int size = 1 << CFLOBDDTopNodeT::maxLevel;
 			assignment = new SH_OBDD::Assignment(size);
-			rootConnection.entryPointHandle->handleContents->FillSatisfyingAssignment(i, *assignment, size);
+			rootConnection.entryPointHandle.handleContents->FillSatisfyingAssignment(i, *assignment, size);
 			return true;
 		}
 	}
@@ -47,11 +47,11 @@ unsigned int CFLOBDDTopNodeT<BIG_COMPLEX_FLOAT>::NumSatisfyingAssignments()
 {
 	unsigned int ans = 0;
 
-	for (unsigned int i = 0; i < rootConnection.entryPointHandle->handleContents->numExits; i++) {
+	for (unsigned int i = 0; i < rootConnection.entryPointHandle.handleContents->numExits; i++) {
 		unsigned int k = rootConnection.returnMapHandle.Lookup(i).convert_to<unsigned int>();
 		//unsigned int k = 1;
 		if (k == 1) {
-			ans += (int)rootConnection.entryPointHandle->handleContents->numPathsToExit[i];
+			ans += (int)rootConnection.entryPointHandle.handleContents->numPathsToExit[i];
 		}
 	}
 	return ans;
@@ -246,7 +246,7 @@ namespace CFL_OBDD {
 
 // 	CFLOBDDTopNodeFloatBoostRefPtr shiftAtoBTop(CFLOBDDTopNodeFloatBoostRefPtr f, const unsigned int levelAtWhichToShift)
 // 	{
-// 		CFLOBDDNodeHandle tempHandle = shiftAtoB(*(f->rootConnection.entryPointHandle), levelAtWhichToShift);
+// 		CFLOBDDNodeHandle tempHandle = shiftAtoB(f->rootConnection.entryPointHandle, levelAtWhichToShift);
 // 		CFLOBDDTopNodeFloatBoostRefPtr v = new CFLOBDDFloatBoostTopNode(tempHandle, f->rootConnection.returnMapHandle);
 
 // 		return v;
@@ -254,28 +254,28 @@ namespace CFL_OBDD {
 
 // 	CFLOBDDTopNodeFloatBoostRefPtr shiftBtoATop(CFLOBDDTopNodeFloatBoostRefPtr f, const unsigned int levelAtWhichToShift)
 // 	{
-// 		CFLOBDDNodeHandle tempHandle = shiftBtoA(*(f->rootConnection.entryPointHandle), levelAtWhichToShift);
+// 		CFLOBDDNodeHandle tempHandle = shiftBtoA(f->rootConnection.entryPointHandle, levelAtWhichToShift);
 // 		CFLOBDDTopNodeFloatBoostRefPtr v = new CFLOBDDFloatBoostTopNode(tempHandle, f->rootConnection.returnMapHandle);
 // 		return v;
 // 	}
 
 // 	CFLOBDDTopNodeFloatBoostRefPtr shiftAtoBAtLevelOneTop(Hashset<CFLOBDDNode> *visitedNodes, unsigned int &totalVisitCount, unsigned int &redundantVisitCount, CFLOBDDTopNodeFloatBoostRefPtr f)
 // 	{
-// 		CFLOBDDNodeHandle tempHandle = shiftAtoBAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, *(f->rootConnection.entryPointHandle));
+// 		CFLOBDDNodeHandle tempHandle = shiftAtoBAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, f->rootConnection.entryPointHandle);
 // 		CFLOBDDTopNodeFloatBoostRefPtr v = new CFLOBDDFloatBoostTopNode(tempHandle, f->rootConnection.returnMapHandle);
 // 		return v;
 // 	}
 
 // 	CFLOBDDTopNodeFloatBoostRefPtr shiftBtoAAtLevelOneTop(Hashset<CFLOBDDNode> *visitedNodes, unsigned int &totalVisitCount, unsigned int &redundantVisitCount, CFLOBDDTopNodeFloatBoostRefPtr f)
 // 	{
-// 		CFLOBDDNodeHandle tempHandle = shiftBtoAAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, *(f->rootConnection.entryPointHandle));
+// 		CFLOBDDNodeHandle tempHandle = shiftBtoAAtLevelOne(visitedNodes, totalVisitCount, redundantVisitCount, f->rootConnection.entryPointHandle);
 // 		CFLOBDDTopNodeFloatBoostRefPtr v = new CFLOBDDFloatBoostTopNode(tempHandle, f->rootConnection.returnMapHandle);
 // 		return v;
 // 	}
 
 // 	CFLOBDDTopNodeFloatBoostRefPtr duplicateAinBAtLevelOneTop(CFLOBDDTopNodeFloatBoostRefPtr f)
 // 	{
-// 		CFLOBDDNodeHandle tempHandle = duplicateAinBAtLevelOne(*(f->rootConnection.entryPointHandle));
+// 		CFLOBDDNodeHandle tempHandle = duplicateAinBAtLevelOne(f->rootConnection.entryPointHandle);
 // 		CFLOBDDTopNodeFloatBoostRefPtr v = new CFLOBDDFloatBoostTopNode(tempHandle, f->rootConnection.returnMapHandle);
 // 		return v;
 // 	}
@@ -288,7 +288,7 @@ namespace CFL_OBDD {
 // 	{
 // 		CFLOBDDTopNodeFloatBoostRefPtr answer;
 // 		FloatBoostReturnMapHandle m = f->rootConnection.returnMapHandle.Complement();
-// 		answer = new CFLOBDDFloatBoostTopNode(*(f->rootConnection.entryPointHandle), m);
+// 		answer = new CFLOBDDFloatBoostTopNode(f->rootConnection.entryPointHandle, m);
 // 		return answer;
 // 	}
 
@@ -409,7 +409,7 @@ namespace CFL_OBDD {
 // 	CFLOBDDTopNodeFloatBoostRefPtr MkRestrict(CFLOBDDTopNodeFloatBoostRefPtr n, unsigned int i, bool val)
 // 	{
 // 		CFLOBDDReturnMapHandle MapHandle;
-// 		CFLOBDDNodeHandle g = Restrict(*(n->rootConnection.entryPointHandle), i, val,
+// 		CFLOBDDNodeHandle g = Restrict(n->rootConnection.entryPointHandle, i, val,
 // 			MapHandle);
 
 // 		// Create returnMapHandle from MapHandle

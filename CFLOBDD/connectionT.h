@@ -30,11 +30,11 @@
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
-#include "cflobdd_node.h"
+// Note: connectionT.h must be included after CFLOBDDNodeHandle is fully defined.
+// cflobdd_node.h arranges this by including connectionT.h after its class definition.
 
 namespace CFL_OBDD {
 
-	
 	class CFLOBDDNode;
 	class CFLOBDDInternalNode;   //  : public CFLOBDDNode
 	class CFLOBDDLeafNode;       //  : public CFLOBDDNode
@@ -60,7 +60,7 @@ namespace CFL_OBDD {
 		bool operator!= (const ConnectionT & C);        // Overloaded !=
 		bool operator== (const ConnectionT & C);        // Overloaded ==
 
-		CFLOBDDNodeHandle* entryPointHandle = NULL;
+		CFLOBDDNodeHandle entryPointHandle;
 		Handle returnMapHandle;
 
 	public:

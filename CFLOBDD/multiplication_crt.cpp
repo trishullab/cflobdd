@@ -1022,6 +1022,12 @@ CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k) {
     std::cout << "After  Z1: "; printProcessMemoryUsage();
 #endif
 
+    // Clear function caches: entries from the multiplications above are
+    // unlikely to be reused by the additions below, and they hold references
+    // to intermediate cross-product nodes that prevent memory reclamation.
+    ClearPairProductCache();
+    CFLOBDDNodeHandle::ClearReduceCache();
+
     // Reformulated Karatsuba to minimize additions:
     //   result = Z2*(2^(2m) + 2^m) + Z1*2^m + Z0*(2^m + 1)
     // This uses 3 cheap constant-multiplies + 2 additions,
@@ -1059,6 +1065,10 @@ CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k) {
 #endif
 
     // Combine with 2 additions (down from 4)
+    // Clear caches before each addition: prior entries hold references to
+    // intermediate nodes and are unlikely to be reused by different operands.
+    ClearPairProductCache();
+    CFLOBDDNodeHandle::ClearReduceCache();
     CFLOBDD karatsuba = CFLOBDD(ApplyAndReduce<int>(
         term_Z2.root, term_Z1.root, AddModKFunc
     ));
@@ -1066,6 +1076,8 @@ CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k) {
 #ifdef TRACK_PROCESS_MEMORY_USAGE
     std::cout << "After  kara=tZ2+tZ1: "; printProcessMemoryUsage();
 #endif
+    ClearPairProductCache();
+    CFLOBDDNodeHandle::ClearReduceCache();
     karatsuba = CFLOBDD(ApplyAndReduce<int>(
         karatsuba.root, term_Z0.root, AddModKFunc
     ));

@@ -254,16 +254,20 @@ int PairProductMapHandle::Lookup(intpair& p)
 void PairProductMapHandle::Canonicalize()
 {
   PairProductMapBody *answerContents;
-  size_t hash = PairProductMapBody::canonicalPairProductMapBodySet->GetHash(mapContents);
-  answerContents = PairProductMapBody::canonicalPairProductMapBodySet->Lookup(mapContents, hash);
-  if (answerContents == NULL) {
-    PairProductMapBody::canonicalPairProductMapBodySet->Insert(mapContents, hash);
-    mapContents->isCanonical = true;
-  }
-  else {
-    answerContents->IncrRef();
-    mapContents->DecrRef();
-    mapContents = answerContents;
+
+  if (!mapContents->isCanonical) {
+    mapContents->setHashCheck();
+    size_t hash = PairProductMapBody::canonicalPairProductMapBodySet->GetHash(mapContents);
+    answerContents = PairProductMapBody::canonicalPairProductMapBodySet->Lookup(mapContents, hash);
+    if (answerContents == NULL) {
+      PairProductMapBody::canonicalPairProductMapBodySet->Insert(mapContents, hash);
+      mapContents->isCanonical = true;
+    }
+    else {
+      answerContents->IncrRef();
+      mapContents->DecrRef();
+      mapContents = answerContents;
+    }
   }
 }
 
@@ -435,8 +439,8 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
     
       // Perform the cross product of the AConnections
       CFLOBDDNodeHandle aHandle =
-                 PairProduct(*(n1->AConnection.entryPointHandle),
-                             *(n2->AConnection.entryPointHandle),
+                 PairProduct(n1->AConnection.entryPointHandle,
+                             n2->AConnection.entryPointHandle,
                              AMap
                             );
       // Fill in n->AConnection.returnMapHandle
@@ -486,8 +490,8 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 			   b1 = AMap[Aiterator].First();
 			   b2 = AMap[Aiterator].Second();
 			   CFLOBDDNodeHandle bHandle =
-					 PairProduct(*(n1->BConnection[b1].entryPointHandle),
-								 *(n2->BConnection[b2].entryPointHandle),
+					 PairProduct(n1->BConnection[b1].entryPointHandle,
+								 n2->BConnection[b2].entryPointHandle,
 								 BMap
 								);
 			   CFLOBDDReturnMapHandle bReturnHandle;
@@ -532,8 +536,8 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 			   b1 = AMap[Aiterator].First();
 			   b2 = AMap[Aiterator].Second();
 			   CFLOBDDNodeHandle bHandle =
-					 PairProduct(*(n1->BConnection[b1].entryPointHandle),
-								 *(n2->BConnection[b2].entryPointHandle),
+					 PairProduct(n1->BConnection[b1].entryPointHandle,
+								 n2->BConnection[b2].entryPointHandle,
 								 BMap
 								);
 			   CFLOBDDReturnMapHandle bReturnHandle;
@@ -812,16 +816,19 @@ int TripleProductMapHandle::Lookup(inttriple t)
 void TripleProductMapHandle::Canonicalize()
 {
   TripleProductMapBody *answerContents;
-  size_t hash = TripleProductMapBody::canonicalTripleProductMapBodySet->GetHash(mapContents);
-  answerContents = TripleProductMapBody::canonicalTripleProductMapBodySet->Lookup(mapContents, hash);
-  if (answerContents == NULL) {
-    TripleProductMapBody::canonicalTripleProductMapBodySet->Insert(mapContents, hash);
-    mapContents->isCanonical = true;
-  }
-  else {
-    answerContents->IncrRef();
-    mapContents->DecrRef();
-    mapContents = answerContents;
+
+  if (!mapContents->isCanonical) {
+    size_t hash = TripleProductMapBody::canonicalTripleProductMapBodySet->GetHash(mapContents);
+    answerContents = TripleProductMapBody::canonicalTripleProductMapBodySet->Lookup(mapContents, hash);
+    if (answerContents == NULL) {
+      TripleProductMapBody::canonicalTripleProductMapBodySet->Insert(mapContents, hash);
+      mapContents->isCanonical = true;
+    }
+    else {
+      answerContents->IncrRef();
+      mapContents->DecrRef();
+      mapContents = answerContents;
+    }
   }
 }
 
@@ -1043,9 +1050,9 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDInternalNode *n1,
       
         // Perform the cross product of the AConnections
            CFLOBDDNodeHandle aHandle =
-                   TripleProduct(*(n1->AConnection.entryPointHandle),
-                                 *(n2->AConnection.entryPointHandle),
-                                 *(n3->AConnection.entryPointHandle),
+                   TripleProduct(n1->AConnection.entryPointHandle,
+                                 n2->AConnection.entryPointHandle,
+                                 n3->AConnection.entryPointHandle,
                                  AMap
                                 );
            // Fill in n->AConnection.returnMapHandle
@@ -1065,10 +1072,10 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDInternalNode *n1,
              b1 = AMapIterator.Current().First();
              b2 = AMapIterator.Current().Second();
              b3 = AMapIterator.Current().Third();
-             *(n->BConnection[j].entryPointHandle) =
-                   TripleProduct(*(n1->BConnection[b1].entryPointHandle),
-                                 *(n2->BConnection[b2].entryPointHandle),
-                                 *(n3->BConnection[b3].entryPointHandle),
+             n->BConnection[j].entryPointHandle =
+                   TripleProduct(n1->BConnection[b1].entryPointHandle,
+                                 n2->BConnection[b2].entryPointHandle,
+                                 n3->BConnection[b3].entryPointHandle,
                                  BMap
                                 );
       

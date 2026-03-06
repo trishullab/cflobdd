@@ -19,7 +19,8 @@ COMMANDLINE_OPTIONS = #/dev/ttyS0
 # Compiler options during compilation
 # -MMD: generate .d dependency files as a side effect of compilation
 # -MP:  add phony targets for headers so deleting a header doesn't break make
-COMPILE_OPTIONS = -g -O3 -std=c++2a -w -DCFLOBDD_C_EXPORTS -MMD -MP
+CXXFLAGS_EXTRA ?=
+COMPILE_OPTIONS = -g -O3 -std=c++2a -w -DCFLOBDD_C_EXPORTS -MMD -MP $(CXXFLAGS_EXTRA)
 ifdef NUM_BITS
 COMPILE_OPTIONS += -DNUM_BITS=$(NUM_BITS)
 endif

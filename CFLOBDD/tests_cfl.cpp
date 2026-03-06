@@ -1796,7 +1796,7 @@ void CFLTests::testSynBenchmark3_CFLOBDD(int size)
 	auto end = high_resolution_clock::now();
 	// std::cout << ans << std::endl;
 	auto I = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
-	// std::cout << (*(ans.root->rootConnection.entryPointHandle) == *(I.root->rootConnection.entryPointHandle)) << std::endl;
+	// std::cout << (ans.root->rootConnection.entryPointHandle == I.root->rootConnection.entryPointHandle) << std::endl;
 	auto duration = duration_cast<milliseconds>(end - start);
 	unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
 	ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);

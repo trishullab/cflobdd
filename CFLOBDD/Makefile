@@ -126,11 +126,18 @@ cflobdd4096:
 	$(MAKE) NUM_BITS=4096 PROJECT=cflobdd4096.exe
 
 MULT = cflobdd32.exe
+MOD = 59
 spec-all-test:
 	./$(MULT) spec-all
 	./$(MULT) spec-all
 	./$(MULT) spec-all
 	./$(MULT) spec-all
+
+spec-test:
+	./$(MULT) spec $(MOD)
+	./$(MULT) spec $(MOD)
+	./$(MULT) spec $(MOD)
+	./$(MULT) spec $(MOD)
 
 shiftadd-all-test:
 	./$(MULT) shiftadd-all
@@ -138,11 +145,23 @@ shiftadd-all-test:
 	./$(MULT) shiftadd-all
 	./$(MULT) shiftadd-all
 
+shiftadd-test:
+	./$(MULT) shiftadd $(MOD)
+	./$(MULT) shiftadd $(MOD)
+	./$(MULT) shiftadd $(MOD)
+	./$(MULT) shiftadd $(MOD)
+
 karatsuba-all-test:
 	./$(MULT) karatsuba-all
 	./$(MULT) karatsuba-all
 	./$(MULT) karatsuba-all
 	./$(MULT) karatsuba-all
+
+karatsuba-test:
+	./$(MULT) karatsuba $(MOD)
+	./$(MULT) karatsuba $(MOD)
+	./$(MULT) karatsuba $(MOD)
+	./$(MULT) karatsuba $(MOD)
 
 karatsuba-individual-test:
 	./cflobdd128.exe karatsuba 3
@@ -196,33 +215,34 @@ karatsuba128:
 	make karatsuba-individual-test
 	make karatsuba-individual-test
 
-spec-test2048:
-	./cflobdd2048.exe spec 2897
-	./cflobdd2048.exe spec 2897
-	./cflobdd2048.exe spec 2897
-	./cflobdd2048.exe spec 2897
-
-spec-test4096:
-	./cflobdd4096.exe spec 5783
-	./cflobdd4096.exe spec 5783
-	./cflobdd4096.exe spec 5783
-	./cflobdd4096.exe spec 5783
-
 mult-tests:
 	make spec-all-test MULT=cflobdd32.exe
 	make shiftadd-all-test MULT=cflobdd32.exe
 	make karatsuba-all-test MULT=cflobdd32.exe
-	./cflobdd32.exe karatsuba 59
+	make spec-test MULT=cflobdd32.exe MOD=59
+	make shiftadd-test MULT=cflobdd32.exe MOD=59
+	make karatsuba-test MULT=cflobdd32.exe MOD=59
 	make spec-all-test MULT=cflobdd64.exe
 	make shiftadd-all-test MULT=cflobdd64.exe
 	make karatsuba-all-test MULT=cflobdd64.exe
-	./cflobdd64.exe karatsuba 103
+	make spec-test MULT=cflobdd64.exe MOD=103
+	make shiftadd-test MULT=cflobdd64.exe MOD=103
+	make karatsuba-test MULT=cflobdd64.exe MOD=103
 	make spec-all-test MULT=cflobdd128.exe
 	make shiftadd-all-test MULT=cflobdd128.exe
 	make karatsuba128
+	make spec-test MULT=cflobdd128.exe MOD=197
+	make shiftadd-test MULT=cflobdd128.exe MOD=197
+	make karatsuba-test MULT=cflobdd128.exe MOD=197
 	make spec-all-test MULT=cflobdd256.exe
 	make shiftadd-all-test MULT=cflobdd256.exe
+	make spec-test MULT=cflobdd256.exe MOD=383
+	make shiftadd-test MULT=cflobdd256.exe MOD=383
 	make spec-all-test MULT=cflobdd512.exe
 	make shiftadd-all-test MULT=cflobdd512.exe
-	make spec-test2048
-	make spec-test4096
+	make spec-test MULT=cflobdd512.exe MOD=743
+	make shiftadd-test MULT=cflobdd512.exe MOD=743
+	make spec-all-test MULT=cflobdd1024.exe
+	make spec-test MULT=cflobdd1024.exe MOD=1481
+	make spec-test MULT=cflobdd2048.exe MOD=2897
+	make spec-test MULT=cflobdd4096.exe MOD=5783

@@ -94,11 +94,20 @@ class ReductionMapHandle {
   bool operator!= (const ReductionMapHandle &r);      // Overloaded !=
   bool operator== (const ReductionMapHandle &r);      // Overloaded ==
   size_t Hash();
-  unsigned int Size();
+  inline unsigned int Size() { return mapContents->mapArray.size(); }
   void AddToEnd(int y);
   int& operator[](unsigned int i);                       // Overloaded []
-  int Lookup(int x);
-  intpair Lookup(intpair& x);
+  inline int Lookup(int x) {
+    if ((unsigned int)x < mapContents->mapArray.size())
+      return mapContents->mapArray[x];
+    return -1;
+  }
+  inline intpair Lookup(intpair& x) {
+    unsigned int sz = mapContents->mapArray.size();
+    if ((unsigned int)x.First() < sz && (unsigned int)x.Second() < sz)
+      return intpair(mapContents->mapArray[x.First()], mapContents->mapArray[x.Second()]);
+    return intpair(-1, -1);
+  }
   int LookupInv(int y);
   void Canonicalize();
   ReductionMapBody *mapContents;

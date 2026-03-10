@@ -212,9 +212,11 @@ mult-tests:
 	make spec-all-test MULT=cflobdd32.exe
 	make shiftadd-all-test MULT=cflobdd32.exe
 	make karatsuba-all-test MULT=cflobdd32.exe
+	./cflobdd32.exe karatsuba 59
 	make spec-all-test MULT=cflobdd64.exe
 	make shiftadd-all-test MULT=cflobdd64.exe
 	make karatsuba-all-test MULT=cflobdd64.exe
+	./cflobdd64.exe karatsuba 103
 	make spec-all-test MULT=cflobdd128.exe
 	make shiftadd-all-test MULT=cflobdd128.exe
 	make karatsuba128

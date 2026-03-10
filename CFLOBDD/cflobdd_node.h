@@ -71,6 +71,15 @@ namespace CFL_OBDD {
 	CFLOBDDReturnMapHandle MakeIdentityReturnMap(unsigned int k);
 }
 #include "reduction_map.h"
+
+// ComposeAndReduce: compose a return map with a reduction map, producing
+// a reduced return map and an induced reduction map.  Defined in
+// return_map_specializations.cpp for cross-TU inlining of hot-path operations.
+CFL_OBDD::CFLOBDDReturnMapHandle ComposeAndReduce(
+    CFL_OBDD::CFLOBDDReturnMapHandle& mapHandle,
+    ReductionMapHandle& redMapHandle,
+    ReductionMapHandle& inducedRedMapHandle);
+
 #include "hash.h"
 #include "hashset.h"
 #include "ref_ptr.h"

@@ -222,29 +222,10 @@ size_t ReductionMapHandle::Hash()
   return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
 }
 
-unsigned int ReductionMapHandle::Size()
-{
-  return mapContents->mapArray.size();
-}
-
 void ReductionMapHandle::AddToEnd(int y)
 {
   assert(mapContents->refCount <= 1);
   mapContents->AddToEnd(y);
-}
-
-intpair ReductionMapHandle::Lookup(intpair& x)
-{
-	if ((unsigned int)x.First() < Size() && (unsigned int)x.Second() < Size())
-		return intpair(mapContents->mapArray[x.First()], mapContents->mapArray[x.Second()]);
-	return intpair(-1, -1);
-}
-
-int ReductionMapHandle::Lookup(int x)
-{
-	if ((unsigned int)x < Size())
-		return mapContents->mapArray[x];
-	return -1;
 }
 
 int ReductionMapHandle::LookupInv(int y)

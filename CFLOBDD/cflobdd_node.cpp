@@ -1513,65 +1513,7 @@ int CFLOBDDInternalNode::Traverse(SH_OBDD::AssignmentIterator &ai)
   return ans;
 }
 
-CFLOBDDReturnMapHandle ComposeAndReduce(CFLOBDDReturnMapHandle& mapHandle, ReductionMapHandle& redMapHandle, ReductionMapHandle& inducedRedMapHandle)
-{
-	int c2, c3;
-	int size = mapHandle.mapContents->mapArray.size();
-	CFLOBDDReturnMapHandle answer;// (size);
-	if (redMapHandle.mapContents->isIdentityMap){
-		inducedRedMapHandle = redMapHandle;
-		return mapHandle;
-	}
-	unsigned int redSize = redMapHandle.Size();
-	// Static flat array reused across calls to avoid repeated allocation.
-	// Only indices actually written are tracked in dirtyIndices for O(size) cleanup.
-	static std::vector<int> flatMap;
-	static std::vector<unsigned int> dirtyIndices;
-	constexpr unsigned int COMPOSE_FLAT_THRESHOLD = 8400000; // > 2897^2 (largest modulus squared for 2048-bit)
-	if (redSize <= COMPOSE_FLAT_THRESHOLD) {
-		if (flatMap.size() < redSize) {
-			flatMap.resize(redSize, -1);
-		}
-		dirtyIndices.clear();
-		for (int i = 0; i < size; i++)
-		{
-			c2 = mapHandle.mapContents->mapArray[i];
-			c3 = redMapHandle.Lookup(c2);
-			if (flatMap[c3] == -1){
-				answer.AddToEnd(c3);
-				flatMap[c3] = answer.Size() - 1;
-				dirtyIndices.push_back(c3);
-				inducedRedMapHandle.AddToEnd(answer.Size() - 1);
-			}
-			else{
-				inducedRedMapHandle.AddToEnd(flatMap[c3]);
-			}
-		}
-		// Reset only the indices we touched
-		for (unsigned int idx : dirtyIndices) {
-			flatMap[idx] = -1;
-		}
-	} else {
-		// Fallback: unordered_map for very large reduction maps
-		std::unordered_map<int, unsigned int> reductionMap(size);
-		for (int i = 0; i < size; i++)
-		{
-			c2 = mapHandle.mapContents->mapArray[i];
-			c3 = redMapHandle.Lookup(c2);
-			if (reductionMap.find(c3) == reductionMap.end()){
-				answer.AddToEnd(c3);
-				reductionMap.emplace(c3, answer.Size() - 1);
-				inducedRedMapHandle.AddToEnd(answer.Size() - 1);
-			}
-			else{
-				inducedRedMapHandle.AddToEnd(reductionMap[c3]);
-			}
-		}
-	}
-	inducedRedMapHandle.Canonicalize();
-	answer.Canonicalize();
-	return answer;
-}
+// ComposeAndReduce moved to return_map_specializations.cpp for cross-TU inlining.
 
 CFLOBDDNodeHandle CFLOBDDInternalNode::Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce)
 {

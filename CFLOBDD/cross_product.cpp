@@ -494,7 +494,7 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 								 n2->BConnection[b2].entryPointHandle,
 								 BMap
 								);
-			   CFLOBDDReturnMapHandle bReturnHandle;
+			   CFLOBDDReturnMapHandle bReturnHandle(BMap.Size());
 			   // Fill in bReturnHandle and add new pairs to pairProductMapHandle
 			   unsigned int Biterator = 0;
 			   while (Biterator < BMap.Size()){
@@ -540,7 +540,7 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 								 n2->BConnection[b2].entryPointHandle,
 								 BMap
 								);
-			   CFLOBDDReturnMapHandle bReturnHandle;
+			   CFLOBDDReturnMapHandle bReturnHandle(BMap.Size());
 			   // Fill in bReturnHandle and add new pairs to pairProductMapHandle
 			   unsigned int Biterator = 0;
 			   while (Biterator < BMap.Size()){

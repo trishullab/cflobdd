@@ -235,13 +235,7 @@ static inline size_t fmix64(size_t h) {
 template<>
 size_t ReturnMapBody<int>::Hash()
 {
-  size_t hvalue = mapArray.size();  // Seed with size to avoid absorbing-zero problem
-
-  for (unsigned i = 0; i < mapArray.size(); i++)
-  {
-	  hvalue = (997 * hvalue + mapArray[i]);
-  }
-  return fmix64(hvalue);
+  return fmix64(hashCheck);
 }
 
 template<>

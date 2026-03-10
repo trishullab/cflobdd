@@ -196,6 +196,18 @@ karatsuba128:
 	make karatsuba-individual-test
 	make karatsuba-individual-test
 
+spec-test2048:
+	./cflobdd2048.exe spec 2897
+	./cflobdd2048.exe spec 2897
+	./cflobdd2048.exe spec 2897
+	./cflobdd2048.exe spec 2897
+
+spec-test4096:
+	./cflobdd4096.exe spec 5783
+	./cflobdd4096.exe spec 5783
+	./cflobdd4096.exe spec 5783
+	./cflobdd4096.exe spec 5783
+
 mult-tests:
 	make spec-all-test MULT=cflobdd32.exe
 	make shiftadd-all-test MULT=cflobdd32.exe
@@ -210,6 +222,5 @@ mult-tests:
 	make shiftadd-all-test MULT=cflobdd256.exe
 	make spec-all-test MULT=cflobdd512.exe
 	make shiftadd-all-test MULT=cflobdd512.exe
-	make spec-all-test MULT=cflobdd1024.exe
-
-
+	make spec-test2048
+	make spec-test4096

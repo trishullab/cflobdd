@@ -1065,8 +1065,6 @@ CFLOBDD SubtractiveKaratsubaOneLevel(unsigned int k) {
 #endif
 
     // Combine with 2 additions (down from 4)
-    // Clear caches before each addition: prior entries hold references to
-    // intermediate nodes and are unlikely to be reused by different operands.
     ClearPairProductCache();
     CFLOBDDNodeHandle::ClearReduceCache();
     CFLOBDD karatsuba = CFLOBDD(ApplyAndReduce<int>(

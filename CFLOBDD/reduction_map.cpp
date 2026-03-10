@@ -86,11 +86,7 @@ static inline size_t fmix64(size_t h) {
 
 size_t ReductionMapBody::Hash()
 {
-  size_t hvalue = mapArray.size();  // Seed with size to avoid absorbing-zero problem
-  for (unsigned int i = 0; i < mapArray.size(); i++) {
-      hvalue = (997 * hvalue + mapArray[i]);
-  }
-  return fmix64(hvalue);
+  return fmix64(hashCheck);
 }
 
 void ReductionMapBody::setHashCheck()
@@ -228,8 +224,7 @@ size_t ReductionMapHandle::Hash()
 
 unsigned int ReductionMapHandle::Size()
 {
-  //return mapContents->Length();
-	return mapContents->Size();
+  return mapContents->mapArray.size();
 }
 
 void ReductionMapHandle::AddToEnd(int y)
@@ -237,75 +232,6 @@ void ReductionMapHandle::AddToEnd(int y)
   assert(mapContents->refCount <= 1);
   mapContents->AddToEnd(y);
 }
-
-/*
-intpair ReductionMapHandle::Lookup(intpair x)
-{
-	ReductionMapBodyIterator mi(*mapContents);
-	int xx = 0;
-	int x1 = x.First();
-	int x2 = x.Second();
-	int temp;
-	mi.Reset();
-	bool done = false;
-	while (!mi.AtEnd()) {
-		if (xx == x1) {
-			if (done) {
-				return intpair(mi.Current(),temp);
-			}
-			else {
-				done = true;
-				temp = mi.Current();
-			}
-		} 
-		if (xx == x2) {
-			if (done) {
-				return intpair(temp,mi.Current());
-			} else {
-				done = true;
-				temp = mi.Current();
-			}
-		}
-		xx++;
-		mi.Next();
-	}
-	std::cerr << "Failure in ReductionMapHandle::Lookup: " << x << " not found" << std::endl;
-	return intpair(-1,-1);
-}
-
-int ReductionMapHandle::Lookup(int x)
-{
-  ReductionMapBodyIterator mi(*mapContents);
-
-  int xx = 0;
-  mi.Reset();
-  while (!mi.AtEnd()) {
-    if (xx == x) {
-      return mi.Current();
-    }
-    xx++;
-    mi.Next();
-  }
-  std::cerr << "Failure in ReductionMapHandle::Lookup: " << x << " not found" << std::endl;
-  return -1;
-}
-
-int ReductionMapHandle::LookupInv(int y)
-{
-  ReductionMapBodyIterator mi(*mapContents);
-
-  int x = 0;
-  mi.Reset();
-  while (!mi.AtEnd()) {
-    if (mi.Current() == y) {
-      return x;
-    }
-    x++;
-    mi.Next();
-  }
-  return -1;
-}
-*/
 
 intpair ReductionMapHandle::Lookup(intpair& x)
 {

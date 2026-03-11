@@ -47,16 +47,40 @@ typedef ListIterator<int> ReductionMapBodyIterator;
 // ReductionMapBody
 //***************************************************************
 
+static std::vector<ReductionMapBody*> s_freeList;
+
 // Constructor
 ReductionMapBody::ReductionMapBody()
-  : refCount(0), isIdentityMap(true), isCanonical(false)
+  : refCount(0), isIdentityMap(true), isCanonical(false), hashCheck(0)
 {
 }
 
 ReductionMapBody::ReductionMapBody(unsigned int capacity)
-	: refCount(0), isIdentityMap(true), isCanonical(false)
+	: refCount(0), isIdentityMap(true), isCanonical(false), hashCheck(0)
 {
 	mapArray.reserve(capacity);
+}
+
+ReductionMapBody* ReductionMapBody::Create()
+{
+    if (!s_freeList.empty()) {
+        ReductionMapBody* p = s_freeList.back();
+        s_freeList.pop_back();
+        return p;
+    }
+    return new ReductionMapBody();
+}
+
+ReductionMapBody* ReductionMapBody::Create(unsigned int capacity)
+{
+    if (!s_freeList.empty()) {
+        ReductionMapBody* p = s_freeList.back();
+        s_freeList.pop_back();
+        if (p->mapArray.capacity() < capacity)
+            p->mapArray.reserve(capacity);
+        return p;
+    }
+    return new ReductionMapBody(capacity);
 }
 
 void ReductionMapBody::IncrRef()
@@ -70,7 +94,12 @@ void ReductionMapBody::DecrRef()
     if (isCanonical) {
       ReductionMapHandle::canonicalReductionMapBodySet->erase(this);
     }
-    delete this;
+    mapArray.clear();
+    refCount = 0;
+    isCanonical = false;
+    hashCheck = 0;
+    isIdentityMap = true;
+    s_freeList.push_back(this);
   }
 }
 
@@ -155,7 +184,7 @@ ReductionMapHandle::CanonicalReductionMapBodySet
 
 // Default constructor
 ReductionMapHandle::ReductionMapHandle()
-  :  mapContents(new ReductionMapBody)
+  :  mapContents(ReductionMapBody::Create())
 {
   mapContents->IncrRef();
 }
@@ -174,7 +203,7 @@ ReductionMapHandle::ReductionMapHandle(const ReductionMapHandle &r)
 }
 
 ReductionMapHandle::ReductionMapHandle(unsigned int capacity)
-	: mapContents(new ReductionMapBody(capacity))
+	: mapContents(ReductionMapBody::Create(capacity))
 {
 	mapContents->IncrRef();
 }

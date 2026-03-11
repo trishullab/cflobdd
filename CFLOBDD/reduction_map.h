@@ -50,6 +50,8 @@ class ReductionMapBody {
  public:
   ReductionMapBody();    // Constructor
   ReductionMapBody(unsigned int capacity);
+  static ReductionMapBody* Create();
+  static ReductionMapBody* Create(unsigned int capacity);
   void IncrRef();
   void DecrRef();
   size_t Hash();

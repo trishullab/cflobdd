@@ -402,51 +402,52 @@ namespace CFL_OBDD{
         // (component-wise) to each pair.
         
         ReturnMapHandle<T> returnMapHandle;
-        //PairProductMapBodyIterator MapIterator(*MapHandle.mapContents);
-        //MapIterator.Reset();
-        
-        boost::unordered_map<T, unsigned int> reductionMap;
         ReductionMapHandle reductionMapHandle;
         unsigned int iterator = 0;
-        //while (!MapIterator.AtEnd()) {
-        while (iterator < MapHandle.Size()){
-            T c1, c2;
-            int first, second;
-            //first = MapIterator.Current().First();
-            //second = MapIterator.Current().Second();
-            first = MapHandle[iterator].First();
-            second = MapHandle[iterator].Second();
-            c1 = n1->rootConnection.returnMapHandle.Lookup(first);
-            c2 = n2->rootConnection.returnMapHandle.Lookup(second);
-            T val = (*func)(c1, c2);
-            unsigned int bound = returnMapHandle.Size();
-            unsigned int k;
-            for (k = 0; k < bound; k++)
-            {
-                if (returnMapHandle[k] == val)
-                {
-                    break;
+        if constexpr (std::is_arithmetic_v<T>) {
+            boost::unordered_map<T, unsigned int> reductionMap;
+            while (iterator < MapHandle.Size()){
+                T c1, c2;
+                int first, second;
+                first = MapHandle[iterator].First();
+                second = MapHandle[iterator].Second();
+                c1 = n1->rootConnection.returnMapHandle.Lookup(first);
+                c2 = n2->rootConnection.returnMapHandle.Lookup(second);
+                T val = (*func)(c1, c2);
+                if (reductionMap.find(val) == reductionMap.end()){
+                    returnMapHandle.AddToEnd(val);
+                    reductionMap.insert(std::make_pair(val, returnMapHandle.Size() - 1));
+                    reductionMapHandle.AddToEnd(returnMapHandle.Size() - 1);
                 }
+                else{
+                    reductionMapHandle.AddToEnd(reductionMap[val]);
+                }
+                iterator++;
             }
-            if (k < bound)
-            {
-                reductionMapHandle.AddToEnd(k);
+        }
+        else {
+            while (iterator < MapHandle.Size()){
+                T c1, c2;
+                int first, second;
+                first = MapHandle[iterator].First();
+                second = MapHandle[iterator].Second();
+                c1 = n1->rootConnection.returnMapHandle.Lookup(first);
+                c2 = n2->rootConnection.returnMapHandle.Lookup(second);
+                T val = (*func)(c1, c2);
+                unsigned int bound = returnMapHandle.Size();
+                unsigned int k;
+                for (k = 0; k < bound; k++) {
+                    if (returnMapHandle[k] == val) break;
+                }
+                if (k < bound) {
+                    reductionMapHandle.AddToEnd(k);
+                }
+                else {
+                    returnMapHandle.AddToEnd(val);
+                    reductionMapHandle.AddToEnd(bound);
+                }
+                iterator++;
             }
-            else
-            {
-                returnMapHandle.AddToEnd(val);
-                reductionMapHandle.AddToEnd(bound);
-            }
-            // if (reductionMap.find(val) == reductionMap.end()){
-            //     returnMapHandle.AddToEnd(val);
-            //     reductionMap.insert(std::make_pair(val, returnMapHandle.Size() - 1));
-            //     reductionMapHandle.AddToEnd(returnMapHandle.Size() - 1);
-            // }
-            // else{
-            //     reductionMapHandle.AddToEnd(reductionMap[val]);
-            // }
-            //MapIterator.Next();
-            iterator++;
         }
 
             returnMapHandle.Canonicalize();
@@ -482,7 +483,7 @@ namespace CFL_OBDD{
             n3->rootConnection.entryPointHandle,
             MapHandle);
 
-        // Create returnMapHandle from MapHandle: Fold the pairs in MapHandle by applying
+        // Create returnMapHandle from MapHandle: Fold the triples in MapHandle by applying
         // [n1->rootConnection.returnMapHandle, n2->rootConnection.returnMapHandle, n3->rootConnection.returnMapHandle]
         // (component-wise) to each triple.
         ReturnMapHandle<T> returnMapHandle;

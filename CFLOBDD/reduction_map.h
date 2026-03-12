@@ -68,6 +68,14 @@ class ReductionMapBody {
   unsigned int hashCheck;
   bool isCanonical;              // Is this ReductionMapBody in *canonicalReductionMapBodySet?
 
+ private:
+  // Heap-allocated so it is never destroyed at program exit, avoiding static
+  // destruction-order issues when DecrRef is called from late static destructors.
+  static std::vector<ReductionMapBody*>& getFreeList() {
+    static std::vector<ReductionMapBody*>* const freeList = new std::vector<ReductionMapBody*>();
+    return *freeList;
+  }
+
 };
 
 std::ostream& operator<< (std::ostream & out, const ReductionMapBody &r);
@@ -78,7 +86,7 @@ struct ReductionMapBodyPtrHash {
 };
 
 struct ReductionMapBodyPtrEq {
-    bool operator()(ReductionMapBody* a, ReductionMapBody* b) const { return *a == *b; }
+    bool operator()(ReductionMapBody* a, ReductionMapBody* b) const { return a == b || *a == *b; }
 };
 
 

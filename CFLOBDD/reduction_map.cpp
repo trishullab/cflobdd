@@ -47,8 +47,6 @@ typedef ListIterator<int> ReductionMapBodyIterator;
 // ReductionMapBody
 //***************************************************************
 
-static std::vector<ReductionMapBody*> s_freeList;
-
 // Constructor
 ReductionMapBody::ReductionMapBody()
   : refCount(0), isIdentityMap(true), isCanonical(false), hashCheck(0)
@@ -63,9 +61,10 @@ ReductionMapBody::ReductionMapBody(unsigned int capacity)
 
 ReductionMapBody* ReductionMapBody::Create()
 {
-    if (!s_freeList.empty()) {
-        ReductionMapBody* p = s_freeList.back();
-        s_freeList.pop_back();
+    auto& fl = getFreeList();
+    if (!fl.empty()) {
+        ReductionMapBody* p = fl.back();
+        fl.pop_back();
         return p;
     }
     return new ReductionMapBody();
@@ -73,9 +72,10 @@ ReductionMapBody* ReductionMapBody::Create()
 
 ReductionMapBody* ReductionMapBody::Create(unsigned int capacity)
 {
-    if (!s_freeList.empty()) {
-        ReductionMapBody* p = s_freeList.back();
-        s_freeList.pop_back();
+    auto& fl = getFreeList();
+    if (!fl.empty()) {
+        ReductionMapBody* p = fl.back();
+        fl.pop_back();
         if (p->mapArray.capacity() < capacity)
             p->mapArray.reserve(capacity);
         return p;
@@ -99,7 +99,7 @@ void ReductionMapBody::DecrRef()
     isCanonical = false;
     hashCheck = 0;
     isIdentityMap = true;
-    s_freeList.push_back(this);
+    getFreeList().push_back(this);
   }
 }
 

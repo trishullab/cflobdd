@@ -69,7 +69,7 @@ struct ReturnMapBodyPtrHash {
 
 template <typename T>
 struct ReturnMapBodyPtrEq {
-    bool operator()(ReturnMapBody<T>* a, ReturnMapBody<T>* b) const { return *a == *b; }
+    bool operator()(ReturnMapBody<T>* a, ReturnMapBody<T>* b) const { return a == b || *a == *b; }
 };
 
 //using namespace boost::multiprecision;
@@ -138,9 +138,19 @@ class ReturnMapBody {
   T& operator[](unsigned int i);                       // Overloaded []
   unsigned int hashCheck;
 
+  static ReturnMapBody<T>* Create();
+  static ReturnMapBody<T>* Create(unsigned int capacity);
+
  protected:
   bool isCanonical;              // Is this ReturnMapBody in *canonicalReturnMapBodySet?
 
+ private:
+  // Heap-allocated so it is never destroyed at program exit, avoiding static
+  // destruction-order issues when DecrRef is called from late static destructors.
+  static std::vector<ReturnMapBody<T>*>& getFreeList() {
+    static std::vector<ReturnMapBody<T>*>* const freeList = new std::vector<ReturnMapBody<T>*>();
+    return *freeList;
+  }
 };
 
 
@@ -178,8 +188,37 @@ void ReturnMapBody<T>::DecrRef()
     if (isCanonical) {
       ReturnMapHandle<T>::canonicalReturnMapBodySet->erase(this);
     }
-    delete this;
+    mapArray.clear();
+    hashCheck = 0;
+    isCanonical = false;
+    getFreeList().push_back(this);
   }
+}
+
+template <typename T>
+ReturnMapBody<T>* ReturnMapBody<T>::Create()
+{
+  auto& fl = getFreeList();
+  if (!fl.empty()) {
+    ReturnMapBody<T>* p = fl.back();
+    fl.pop_back();
+    return p;
+  }
+  return new ReturnMapBody<T>();
+}
+
+template <typename T>
+ReturnMapBody<T>* ReturnMapBody<T>::Create(unsigned int capacity)
+{
+  auto& fl = getFreeList();
+  if (!fl.empty()) {
+    ReturnMapBody<T>* p = fl.back();
+    fl.pop_back();
+    if (p->mapArray.capacity() < capacity)
+      p->mapArray.reserve(capacity);
+    return p;
+  }
+  return new ReturnMapBody<T>(capacity);
 }
 
 template <typename T>
@@ -246,14 +285,14 @@ template <typename T> typename ReturnMapHandle<T>::CanonicalReturnMapBodySet
 // Default constructor
 template <typename T>
 ReturnMapHandle<T>::ReturnMapHandle()
-  :  mapContents(new ReturnMapBody<T>)
+  :  mapContents(ReturnMapBody<T>::Create())
 {
   mapContents->IncrRef();
 }
 
 template <typename T>
 ReturnMapHandle<T>::ReturnMapHandle(unsigned int capacity)
-	: mapContents(new ReturnMapBody<T>(capacity))
+	: mapContents(ReturnMapBody<T>::Create(capacity))
 {
 	mapContents->IncrRef();
 }

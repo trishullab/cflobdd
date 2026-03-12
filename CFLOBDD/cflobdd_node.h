@@ -286,7 +286,7 @@ struct CFLOBDDNodePtrHash {
 };
 
 struct CFLOBDDNodePtrEq {
-    bool operator()(CFLOBDDNode* a, CFLOBDDNode* b) const { return *a == *b; }
+    bool operator()(CFLOBDDNode* a, CFLOBDDNode* b) const { return a == b || *a == *b; }
 };
 
 //********************************************************************

@@ -259,8 +259,10 @@ void ReductionMapHandle::AddToEnd(int y)
 
 int ReductionMapHandle::LookupInv(int y)
 {
-	for (unsigned int i = 0; i < Size(); i++){
-		if (mapContents->mapArray[i] == y)
+	const auto* data = mapContents->mapArray.data();
+	unsigned int sz = Size();
+	for (unsigned int i = 0; i < sz; i++){
+		if (data[i] == y)
 			return i;
 	}
 	return -1;

@@ -415,9 +415,11 @@ void ReturnMapHandle<T>::AddToEnd(T y)
 template <typename T>
 bool ReturnMapHandle<T>::Member(T y)
 {
-	for (unsigned i = 0; i < mapContents->mapArray.size(); i++)
+	const auto* data = mapContents->mapArray.data();
+	unsigned sz = mapContents->mapArray.size();
+	for (unsigned i = 0; i < sz; i++)
 	{
-		if (mapContents->mapArray[i] == y) {
+		if (data[i] == y) {
 			return true;
 		}
 	}
@@ -433,9 +435,11 @@ T ReturnMapHandle<T>::Lookup(int x)
 template <typename T>
 int ReturnMapHandle<T>::LookupInv(T y)
 {
-	for (unsigned i = 0; i < mapContents->mapArray.size(); i++)
+	const auto* data = mapContents->mapArray.data();
+	unsigned sz = mapContents->mapArray.size();
+	for (unsigned i = 0; i < sz; i++)
 	{
-		if (mapContents->mapArray[i] == y)
+		if (data[i] == y)
 		{
 			return i;
 		}
@@ -478,9 +482,10 @@ ReturnMapHandle<T> ReturnMapHandle<T>::Compose(ReductionMapHandle redMapHandle)
   T c2, c3;
   ReturnMapHandle<T> answer;
   int size = mapContents->mapArray.size();
+  const auto* srcData = mapContents->mapArray.data();
   for (int i = 0; i < size; i++)
   {
-	  c2 = mapContents->mapArray[i];
+	  c2 = srcData[i];
 	  c3 = redMapHandle.Lookup(c2);
 	  answer.mapContents->mapArray.push_back(c3); 	  // Why not answer.AddToEnd(c3);
   }
@@ -500,9 +505,10 @@ void ReturnMapHandle<T>::InducedReductionAndReturnMap(ReductionMapHandle &induce
 
 		int c1 = 0;
 		int size = mapContents->mapArray.size();
+		const auto* srcData = mapContents->mapArray.data();
 		for (int i = 0; i < size; i++)
 		{
-			c2 = mapContents->mapArray[i];
+			c2 = srcData[i];
 			d = LookupInv(c2);
 			if (d < c1) { // c1 and d are in same range-value equivalence class of this ReturnMap (i.e., [c2])
 				e = inducedReductionMapHandle.Lookup(d);
@@ -534,9 +540,10 @@ ReturnMapHandle<T> operator*(T1 c, ReturnMapHandle<T> rmh)
 	ReturnMapHandle<T> answer;
 	if (c == 1) return rmh;
 	int size = rmh.mapContents->mapArray.size();
+	const auto* rmhData = rmh.mapContents->mapArray.data();
 	for (int i = 0; i < size; i++)
 	{
-		v = rmh.mapContents->mapArray[i];
+		v = rmhData[i];
 		T val = c * v;
 		answer.AddToEnd(val);
 		// Formerly, answer.mapContents->mapArray.push_back();  // When written as c * v, the compiler gave the message "'operator *' is ambiguous"
@@ -553,9 +560,10 @@ ReturnMapHandle<T> operator*(ReturnMapHandle<T> rmh, int c)
 	ReturnMapHandle<T> answer;
 	if (c == 1) return rmh;
 	int size = rmh.mapContents->mapArray.size();
+	const auto* rmhData = rmh.mapContents->mapArray.data();
 	for (int i = 0; i < size; i++)
 	{
-		v = rmh.mapContents->mapArray[i];
+		v = rmhData[i];
 		answer.AddToEnd(v * c);
 		// Formerly, answer.mapContents->mapArray.push_back(v * c);
 	}

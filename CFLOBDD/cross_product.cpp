@@ -244,8 +244,10 @@ int PairProductMapHandle::Lookup(intpair& p)
   //std::cerr << "Failure in PairProductMapHandle::Lookup: " << p << " not found" << std::endl;
   std::cout << "Failure in PairProductMapHandle::Lookup: " << p << " not found" << std::endl;
   */
-	for (unsigned int i = 0; i < mapContents->mapArray.size(); i++){
-		if (mapContents->mapArray[i] == p)
+	const auto* data = mapContents->mapArray.data();
+	unsigned int sz = mapContents->mapArray.size();
+	for (unsigned int i = 0; i < sz; i++){
+		if (data[i] == p)
 			return i;
 	}
   return -1;

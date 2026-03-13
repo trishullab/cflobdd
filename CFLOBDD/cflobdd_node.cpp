@@ -2056,16 +2056,18 @@ CFLOBDDNodeHandle Restrict(CFLOBDDInternalNode *g, unsigned int i, bool val,
     n->numBConnections = AMap.Size();
     n->BConnection = new Connection[n->numBConnections];
 	unsigned AMapSize = AMap.mapContents->mapArray.size();
+	const auto* AMapData = AMap.mapContents->mapArray.data();
     for (unsigned sAI = 0; sAI < AMapSize; sAI++)
 	{
-      b = AMap.mapContents->mapArray[sAI];
+      b = AMapData[sAI];
       n->BConnection[j].entryPointHandle = g->BConnection[b].entryPointHandle;
       // Fill in n->BConnection[j].returnMapHandle and add new items (as appropriate) to MapHandle
       CFLOBDDReturnMapHandle BMap = g->BConnection[b].returnMapHandle;
 	  unsigned BMapSize = BMap.mapContents->mapArray.size();
+	  const auto* BMapData = BMap.mapContents->mapArray.data();
 	  for (unsigned sBI = 0; sBI < BMapSize; sBI++)
 	  {
-		  int c = BMap.mapContents->mapArray[sBI];
+		  int c = BMapData[sBI];
         // Test whether c occurs in MapHandle
            if (MapHandle.Member(c)) {
              int index = MapHandle.LookupInv(c);

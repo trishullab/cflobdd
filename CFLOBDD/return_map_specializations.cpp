@@ -272,9 +272,10 @@ CFL_OBDD::CFLOBDDReturnMapHandle CFL_OBDD::CFLOBDDReturnMapHandle::Complement()
 {
 	ReturnMapHandle<int> answer;
 	unsigned size = mapContents->mapArray.size();
+	const auto* srcData = mapContents->mapArray.data();
 	for (unsigned i = 0; i < size; i++)
 	{
-		answer.mapContents->mapArray.push_back(!mapContents->mapArray[i]);
+		answer.mapContents->mapArray.push_back(!srcData[i]);
 	}
 	answer.Canonicalize();
 	return answer;
@@ -462,10 +463,11 @@ ReturnMapHandle<intpair> ReturnMapHandle<intpair>::Complement()
 {
 	ReturnMapHandle<intpair> answer;
 	unsigned size = mapContents->mapArray.size();
+	const auto* srcData = mapContents->mapArray.data();
 	for (unsigned i = 0; i < size; i++)
 	{
-		int c0 = !mapContents->mapArray[i].First();
-		int c1 = !mapContents->mapArray[i].Second();
+		int c0 = !srcData[i].First();
+		int c1 = !srcData[i].Second();
 		answer.mapContents->mapArray.push_back(intpair(c0, c1)); 
 	}
 	answer.Canonicalize();
@@ -657,9 +659,10 @@ CFL_OBDD::CFLOBDDReturnMapHandle ComposeAndReduce(CFL_OBDD::CFLOBDDReturnMapHand
 			flatMap.resize(redSize, -1);
 		}
 		dirtyIndices.clear();
+		const auto* mapArrayData = mapHandle.mapContents->mapArray.data();
 		for (int i = 0; i < size; i++)
 		{
-			c2 = mapHandle.mapContents->mapArray[i];
+			c2 = mapArrayData[i];
 			c3 = redMapHandle.Lookup(c2);
 			if (flatMap[c3] == -1){
 				answer.AddToEnd(c3);
@@ -678,9 +681,10 @@ CFL_OBDD::CFLOBDDReturnMapHandle ComposeAndReduce(CFL_OBDD::CFLOBDDReturnMapHand
 	} else {
 		// Fallback: unordered_map for very large reduction maps
 		std::unordered_map<int, unsigned int> reductionMap(size);
+		const auto* mapArrayData2 = mapHandle.mapContents->mapArray.data();
 		for (int i = 0; i < size; i++)
 		{
-			c2 = mapHandle.mapContents->mapArray[i];
+			c2 = mapArrayData2[i];
 			c3 = redMapHandle.Lookup(c2);
 			if (reductionMap.find(c3) == reductionMap.end()){
 				answer.AddToEnd(c3);

@@ -445,9 +445,10 @@ CFLOBDDTopNodeIntRefPtr MkRestrict(CFLOBDDTopNodeIntRefPtr n, unsigned int i, bo
 	// Create returnMapHandle from MapHandle
 	CFLOBDDReturnMapHandle returnMapHandle;
 	unsigned MapSize = MapHandle.mapContents->mapArray.size();
+	const auto* MapData = MapHandle.mapContents->mapArray.data();
 	for (unsigned sBI = 0; sBI < MapSize; sBI++)
 	{
-		int d = MapHandle.mapContents->mapArray[sBI];
+		int d = MapData[sBI];
 		int c = n->rootConnection.returnMapHandle.Lookup(d);
 		returnMapHandle.AddToEnd(c);
 	}

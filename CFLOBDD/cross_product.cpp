@@ -496,12 +496,16 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 								 n2->BConnection[b2].entryPointHandle,
 								 BMap
 								);
-			   CFLOBDDReturnMapHandle bReturnHandle(BMap.Size());
+			   const unsigned int BMapSize = BMap.Size();
+			   CFLOBDDReturnMapHandle bReturnHandle(BMapSize);
 			   // Fill in bReturnHandle and add new pairs to pairProductMapHandle
+			   const auto* retMap1 = n1->BConnection[b1].returnMapHandle.mapContents->mapArray.data();
+			   const auto* retMap2 = n2->BConnection[b2].returnMapHandle.mapContents->mapArray.data();
+			   const auto* bMapData = BMap.mapContents->mapArray.data();
 			   unsigned int Biterator = 0;
-			   while (Biterator < BMap.Size()){
-				   int c1 = n1->BConnection[b1].returnMapHandle.Lookup(BMap[Biterator].First());
-				   int c2 = n2->BConnection[b2].returnMapHandle.Lookup(BMap[Biterator].Second());
+			   while (Biterator < BMapSize){
+				   int c1 = retMap1[bMapData[Biterator].First()];
+				   int c2 = retMap2[bMapData[Biterator].Second()];
 				   unsigned int idx = c1 * maxC2 + c2;
 				   int &slot = flat[idx];
 				   if (slot >= 0) {
@@ -542,12 +546,16 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 								 n2->BConnection[b2].entryPointHandle,
 								 BMap
 								);
-			   CFLOBDDReturnMapHandle bReturnHandle(BMap.Size());
+			   const unsigned int BMapSize = BMap.Size();
+			   CFLOBDDReturnMapHandle bReturnHandle(BMapSize);
 			   // Fill in bReturnHandle and add new pairs to pairProductMapHandle
+			   const auto* retMap1 = n1->BConnection[b1].returnMapHandle.mapContents->mapArray.data();
+			   const auto* retMap2 = n2->BConnection[b2].returnMapHandle.mapContents->mapArray.data();
+			   const auto* bMapData = BMap.mapContents->mapArray.data();
 			   unsigned int Biterator = 0;
-			   while (Biterator < BMap.Size()){
-				   int c1 = n1->BConnection[b1].returnMapHandle.Lookup(BMap[Biterator].First());
-				   int c2 = n2->BConnection[b2].returnMapHandle.Lookup(BMap[Biterator].Second());
+			   while (Biterator < BMapSize){
+				   int c1 = retMap1[bMapData[Biterator].First()];
+				   int c2 = retMap2[bMapData[Biterator].Second()];
 				   intpair p = intpair(c1, c2);
 				   auto it = pair_to_index.find(p);
 				   if (it != pair_to_index.end()){
@@ -1083,13 +1091,16 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDInternalNode *n1,
       
              // Fill in n->BConnection[j].returnMapHandle and add new triples (as appropriate)
              // to tripleProductMap
+                const auto* retMap1 = n1->BConnection[b1].returnMapHandle.mapContents->mapArray.data();
+                const auto* retMap2 = n2->BConnection[b2].returnMapHandle.mapContents->mapArray.data();
+                const auto* retMap3 = n3->BConnection[b3].returnMapHandle.mapContents->mapArray.data();
                 TripleProductMapBodyIterator BMapIterator(*BMap.mapContents);
                 BMapIterator.Reset();
                 while (!BMapIterator.AtEnd()) {
                   int c1, c2, c3;
-                  c1 = n1->BConnection[b1].returnMapHandle.Lookup(BMapIterator.Current().First());
-                  c2 = n2->BConnection[b2].returnMapHandle.Lookup(BMapIterator.Current().Second());
-                  c3 = n3->BConnection[b3].returnMapHandle.Lookup(BMapIterator.Current().Third());
+                  c1 = retMap1[BMapIterator.Current().First()];
+                  c2 = retMap2[BMapIterator.Current().Second()];
+                  c3 = retMap3[BMapIterator.Current().Third()];
                   // Test whether the triple (c1,c2,c3) occurs in tripleProductMapHandle
                      if (tripleProductMapHandle.Member(inttriple(c1,c2,c3))) {
                        int index = tripleProductMapHandle.Lookup(inttriple(c1,c2,c3));

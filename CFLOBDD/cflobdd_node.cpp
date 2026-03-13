@@ -2098,9 +2098,10 @@ CFLOBDDNodeHandle Restrict(CFLOBDDInternalNode *g, unsigned int i, bool val,
       // Fill in inducedReturnMapHandleB and add new items (as appropriate) to MapHandle
       CFLOBDDReturnMapHandle inducedReturnMapHandleB;
       unsigned BMapSize = BMap.mapContents->mapArray.size();
+	  const auto* retMapData = g->BConnection[j].returnMapHandle.mapContents->mapArray.data();
 	  for (unsigned sBI = 0; sBI < BMapSize; sBI++)
 	  {
-		  int c = g->BConnection[j].returnMapHandle.Lookup(sBI);
+		  int c = retMapData[sBI];
         // Test whether c occurs in MapHandle
            if (MapHandle.Member(c)) {
              int index = MapHandle.LookupInv(c);

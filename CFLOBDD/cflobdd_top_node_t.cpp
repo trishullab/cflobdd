@@ -337,31 +337,23 @@ namespace CFL_OBDD{
         // [n1->rootConnection.returnMapHandle, n2->rootConnection.returnMapHandle]
         // (component-wise) to each pair.
         ReturnMapHandle<T> returnMapHandle;
-        //PairProductMapBodyIterator MapIterator(*MapHandle.mapContents);
-        //MapIterator.Reset();
-        std::unordered_map<T, unsigned int> reduction_map;
         ReductionMapHandle reductionMapHandle;
+        // Because the range of a BoolOp has <= 2 values (for false and true),
+        // we can record their position in the return map with just two variables.
+        int idx_false = -1, idx_true = -1;
         unsigned int iterator = 0;
-        //while (!MapIterator.AtEnd()) {
         while (iterator < MapHandle.Size()){
-            T c1, c2;
-            int first, second;
-            //first = MapIterator.Current().First();
-            //second = MapIterator.Current().Second();
-            first = MapHandle[iterator].First();
-            second = MapHandle[iterator].Second();
-            c1 = n1->rootConnection.returnMapHandle.Lookup(first);
-            c2 = n2->rootConnection.returnMapHandle.Lookup(second);
+            int first = MapHandle[iterator].First();
+            int second = MapHandle[iterator].Second();
+            T c1 = n1->rootConnection.returnMapHandle.Lookup(first);
+            T c2 = n2->rootConnection.returnMapHandle.Lookup(second);
             T val = op[c1][c2];
-            if (reduction_map.find(val) == reduction_map.end()){
+            int &idx = (val ? idx_true : idx_false);
+            if (idx < 0){
                 returnMapHandle.AddToEnd(val);
-                reduction_map.insert(std::make_pair(val, returnMapHandle.Size() - 1));
-                reductionMapHandle.AddToEnd(returnMapHandle.Size() - 1);
+                idx = returnMapHandle.Size() - 1;
             }
-            else{
-                reductionMapHandle.AddToEnd(reduction_map[val]);
-            }
-            //MapIterator.Next();
+            reductionMapHandle.AddToEnd(idx);
             iterator++;
         }
         returnMapHandle.Canonicalize();

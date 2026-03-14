@@ -308,6 +308,10 @@ class CFLOBDDInternalNode : public CFLOBDDNode {
  public:
   CFLOBDDInternalNode(const unsigned int l);   // Constructor
   ~CFLOBDDInternalNode();                      // Destructor
+
+  // Object pool: recycle raw memory to avoid malloc/free overhead
+  void* operator new(size_t size);
+  void operator delete(void* ptr);
   CFLOBDD_NODEKIND NodeKind() const { return CFLOBDD_INTERNAL; }
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);

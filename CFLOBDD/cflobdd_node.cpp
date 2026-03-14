@@ -1373,6 +1373,28 @@ std::ostream& operator<< (std::ostream & out, const CFLOBDDNode &n)
 
 // Constructors/Destructor -------------------------------------------
 
+// Object pool: recycle raw memory to avoid malloc/free overhead.
+// Heap-allocated so it is never destroyed at program exit, avoiding
+// static destruction-order issues.
+static std::vector<void*>& getNodeFreeList() {
+  static std::vector<void*>* const fl = new std::vector<void*>();
+  return *fl;
+}
+
+void* CFLOBDDInternalNode::operator new(size_t size) {
+  auto& fl = getNodeFreeList();
+  if (!fl.empty()) {
+    void* p = fl.back();
+    fl.pop_back();
+    return p;
+  }
+  return ::operator new(size);
+}
+
+void CFLOBDDInternalNode::operator delete(void* ptr) {
+  getNodeFreeList().push_back(ptr);
+}
+
 CFLOBDDInternalNode::CFLOBDDInternalNode(const unsigned int l)
   :  CFLOBDDNode(l)
 {

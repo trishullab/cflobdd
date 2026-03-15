@@ -66,20 +66,15 @@ PairProductMapBody::PairProductMapBody()
 {
 }
 
-void* PairProductMapBody::operator new(size_t size)
+PairProductMapBody* PairProductMapBody::Create()
 {
   auto& fl = getFreeList();
   if (!fl.empty()) {
-    void* ptr = fl.back();
+    PairProductMapBody* p = fl.back();
     fl.pop_back();
-    return ptr;
+    return p;
   }
-  return ::operator new(size);
-}
-
-void PairProductMapBody::operator delete(void* ptr)
-{
-  getFreeList().push_back(ptr);
+  return new PairProductMapBody();
 }
 
 void PairProductMapBody::IncrRef()
@@ -93,7 +88,10 @@ void PairProductMapBody::DecrRef()
     if (isCanonical) {
       PairProductMapBody::canonicalPairProductMapBodySet->DeleteEq(this);
     }
-    delete this;
+    mapArray.clear();
+    hashCheck = 0;
+    isCanonical = false;
+    getFreeList().push_back(this);
   }
 }
 
@@ -159,7 +157,7 @@ std::ostream& operator<< (std::ostream & out, const PairProductMapBody &r)
 
 // Default constructor
 PairProductMapHandle::PairProductMapHandle()
-  :  mapContents(new PairProductMapBody)
+  :  mapContents(PairProductMapBody::Create())
 {
   mapContents->IncrRef();
 }
@@ -712,6 +710,17 @@ TripleProductMapBody::TripleProductMapBody()
 {
 }
 
+TripleProductMapBody* TripleProductMapBody::Create()
+{
+  auto& fl = getFreeList();
+  if (!fl.empty()) {
+    TripleProductMapBody* p = fl.back();
+    fl.pop_back();
+    return p;
+  }
+  return new TripleProductMapBody();
+}
+
 void TripleProductMapBody::setHashCheck()
 {
   unsigned int hvalue = 0;
@@ -762,7 +771,10 @@ void TripleProductMapBody::DecrRef()
     if (isCanonical) {
       TripleProductMapBody::canonicalTripleProductMapBodySet->DeleteEq(this);
     }
-    delete this;
+    mapArray.clear();
+    hashCheck = 0;
+    isCanonical = false;
+    getFreeList().push_back(this);
   }
 }
 
@@ -788,7 +800,7 @@ std::ostream& operator<< (std::ostream & out, const TripleProductMapBody &r)
 
 // Default constructor
 TripleProductMapHandle::TripleProductMapHandle()
-  :  mapContents(new TripleProductMapBody)
+  :  mapContents(TripleProductMapBody::Create())
 {
   mapContents->IncrRef();
 }

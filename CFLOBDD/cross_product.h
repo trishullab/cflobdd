@@ -95,12 +95,10 @@ class PairProductMapBody {//: public List<intpair> {
   bool isCanonical;              // Is this PairProductMapBody in *canonicalPairProductMapBodySet?
   static Hashset<PairProductMapBody> *canonicalPairProductMapBodySet;
 
-  // Object pool: recycle raw memory to avoid malloc/free overhead
-  void* operator new(size_t size);
-  void operator delete(void* ptr);
+  static PairProductMapBody* Create();
  private:
-  static std::vector<void*>& getFreeList() {
-    static std::vector<void*>* const fl = new std::vector<void*>();
+  static std::vector<PairProductMapBody*>& getFreeList() {
+    static std::vector<PairProductMapBody*>* const fl = new std::vector<PairProductMapBody*>();
     return *fl;
   }
 };
@@ -229,6 +227,12 @@ class TripleProductMapBody {
   bool isCanonical;              // Is this TripleProductMapBody in *canonicalTripleProductMapBodySet?
   static Hashset<TripleProductMapBody> *canonicalTripleProductMapBodySet;
 
+  static TripleProductMapBody* Create();
+ private:
+  static std::vector<TripleProductMapBody*>& getFreeList() {
+    static std::vector<TripleProductMapBody*>* const fl = new std::vector<TripleProductMapBody*>();
+    return *fl;
+  }
 };
 }
 std::ostream& operator<< (std::ostream & out, const CFL_OBDD::TripleProductMapBody &r);

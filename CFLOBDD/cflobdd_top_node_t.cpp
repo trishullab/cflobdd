@@ -1,5 +1,6 @@
 #include "cflobdd_top_node_t.h"
 #include "ref_ptr.h"
+#include <boost/unordered/unordered_flat_map.hpp>
 
 
 namespace CFL_OBDD{
@@ -397,7 +398,7 @@ namespace CFL_OBDD{
         ReductionMapHandle reductionMapHandle;
         unsigned int iterator = 0;
         if constexpr (std::is_arithmetic_v<T>) {
-            boost::unordered_map<T, unsigned int> reductionMap;
+            boost::unordered_flat_map<T, unsigned int> reductionMap;
             while (iterator < MapHandle.Size()){
                 T c1, c2;
                 int first, second;

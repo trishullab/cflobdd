@@ -32,7 +32,7 @@
 #include <algorithm>
 #include <cstdarg>
 #include <unordered_set>
-#include <unordered_map>
+#include <boost/unordered/unordered_flat_map.hpp>
 #include <map>
 //#include <mpirxx.h>
 
@@ -1545,7 +1545,7 @@ CFLOBDDNodeHandle CFLOBDDInternalNode::Reduce(ReductionMapHandle& redMapHandle, 
   // Reduce the B connections
      n->BConnection = new Connection[numBConnections];   // May create shorter version later
      n->numBConnections = 0;
-     std::unordered_map<std::pair<void*,void*>, unsigned int, ConnectionPtrPairHash> bConnectionMap;
+     boost::unordered_flat_map<std::pair<void*,void*>, unsigned int, ConnectionPtrPairHash> bConnectionMap;
      for (unsigned int i = 0; i < numBConnections; i++) {
         ReductionMapHandle inducedReductionMapHandle(redMapHandle.Size());
         CFLOBDDReturnMapHandle inducedReturnMap;
@@ -2112,7 +2112,7 @@ CFLOBDDNodeHandle Restrict(CFLOBDDInternalNode *g, unsigned int i, bool val,
     curExit = 0;
     n->BConnection = new Connection[g->numBConnections];   // May create shorter version later
     n->numBConnections = 0;
-    std::unordered_map<std::pair<void*,void*>, unsigned int, ConnectionPtrPairHash> bConnectionMap;
+    boost::unordered_flat_map<std::pair<void*,void*>, unsigned int, ConnectionPtrPairHash> bConnectionMap;
     for (j = 0; j < g->numBConnections; j++) { // Perform a Restrict for each middle vertex
       CFLOBDDReturnMapHandle BMap;
       CFLOBDDNodeHandle m = Restrict(g->BConnection[j].entryPointHandle, i-(unsigned int)(1 << (g->level-1)), val, BMap);

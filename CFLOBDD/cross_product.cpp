@@ -29,7 +29,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <unordered_map>
+#include <boost/unordered/unordered_flat_map.hpp>
 #include <vector>
 #include "cflobdd_node.h"
 #include "list_T.h"
@@ -557,7 +557,7 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 		   // Fallback: unordered_map for very large exit-pair spaces
 		   // (> 2^20 entries, which can arise when both nodes have many exits)
 		   unsigned int Aiterator = 0;
-		   std::unordered_map<intpair, unsigned int, intpair::intpair_hash> pair_to_index;
+		   boost::unordered_flat_map<intpair, unsigned int, intpair::intpair_hash> pair_to_index;
 		   pair_to_index.reserve(256);
 		   pair_to_index.max_load_factor(0.5);
 		   while (Aiterator < AMap.Size()) {

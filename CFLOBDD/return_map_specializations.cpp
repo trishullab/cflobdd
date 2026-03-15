@@ -242,10 +242,11 @@ template<>
 void ReturnMapBody<int>::setHashCheck()
 {
   unsigned int hvalue = 0;
-
-  for (unsigned i = 0; i < mapArray.size(); i++)
+  const auto* data = mapArray.data();
+  unsigned int sz = mapArray.size();
+  for (unsigned i = 0; i < sz; i++)
   {
-	  hvalue = (131*(hvalue+1) + mapArray[i]);
+	  hvalue = (131*(hvalue+1) + data[i]);
   }
   hashCheck = hvalue;
 }
@@ -437,23 +438,18 @@ ReturnMapHandle<BIG_COMPLEX_FLOAT> ReturnMapHandle<BIG_COMPLEX_FLOAT>::Complemen
 template<>
 size_t ReturnMapBody<intpair>::Hash()
 {
-  size_t hvalue = 0;
-
-  for (unsigned i = 0; i < mapArray.size(); i++)
-  {
-	  hvalue = (997 * hvalue + mapArray[i].First() + mapArray[i].Second());
-  }
-  return hvalue;
+  return fmix64(hashCheck);
 }
 
 template<>
 void ReturnMapBody<intpair>::setHashCheck()
 {
   unsigned int hvalue = 0;
-
-  for (unsigned i = 0; i < mapArray.size(); i++)
+  const auto* data = mapArray.data();
+  unsigned int sz = mapArray.size();
+  for (unsigned i = 0; i < sz; i++)
   {
-	  hvalue = (117*(hvalue+1) + mapArray[i].First() + mapArray[i].Second());
+	  hvalue = (131*(hvalue+1) + (int)(97 * data[i].First()) + data[i].Second());
   }
   hashCheck = hvalue;
 }

@@ -44,6 +44,15 @@ using namespace CFL_OBDD;
 // 2-Way Cross Product
 // ********************************************************************
 
+static inline size_t fmix64(size_t h) {
+  h ^= h >> 33;
+  h *= 0xff51afd7ed558ccdULL;
+  h ^= h >> 33;
+  h *= 0xc4ceb9fe1a85ec53ULL;
+  h ^= h >> 33;
+  return h;
+}
+
 //***************************************************************
 // PairProductMapBody
 //***************************************************************
@@ -55,6 +64,22 @@ Hashset<PairProductMapBody> *PairProductMapBody::canonicalPairProductMapBodySet 
 PairProductMapBody::PairProductMapBody()
   : refCount(0), isCanonical(false)
 {
+}
+
+void* PairProductMapBody::operator new(size_t size)
+{
+  auto& fl = getFreeList();
+  if (!fl.empty()) {
+    void* ptr = fl.back();
+    fl.pop_back();
+    return ptr;
+  }
+  return ::operator new(size);
+}
+
+void PairProductMapBody::operator delete(void* ptr)
+{
+  getFreeList().push_back(ptr);
 }
 
 void PairProductMapBody::IncrRef()
@@ -74,13 +99,7 @@ void PairProductMapBody::DecrRef()
 
 size_t PairProductMapBody::Hash()
 {
-  size_t hvalue = 0;
-
-  for (unsigned int i = 0; i < mapArray.size(); i++){
-	  hvalue = (997*hvalue + (unsigned int)97*mapArray[i].First() + (unsigned int)mapArray[i].Second());
-  }
-
-  return hvalue;
+  return fmix64(hashCheck);
 }
 
 void PairProductMapBody::setHashCheck()
@@ -88,7 +107,7 @@ void PairProductMapBody::setHashCheck()
 	unsigned int hvalue = 0;
 
 	for (auto &i : mapArray) {
-		hvalue = (117 * (hvalue + 1) + (int)(97 * i.First()) + i.Second());
+		hvalue = (131 * (hvalue + 1) + (int)(97 * i.First()) + i.Second());
 	}
 	hashCheck = hvalue;
 }
@@ -100,11 +119,15 @@ void PairProductMapBody::AddToEnd(const intpair& y)
 
 bool PairProductMapBody::operator==(const PairProductMapBody &o) const
 {
-	if (mapArray.size() != o.mapArray.size())
+	if (hashCheck != o.hashCheck)
 		return false;
-
-	for (unsigned int i = 0; i < mapArray.size(); i++){
-		if (mapArray[i] != o.mapArray[i])
+	unsigned int sz = mapArray.size();
+	if (sz != o.mapArray.size())
+		return false;
+	const auto* d1 = mapArray.data();
+	const auto* d2 = o.mapArray.data();
+	for (unsigned int i = 0; i < sz; i++){
+		if (d1[i] != d2[i])
 			return false;
 	}
 	return true;
@@ -685,8 +708,47 @@ Hashset<TripleProductMapBody> *TripleProductMapBody::canonicalTripleProductMapBo
 
 // Constructor
 TripleProductMapBody::TripleProductMapBody()
-  : refCount(0), isCanonical(false)
+  : refCount(0), isCanonical(false), hashCheck(0)
 {
+}
+
+void TripleProductMapBody::setHashCheck()
+{
+  unsigned int hvalue = 0;
+  for (auto &t : mapArray) {
+    hvalue = (117 * (117 * (117 * (hvalue + 1) + (unsigned int)t.First())
+                                               + (unsigned int)t.Second())
+                                               + (unsigned int)t.Third());
+  }
+  hashCheck = hvalue;
+}
+
+void TripleProductMapBody::AddToEnd(const inttriple& y)
+{
+  mapArray.push_back(y);
+}
+
+bool TripleProductMapBody::operator==(const TripleProductMapBody &p) const
+{
+  if (hashCheck != p.hashCheck) return false;
+  unsigned int sz = mapArray.size();
+  if (sz != p.mapArray.size()) return false;
+  const auto* d1 = mapArray.data();
+  const auto* d2 = p.mapArray.data();
+  for (unsigned int i = 0; i < sz; i++) {
+    if (d1[i] != d2[i]) return false;
+  }
+  return true;
+}
+
+inttriple& TripleProductMapBody::operator[](unsigned int i)
+{
+  return mapArray[i];
+}
+
+unsigned int TripleProductMapBody::Size()
+{
+  return mapArray.size();
 }
 
 void TripleProductMapBody::IncrRef()
@@ -706,22 +768,17 @@ void TripleProductMapBody::DecrRef()
 
 size_t TripleProductMapBody::Hash()
 {
-  size_t hvalue = 0;
-  TripleProductMapBodyIterator mi(*this);
-
-  mi.Reset();
-  while (!mi.AtEnd()) {
-    hvalue = (997 * (997 * (997 * hvalue + (unsigned int)mi.Current().First())
-                                         + (unsigned int)mi.Current().Second())
-                                         + (unsigned int)mi.Current().Third());
-    mi.Next();
-  }
-  return hvalue;
+  return fmix64(hashCheck);
 }
 
 std::ostream& operator<< (std::ostream & out, const TripleProductMapBody &r)
 {
-  out << (List<int>&)r;
+  out << "{";
+  for (unsigned int i = 0; i < r.mapArray.size(); i++) {
+    if (i > 0) out << ", ";
+    out << r.mapArray[i];
+  }
+  out << "}";
   return(out);
 }
 
@@ -787,41 +844,32 @@ size_t TripleProductMapHandle::Hash()
 
 unsigned int TripleProductMapHandle::Size()
 {
-  return mapContents->Length();
+  return mapContents->mapArray.size();
 }
 
 void TripleProductMapHandle::AddToEnd(inttriple t)
 {
   assert(mapContents->refCount <= 1);
-  mapContents->AddToEnd(t);
+  mapContents->mapArray.push_back(t);
 }
 
 bool TripleProductMapHandle::Member(inttriple t)
 {
-  TripleProductMapBodyIterator mi(*mapContents);
-
-  mi.Reset();
-  while (!mi.AtEnd()) {
-    if (mi.Current() == t) {
+  for (auto& i : mapContents->mapArray) {
+    if (i == t)
       return true;
-    }
-    mi.Next();
   }
   return false;
 }
 
 int TripleProductMapHandle::Lookup(inttriple t)
 {
-  int index = 0;
-  TripleProductMapBodyIterator mi(*mapContents);
-
-  mi.Reset();
-  while (!mi.AtEnd()) {
-    if (mi.Current() == t) {
-      return index;
+  const auto* data = mapContents->mapArray.data();
+  unsigned int sz = mapContents->mapArray.size();
+  for (unsigned int i = 0; i < sz; i++) {
+    if (data[i] == t) {
+      return i;
     }
-    mi.Next();
-    index++;
   }
   std::cerr << "Failure in TripleProductMapHandle::Lookup: " << t << " not found" << std::endl;
   return -1;
@@ -832,6 +880,7 @@ void TripleProductMapHandle::Canonicalize()
   TripleProductMapBody *answerContents;
 
   if (!mapContents->isCanonical) {
+    mapContents->setHashCheck();
     size_t hash = TripleProductMapBody::canonicalTripleProductMapBodySet->GetHash(mapContents);
     answerContents = TripleProductMapBody::canonicalTripleProductMapBodySet->Lookup(mapContents, hash);
     if (answerContents == NULL) {
@@ -1079,13 +1128,13 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDInternalNode *n1,
            curExit = 0;
            n->numBConnections = AMap.Size();
            n->BConnection = new Connection[n->numBConnections];
-           TripleProductMapBodyIterator AMapIterator(*AMap.mapContents);
-           AMapIterator.Reset();
-           while (!AMapIterator.AtEnd()) {
+           const auto* AMapData = AMap.mapContents->mapArray.data();
+           unsigned int AMapSize = AMap.mapContents->mapArray.size();
+           for (unsigned int ai = 0; ai < AMapSize; ai++) {
              TripleProductMapHandle BMap;
-             b1 = AMapIterator.Current().First();
-             b2 = AMapIterator.Current().Second();
-             b3 = AMapIterator.Current().Third();
+             b1 = AMapData[ai].First();
+             b2 = AMapData[ai].Second();
+             b3 = AMapData[ai].Third();
              n->BConnection[j].entryPointHandle =
                    TripleProduct(n1->BConnection[b1].entryPointHandle,
                                  n2->BConnection[b2].entryPointHandle,
@@ -1098,13 +1147,13 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDInternalNode *n1,
                 const auto* retMap1 = n1->BConnection[b1].returnMapHandle.mapContents->mapArray.data();
                 const auto* retMap2 = n2->BConnection[b2].returnMapHandle.mapContents->mapArray.data();
                 const auto* retMap3 = n3->BConnection[b3].returnMapHandle.mapContents->mapArray.data();
-                TripleProductMapBodyIterator BMapIterator(*BMap.mapContents);
-                BMapIterator.Reset();
-                while (!BMapIterator.AtEnd()) {
+                const auto* bMapData = BMap.mapContents->mapArray.data();
+                unsigned int bMapSize = BMap.mapContents->mapArray.size();
+                for (unsigned int bi = 0; bi < bMapSize; bi++) {
                   int c1, c2, c3;
-                  c1 = retMap1[BMapIterator.Current().First()];
-                  c2 = retMap2[BMapIterator.Current().Second()];
-                  c3 = retMap3[BMapIterator.Current().Third()];
+                  c1 = retMap1[bMapData[bi].First()];
+                  c2 = retMap2[bMapData[bi].Second()];
+                  c3 = retMap3[bMapData[bi].Third()];
                   // Test whether the triple (c1,c2,c3) occurs in tripleProductMapHandle
                      if (tripleProductMapHandle.Member(inttriple(c1,c2,c3))) {
                        int index = tripleProductMapHandle.Lookup(inttriple(c1,c2,c3));
@@ -1116,10 +1165,8 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDInternalNode *n1,
                        n->BConnection[j].returnMapHandle.AddToEnd(curExit);
                        curExit++;
                      }
-                  BMapIterator.Next();
                 }
              n->BConnection[j].returnMapHandle.Canonicalize();
-             AMapIterator.Next();
              j++;
            }
            n->numExits = curExit;

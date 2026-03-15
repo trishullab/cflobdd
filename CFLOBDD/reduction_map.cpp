@@ -121,8 +121,10 @@ size_t ReductionMapBody::Hash()
 void ReductionMapBody::setHashCheck()
 {
   unsigned int hvalue = 0;
-  for (unsigned int i = 0; i < mapArray.size(); i++) {
-      hvalue = (131 * (hvalue + 1) + mapArray[i]);
+  const auto* data = mapArray.data();
+  unsigned int sz = mapArray.size();
+  for (unsigned int i = 0; i < sz; i++) {
+      hvalue = (131 * (hvalue + 1) + data[i]);
   }
   hashCheck = hvalue;
 }
@@ -139,12 +141,13 @@ bool ReductionMapBody::operator==(const ReductionMapBody &o) const
 {
 	if (hashCheck != o.hashCheck)
 		return false;
-
-	if (mapArray.size() != o.mapArray.size())
+	unsigned int sz = mapArray.size();
+	if (sz != o.mapArray.size())
 		return false;
-
-	for (unsigned int i = 0; i < mapArray.size(); i++){
-		if (mapArray[i] != o.mapArray[i])
+	const auto* d1 = mapArray.data();
+	const auto* d2 = o.mapArray.data();
+	for (unsigned int i = 0; i < sz; i++){
+		if (d1[i] != d2[i])
 			return false;
 	}
 	return true;

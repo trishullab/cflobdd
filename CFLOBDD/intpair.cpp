@@ -75,8 +75,3 @@ bool intpair::operator!=(const intpair& p) const
   return (first != p.first) || (second != p.second);
 }
 
-// Overloaded ==
-bool intpair::operator==(const intpair& p)
-{
-  return (first == p.first) && (second == p.second);
-}

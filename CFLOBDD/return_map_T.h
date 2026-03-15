@@ -225,20 +225,16 @@ template <typename T>
 bool ReturnMapBody<T>::operator==(const ReturnMapBody<T> &o) const
 {
 	if (hashCheck != o.hashCheck)
-	{
 		return false;
-	}
-	else if (mapArray.size() != o.mapArray.size())
-	{
+	unsigned int sz = mapArray.size();
+	if (sz != o.mapArray.size())
 		return false;
-	} else {
-	  for (unsigned i = 0; i < mapArray.size(); i++)
-	  {
-		  if (mapArray[i] != o.mapArray[i])
-		  {
-			  return false;
-		  }
-	  }
+	const auto* d1 = mapArray.data();
+	const auto* d2 = o.mapArray.data();
+	for (unsigned i = 0; i < sz; i++)
+	{
+		if (d1[i] != d2[i])
+			return false;
 	}
 	return true;
 }

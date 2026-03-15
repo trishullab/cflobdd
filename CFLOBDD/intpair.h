@@ -37,7 +37,6 @@ class intpair {
   intpair& operator= (const intpair& p);  // Overloaded assignment
   intpair operator! ();
   bool operator!= (const intpair& p) const;     // Overloaded !=
-  bool operator== (const intpair& p);     // Overloaded ==
   int First() const { return first; }     // Access function
   int Second() const { return second; }   // Access function
   struct intpair_hash {

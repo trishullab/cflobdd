@@ -393,6 +393,15 @@ void CFLTests::test1(){
   H = MkProjection(5);
   I = MkIfThenElse(F, G, H);
 
+  std::cout << "test1: F = MkProjection(3)" << std::endl;
+  std::cout << F << std::endl;
+  std::cout << "test1: G = MkProjection(7)" << std::endl;
+  std::cout << G << std::endl;
+  std::cout << "test1: H = MkProjection(5)" << std::endl;
+  std::cout << H << std::endl;
+  std::cout << "test1: I = MkIfThenElse(F, G, H)" << std::endl;
+  std::cout << I << std::endl;
+
   // if MaxLevel is 3 or 4, test all assignments
   if (CFLOBDD::maxLevel == 3 || CFLOBDD::maxLevel == 4) {
 
@@ -425,6 +434,15 @@ void CFLTests::test2(){
   G = MkProjection(7);
   H = MkProjection(5);
   I = MkNegMajority(F, G, H);
+
+  std::cout << "test2: F = MkProjection(3)" << std::endl;
+  std::cout << F << std::endl;
+  std::cout << "test2: G = MkProjection(7)" << std::endl;
+  std::cout << G << std::endl;
+  std::cout << "test2: H = MkProjection(5)" << std::endl;
+  std::cout << H << std::endl;
+  std::cout << "test2: I = MkNegMajority(F, G, H)" << std::endl;
+  std::cout << I << std::endl;
 
   // if MaxLevel is 3 or 4, test all assignments
   if (CFLOBDD::maxLevel == 3 || CFLOBDD::maxLevel == 4) {

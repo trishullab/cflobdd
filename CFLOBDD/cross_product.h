@@ -95,6 +95,14 @@ class PairProductMapBody {//: public List<intpair> {
   bool isCanonical;              // Is this PairProductMapBody in *canonicalPairProductMapBodySet?
   static Hashset<PairProductMapBody> *canonicalPairProductMapBodySet;
 
+  // Object pool: recycle raw memory to avoid malloc/free overhead
+  void* operator new(size_t size);
+  void operator delete(void* ptr);
+ private:
+  static std::vector<void*>& getFreeList() {
+    static std::vector<void*>* const fl = new std::vector<void*>();
+    return *fl;
+  }
 };
 
 std::ostream& operator<< (std::ostream & out, const PairProductMapBody &r);
@@ -172,7 +180,7 @@ class TripleProductKey;
 // TripleProductMapBodyIterator
 //***************************************************************
 
-typedef ListIterator<inttriple> TripleProductMapBodyIterator;
+// TripleProductMapBodyIterator removed: converted to vector-based indexing
 
 //***************************************************************
 // TripleProductMapHandle
@@ -199,7 +207,7 @@ class TripleProductMapHandle {
 // TripleProductMapBody
 //***************************************************************
 
-class TripleProductMapBody : public List<inttriple> {
+class TripleProductMapBody {
 
   friend void TripleProductMapHandle::Canonicalize();
 
@@ -209,6 +217,13 @@ class TripleProductMapBody : public List<inttriple> {
   void DecrRef();
   size_t Hash();
   unsigned int refCount;         // reference-count value
+  void setHashCheck();
+  void AddToEnd(const inttriple& y);
+  std::vector<inttriple> mapArray;
+  bool operator==(const TripleProductMapBody &p) const;
+  inttriple& operator[](unsigned int i);
+  unsigned int Size();
+  size_t hashCheck;
 
  public:
   bool isCanonical;              // Is this TripleProductMapBody in *canonicalTripleProductMapBodySet?

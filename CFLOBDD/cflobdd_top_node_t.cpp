@@ -479,19 +479,18 @@ namespace CFL_OBDD{
         // [n1->rootConnection.returnMapHandle, n2->rootConnection.returnMapHandle, n3->rootConnection.returnMapHandle]
         // (component-wise) to each triple.
         ReturnMapHandle<T> returnMapHandle;
-        TripleProductMapBodyIterator MapIterator(*MapHandle.mapContents);
-        MapIterator.Reset();
-        while (!MapIterator.AtEnd()) {
+        const auto* mapData = MapHandle.mapContents->mapArray.data();
+        unsigned int mapSize = MapHandle.mapContents->mapArray.size();
+        for (unsigned int mi = 0; mi < mapSize; mi++) {
             T c1, c2, c3;
             int first, second, third;
-            first = MapIterator.Current().First();
-            second = MapIterator.Current().Second();
-            third = MapIterator.Current().Third();
+            first = mapData[mi].First();
+            second = mapData[mi].Second();
+            third = mapData[mi].Third();
             c1 = n1->rootConnection.returnMapHandle.Lookup(first);
             c2 = n2->rootConnection.returnMapHandle.Lookup(second);
             c3 = n3->rootConnection.returnMapHandle.Lookup(third);
             returnMapHandle.AddToEnd(op[c1][c2][c3]);
-            MapIterator.Next();
         }
         returnMapHandle.Canonicalize();
 

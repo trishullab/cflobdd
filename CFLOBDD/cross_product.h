@@ -27,6 +27,7 @@
 //    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+#include <deque>
 #include "intpair.h"
 #include "inttriple.h"
 
@@ -97,8 +98,9 @@ class PairProductMapBody {//: public List<intpair> {
 
   static PairProductMapBody* Create();
  private:
-  static std::vector<PairProductMapBody*>& getFreeList() {
-    static std::vector<PairProductMapBody*>* const fl = new std::vector<PairProductMapBody*>();
+  static constexpr unsigned int FREELIST_CAP = 64;
+  static std::deque<PairProductMapBody*>& getFreeList() {
+    static std::deque<PairProductMapBody*>* const fl = new std::deque<PairProductMapBody*>();
     return *fl;
   }
 };
@@ -229,8 +231,9 @@ class TripleProductMapBody {
 
   static TripleProductMapBody* Create();
  private:
-  static std::vector<TripleProductMapBody*>& getFreeList() {
-    static std::vector<TripleProductMapBody*>* const fl = new std::vector<TripleProductMapBody*>();
+  static constexpr unsigned int FREELIST_CAP = 64;
+  static std::deque<TripleProductMapBody*>& getFreeList() {
+    static std::deque<TripleProductMapBody*>* const fl = new std::deque<TripleProductMapBody*>();
     return *fl;
   }
 };

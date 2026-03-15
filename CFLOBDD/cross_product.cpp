@@ -91,7 +91,12 @@ void PairProductMapBody::DecrRef()
     mapArray.clear();
     hashCheck = 0;
     isCanonical = false;
-    getFreeList().push_back(this);
+    auto& fl = getFreeList();
+    fl.push_back(this);              // LIFO: most recent at back
+    while (fl.size() > FREELIST_CAP) {
+      delete fl.front();             // Evict oldest (LRU)
+      fl.pop_front();
+    }
   }
 }
 
@@ -774,7 +779,12 @@ void TripleProductMapBody::DecrRef()
     mapArray.clear();
     hashCheck = 0;
     isCanonical = false;
-    getFreeList().push_back(this);
+    auto& fl = getFreeList();
+    fl.push_back(this);              // LIFO: most recent at back
+    while (fl.size() > FREELIST_CAP) {
+      delete fl.front();             // Evict oldest (LRU)
+      fl.pop_front();
+    }
   }
 }
 

@@ -29,6 +29,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <deque>
 #include <unordered_set>
 #include "list_T.h"
 #include "list_TPtr.h"
@@ -69,10 +70,11 @@ class ReductionMapBody {
   bool isCanonical;              // Is this ReductionMapBody in *canonicalReductionMapBodySet?
 
  private:
+  static constexpr unsigned int FREELIST_CAP = 64;
   // Heap-allocated so it is never destroyed at program exit, avoiding static
   // destruction-order issues when DecrRef is called from late static destructors.
-  static std::vector<ReductionMapBody*>& getFreeList() {
-    static std::vector<ReductionMapBody*>* const freeList = new std::vector<ReductionMapBody*>();
+  static std::deque<ReductionMapBody*>& getFreeList() {
+    static std::deque<ReductionMapBody*>* const freeList = new std::deque<ReductionMapBody*>();
     return *freeList;
   }
 

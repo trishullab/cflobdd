@@ -99,7 +99,12 @@ void ReductionMapBody::DecrRef()
     isCanonical = false;
     hashCheck = 0;
     isIdentityMap = true;
-    getFreeList().push_back(this);
+    auto& fl = getFreeList();
+    fl.push_back(this);
+    while (fl.size() > FREELIST_CAP) {
+      delete fl.front();
+      fl.pop_front();
+    }
   }
 }
 

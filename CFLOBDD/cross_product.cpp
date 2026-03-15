@@ -502,6 +502,8 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 			   const auto* retMap1 = n1->BConnection[b1].returnMapHandle.mapContents->mapArray.data();
 			   const auto* retMap2 = n2->BConnection[b2].returnMapHandle.mapContents->mapArray.data();
 			   const auto* bMapData = BMap.mapContents->mapArray.data();
+			   auto& bReturnVec = bReturnHandle.mapContents->mapArray;
+			   auto& pairProdVec = pairProductMapHandle.mapContents->mapArray;
 			   unsigned int Biterator = 0;
 			   while (Biterator < BMapSize){
 				   int c1 = retMap1[bMapData[Biterator].First()];
@@ -510,11 +512,11 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 				   int &slot = flat[idx];
 				   if (slot >= 0) {
 					   // Pair already seen: reuse its exit index
-					   bReturnHandle.AddToEnd(slot);
+					   bReturnVec.push_back(slot);
 				   } else {
 					   // New pair: assign next exit index
-					   pairProductMapHandle.AddToEnd(intpair(c1, c2));
-					   bReturnHandle.AddToEnd(curExit);
+					   pairProdVec.push_back(intpair(c1, c2));
+					   bReturnVec.push_back(curExit);
 					   slot = curExit;
 					   dirty.push_back(idx);
 					   curExit++;
@@ -552,6 +554,8 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 			   const auto* retMap1 = n1->BConnection[b1].returnMapHandle.mapContents->mapArray.data();
 			   const auto* retMap2 = n2->BConnection[b2].returnMapHandle.mapContents->mapArray.data();
 			   const auto* bMapData = BMap.mapContents->mapArray.data();
+			   auto& bReturnVec = bReturnHandle.mapContents->mapArray;
+			   auto& pairProdVec = pairProductMapHandle.mapContents->mapArray;
 			   unsigned int Biterator = 0;
 			   while (Biterator < BMapSize){
 				   int c1 = retMap1[bMapData[Biterator].First()];
@@ -560,11 +564,11 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 				   auto it = pair_to_index.find(p);
 				   if (it != pair_to_index.end()){
 					   // Pair already seen: reuse its exit index
-					   bReturnHandle.AddToEnd(it->second);
+					   bReturnVec.push_back(it->second);
 				   } else {
 					   // New pair: assign next exit index
-					   pairProductMapHandle.AddToEnd(p);
-					   bReturnHandle.AddToEnd(curExit);
+					   pairProdVec.push_back(p);
+					   bReturnVec.push_back(curExit);
 					   pair_to_index.emplace(p, curExit);
 					   curExit++;
 				   }

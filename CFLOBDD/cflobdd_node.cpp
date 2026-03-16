@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <cstdarg>
 #include <unordered_set>
+#include <deque>
 #include <boost/unordered/unordered_flat_map.hpp>
 #include <map>
 //#include <mpirxx.h>
@@ -1376,10 +1377,12 @@ std::ostream& operator<< (std::ostream & out, const CFLOBDDNode &n)
 // Object pool: recycle raw memory to avoid malloc/free overhead.
 // Heap-allocated so it is never destroyed at program exit, avoiding
 // static destruction-order issues.
-static std::vector<void*>& getNodeFreeList() {
-  static std::vector<void*>* const fl = new std::vector<void*>();
+static std::deque<void*>& getNodeFreeList() {
+  static std::deque<void*>* const fl = new std::deque<void*>();
   return *fl;
 }
+
+static constexpr size_t NODE_FREELIST_CAP = 64;
 
 void* CFLOBDDInternalNode::operator new(size_t size) {
   auto& fl = getNodeFreeList();
@@ -1392,7 +1395,12 @@ void* CFLOBDDInternalNode::operator new(size_t size) {
 }
 
 void CFLOBDDInternalNode::operator delete(void* ptr) {
-  getNodeFreeList().push_back(ptr);
+  auto& fl = getNodeFreeList();
+  fl.push_back(ptr);
+  while (fl.size() > NODE_FREELIST_CAP) {
+    ::operator delete(fl.front());
+    fl.pop_front();
+  }
 }
 
 CFLOBDDInternalNode::CFLOBDDInternalNode(const unsigned int l)

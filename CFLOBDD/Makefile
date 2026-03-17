@@ -225,6 +225,16 @@ karatsuba128:
 	make karatsuba-individual-test
 	make karatsuba-individual-test
 
+stretch-tests:
+	./cflobdd2048.exe shiftadd 2897
+	./cflobdd1024.exe shiftadd-all
+	./cflobdd2048.exe shiftadd 2897
+	./cflobdd1024.exe shiftadd-all
+	./cflobdd2048.exe shiftadd 2897
+	./cflobdd1024.exe shiftadd-all
+	./cflobdd2048.exe shiftadd 2897
+	./cflobdd1024.exe shiftadd-all
+
 mult-tests:
 	make spec-all-test MULT=cflobdd32.exe
 	make shiftadd-all-test MULT=cflobdd32.exe

@@ -259,6 +259,7 @@ mult-tests:
 	make spec-all-test MULT=cflobdd1024.exe
 	make spec-test MULT=cflobdd1024.exe MOD=1481
 	make shiftadd-test MULT=cflobdd1024.exe MOD=1481
+	-make spec-all-test MULT=cflobdd2048.exe
 	-make spec-test MULT=cflobdd2048.exe MOD=2897
 	-make shiftadd-test MULT=cflobdd2048.exe MOD=2897
 	-make spec-test MULT=cflobdd4096.exe MOD=5783

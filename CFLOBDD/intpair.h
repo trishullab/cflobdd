@@ -29,28 +29,38 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdint>
 
+// Packed representation: first in upper 32 bits, second in lower 32 bits.
+// Single uint64_t enables one-instruction comparison and fast hashing.
 class intpair {
  public:
-  intpair();                              // Default constructor
-  intpair(const int i1, const int i2);    // Constructor
-  intpair& operator= (const intpair& p);  // Overloaded assignment
-  intpair operator! ();
-  bool operator!= (const intpair& p) const;     // Overloaded !=
-  int First() const { return first; }     // Access function
-  int Second() const { return second; }   // Access function
+  intpair() : packed(0) {}
+  intpair(const int i1, const int i2)
+    : packed(((uint64_t)(unsigned int)i1 << 32) | (unsigned int)i2) {}
+  intpair operator! () {
+    return intpair(!First(), !Second());
+  }
+  bool operator!= (const intpair& p) const { return packed != p.packed; }
+  friend bool operator==(const intpair& lhs, const intpair& rhs) { return lhs.packed == rhs.packed; }
+  int First() const { return (int)(packed >> 32); }
+  int Second() const { return (int)(packed & 0xFFFFFFFF); }
   struct intpair_hash {
-	  size_t operator()(const intpair& p) const {
-		  // return 117 * (p.First() + 1) + p.Second();
-      return (p.First() * 131) ^ (p.Second() * 524287 + 1);
-	  }
+    size_t operator()(const intpair& p) const {
+      // fmix64 finalizer from MurmurHash3
+      uint64_t h = p.packed;
+      h ^= h >> 33;
+      h *= 0xff51afd7ed558ccdULL;
+      h ^= h >> 33;
+      h *= 0xc4ceb9fe1a85ec53ULL;
+      h ^= h >> 33;
+      return (size_t)h;
+    }
   };
  private:
-  int first;
-  int second;
+  uint64_t packed;
 };
 
-bool operator==(const intpair& lhs, const intpair& rhs);
 std::ostream& operator<< (std::ostream & out, const intpair &p);
 
 #endif

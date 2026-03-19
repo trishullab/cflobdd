@@ -649,7 +649,7 @@ CFL_OBDD::CFLOBDDReturnMapHandle ComposeAndReduce(CFL_OBDD::CFLOBDDReturnMapHand
 	// Only indices actually written are tracked in dirtyIndices for O(size) cleanup.
 	static std::vector<int> flatMap;
 	static std::vector<unsigned int> dirtyIndices;
-	constexpr unsigned int COMPOSE_FLAT_THRESHOLD = 8400000; // > 2897^2 (largest modulus squared for 2048-bit)
+	constexpr unsigned int COMPOSE_FLAT_THRESHOLD = 33554432; // 2^25 (> 5783^2 for 4096-bit)
 	if (redSize <= COMPOSE_FLAT_THRESHOLD) {
 		if (flatMap.size() < redSize) {
 			flatMap.resize(redSize, -1);

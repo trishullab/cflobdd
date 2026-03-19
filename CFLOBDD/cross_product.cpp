@@ -496,7 +496,7 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 		 const unsigned int maxC1 = n1->numExits;
 		 const unsigned int maxC2 = n2->numExits;
 		 const unsigned long long pairSpaceSize = (unsigned long long)maxC1 * maxC2;
-		 constexpr unsigned long long FLAT_LOOKUP_THRESHOLD = 1048576; // 2^20
+		 constexpr unsigned long long FLAT_LOOKUP_THRESHOLD = 33554432; // 2^25
 
 		 if (pairSpaceSize <= FLAT_LOOKUP_THRESHOLD) {
 		   // Flat 2D array path: flatLookup[c1 * maxC2 + c2] holds the exit

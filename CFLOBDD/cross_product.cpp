@@ -562,7 +562,7 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 		   // Fallback: unordered_map for very large exit-pair spaces
 		   // (> 2^20 entries, which can arise when both nodes have many exits)
 		   unsigned int Aiterator = 0;
-		   boost::unordered_flat_map<intpair, unsigned int, intpair::intpair_hash> pair_to_index;
+		   boost::unordered_flat_map<packed_intpair, unsigned int, packed_intpair_hash> pair_to_index;
 		   pair_to_index.reserve(256);
 		   pair_to_index.max_load_factor(0.5);
 		   while (Aiterator < AMap.Size()) {
@@ -586,8 +586,9 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 			   while (Biterator < BMapSize){
 				   int c1 = retMap1[bMapData[Biterator].First()];
 				   int c2 = retMap2[bMapData[Biterator].Second()];
-				   intpair p = intpair(c1, c2);
-				   auto it = pair_to_index.find(p);
+				   intpair p(c1, c2);
+				   packed_intpair key = p.getPacked();
+				   auto it = pair_to_index.find(key);
 				   if (it != pair_to_index.end()){
 					   // Pair already seen: reuse its exit index
 					   bReturnVec.push_back(it->second);
@@ -595,7 +596,7 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 					   // New pair: assign next exit index
 					   pairProdVec.push_back(p);
 					   bReturnVec.push_back(curExit);
-					   pair_to_index.emplace(p, curExit);
+					   pair_to_index.emplace(key, curExit);
 					   curExit++;
 				   }
 				   Biterator++;

@@ -45,6 +45,7 @@ class intpair {
   friend bool operator==(const intpair& lhs, const intpair& rhs) { return lhs.packed == rhs.packed; }
   int First() const { return (int)(packed >> 32); }
   int Second() const { return (int)(packed & 0xFFFFFFFF); }
+  uint64_t getPacked() const { return packed; }
   struct intpair_hash {
     size_t operator()(const intpair& p) const {
       // fmix64 finalizer from MurmurHash3
@@ -59,6 +60,20 @@ class intpair {
   };
  private:
   uint64_t packed;
+};
+
+typedef uint64_t packed_intpair;
+
+struct packed_intpair_hash {
+  size_t operator()(packed_intpair p) const {
+    // fmix64 finalizer from MurmurHash3
+    p ^= p >> 33;
+    p *= 0xff51afd7ed558ccdULL;
+    p ^= p >> 33;
+    p *= 0xc4ceb9fe1a85ec53ULL;
+    p ^= p >> 33;
+    return (size_t)p;
+  }
 };
 
 std::ostream& operator<< (std::ostream & out, const intpair &p);

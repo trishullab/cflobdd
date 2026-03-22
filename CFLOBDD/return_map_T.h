@@ -31,6 +31,8 @@
 #include <fstream>
 #include <unordered_set>
 #include <vector>
+#include <deque>
+#include "cflobdd_config.h"
 #include "list_T.h"
 #include "list_TPtr.h"
 #include "hashset.h"
@@ -147,8 +149,8 @@ class ReturnMapBody {
  private:
   // Heap-allocated so it is never destroyed at program exit, avoiding static
   // destruction-order issues when DecrRef is called from late static destructors.
-  static std::vector<ReturnMapBody<T>*>& getFreeList() {
-    static std::vector<ReturnMapBody<T>*>* const freeList = new std::vector<ReturnMapBody<T>*>();
+  static std::deque<ReturnMapBody<T>*>& getFreeList() {
+    static std::deque<ReturnMapBody<T>*>* const freeList = new std::deque<ReturnMapBody<T>*>();
     return *freeList;
   }
 };
@@ -191,7 +193,15 @@ void ReturnMapBody<T>::DecrRef()
     mapArray.clear();
     hashCheck = 0;
     isCanonical = false;
-    getFreeList().push_back(this);
+    auto& fl = getFreeList();
+    fl.push_back(this);
+    size_t cap = cflobddConfig.returnMapFreelistCap;
+    if (cap > 0) {
+      while (fl.size() > cap) {
+        delete fl.front();
+        fl.pop_front();
+      }
+    }
   }
 }
 

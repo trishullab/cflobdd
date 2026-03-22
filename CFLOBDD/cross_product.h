@@ -98,7 +98,6 @@ class PairProductMapBody {//: public List<intpair> {
 
   static PairProductMapBody* Create();
  private:
-  static constexpr unsigned int FREELIST_CAP = 64;
   static std::deque<PairProductMapBody*>& getFreeList() {
     static std::deque<PairProductMapBody*>* const fl = new std::deque<PairProductMapBody*>();
     return *fl;
@@ -231,7 +230,6 @@ class TripleProductMapBody {
 
   static TripleProductMapBody* Create();
  private:
-  static constexpr unsigned int FREELIST_CAP = 64;
   static std::deque<TripleProductMapBody*>& getFreeList() {
     static std::deque<TripleProductMapBody*>* const fl = new std::deque<TripleProductMapBody*>();
     return *fl;

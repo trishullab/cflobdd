@@ -35,6 +35,7 @@
 #include <deque>
 #include <boost/unordered/unordered_flat_map.hpp>
 #include <map>
+#include "cflobdd_config.h"
 //#include <mpirxx.h>
 
 #include "ntz_T.h"
@@ -1382,8 +1383,6 @@ static std::deque<void*>& getNodeFreeList() {
   return *fl;
 }
 
-static constexpr size_t NODE_FREELIST_CAP = 64;
-
 void* CFLOBDDInternalNode::operator new(size_t size) {
   auto& fl = getNodeFreeList();
   if (!fl.empty()) {
@@ -1397,9 +1396,12 @@ void* CFLOBDDInternalNode::operator new(size_t size) {
 void CFLOBDDInternalNode::operator delete(void* ptr) {
   auto& fl = getNodeFreeList();
   fl.push_back(ptr);
-  while (fl.size() > NODE_FREELIST_CAP) {
-    ::operator delete(fl.front());
-    fl.pop_front();
+  size_t cap = cflobddConfig.nodeFreelistCap;
+  if (cap > 0) {
+    while (fl.size() > cap) {
+      ::operator delete(fl.front());
+      fl.pop_front();
+    }
   }
 }
 

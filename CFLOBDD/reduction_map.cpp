@@ -31,6 +31,7 @@
 #include <cstdlib>
 #include "return_map_T.h"
 #include "reduction_map.h"
+#include "cflobdd_config.h"
 #include "list_T.h"
 #include "list_TPtr.h"
 #include "intpair.h"
@@ -101,9 +102,12 @@ void ReductionMapBody::DecrRef()
     isIdentityMap = true;
     auto& fl = getFreeList();
     fl.push_back(this);
-    while (fl.size() > FREELIST_CAP) {
-      delete fl.front();
-      fl.pop_front();
+    size_t cap = cflobddConfig.reductionMapFreelistCap;
+    if (cap > 0) {
+      while (fl.size() > cap) {
+        delete fl.front();
+        fl.pop_front();
+      }
     }
   }
 }

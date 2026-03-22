@@ -29,22 +29,60 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <cstring>
 #include "tests_cfl.h"
+#include "cflobdd_config.h"
 #include <iomanip>
 #define _CRTDBG_MAP_ALLOC
 #include <cstdlib>
 
 static long seed_value = 27;
 
+// Try to parse "--key=value" and store value in *dest.
+// Returns true if arg matched the key.
+static bool parseSize(const char* arg, const char* key, size_t* dest)
+{
+	size_t keyLen = strlen(key);
+	if (strncmp(arg, key, keyLen) == 0 && arg[keyLen] == '=') {
+		*dest = strtoull(arg + keyLen + 1, nullptr, 10);
+		return true;
+	}
+	return false;
+}
+
 int main(int argc, char * argv[])
 {
-	// Parse flags (--verbose / -v) and collect positional arguments
+	// Parse flags and collect positional arguments
 	std::vector<std::string> posArgs;
 	for (int i = 1; i < argc; i++) {
 		std::string arg = argv[i];
-		if (arg == "--verbose" || arg == "-v") {
+		if (arg == "--help" || arg == "-h") {
+			printCFLOBDDUsage(argv[0]);
+			return 0;
+		}
+		else if (arg == "--verbose" || arg == "-v") {
 			CFL_OBDD::CFLTests::verbose = true;
-		} else {
+		}
+		// Flat-array thresholds
+		else if (parseSize(argv[i], "--flat-lookup-threshold", &cflobddConfig.flatLookupThreshold)) {}
+		else if (parseSize(argv[i], "--compose-flat-threshold", &cflobddConfig.composeFlatThreshold)) {}
+		else if (parseSize(argv[i], "--identity-map-threshold", &cflobddConfig.identityMapArrayThreshold)) {}
+		// Individual freelist caps
+		else if (parseSize(argv[i], "--node-freelist-cap", &cflobddConfig.nodeFreelistCap)) {}
+		else if (parseSize(argv[i], "--pair-product-freelist-cap", &cflobddConfig.pairProductFreelistCap)) {}
+		else if (parseSize(argv[i], "--triple-product-freelist-cap", &cflobddConfig.tripleProductFreelistCap)) {}
+		else if (parseSize(argv[i], "--reduction-map-freelist-cap", &cflobddConfig.reductionMapFreelistCap)) {}
+		else if (parseSize(argv[i], "--return-map-freelist-cap", &cflobddConfig.returnMapFreelistCap)) {}
+		// Set all freelist caps at once
+		else if (strncmp(argv[i], "--freelist-cap=", 15) == 0) {
+			size_t cap = strtoull(argv[i] + 15, nullptr, 10);
+			cflobddConfig.nodeFreelistCap = cap;
+			cflobddConfig.pairProductFreelistCap = cap;
+			cflobddConfig.tripleProductFreelistCap = cap;
+			cflobddConfig.reductionMapFreelistCap = cap;
+			cflobddConfig.returnMapFreelistCap = cap;
+		}
+		else {
 			posArgs.push_back(arg);
 		}
 	}

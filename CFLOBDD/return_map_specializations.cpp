@@ -33,6 +33,7 @@
 // #include "return_map_T.h"
 #include "intpair.h"
 #include "cflobdd_node.h"
+#include "cflobdd_config.h"
 #include "matmult_map.h"
 #include "fourier_semiring.h"
 #ifdef WCFLOBDD_SUPPORTED
@@ -576,7 +577,7 @@ ReturnMapHandle<std::complex<double>> ReturnMapHandle<std::complex<double>>::Com
 //
 // Returns a canonicalized CFLOBDDReturnMapHandle [0, 1, 2, ..., k-1].
 // Previously computed maps are cached:
-//   - For k <= IDENTITY_MAP_ARRAY_THRESHOLD (1024): flat array with O(1) lookup.
+//   - For k <= identityMapArrayThreshold (default 1024): flat array with O(1) lookup.
 //   - For k > threshold: std::unordered_map for sparse large-size cases.
 //
 // The flat array uses a parallel bool vector to distinguish "not yet computed"
@@ -585,20 +586,21 @@ ReturnMapHandle<std::complex<double>> ReturnMapHandle<std::complex<double>>::Com
 
 namespace CFL_OBDD {
 
-static constexpr unsigned int IDENTITY_MAP_ARRAY_THRESHOLD = 1024;
+// IDENTITY_MAP_ARRAY_THRESHOLD is read from cflobddConfig.identityMapArrayThreshold
 
 CFLOBDDReturnMapHandle MakeIdentityReturnMap(unsigned int k)
 {
     // Function-local statics: guaranteed to be initialized on first call
     // (avoids static-initialization-order fiasco across translation units).
 
-    // Flat array cache for small sizes (indices 0..THRESHOLD)
-    static std::vector<CFLOBDDReturnMapHandle> identityMapArray(IDENTITY_MAP_ARRAY_THRESHOLD + 1);
-    static std::vector<bool> identityMapValid(IDENTITY_MAP_ARRAY_THRESHOLD + 1, false);
-    // Overflow cache for large sizes (> THRESHOLD)
+    // Flat array cache for small sizes (indices 0..threshold)
+    static const size_t threshold = cflobddConfig.identityMapArrayThreshold;
+    static std::vector<CFLOBDDReturnMapHandle> identityMapArray(threshold + 1);
+    static std::vector<bool> identityMapValid(threshold + 1, false);
+    // Overflow cache for large sizes (> threshold)
     static std::unordered_map<unsigned int, CFLOBDDReturnMapHandle> identityMapOverflow;
 
-    if (k <= IDENTITY_MAP_ARRAY_THRESHOLD) {
+    if (k <= threshold) {
         if (identityMapValid[k]) {
             return identityMapArray[k];
         }
@@ -649,7 +651,7 @@ CFL_OBDD::CFLOBDDReturnMapHandle ComposeAndReduce(CFL_OBDD::CFLOBDDReturnMapHand
 	// Only indices actually written are tracked in dirtyIndices for O(size) cleanup.
 	static std::vector<int> flatMap;
 	static std::vector<unsigned int> dirtyIndices;
-	constexpr unsigned int COMPOSE_FLAT_THRESHOLD = 33554432; // 2^25 (> 5783^2 for 4096-bit)
+	const size_t COMPOSE_FLAT_THRESHOLD = cflobddConfig.composeFlatThreshold;
 	if (redSize <= COMPOSE_FLAT_THRESHOLD) {
 		if (flatMap.size() < redSize) {
 			flatMap.resize(redSize, -1);

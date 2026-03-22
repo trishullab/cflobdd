@@ -37,6 +37,7 @@
 #include "intpair.h"
 #include "inttriple.h"
 #include "cross_product.h"
+#include "cflobdd_config.h"
 
 using namespace CFL_OBDD;
 
@@ -93,9 +94,12 @@ void PairProductMapBody::DecrRef()
     isCanonical = false;
     auto& fl = getFreeList();
     fl.push_back(this);              // LIFO: most recent at back
-    while (fl.size() > FREELIST_CAP) {
-      delete fl.front();             // Evict oldest (LRU)
-      fl.pop_front();
+    size_t cap = cflobddConfig.pairProductFreelistCap;
+    if (cap > 0) {
+      while (fl.size() > cap) {
+        delete fl.front();           // Evict oldest (LRU)
+        fl.pop_front();
+      }
     }
   }
 }
@@ -496,7 +500,7 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 		 const unsigned int maxC1 = n1->numExits;
 		 const unsigned int maxC2 = n2->numExits;
 		 const unsigned long long pairSpaceSize = (unsigned long long)maxC1 * maxC2;
-		 constexpr unsigned long long FLAT_LOOKUP_THRESHOLD = 33554432; // 2^25
+		 const size_t FLAT_LOOKUP_THRESHOLD = cflobddConfig.flatLookupThreshold;
 
 		 if (pairSpaceSize <= FLAT_LOOKUP_THRESHOLD) {
 		   // Flat 2D array path: flatLookup[c1 * maxC2 + c2] holds the exit
@@ -782,9 +786,12 @@ void TripleProductMapBody::DecrRef()
     isCanonical = false;
     auto& fl = getFreeList();
     fl.push_back(this);              // LIFO: most recent at back
-    while (fl.size() > FREELIST_CAP) {
-      delete fl.front();             // Evict oldest (LRU)
-      fl.pop_front();
+    size_t cap = cflobddConfig.tripleProductFreelistCap;
+    if (cap > 0) {
+      while (fl.size() > cap) {
+        delete fl.front();           // Evict oldest (LRU)
+        fl.pop_front();
+      }
     }
   }
 }

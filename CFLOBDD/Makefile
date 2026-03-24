@@ -248,7 +248,7 @@ mult-tests:
 	make karatsuba-test MULT=cflobdd64.exe MOD=103
 	make spec-all-test MULT=cflobdd128.exe
 	make shiftadd-all-test MULT=cflobdd128.exe
-	make karatsuba128
+	make karatsuba-all-test MULT=cflobdd128.exe
 	make spec-test MULT=cflobdd128.exe MOD=197
 	make shiftadd-test MULT=cflobdd128.exe MOD=197
 	make karatsuba-test MULT=cflobdd128.exe MOD=197

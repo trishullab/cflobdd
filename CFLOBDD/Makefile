@@ -91,7 +91,7 @@ clean-all: clean depclean
 # delete them to force recompilation when switching widths or build modes.
 NUM_BITS_OBJS = multiplication_crt.o tests_cfl.o cflobdd_c.o return_map_specializations.o
 
-.PHONY: cflobdd32 cflobdd64 cflobdd128 cflobdd256 cflobdd512 cflobdd1024 cflobdd2048 cflobdd4096
+.PHONY: cflobdd32 cflobdd64 cflobdd128 cflobdd256 cflobdd512 cflobdd1024 cflobdd2048 cflobdd4096 cflobdd8192
 
 cflobdd32:
 	rm -f $(NUM_BITS_OBJS)
@@ -125,6 +125,10 @@ cflobdd4096:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=4096 PROJECT=cflobdd4096.exe
 
+cflobdd8192:
+	rm -f $(NUM_BITS_OBJS)
+	$(MAKE) NUM_BITS=8192 PROJECT=cflobdd8192.exe
+
 all-bit-sizes:
 	make cflobdd32
 	make cflobdd64
@@ -134,6 +138,7 @@ all-bit-sizes:
 	make cflobdd1024
 	make cflobdd2048
 	make cflobdd4096
+	make cflobdd8192
 
 MULT = cflobdd32.exe
 MOD = 59
@@ -263,4 +268,4 @@ mult-tests:
 	-make spec-test MULT=cflobdd2048.exe MOD=2897
 	-make shiftadd-test MULT=cflobdd2048.exe MOD=2897
 	-make spec-test MULT=cflobdd4096.exe MOD=5783
-	-make shiftadd-test MULT=cflobdd4096.exe MOD=5783
+	-make spec-test MULT=cflobdd8192.exe MOD=11497

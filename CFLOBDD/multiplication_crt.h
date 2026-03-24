@@ -82,8 +82,10 @@ enum Position { TopLevel, A, B, AA, AB, BA, BB };
   const unsigned int numberOfMultRelations = 418;
 #elif NUM_BITS == 4096
   const unsigned int numberOfMultRelations = 758;
+#elif NUM_BITS == 8192
+  const unsigned int numberOfMultRelations = 1386;
 #else
-  #error "Unsupported NUM_BITS value. Use 32, 64, 128, 256, 512, 1024, 2048, or 4096."
+  #error "Unsupported NUM_BITS value. Use 32, 64, 128, 256, 512, 1024, 2048, 4096, or 8192."
 #endif
 
 // Number of levels needed per bit-width (2**(level))
@@ -103,8 +105,10 @@ enum Position { TopLevel, A, B, AA, AB, BA, BB };
   const unsigned int virtualMaxLevel = 12;
 #elif NUM_BITS == 4096
   const unsigned int virtualMaxLevel = 13;
+#elif NUM_BITS == 8192
+  const unsigned int virtualMaxLevel = 14;
 #else
-  #error "Unsupported NUM_BITS value. Use 32, 64, 128, 256, 512, 1024, 2048, or 4096."
+  #error "Unsupported NUM_BITS value. Use 32, 64, 128, 256, 512, 1024, 2048, 4096, or 8192."
 #endif
 
 // Compile-time check: virtualMaxLevel must fit within CFLOBDDMaxLevel
@@ -119,9 +123,9 @@ const unsigned int totalVars = 1u << CFLOBDDMaxLevel;
 const unsigned int halfVars = 1u << (CFLOBDDMaxLevel - 1);
 
 /// Total number of odd primes available
-const unsigned int numberOfOddPrimes = 999;
+const unsigned int numberOfOddPrimes = 1799;
 
-/// Array of first 999 odd primes
+/// Array of first numberOfOddPrimes odd primes
 extern const unsigned int AllModuli[numberOfOddPrimes];
 
 /// Pointer to the moduli array (for backward compatibility)
@@ -162,6 +166,11 @@ namespace mp = boost::multiprecision;
   typedef mp::number<mp::cpp_int_backend<4096, 4096,
       mp::unsigned_magnitude, mp::unchecked, void>> INPUT_TYPE;
   typedef mp::number<mp::cpp_int_backend<8192, 8192,
+      mp::unsigned_magnitude, mp::unchecked, void>> OUTPUT_TYPE;
+#elif NUM_BITS == 8192
+  typedef mp::number<mp::cpp_int_backend<8192, 8192,
+      mp::unsigned_magnitude, mp::unchecked, void>> INPUT_TYPE;
+  typedef mp::number<mp::cpp_int_backend<16384, 16384,
       mp::unsigned_magnitude, mp::unchecked, void>> OUTPUT_TYPE;
 #endif
 

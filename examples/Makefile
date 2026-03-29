@@ -53,6 +53,26 @@ multmod-direct: cudd_build/libcudd.a
 # Boost include path for multiprecision types
 BOOST_INC = -I../../boost_1_81_0
 
+# CFLOBDD include/object paths
+CFLOBDD_DIR = ../CFLOBDD
+CFLOBDD_INC = -I$(CFLOBDD_DIR) $(BOOST_INC)
+# All CFLOBDD object files (excluding main.o, tests_cfl.o, multiplication_crt.o, cflobdd_c.o, and weighted sources)
+CFLOBDD_OBJS = $(filter-out $(CFLOBDD_DIR)/main.o $(CFLOBDD_DIR)/tests_cfl.o \
+    $(CFLOBDD_DIR)/multiplication_crt.o $(CFLOBDD_DIR)/cflobdd_c.o, \
+    $(filter-out $(CFLOBDD_DIR)/weighted_%.o $(CFLOBDD_DIR)/w%.o, \
+    $(wildcard $(CFLOBDD_DIR)/*.o))) \
+    $(wildcard $(CFLOBDD_DIR)/Solver/uwr/bit_vector/*.o) \
+    $(wildcard $(CFLOBDD_DIR)/Solver/uwr/parsing/*.o)
+
+# ADD <-> CFLOBDD conversion tests (no CRT dependency)
+CONV_CXXFLAGS = $(CUDD_CXXFLAGS) $(CFLOBDD_INC) -std=c++2a -w
+
+testConversion: cudd_build/libcudd.a
+	g++ $(CONV_CXXFLAGS) -c -o addToCflobdd.o addToCflobdd.cc
+	g++ $(CONV_CXXFLAGS) -c -o testConversion.o testConversion.cc
+	g++ $(CONV_CXXFLAGS) -o testConversion.exe testConversion.o addToCflobdd.o \
+		$(CFLOBDD_OBJS) cudd_build/libcudd.a -lpsapi -Wl,--stack,16777216
+
 # Build targets for different bit-widths
 multmod-32: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=32 -c -o addMultiplication.o addMultiplication.cc

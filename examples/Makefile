@@ -32,7 +32,7 @@ CUDD_OBJS = $(patsubst $(REL_DIR)/%.c, cudd_build/%.o, $(CUDD_SRCS))
 CUDDOBJ_SRC = $(REL_DIR)/cplusplus/cuddObj.cc
 
 CUDD_CFLAGS = -DHAVE_CONFIG_H -I$(REL_DIR) -I$(REL_DIR)/cudd -I$(REL_DIR)/mtr -I$(REL_DIR)/epd -I$(REL_DIR)/st -I$(REL_DIR)/util -Wall -Wextra -g -O3
-CUDD_CXXFLAGS = $(CUDD_CFLAGS) -std=c++14
+CUDD_CXXFLAGS = $(CUDD_CFLAGS) -std=c++2a
 
 cudd_build:
 	mkdir -p cudd_build/cudd cudd_build/mtr cudd_build/st cudd_build/epd cudd_build/util cudd_build/cplusplus
@@ -64,14 +64,18 @@ CFLOBDD_OBJS = $(filter-out $(CFLOBDD_DIR)/main.o $(CFLOBDD_DIR)/tests_cfl.o \
     $(wildcard $(CFLOBDD_DIR)/Solver/uwr/bit_vector/*.o) \
     $(wildcard $(CFLOBDD_DIR)/Solver/uwr/parsing/*.o)
 
-# ADD <-> CFLOBDD conversion tests (no CRT dependency)
-CONV_CXXFLAGS = $(CUDD_CXXFLAGS) $(CFLOBDD_INC) -std=c++2a -w
+# ADD <-> CFLOBDD conversion tests (includes CRT: NumsModK, MultModK)
+# Requires lld linker: pacman -S mingw-w64-ucrt-x86_64-lld
+# GNU ld has a COMDAT bug that silently crashes when linking CFLOBDD + CUDD.
+CONV_CXXFLAGS = $(CUDD_CXXFLAGS) $(CFLOBDD_INC) -std=c++2a -DNUM_BITS=32 -w
 
 testConversion: cudd_build/libcudd.a
+	cd $(CFLOBDD_DIR) && $(MAKE) cflobdd32
 	g++ $(CONV_CXXFLAGS) -c -o addToCflobdd.o addToCflobdd.cc
-	g++ $(CONV_CXXFLAGS) -c -o testConversion.o testConversion.cc
-	g++ $(CONV_CXXFLAGS) -o testConversion.exe testConversion.o addToCflobdd.o \
-		$(CFLOBDD_OBJS) cudd_build/libcudd.a -lpsapi -Wl,--stack,16777216
+	g++ $(CONV_CXXFLAGS) -DCFLOBDD_C_EXPORTS -c -o testConversion.o testConversion.cc
+	g++ $(CONV_CXXFLAGS) -fuse-ld=lld -o testConversion.exe testConversion.o addToCflobdd.o \
+		$(CFLOBDD_DIR)/multiplication_crt.o $(CFLOBDD_OBJS) cudd_build/libcudd.a \
+		-lpsapi -Wl,--stack,16777216
 
 # Build targets for different bit-widths
 multmod-32: cudd_build/libcudd.a

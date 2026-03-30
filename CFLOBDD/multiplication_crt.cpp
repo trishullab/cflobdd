@@ -263,7 +263,7 @@ CFLOBDDNodeHandle ProtoCFLOBDDNumsModK(unsigned int lev, unsigned int k) {
         if (bottomLevel == 0)
             return CFLOBDDNodeHandle::CFLOBDDForkNodeHandle;
         else
-            return MkDistinction(bottomLevel, 0);
+            return MkDistinction(bottomLevel, 0u);
     }
 
     // virtualLevel = level in the non-embedded structure (pairs with virtualMaxLevel)

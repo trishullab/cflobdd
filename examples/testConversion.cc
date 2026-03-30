@@ -8,15 +8,18 @@
   fails or is not applicable.  This allows tests with many more variables
   than would be feasible with brute-force enumeration.
 
-  Compiled with -DNUM_BITS=32 so that the CRT primitives (NumsModK,
-  MultModK) are available at virtualMaxLevel = 6 (32-bit, 64 variables).
+  CRT tests (NumsModK, MultModK) require -DNUM_BITS=32.
+  Build with: make testConversion (from examples/ directory)
+  Requires lld linker: pacman -S mingw-w64-ucrt-x86_64-lld
 */
 
 #include "addToCflobdd.hh"
 #include "../CFLOBDD/cflobdd_int.h"
 #include "../CFLOBDD/cflobdd_top_node_int.h"
-#ifdef USE_CRT_TESTS
+
+#ifdef NUM_BITS
 #include "../CFLOBDD/multiplication_crt.h"
+#define USE_CRT_TESTS
 #endif
 
 #include <iostream>
@@ -26,6 +29,12 @@
 
 using namespace CFL_OBDD;
 using namespace std::chrono;
+
+// Provide CFLTests::verbose (defined in tests_cfl.cpp, which we don't link)
+#ifdef USE_CRT_TESTS
+#include "../CFLOBDD/tests_cfl.h"
+bool CFLTests::verbose = false;
+#endif
 
 // =========================================================================
 // CFLOBDD subsystem initialization (mirrors CFLOBDD_module_init)
@@ -245,13 +254,13 @@ static bool testNumsModK() {
         CFLOBDD rt = ADD_to_CFLOBDD<int>(mgr, add);
         auto end = high_resolution_clock::now();
 
-        auto toTime = duration_cast<milliseconds>(mid - start).count();
-        auto fromTime = duration_cast<milliseconds>(end - mid).count();
+        auto cfToAdd = duration_cast<milliseconds>(mid - start).count();
+        auto addToCf = duration_cast<milliseconds>(end - mid).count();
 
         // Structural equality check on CFLOBDDs
         if (orig == rt) {
             std::cout << "  3. NumsModK(k=" << k << "): PASS (structural)"
-                      << "  [to:" << toTime << "ms, from:" << fromTime << "ms]" << std::endl;
+                      << "  [CF->ADD:" << cfToAdd << "ms, ADD->CF:" << addToCf << "ms]" << std::endl;
         } else {
             std::cout << "  3. NumsModK(k=" << k << "): structural FAIL, checking exhaustively..." << std::endl;
             if (!ExhaustiveCompare(add, orig, numVars, "NumsModK")) return false;
@@ -291,15 +300,15 @@ static bool testMultModK() {
         CFLOBDD rt = ADD_to_CFLOBDD<int>(mgr, add);
         auto end = high_resolution_clock::now();
 
-        auto cfTime = duration_cast<milliseconds>(mid1 - start).count();
-        auto toTime = duration_cast<milliseconds>(mid2 - mid1).count();
-        auto fromTime = duration_cast<milliseconds>(end - mid2).count();
+        auto buildTime = duration_cast<milliseconds>(mid1 - start).count();
+        auto cfToAdd = duration_cast<milliseconds>(mid2 - mid1).count();
+        auto addToCf = duration_cast<milliseconds>(end - mid2).count();
 
         // Structural equality check on CFLOBDDs
         if (orig == rt) {
             std::cout << "  4. MultModK(k=" << k << "): PASS (structural)"
-                      << "  [build:" << cfTime << "ms, to:" << toTime
-                      << "ms, from:" << fromTime << "ms]" << std::endl;
+                      << "  [build:" << buildTime << "ms, CF->ADD:" << cfToAdd
+                      << "ms, ADD->CF:" << addToCf << "ms]" << std::endl;
         } else {
             std::cout << "  4. MultModK(k=" << k << "): structural FAIL" << std::endl;
             return false;
@@ -335,12 +344,12 @@ static bool testScaling() {
         ADD rt = CFLOBDD_to_ADD<int>(mgr, cf);
         auto end = high_resolution_clock::now();
 
-        auto toTime = duration_cast<milliseconds>(mid - start).count();
-        auto fromTime = duration_cast<milliseconds>(end - mid).count();
+        auto addToCf = duration_cast<milliseconds>(mid - start).count();
+        auto cfToAdd = duration_cast<milliseconds>(end - mid).count();
 
         if (f == rt) {
             std::cout << "  5. " << n << " vars: PASS (structural)"
-                      << "  [to:" << toTime << "ms, from:" << fromTime << "ms]" << std::endl;
+                      << "  [ADD->CF:" << addToCf << "ms, CF->ADD:" << cfToAdd << "ms]" << std::endl;
         } else {
             std::cout << "  5. " << n << " vars: structural FAIL" << std::endl;
             return false;

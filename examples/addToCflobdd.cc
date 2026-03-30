@@ -188,6 +188,13 @@ ADD CFLOBDDConvertNodeToADD(
 {
     CFLOBDDNode* cfNode = nodeHandle.handleContents;
 
+    // Fast path: NoDistinctionNode at any level has 1 exit — just return leaves[0].
+    // This avoids recursing through all the NoDistinctionNode padding levels
+    // in the topmost embedding, reducing O(CFLOBDDMaxLevel) to O(virtualMaxLevel).
+    if (nodeHandle == CFLOBDDNodeHandle::NoDistinctionNode[level]) {
+        return leaves[0];
+    }
+
     // Check proto-ADD memo
     auto pit = protoMemo.find(cfNode);
     if (pit != protoMemo.end()) {
@@ -260,32 +267,48 @@ ADD CFLOBDDConvertNodeToADD(
     }
 
     // Build proto B-ADDs (using cached proto-ADDs of B sub-nodes)
+    // NoDistinctionNodes have 1 exit and no internal structure — their
+    // proto is just the corresponding exit leaf directly.
     std::vector<ADD> B_protos(m);
     for (unsigned int i = 0; i < m; i++) {
-        CFLOBDDNode* bNode = node->BConnection[i].entryPointHandle.handleContents;
-        unsigned int numBExits = bNode->numExits;
+        CFLOBDDNodeHandle &bHandle = node->BConnection[i].entryPointHandle;
+        unsigned int numBExits = bHandle.handleContents->numExits;
         std::vector<ADD> bExitLeaves(numBExits);
         for (unsigned int j = 0; j < numBExits; j++) {
             bExitLeaves[j] = exitLeaves[node->BConnection[i].returnMapHandle.Lookup(j)];
         }
-        assert(protoMemo.find(bNode) != protoMemo.end());
-        int bOffset = (int)midVar - (int)protoMemo[bNode].topVar;
-        std::unordered_map<DdNode*, ADD> spliceMemo;
-        B_protos[i] = FusedVariableShiftAndSplice(
-            mgr, protoMemo[bNode].protoADD.getNode(), bOffset, bExitLeaves, spliceMemo);
+        if (bHandle == CFLOBDDNodeHandle::NoDistinctionNode[level - 1]) {
+            B_protos[i] = bExitLeaves[0];
+        }
+        else {
+            assert(protoMemo.find(bHandle.handleContents) != protoMemo.end());
+            auto &entry = protoMemo[bHandle.handleContents];
+            int bOffset = (int)midVar - (int)entry.topVar;
+            std::unordered_map<DdNode*, ADD> spliceMemo;
+            B_protos[i] = FusedVariableShiftAndSplice(
+                mgr, entry.protoADD.getNode(), bOffset, bExitLeaves, spliceMemo);
+        }
     }
 
     // Build proto A-ADD (using cached proto-ADD of A sub-node)
-    CFLOBDDNode* aNode = node->AConnection.entryPointHandle.handleContents;
+    // Same NoDistinctionNode handling.
+    CFLOBDDNodeHandle &aHandle = node->AConnection.entryPointHandle;
     std::vector<ADD> A_protoLeaves(numAExits);
     for (unsigned int j = 0; j < numAExits; j++) {
         A_protoLeaves[j] = B_protos[node->AConnection.returnMapHandle.Lookup(j)];
     }
-    assert(protoMemo.find(aNode) != protoMemo.end());
-    int aOffset = (int)topVar - (int)protoMemo[aNode].topVar;
-    std::unordered_map<DdNode*, ADD> aSpliceMemo;
-    ADD protoADD = FusedVariableShiftAndSplice(
-        mgr, protoMemo[aNode].protoADD.getNode(), aOffset, A_protoLeaves, aSpliceMemo);
+    ADD protoADD;
+    if (aHandle == CFLOBDDNodeHandle::NoDistinctionNode[level - 1]) {
+        protoADD = A_protoLeaves[0];
+    }
+    else {
+        assert(protoMemo.find(aHandle.handleContents) != protoMemo.end());
+        auto &entry = protoMemo[aHandle.handleContents];
+        int aOffset = (int)topVar - (int)entry.topVar;
+        std::unordered_map<DdNode*, ADD> aSpliceMemo;
+        protoADD = FusedVariableShiftAndSplice(
+            mgr, entry.protoADD.getNode(), aOffset, A_protoLeaves, aSpliceMemo);
+    }
 
     protoMemo[cfNode] = { protoADD, topVar };
     return result;

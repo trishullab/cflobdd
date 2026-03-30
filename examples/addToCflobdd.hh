@@ -25,14 +25,17 @@
 #include "../CFLOBDD/cflobdd_node.h"
 
 #include <vector>
-#include <unordered_map>
 #include <cassert>
 #include <cmath>
+#include <boost/unordered/unordered_flat_map.hpp>
 
 using namespace CFL_OBDD;
 
 // =========================================================================
 // Memo key type: (pointer, unsigned int) pair
+//
+// Used to key memoization tables on (DdNode*, topPly) for ADD->CFLOBDD
+// and (CFLOBDDNode*, topVar) for CFLOBDD->ADD.
 // =========================================================================
 
 struct MemoKey {
@@ -54,13 +57,58 @@ inline MemoKey makeMemoKey(const void* ptr, unsigned int val) {
 }
 
 // =========================================================================
+// Shared exit-terminal buffer for ADD->CFLOBDD conversion
+//
+// Instead of allocating a separate std::vector<DdNode*> for each memo
+// entry's exit-to-terminal mapping, all DdNode* pointers are stored
+// contiguously in one shared buffer.  Each ADDConvertResult records
+// an (offset, count) range into this buffer.  This eliminates millions
+// of small heap allocations and their destructor overhead.
+// =========================================================================
+
+struct ExitTerminalBuffer {
+    std::vector<DdNode*> data;
+
+    // Append terminals and return the starting offset.
+    unsigned int append(const std::vector<DdNode*>& terminals) {
+        unsigned int start = data.size();
+        data.insert(data.end(), terminals.begin(), terminals.end());
+        return start;
+    }
+
+    // Append a single terminal and return the starting offset.
+    unsigned int appendOne(DdNode* t) {
+        unsigned int start = data.size();
+        data.push_back(t);
+        return start;
+    }
+
+    // Access terminal j of a result with the given start offset.
+    DdNode* get(unsigned int start, unsigned int j) const {
+        return data[start + j];
+    }
+};
+
+// =========================================================================
 // Result type for the inner ADD-to-CFLOBDD conversion
+//
+// Each result stores a CFLOBDD node handle and a range [exitStart,
+// exitStart+exitCount) into a shared ExitTerminalBuffer.  The range
+// maps exit index i to the DdNode* at buffer[exitStart + i].
+// These DdNode* pointers may be real ADD terminals or "virtual terminals"
+// (ADD internal nodes at a half-height boundary).
 // =========================================================================
 
 struct ADDConvertResult {
     CFLOBDDNodeHandle nodeHandle;
-    std::vector<DdNode*> exitToTerminal;  // exit index -> DdNode* (real or virtual terminal)
+    unsigned int exitStart;   // offset into shared ExitTerminalBuffer
+    unsigned int exitCount;   // number of exits
 };
+
+// Memo table type for ADD->CFLOBDD (uses boost::unordered_flat_map for
+// cache-friendly open addressing and O(1) destruction).
+typedef boost::unordered_flat_map<MemoKey, ADDConvertResult, MemoKeyHash>
+    ADDConvertMemo;
 
 // =========================================================================
 // ADD_to_CFLOBDD: Convert a CUDD ADD to a CFLOBDD
@@ -73,7 +121,8 @@ ADDConvertResult ADDConvertInner(
     unsigned int level,
     unsigned int topPly,
     unsigned int bottomPly,
-    std::unordered_map<MemoKey, ADDConvertResult, MemoKeyHash>& memo
+    ADDConvertMemo& memo,
+    ExitTerminalBuffer& exitBuf
 );
 
 // Outer wrapper
@@ -94,9 +143,11 @@ struct ProtoADDEntry {
 // Proto-ADD memo table: keyed on CFLOBDDNode* (proto-CFLOBDD identity).
 typedef std::unordered_map<CFLOBDDNode*, ProtoADDEntry> ProtoADDMemo;
 
-// Fused variable-shift and leaf-splice: traverses protoADD once,
-// shifting variables by `offset` and replacing exit-index terminals
-// with the corresponding leaf ADDs.
+// Fused variable-shift and leaf-splice: traverses a proto-ADD (whose
+// terminals are exit indices 0, 1, ...) in a single pass, simultaneously
+// shifting variable indices by `offset` and replacing each exit-index
+// terminal i with leaves[i].  Uses its own memo (keyed on DdNode*) to
+// handle DAG sharing within the proto-ADD.
 ADD FusedVariableShiftAndSplice(
     Cudd &mgr,
     DdNode* protoNode,
@@ -105,9 +156,16 @@ ADD FusedVariableShiftAndSplice(
     std::unordered_map<DdNode*, ADD> &spliceMemo
 );
 
-// Inner recursive function (not part of public API)
-// `leaves` has length nodeHandle.numExits; leaves[i] is the ADD to place at exit i.
-// `protoMemo` caches proto-ADDs keyed on CFLOBDD node identity.
+// Inner recursive function (not part of public API).
+// Converts a CFLOBDD node to a CUDD ADD bottom-up: B-connections (lower
+// variables) are converted first, then their ADDs become the leaves for
+// the A-connection conversion.  Return maps are consumed by indexing into
+// the leaves vector, so no post-hoc substitution is needed.
+//
+// Proto-ADD memoization: the first time a CFLOBDD node is converted, a
+// proto-ADD (with exit-index terminals) is built and cached in protoMemo.
+// On subsequent encounters of the same node at a different topVar, the
+// cached proto-ADD is reused via FusedVariableShiftAndSplice.
 ADD CFLOBDDConvertNodeToADD(
     Cudd &mgr,
     CFLOBDDNodeHandle nodeHandle,
@@ -140,15 +198,23 @@ CFLOBDD_T<T> ADD_to_CFLOBDD(Cudd &mgr, const ADD &f) {
     assert(level <= CFLOBDDMaxLevel
            && "ADD requires more levels than CFLOBDDMaxLevel");
 
-    std::unordered_map<MemoKey, ADDConvertResult, MemoKeyHash> memo;
+    // The memo table uses boost::unordered_flat_map for cache-friendly
+    // open addressing and fast O(1) destruction (no per-entry deallocation).
+    ADDConvertMemo memo;
+
+    // All exit-terminal DdNode* pointers are stored contiguously in this
+    // shared buffer, avoiding per-entry vector allocations.  Each memo
+    // entry records a (start, count) range into this buffer.
+    ExitTerminalBuffer exitBuf;
 
     ADDConvertResult result = ADDConvertInner(
-        ddMgr, f.getNode(), level, 0, numVars, memo);
+        ddMgr, f.getNode(), level, 0, numVars, memo, exitBuf);
 
     // Build top-level return map: exit index -> T value
     ReturnMapHandle<T> topReturnMap;
-    for (unsigned int i = 0; i < result.exitToTerminal.size(); i++) {
-        topReturnMap.AddToEnd(static_cast<T>(Cudd_V(result.exitToTerminal[i])));
+    for (unsigned int i = 0; i < result.exitCount; i++) {
+        topReturnMap.AddToEnd(
+            static_cast<T>(Cudd_V(exitBuf.get(result.exitStart, i))));
     }
     topReturnMap.Canonicalize();
 
@@ -167,7 +233,8 @@ ADD CFLOBDD_to_ADD(Cudd &mgr, const CFLOBDD_T<T> &f) {
         mgr.addVar();
     }
 
-    // Build leaf ADDs from the top-level return map
+    // Build leaf ADDs from the top-level return map.
+    // Each exit index i maps to a constant ADD with value T(returnMap[i]).
     unsigned int numExits = f.root->rootConnection.entryPointHandle.handleContents->numExits;
     CFLOBDDReturnMapHandle topRM = f.root->rootConnection.returnMapHandle;
     std::vector<ADD> leaves(numExits);

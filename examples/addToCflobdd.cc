@@ -8,6 +8,21 @@
 
 // =========================================================================
 // ADD_to_CFLOBDD inner implementation
+//
+// Recursively converts an ADD sub-DAG rooted at `node` into a CFLOBDD
+// node at the given `level`.  The ply range [topPly, bottomPly) defines
+// which ADD variables this CFLOBDD level covers:
+//   - ADD nodes with variables in [topPly, bottomPly) are internal
+//   - ADD nodes at ply >= bottomPly (or constants) are treated as
+//     "virtual terminals" — they become exits of this CFLOBDD node
+//
+// At each recursive step, the range is split at midPly = topPly + 2^(level-1):
+//   - The top half [topPly, midPly) produces the A-connection
+//   - The bottom half [midPly, bottomPly) produces the B-connections
+//
+// Memoization on (DdNode*, topPly) ensures shared ADD sub-DAGs are
+// converted only once.  Exit-terminal DdNode* pointers are stored in
+// the shared ExitTerminalBuffer to avoid per-entry heap allocations.
 // =========================================================================
 
 ADDConvertResult ADDConvertInner(
@@ -16,7 +31,8 @@ ADDConvertResult ADDConvertInner(
     unsigned int level,
     unsigned int topPly,
     unsigned int bottomPly,
-    std::unordered_map<MemoKey, ADDConvertResult, MemoKeyHash>& memo)
+    ADDConvertMemo& memo,
+    ExitTerminalBuffer& exitBuf)
 {
     // Check memo
     MemoKey key = makeMemoKey(node, topPly);
@@ -34,7 +50,8 @@ ADDConvertResult ADDConvertInner(
         if (cuddIsConstant(node)) {
             // Terminal node — variable at topPly is irrelevant
             result.nodeHandle = CFLOBDDNodeHandle::NoDistinctionNode[0];
-            result.exitToTerminal = { node };
+            result.exitStart = exitBuf.appendOne(node);
+            result.exitCount = 1;
         }
         else {
             int nodePly = Cudd_ReadPerm(mgr, Cudd_NodeReadIndex(node));
@@ -45,19 +62,23 @@ ADDConvertResult ADDConvertInner(
                 if (T == E) {
                     // Both children identical — variable irrelevant
                     result.nodeHandle = CFLOBDDNodeHandle::NoDistinctionNode[0];
-                    result.exitToTerminal = { T };
+                    result.exitStart = exitBuf.appendOne(T);
+                    result.exitCount = 1;
                 }
                 else {
                     // ForkNode: exit 0 = else (var=0), exit 1 = then (var=1)
                     result.nodeHandle = CFLOBDDNodeHandle::CFLOBDDForkNodeHandle;
-                    result.exitToTerminal = { E, T };
+                    std::vector<DdNode*> exits = { E, T };
+                    result.exitStart = exitBuf.append(exits);
+                    result.exitCount = 2;
                 }
             }
             else {
-                // Node's variable is below topPly (ply-skipping)
-                // This variable is not tested — pass node through as virtual terminal
+                // Node's variable is below topPly (ply-skipping):
+                // this variable is not tested — pass node through as virtual terminal
                 result.nodeHandle = CFLOBDDNodeHandle::NoDistinctionNode[0];
-                result.exitToTerminal = { node };
+                result.exitStart = exitBuf.appendOne(node);
+                result.exitCount = 1;
             }
         }
 
@@ -68,23 +89,31 @@ ADDConvertResult ADDConvertInner(
     // --- RECURSIVE CASE: level > 0 ---
     unsigned int midPly = topPly + (1u << (level - 1));
 
-    // Step 1: Convert top half (A-connection)
-    // The ply range [topPly, midPly) means any node at ply >= midPly is a virtual terminal
-    ADDConvertResult AResult = ADDConvertInner(mgr, node, level - 1, topPly, midPly, memo);
-    unsigned int m = AResult.exitToTerminal.size();  // number of middle nodes
+    // Step 1: Convert top half (A-connection).
+    // The ply range [topPly, midPly) means any ADD node at ply >= midPly
+    // is treated as a virtual terminal — these are the "middle nodes".
+    ADDConvertResult AResult = ADDConvertInner(
+        mgr, node, level - 1, topPly, midPly, memo, exitBuf);
+    unsigned int m = AResult.exitCount;  // number of middle nodes
 
-    // Step 2: Convert bottom halves (B-connections)
+    // Step 2: Convert bottom halves (B-connections).
+    // For each middle node, recursively convert the sub-ADD rooted at it
+    // over the ply range [midPly, bottomPly).
     std::vector<ADDConvertResult> BResults(m);
 
-    // Collect global terminals (union of all B_i terminals)
+    // Collect the global set of distinct terminals reachable from all
+    // B-connections.  These become the exits of the level-k CFLOBDD node.
     std::vector<DdNode*> globalTerminals;
     std::unordered_map<DdNode*, unsigned int> terminalToIndex;
 
     for (unsigned int i = 0; i < m; i++) {
-        DdNode* middleNode = AResult.exitToTerminal[i];
-        BResults[i] = ADDConvertInner(mgr, middleNode, level - 1, midPly, bottomPly, memo);
+        DdNode* middleNode = exitBuf.get(AResult.exitStart, i);
+        BResults[i] = ADDConvertInner(
+            mgr, middleNode, level - 1, midPly, bottomPly, memo, exitBuf);
 
-        for (DdNode* t : BResults[i].exitToTerminal) {
+        // Add B_i's terminals to the global set (deduplicating)
+        for (unsigned int j = 0; j < BResults[i].exitCount; j++) {
+            DdNode* t = exitBuf.get(BResults[i].exitStart, j);
             if (terminalToIndex.find(t) == terminalToIndex.end()) {
                 terminalToIndex[t] = globalTerminals.size();
                 globalTerminals.push_back(t);
@@ -94,21 +123,22 @@ ADDConvertResult ADDConvertInner(
 
     unsigned int numGlobalExits = globalTerminals.size();
 
-    // Step 3: Build the CFLOBDD node
+    // Step 3: Build the CFLOBDD node.
     CFLOBDDInternalNode* N = new CFLOBDDInternalNode(level);
 
-    // AConnection: identity return map (A's exits map 1:1 to middle vertices)
+    // AConnection: identity return map (A's exits correspond 1:1 to middle vertices)
     CFLOBDDReturnMapHandle AReturnMap = MakeIdentityReturnMap(m);
     N->AConnection = Connection(AResult.nodeHandle, AReturnMap);
 
-    // BConnections
+    // BConnections: each B_i's return map maps its local exit indices
+    // to the global exit numbering of this node.
     N->numBConnections = m;
     N->BConnection = new Connection[m];
 
     for (unsigned int i = 0; i < m; i++) {
         CFLOBDDReturnMapHandle BReturnMap;
-        for (unsigned int j = 0; j < BResults[i].exitToTerminal.size(); j++) {
-            DdNode* t = BResults[i].exitToTerminal[j];
+        for (unsigned int j = 0; j < BResults[i].exitCount; j++) {
+            DdNode* t = exitBuf.get(BResults[i].exitStart, j);
             BReturnMap.AddToEnd(terminalToIndex[t]);
         }
         BReturnMap.Canonicalize();
@@ -121,7 +151,8 @@ ADDConvertResult ADDConvertInner(
 #endif
 
     result.nodeHandle = CFLOBDDNodeHandle(N);  // auto-canonicalizes
-    result.exitToTerminal = globalTerminals;
+    result.exitStart = exitBuf.append(globalTerminals);
+    result.exitCount = numGlobalExits;
 
     memo[key] = result;
     return result;
@@ -131,10 +162,18 @@ ADDConvertResult ADDConvertInner(
 // FusedVariableShiftAndSplice
 //
 // Traverses a proto-ADD (whose terminals are exit indices 0, 1, ...)
-// in a single pass, simultaneously shifting variable indices by `offset`
-// and replacing each exit-index terminal i with leaves[i].
+// in a single pass, simultaneously:
+//   - shifting each internal node's variable index by `offset`
+//   - replacing each exit-index terminal i with leaves[i]
+//
+// This is used when a previously-converted CFLOBDD node is encountered
+// again at a different variable position (topVar).  Instead of re-doing
+// the full CFLOBDD traversal, we reuse the cached proto-ADD structure
+// and just adjust variable indices and splice in new leaf ADDs.
+//
 // Uses its own memo (keyed on DdNode*) to handle DAG sharing within
-// the proto-ADD.
+// the proto-ADD.  The offset and leaves are fixed for the entire call,
+// so only the DdNode* is needed as the key.
 // =========================================================================
 
 ADD FusedVariableShiftAndSplice(
@@ -151,11 +190,13 @@ ADD FusedVariableShiftAndSplice(
 
     ADD result;
     if (cuddIsConstant(protoNode)) {
+        // Terminal: the value is an exit index — replace with the leaf ADD
         unsigned int exitIndex = (unsigned int)cuddV(protoNode);
         assert(exitIndex < leaves.size());
         result = leaves[exitIndex];
     }
     else {
+        // Internal node: shift the variable index and recurse
         int v = Cudd_NodeReadIndex(protoNode);
         ADD T = FusedVariableShiftAndSplice(mgr, cuddT(protoNode), offset, leaves, spliceMemo);
         ADD E = FusedVariableShiftAndSplice(mgr, cuddE(protoNode), offset, leaves, spliceMemo);
@@ -169,13 +210,29 @@ ADD FusedVariableShiftAndSplice(
 // =========================================================================
 // CFLOBDD_to_ADD inner implementation (bottom-up with proto-ADD memoization)
 //
-// On a cache miss: does the bottom-up conversion (B-connections first,
-// then A-connection with B-ADDs as leaves). Also builds and caches a
-// proto-ADD (with exit-index terminals) for this CFLOBDD node.
+// Converts a CFLOBDD node to a CUDD ADD by building bottom-up:
+//   1. Convert each B-connection sub-node first (lower variables).
+//      Each B_i's return map tells us which of this node's exits each
+//      B_i exit maps to, so B_i's leaves are the parent's leaves
+//      re-indexed through the return map.
+//   2. Convert the A-connection sub-node (upper variables), using
+//      the B-connection ADDs as its leaves.  The A return map maps
+//      A's exits to middle vertex indices, selecting which B-ADD
+//      each A exit leads to.
 //
-// On a cache hit: uses FusedVariableShiftAndSplice to reuse the cached
-// proto-ADD, applying the variable offset and splicing in the new leaves
-// in a single traversal.
+// Proto-ADD memoization:
+//   On a cache miss, after building the actual ADD, we also build and
+//   cache a "proto-ADD" — an ADD with the same structure but with
+//   exit-index constants (0.0, 1.0, ...) as terminals instead of real
+//   values.  On a subsequent cache hit for the same CFLOBDD node at a
+//   different topVar, we reuse the proto-ADD via FusedVariableShiftAndSplice,
+//   which shifts variable indices and splices in the new leaves in one pass.
+//
+// NoDistinctionNode handling:
+//   A NoDistinctionNode at any level has exactly 1 exit.  Its
+//   corresponding ADD is just leaves[0] (no variable structure at all,
+//   analogous to ply-skipping in the ADD).  We short-circuit these
+//   without recursion or proto-ADD construction.
 // =========================================================================
 
 ADD CFLOBDDConvertNodeToADD(
@@ -188,24 +245,25 @@ ADD CFLOBDDConvertNodeToADD(
 {
     CFLOBDDNode* cfNode = nodeHandle.handleContents;
 
-    // Fast path: NoDistinctionNode at any level has 1 exit — just return leaves[0].
-    // This avoids recursing through all the NoDistinctionNode padding levels
-    // in the topmost embedding, reducing O(CFLOBDDMaxLevel) to O(virtualMaxLevel).
+    // Fast path: NoDistinctionNode at any level has 1 exit — just return
+    // leaves[0].  This avoids recursing through NoDistinctionNode padding
+    // levels in the topmost embedding.
     if (nodeHandle == CFLOBDDNodeHandle::NoDistinctionNode[level]) {
         return leaves[0];
     }
 
-    // Check proto-ADD memo
+    // Check proto-ADD memo: have we converted this CFLOBDD node before?
     auto pit = protoMemo.find(cfNode);
     if (pit != protoMemo.end()) {
-        // Hit: reuse proto-ADD with variable shift and leaf splice
+        // Hit: reuse the cached proto-ADD.  The proto-ADD was built at
+        // cachedTopVar; we need it at topVar, so shift by the difference.
         int offset = (int)topVar - (int)pit->second.topVar;
         std::unordered_map<DdNode*, ADD> spliceMemo;
         return FusedVariableShiftAndSplice(
             mgr, pit->second.protoADD.getNode(), offset, leaves, spliceMemo);
     }
 
-    // Miss: do bottom-up conversion and build + cache the proto-ADD
+    // Cache miss: do the full bottom-up conversion.
 
     // --- BASE CASE: level == 0 ---
     if (level == 0) {
@@ -213,10 +271,13 @@ ADD CFLOBDDConvertNodeToADD(
         ADD result;
         switch (cfNode->NodeKind()) {
             case CFLOBDD_DONTCARE:
+                // 1 exit: proto is constant 0.0; result is leaves[0]
                 protoADD = mgr.constant(0.0);
                 result = leaves[0];
                 break;
             case CFLOBDD_FORK:
+                // 2 exits: variable selects between them
+                // exit 0 = var is 0 (else); exit 1 = var is 1 (then)
                 protoADD = mgr.addVar(topVar).Ite(mgr.constant(1.0), mgr.constant(0.0));
                 result = mgr.addVar(topVar).Ite(leaves[1], leaves[0]);
                 break;
@@ -238,6 +299,8 @@ ADD CFLOBDDConvertNodeToADD(
     unsigned int numExits = node->numExits;
 
     // Step 1: Convert each B sub-node (lower variables first).
+    // Each B_i's return map maps B_i's exits to this node's exits,
+    // so B_i's leaves are this node's leaves re-indexed through the map.
     std::vector<ADD> B_ADDs(m);
     for (unsigned int i = 0; i < m; i++) {
         unsigned int numBExits = node->BConnection[i].entryPointHandle.handleContents->numExits;
@@ -250,6 +313,8 @@ ADD CFLOBDDConvertNodeToADD(
     }
 
     // Step 2: Convert A sub-node (upper variables).
+    // A's return map maps A's exits to middle vertex indices 0..m-1.
+    // The leaves for A are the B-connection ADDs, selected through the map.
     unsigned int numAExits = node->AConnection.entryPointHandle.handleContents->numExits;
     std::vector<ADD> A_leaves(numAExits);
     for (unsigned int j = 0; j < numAExits; j++) {
@@ -259,16 +324,21 @@ ADD CFLOBDDConvertNodeToADD(
     ADD result = CFLOBDDConvertNodeToADD(
         mgr, node->AConnection.entryPointHandle, level - 1, topVar, A_leaves, protoMemo);
 
-    // Build and cache proto-ADD for this node using exit-index leaves.
-    // All sub-nodes are now in protoMemo (populated by the recursive calls above).
+    // --- Build and cache proto-ADD for this node ---
+    // The proto-ADD has the same structure as the real ADD but uses
+    // exit-index constants (0.0, 1.0, ...) as terminals.  This allows
+    // reuse via FusedVariableShiftAndSplice when the same CFLOBDD node
+    // is encountered at a different variable position.
+
+    // Proto-leaves: constant ADDs for each exit index
     std::vector<ADD> exitLeaves(numExits);
     for (unsigned int i = 0; i < numExits; i++) {
         exitLeaves[i] = mgr.constant((double)i);
     }
 
-    // Build proto B-ADDs (using cached proto-ADDs of B sub-nodes)
-    // NoDistinctionNodes have 1 exit and no internal structure — their
-    // proto is just the corresponding exit leaf directly.
+    // Build proto B-ADDs from cached proto-ADDs of B sub-nodes.
+    // NoDistinctionNodes have 1 exit and no variable structure, so their
+    // proto is just the corresponding exit-index constant directly.
     std::vector<ADD> B_protos(m);
     for (unsigned int i = 0; i < m; i++) {
         CFLOBDDNodeHandle &bHandle = node->BConnection[i].entryPointHandle;
@@ -278,9 +348,11 @@ ADD CFLOBDDConvertNodeToADD(
             bExitLeaves[j] = exitLeaves[node->BConnection[i].returnMapHandle.Lookup(j)];
         }
         if (bHandle == CFLOBDDNodeHandle::NoDistinctionNode[level - 1]) {
+            // NoDistinctionNode: 1 exit, no variables — proto is just the leaf
             B_protos[i] = bExitLeaves[0];
         }
         else {
+            // Use cached proto-ADD with variable shift and exit-index splice
             assert(protoMemo.find(bHandle.handleContents) != protoMemo.end());
             auto &entry = protoMemo[bHandle.handleContents];
             int bOffset = (int)midVar - (int)entry.topVar;
@@ -290,8 +362,7 @@ ADD CFLOBDDConvertNodeToADD(
         }
     }
 
-    // Build proto A-ADD (using cached proto-ADD of A sub-node)
-    // Same NoDistinctionNode handling.
+    // Build proto A-ADD similarly.
     CFLOBDDNodeHandle &aHandle = node->AConnection.entryPointHandle;
     std::vector<ADD> A_protoLeaves(numAExits);
     for (unsigned int j = 0; j < numAExits; j++) {

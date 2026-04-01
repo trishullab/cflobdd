@@ -104,7 +104,7 @@ ADDConvertResult ADDConvertInner(
     // Collect the global set of distinct terminals reachable from all
     // B-connections.  These become the exits of the level-k CFLOBDD node.
     std::vector<DdNode*> globalTerminals;
-    std::unordered_map<DdNode*, unsigned int> terminalToIndex;
+    boost::unordered_flat_map<DdNode*, unsigned int> terminalToIndex;
 
     for (unsigned int i = 0; i < m; i++) {
         DdNode* middleNode = exitBuf.get(AResult.exitStart, i);

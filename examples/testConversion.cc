@@ -262,9 +262,8 @@ static bool testNumsModK() {
             std::cout << "  3. NumsModK(k=" << k << "): PASS (structural)"
                       << "  [CF->ADD:" << cfToAdd << "ms, ADD->CF:" << addToCf << "ms]" << std::endl;
         } else {
-            std::cout << "  3. NumsModK(k=" << k << "): structural FAIL, checking exhaustively..." << std::endl;
-            if (!ExhaustiveCompare(add, orig, numVars, "NumsModK")) return false;
-            std::cout << "  3. NumsModK(k=" << k << "): PASS (semantic)" << std::endl;
+            std::cout << "  3. NumsModK(k=" << k << "): structural FAIL" << std::endl;
+            return false;
         }
     }
 

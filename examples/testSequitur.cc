@@ -211,6 +211,17 @@ int main(int argc, char *argv[])
         std::cout << "  Edges: " << edgeCount << std::endl;
         std::cout << "  Return map entries: " << returnEdgeCount << std::endl;
         std::cout << "  Total: " << (nodeCount + edgeCount) << std::endl;
+
+        // ---- Phase 5: Round-trip CFLOBDD -> ADD and compare with padded ADD ----
+        auto t6 = high_resolution_clock::now();
+        ADD roundTrip = CFLOBDD_to_ADD<int>(mgr, cf);
+        auto t7 = high_resolution_clock::now();
+        double rtTime = duration_cast<milliseconds>(t7 - t6).count() / 1000.0;
+
+        bool match = (roundTrip == paddedADD);
+        std::cout << "\n=== Round-trip check ===" << std::endl;
+        std::cout << "  CFLOBDD->ADD time: " << rtTime << "s" << std::endl;
+        std::cout << "  ADD == padded ADD: " << (match ? "PASSED" : "FAILED") << std::endl;
     } else {
         std::cout << "\n(Skipping CFLOBDD conversion: too many variables for CFLOBDDMaxLevel)"
                   << std::endl;

@@ -1,4 +1,4 @@
-.PHONY : all 
+.PHONY : all testSequitur testConversion
 DIR = /home/ubuntu/Research/cudd-3.0.0
 C_DIR = /users/meghana/desktop/meghana/research/cudd/cudd-complex
 B_DIR = /home/ubuntu/Research/cudd-big
@@ -109,6 +109,21 @@ multmod-2048: cudd_build/libcudd.a
 multmod-4096: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=4096 -c -o addMultiplication.o addMultiplication.cc
 	g++ $(CUDD_CXXFLAGS) -o addMultiplication4096 addMultiplication.o cudd_build/libcudd.a
+
+# SEQUITUR grammar -> ADD -> CFLOBDD conversion test
+SEQUITUR_DIR = ../sequitur
+SEQ_CXXFLAGS = $(CUDD_CXXFLAGS) $(CFLOBDD_INC) -I$(SEQUITUR_DIR) -std=c++2a -w
+
+testSequitur: cudd_build/libcudd.a
+	cd $(CFLOBDD_DIR) && $(MAKE)
+	g++ $(SEQ_CXXFLAGS) -c -o $(SEQUITUR_DIR)/sequitur/symbols.o $(SEQUITUR_DIR)/sequitur/symbols.cpp
+	g++ $(SEQ_CXXFLAGS) -c -o $(SEQUITUR_DIR)/sequitur/symbolwrapper.o $(SEQUITUR_DIR)/sequitur/symbolwrapper.cpp
+	g++ $(SEQ_CXXFLAGS) -c -o addToCflobdd.o addToCflobdd.cc
+	g++ $(SEQ_CXXFLAGS) -DCFLOBDD_C_EXPORTS -c -o testSequitur.o testSequitur.cc
+	g++ $(SEQ_CXXFLAGS) -fuse-ld=lld -o testSequitur.exe testSequitur.o addToCflobdd.o \
+		$(SEQUITUR_DIR)/sequitur/symbols.o $(SEQUITUR_DIR)/sequitur/symbolwrapper.o \
+		$(CFLOBDD_OBJS) cudd_build/libcudd.a \
+		-lpsapi -Wl,--stack,16777216
 
 multmod-all: cudd_build/libcudd.a
 	make multmod-32

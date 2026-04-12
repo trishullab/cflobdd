@@ -1,4 +1,4 @@
-.PHONY : all testSequitur testConversion
+.PHONY : all testSequiturToADD testConversion testTraceToADD
 DIR = /home/ubuntu/Research/cudd-3.0.0
 C_DIR = /users/meghana/desktop/meghana/research/cudd/cudd-complex
 B_DIR = /home/ubuntu/Research/cudd-big
@@ -114,14 +114,27 @@ multmod-4096: cudd_build/libcudd.a
 SEQUITUR_DIR = ../sequitur
 SEQ_CXXFLAGS = $(CUDD_CXXFLAGS) $(CFLOBDD_INC) -I$(SEQUITUR_DIR) -std=c++2a -w
 
-testSequitur: cudd_build/libcudd.a
+testSequiturToADD: cudd_build/libcudd.a
 	cd $(CFLOBDD_DIR) && $(MAKE)
 	g++ $(SEQ_CXXFLAGS) -c -o $(SEQUITUR_DIR)/sequitur/symbols.o $(SEQUITUR_DIR)/sequitur/symbols.cpp
 	g++ $(SEQ_CXXFLAGS) -c -o $(SEQUITUR_DIR)/sequitur/symbolwrapper.o $(SEQUITUR_DIR)/sequitur/symbolwrapper.cpp
+	g++ $(SEQ_CXXFLAGS) -c -o sequiturToAdd.o sequiturToAdd.cc
 	g++ $(SEQ_CXXFLAGS) -c -o addToCflobdd.o addToCflobdd.cc
-	g++ $(SEQ_CXXFLAGS) -DCFLOBDD_C_EXPORTS -c -o testSequitur.o testSequitur.cc
-	g++ $(SEQ_CXXFLAGS) -fuse-ld=lld -o testSequitur.exe testSequitur.o addToCflobdd.o \
+	g++ $(SEQ_CXXFLAGS) -DCFLOBDD_C_EXPORTS -c -o testSequiturToADD.o testSequiturToADD.cc
+	g++ $(SEQ_CXXFLAGS) -fuse-ld=lld -o testSequiturToADD.exe testSequiturToADD.o sequiturToAdd.o addToCflobdd.o \
 		$(SEQUITUR_DIR)/sequitur/symbols.o $(SEQUITUR_DIR)/sequitur/symbolwrapper.o \
+		$(CFLOBDD_OBJS) cudd_build/libcudd.a \
+		-lpsapi -Wl,--stack,16777216
+
+# Direct trace -> ADD -> CFLOBDD conversion test
+TRACE_CXXFLAGS = $(CUDD_CXXFLAGS) $(CFLOBDD_INC) -std=c++2a -w
+
+testTraceToADD: cudd_build/libcudd.a
+	cd $(CFLOBDD_DIR) && $(MAKE)
+	g++ $(TRACE_CXXFLAGS) -c -o traceToAdd.o traceToAdd.cc
+	g++ $(TRACE_CXXFLAGS) -c -o addToCflobdd.o addToCflobdd.cc
+	g++ $(TRACE_CXXFLAGS) -DCFLOBDD_C_EXPORTS -c -o testTraceToADD.o testTraceToADD.cc
+	g++ $(TRACE_CXXFLAGS) -fuse-ld=lld -o testTraceToADD.exe testTraceToADD.o traceToAdd.o addToCflobdd.o \
 		$(CFLOBDD_OBJS) cudd_build/libcudd.a \
 		-lpsapi -Wl,--stack,16777216
 

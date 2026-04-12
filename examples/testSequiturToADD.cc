@@ -1,5 +1,5 @@
 /**
-  @file testSequitur.cc
+  @file testSequiturToADD.cc
 
   @brief Test driver for SEQUITUR grammar -> ADD -> CFLOBDD conversion.
 
@@ -12,7 +12,7 @@
   is used as the int terminal value.
 */
 
-#include "sequiturToAdd.hh"
+#include "sequiturToAdd.h"
 #include "addToCflobdd.hh"
 #include "../CFLOBDD/cflobdd_int.h"
 #include "../CFLOBDD/cflobdd_top_node_int.h"
@@ -49,9 +49,9 @@ static void enumerateADD(DdNode *node, int numVars, int depth,
 {
     if (Cudd_IsConstant(node)) {
         // At a leaf: this leaf covers 2^(numVars - depth) assignments
-        int count = 1 << (numVars - depth);
+        unsigned int count = 1u << (numVars - depth);
         int val = static_cast<int>(Cudd_V(node));
-        for (int i = 0; i < count; i++)
+        for (unsigned int i = 0; i < count; i++)
             leaves.push_back(val);
         return;
     }
@@ -97,7 +97,7 @@ static bool verifyADD(Cudd &mgr, const Sequitur<int> &seq,
     }
 
     std::cout << "  ADD decision tree leaves: " << allLeaves.size()
-              << " (2^" << numVars << " = " << (1 << numVars) << ")" << std::endl;
+              << " (2^" << numVars << " = " << (1u << numVars) << ")" << std::endl;
     std::cout << "  Non-(-1) leaves: " << yield.size() << std::endl;
     std::cout << "  Expected length: " << expected.size() << std::endl;
 
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     char ch;
     unsigned long count = 0;
     while (input.get(ch)) {
-        seq.push_back(static_cast<int>(ch));
+        seq.push_back(static_cast<int>(static_cast<unsigned char>(ch)));
         count++;
     }
 
@@ -183,18 +183,46 @@ int main(int argc, char *argv[])
     verifyADD(mgr, seq, result);
 
     // ---- Phase 4: Convert ADD to CFLOBDD ----
-    // Pad ADD to power-of-2 variables: add variables on top, left child = existing ADD, right = -1
-    int nv = result.maxVar + 1;
+    // Pad to a power-of-2 number of variables by adding plies on top.
+    // The existing ADD uses variables [0..maxVar].  We need targetH
+    // variables total (targetH = next power of 2 >= maxVar+1).
+    // Shift existing variables down by (targetH - maxVar - 1) so they
+    // occupy [targetH - maxVar - 1 .. targetH - 1], then add new
+    // plies at [0 .. targetH - maxVar - 2] on top with right child = -1.
+    unsigned int nv = result.maxVar + 1;
+    unsigned int targetH = 1;
+    while (targetH < nv) targetH <<= 1;
+    if (nv == 0) targetH = 1;  // degenerate: constant ADD needs at least 1 variable
+
     ADD paddedADD = result.add;
-    while (nv > 0 && (nv & (nv - 1)) != 0) {
-        paddedADD = mgr.addVar(nv).Ite(mgr.constant(-1), paddedADD);
-        nv++;
+    unsigned int shift = targetH - nv;
+
+    if (shift > 0) {
+        // Shift existing variables down by 'shift' positions
+        std::vector<ADD> from(nv), to(nv);
+        for (unsigned int i = 0; i < nv; i++) {
+            from[i] = mgr.addVar(i);
+            to[i] = mgr.addVar(i + shift);
+        }
+        paddedADD = paddedADD.SwapVariables(from, to);
+
+        // Add new plies on top: each selects the existing ADD on the
+        // left (var=0) and -1 on the right (var=1)
+        ADD dontCare = mgr.constant(-1);
+        for (unsigned int i = 0; i < shift; i++) {
+            unsigned int varIdx = shift - 1 - i;  // add from bottom of new range up
+            paddedADD = mgr.addVar(varIdx).Ite(dontCare, paddedADD);
+        }
+    } else if (nv == 0) {
+        // Degenerate: constant ADD
+        paddedADD = mgr.addVar(0).Ite(mgr.constant(-1), paddedADD);
     }
-    if (nv == 0) nv = 1;  // degenerate: constant ADD needs at least 1 variable
+
+    nv = targetH;
     std::cout << "\n  Padded to " << nv << " variables (2^"
               << static_cast<int>(std::log2(nv)) << ")" << std::endl;
 
-    if (nv <= (1 << CFL_OBDD::CFLOBDDMaxLevel)) {
+    if (nv <= (1u << CFL_OBDD::CFLOBDDMaxLevel)) {
         InitCFLOBDD();
 
         auto t4 = high_resolution_clock::now();

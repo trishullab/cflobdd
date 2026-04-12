@@ -1,38 +1,17 @@
 /**
-  @file sequiturToAdd.hh
+  @file sequiturToAdd.cc
 
-  @brief Convert a SEQUITUR grammar (Sequitur<int>) to a CUDD ADD.
-
-  Uses the non-dense selector-variable approach:
-  - Each rule P -> Q1 Q2 ... Qk allocates ceil(log2(k)) selector variables
-  - The selector encodes which child Qi; indices >= k map to constant -1
-  - Each nonterminal's ADD is built once and memoized
-  - Repeated children share the same sub-ADD (canonicalized by CUDD)
-
-  The resulting ADD maps Boolean variable assignments to int terminal values,
-  representing the string yielded by the grammar as a function of position.
+  @brief Implementation of SEQUITUR grammar to CUDD ADD conversion.
 */
 
-#ifndef SEQUITUR_TO_ADD_HH_
-#define SEQUITUR_TO_ADD_HH_
-
-#include "../cudd-3.0.0/cplusplus/cuddObj.hh"
-#include "../sequitur/sequitur.hpp"
+#include "sequiturToAdd.h"
 
 #include <unordered_map>
 #include <vector>
+#include <functional>
 #include <cmath>
 #include <cassert>
 #include <iostream>
-
-using namespace jw;
-
-// Result of converting a grammar node to an ADD
-struct GrammarADDResult {
-    ADD add;           // The ADD for this node's yield
-    int maxVar;        // Maximum variable index used (-1 for constants)
-    unsigned long yieldLength;  // Length of this node's yield
-};
 
 /**
   Build a selector ADD over variables [baseVar, baseVar+numSelectorVars).
@@ -40,11 +19,6 @@ struct GrammarADDResult {
   For a rule with k children, numSelectorVars = ceil(log2(k)).
   The selector maps each binary assignment of the selector variables
   to the corresponding child's ADD.  Assignments >= k map to constant -1.
-
-  @param mgr         CUDD manager
-  @param childADDs   ADDs for each child (size k)
-  @param baseVar     First selector variable index
-  @param numSelectorVars  Number of selector variables (ceil(log2(k)))
 */
 static ADD buildSelector(Cudd &mgr, const std::vector<ADD> &childADDs,
                          int baseVar, int numSelectorVars)
@@ -53,8 +27,8 @@ static ADD buildSelector(Cudd &mgr, const std::vector<ADD> &childADDs,
     int numSlots = 1 << numSelectorVars;
     ADD dontCare = mgr.constant(-1);
 
-    // Build bottom-up: start with the leaf-level assignments,
-    // then combine with ITE at each selector variable level.
+    // Build bottom-up: start with the leaf-ply assignments,
+    // then combine with ITE at each selector variable ply.
 
     // Layer 0: the 2^numSelectorVars slots, each holding a child ADD or -1
     std::vector<ADD> current(numSlots);
@@ -68,7 +42,6 @@ static ADD buildSelector(Cudd &mgr, const std::vector<ADD> &childADDs,
     for (int level = numSelectorVars - 1; level >= 0; level--) {
         int varIdx = baseVar + level;
         ADD var = mgr.addVar(varIdx);
-        int stride = 1 << (numSelectorVars - 1 - level);
         std::vector<ADD> next(current.size() / 2);
         for (int i = 0; i < (int)next.size(); i++) {
             // var=0 selects current[2*i], var=1 selects current[2*i+1]
@@ -81,17 +54,7 @@ static ADD buildSelector(Cudd &mgr, const std::vector<ADD> &childADDs,
     return current[0];
 }
 
-/**
-  Convert a SEQUITUR grammar to a CUDD ADD.
-
-  Walks the grammar DAG bottom-up (memoized per rule ID), building an ADD
-  for each nonterminal using the non-dense selector-variable approach.
-
-  @param mgr  CUDD manager
-  @param seq  The SEQUITUR grammar (Sequitur<int>)
-  @return     GrammarADDResult for the start rule (rule 0)
-*/
-static GrammarADDResult sequiturToADD(Cudd &mgr, const Sequitur<int> &seq)
+GrammarADDResult sequiturToADD(Cudd &mgr, const Sequitur<int> &seq)
 {
     const auto &rules = seq.getRules();
 
@@ -247,16 +210,12 @@ static GrammarADDResult sequiturToADD(Cudd &mgr, const Sequitur<int> &seq)
     return convertRule(0);
 }
 
-/**
-  Print statistics about the grammar and resulting ADD.
-*/
-static void printSequiturADDStats(const Sequitur<int> &seq,
-                                  const GrammarADDResult &result)
+void printSequiturADDStats(const Sequitur<int> &seq,
+                           const GrammarADDResult &result)
 {
     const auto &rules = seq.getRules();
 
     // Count grammar symbols
-    const std::type_info &RuleHeadType = typeid(RuleHead);
     const std::type_info &RuleTailType = typeid(RuleTail);
     unsigned int totalSymbols = 0;
     unsigned int ruleCount = 0;
@@ -277,5 +236,3 @@ static void printSequiturADDStats(const Sequitur<int> &seq,
     std::cout << "  Variables used: " << (result.maxVar + 1) << std::endl;
     std::cout << "  ADD nodes: " << result.add.nodeCount() << std::endl;
 }
-
-#endif // SEQUITUR_TO_ADD_HH_

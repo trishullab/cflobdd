@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 project(cflobdd)
 
-# Set the C++ standard to 17, as specified in the compile command
-set(CMAKE_CXX_STANDARD 17)
+# Set the C++ standard to 20, as specified in the compile command
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add compiler flags: -g for debugging and -w to suppress warnings
@@ -52,7 +52,9 @@ add_custom_target(cflobdd_java ALL DEPENDS ${CFLOBDD_DIR}/java_bindings/target/c
 
 # Link the math library.
 target_link_libraries(cflobdd m)
-target_compile_definitions(cflobdd PUBLIC PATH_COUNTING_ENABLED)
+# target_compile_definitions(cflobdd PUBLIC PATH_COUNTING_ENABLED)
+target_compile_definitions(cflobdd PUBLIC WCFLOBDD_SUPPORTED)
 
 target_link_libraries(cflobdd_test m)
-target_compile_definitions(cflobdd_test PUBLIC PATH_COUNTING_ENABLED)
+# target_compile_definitions(cflobdd_test PUBLIC PATH_COUNTING_ENABLED)
+target_compile_definitions(cflobdd_test PUBLIC WCFLOBDD_SUPPORTED)

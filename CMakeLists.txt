@@ -28,9 +28,13 @@ file(GLOB SOURCES
     "${CFLOBDD_DIR}/*.cpp"
     "${CFLOBDD_DIR}/Solver/uwr/bit_vector/*.cpp"
     "${CFLOBDD_DIR}/Solver/uwr/parsing/*.cpp"
-    "${CFLOBDD_DIR}/cflobdd_c.cpp"
 )
 list(REMOVE_ITEM SOURCES "${CFLOBDD_DIR}/main.cpp")
+
+if(NOT WCFLOBDD_SUPPORTED)
+    file(GLOB WEIGHTED_SOURCES "${CFLOBDD_DIR}/weighted_*.cpp" "${CFLOBDD_DIR}/w*.cpp")
+    list(REMOVE_ITEM SOURCES ${WEIGHTED_SOURCES})
+endif()
 
 file(GLOB JAVA_SOURCES
     "${CFLOBDD_DIR}/java_bindings/src/main/java/org/trishullab/cflobdd/*.java"
@@ -53,8 +57,11 @@ add_custom_target(cflobdd_java ALL DEPENDS ${CFLOBDD_DIR}/java_bindings/target/c
 # Link the math library.
 target_link_libraries(cflobdd m)
 # target_compile_definitions(cflobdd PUBLIC PATH_COUNTING_ENABLED)
-target_compile_definitions(cflobdd PUBLIC WCFLOBDD_SUPPORTED)
 
 target_link_libraries(cflobdd_test m)
 # target_compile_definitions(cflobdd_test PUBLIC PATH_COUNTING_ENABLED)
-target_compile_definitions(cflobdd_test PUBLIC WCFLOBDD_SUPPORTED)
+
+if(WCFLOBDD_SUPPORTED)
+    target_compile_definitions(cflobdd PUBLIC WCFLOBDD_SUPPORTED)
+    target_compile_definitions(cflobdd_test PUBLIC WCFLOBDD_SUPPORTED)
+endif()

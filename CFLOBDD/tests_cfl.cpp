@@ -1950,9 +1950,9 @@ void CFLTests::ClearModules()
 }
 
 void CFLTests::testNQueens(int n) {
-    std::cout << "Testing " << n << "-Queens" << std::endl;
+	std::cout << "Testing " << n << "-Queens" << std::endl;
 
-    auto start = high_resolution_clock::now();
+	auto start = high_resolution_clock::now();
 	std::vector<std::vector<CFLOBDD>> vars;
 	unsigned int numVars = n * n;
 	unsigned int level = std::ceil(std::log2(numVars));
@@ -1975,26 +1975,25 @@ void CFLTests::testNQueens(int n) {
 	std::vector<std::vector<CFLOBDD>> impBatch;
 
 	for (unsigned int i = 0; i < n; i++) {
-        std::cout << "Processing implications for row " << i << " / " << n << std::endl;
-        std::vector<CFLOBDD> row;
+		std::cout << "Processing implications for row " << i << " / " << n << std::endl;
+		std::vector<CFLOBDD> row;
 		for (unsigned int j = 0; j < n; j++) {
 			CFLOBDD a = MkTrue(level);
-            CFLOBDD b = MkTrue(level);
-            CFLOBDD c = MkTrue(level);
-            CFLOBDD d = MkTrue(level);
+			CFLOBDD b = MkTrue(level);
+			CFLOBDD c = MkTrue(level);
+			CFLOBDD d = MkTrue(level);
 
 			unsigned int k, l;
 
-			/* No one in the same column */
+			/* No one in the same row */
 			for (l = 0; l < n; l++) {
 				if (l != j) {
-                    printf("i = %d, j = %d, l = %d\n", i, j, l);
 					CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[i][l]));
 					a = MkAnd(a, mp);
 				}
 			}
 
-			/* No one in the same row */
+			/* No one in the same column */
 			for (k = 0; k < n; k++) {
 				if (k != i) {
 					CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[k][j]));
@@ -2004,7 +2003,7 @@ void CFLTests::testNQueens(int n) {
 
 			/* No one in the same up-right diagonal */
 			for (k = 0; k < n; k++) {
-				unsigned int ll = k - i + j;
+				int ll = (int)k - (int)i + (int)j;
 				if (ll >= 0 && ll < n) {
 					if (k != i) {
 						CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[k][ll]));
@@ -2015,7 +2014,7 @@ void CFLTests::testNQueens(int n) {
 
 			/* No one in the same down-right diagonal */
 			for (k = 0; k < n; k++) {
-				unsigned int ll = i + j - k;
+				int ll = (int)i + (int)j - (int)k;
 				if (ll >= 0 && ll < n) {
 					if (k != i) {
 						CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[k][ll]));
@@ -2029,38 +2028,34 @@ void CFLTests::testNQueens(int n) {
 			a = MkAnd(a, b);
 			row.push_back(a);
 		}
-        impBatch.push_back(row);
+		impBatch.push_back(row);
 	}
 
 	CFLOBDD queen = MkTrue(level);
 
 	for (unsigned int i = 0; i < n; i++) {
-        std::cout << "Combining OR conditions for row " << i << " / " << n << std::endl;
+		std::cout << "Combining OR conditions for row " << i << " / " << n << std::endl;
 		queen = MkAnd(queen, orBatch[i]);
 	}
 
 	for (unsigned int i = 0; i < n; i++) {
-        CFLOBDD tmp_queen = MkTrue(level);
+		CFLOBDD tmp_queen = MkTrue(level);
 		for (unsigned int j = 0; j < n; j++) {
-            std::cout << "Combining implication conditions for position (" << i << ", " << j << ") " << " / " << n << std::endl;
+			std::cout << "Combining implication conditions for position (" << i << ", " << j << ") " << " / " << n << std::endl;
 			tmp_queen = MkAnd(tmp_queen, impBatch[i][j]);
 		}
-        queen = MkAnd(queen, tmp_queen);
+		queen = MkAnd(queen, tmp_queen);
 	}
 
 	auto end = high_resolution_clock::now();
 	auto duration = duration_cast<milliseconds>(end - start);
 	std::cout << "Duration: " << duration.count() << " ms" << std::endl;
-    // unsigned int numDummyVars = std::pow(2, std::ceil(std::log2(numVars))) - numVars;
-    // std::cout << "Number of dummy variables: " << numDummyVars << " " << std::pow(2, std::ceil(std::log2(numVars))) << " " << numVars << std::endl;
-	// queen.CountPaths();
-    // unsigned int nodeCount = 0, edgeCount = 0;
-    // queen.CountNodesAndEdges(nodeCount, edgeCount);
-    // std::cout << "nodeCount: " << nodeCount << " edgeCount: " << edgeCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
-	// CFLOBDDInternalNode* queen_node = (CFLOBDDInternalNode*) queen.root->rootConnection.entryPointHandle->handleContents;
-	// // std::cout << "Number of non-solutions for " << n << "-Queens: " << queen_node->numPathsToExit[0] << std::endl;
-	// std::cout << "Number of solutions for " << n << "-Queens: " << queen_node->numPathsToExit[1] / std::pow(2, numDummyVars) << std::endl;
-    // std::cout << "Number of solutions for " << n << "-Queens: " << queen_node->numPathsToExit[1] << std::endl;
+	queen.CountPaths();
+	CFLOBDDInternalNode* queen_node = (CFLOBDDInternalNode*) queen.root->rootConnection.entryPointHandle.handleContents;
+
+	// number of solutions = 2 ^ log(num_solutions) / 2 ^ num_dummy_vars = 2^(log(num_solutions) - num_dummy_vars)
+	unsigned int numDummyVars = std::pow(2, std::ceil(std::log2(numVars))) - numVars;
+	std::cout << "Number of solutions for " << n << "-Queens: " << std::round(std::pow(2, queen_node->numPathsToExit[1] - numDummyVars)) << std::endl;
 }
 
 bool CFLTests::runTests(const char *arg, int size, int seed, int a){

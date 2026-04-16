@@ -37,43 +37,37 @@ void WeightedMatMultMapBody<T>::DecrRef()
 }
 
 template <typename T>
-unsigned int WeightedMatMultMapBody<T>::Hash(unsigned long modsize)
+size_t WeightedMatMultMapBody<T>::Hash()
 {
-	/*if (modsize == HASHSETBASE)
-		return hashCheck;*/
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 	boost::hash<T> boost_hash;
 	for (auto &i : map)
 	{
-		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second))) % modsize;
+		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second)));
 	}
 	return hvalue;
 }
 
 template <>
-unsigned int WeightedMatMultMapBody<BIG_COMPLEX_FLOAT>::Hash(unsigned long modsize)
+size_t WeightedMatMultMapBody<BIG_COMPLEX_FLOAT>::Hash()
 {
-	/*if (modsize == HASHSETBASE)
-		return hashCheck;*/
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 	boost::hash<BIG_COMPLEX_FLOAT> boost_hash;
 	for (auto &i : map)
 	{
-		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second))) % modsize;
+		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second)));
 	}
 	return hvalue;
 }
 
 template <>
-unsigned int WeightedMatMultMapBody<fourierSemiring>::Hash(unsigned long modsize)
+size_t WeightedMatMultMapBody<fourierSemiring>::Hash()
 {
-	/*if (modsize == HASHSETBASE)
-		return hashCheck;*/
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
 	boost::hash<fourierSemiring> boost_hash;
 	for (auto &i : map)
 	{
-		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second))) % modsize;
+		hvalue = (997 * hvalue + (int)(i.first.first + 97 * i.first.second + 97 * 97 * boost_hash(i.second)));
 	}
 	return hvalue;
 }
@@ -247,7 +241,7 @@ std::ostream& operator<< (std::ostream & out, const WeightedMatMultMapHandle<T> 
 }
 
 template <typename T>
-unsigned int WeightedMatMultMapHandle<T>::Hash(unsigned long modsize)
+size_t WeightedMatMultMapHandle<T>::Hash()
 {
 	if (!(mapContents->isCanonical)) {
 		std::cout << "Hash of a non-canonical LinearMapHandle occurred" << std::endl;
@@ -255,7 +249,7 @@ unsigned int WeightedMatMultMapHandle<T>::Hash(unsigned long modsize)
 		this->Canonicalize();
 	}
 	assert(mapContents->isCanonical);
-	return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
+	return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
 }
 
 template <typename T>
@@ -387,7 +381,7 @@ void WeightedMatMultMapHandle<T>::Canonicalize()
 	mapContents->setHashCheck();
 
 	if (!mapContents->isCanonical) {
-		unsigned int hash = canonicalWeightedMatMultMapBodySet->GetHash(mapContents);
+		size_t hash = canonicalWeightedMatMultMapBodySet->GetHash(mapContents);
 		answerContents = canonicalWeightedMatMultMapBodySet->Lookup(mapContents, hash);
 		if (answerContents == NULL) {
 			canonicalWeightedMatMultMapBodySet->Insert(mapContents, hash);
@@ -415,7 +409,7 @@ void WeightedMatMultMapHandle<fourierSemiring>::Canonicalize()
 	mapContents->setHashCheck();
 
 	if (!mapContents->isCanonical) {
-		unsigned int hash = canonicalWeightedMatMultMapBodySet->GetHash(mapContents);
+		size_t hash = canonicalWeightedMatMultMapBodySet->GetHash(mapContents);
 		answerContents = canonicalWeightedMatMultMapBodySet->Lookup(mapContents, hash);
 		if (answerContents == NULL) {
 			canonicalWeightedMatMultMapBodySet->Insert(mapContents, hash);
@@ -551,12 +545,6 @@ WeightedMatMultMapHandle<fourierSemiring> operator* (const WeightedMatMultMapHan
 	}
 	ans.Canonicalize();
 	return ans;
-}
-
-template <typename T>
-std::size_t hash_value(const WeightedMatMultMapHandle<T>& val)
-{
-	return val.mapContents->hashCheck;
 }
 
 template class WeightedMatMultMapHandle<BIG_FLOAT>;

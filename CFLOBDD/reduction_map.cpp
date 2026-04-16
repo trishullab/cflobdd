@@ -31,6 +31,7 @@
 #include <cstdlib>
 #include "return_map_T.h"
 #include "reduction_map.h"
+#include "cflobdd_config.h"
 #include "list_T.h"
 #include "list_TPtr.h"
 #include "intpair.h"
@@ -49,14 +50,38 @@ typedef ListIterator<int> ReductionMapBodyIterator;
 
 // Constructor
 ReductionMapBody::ReductionMapBody()
-  : refCount(0), isIdentityMap(true), isCanonical(false)
+  : refCount(0), isIdentityMap(true), isCanonical(false), hashCheck(0)
 {
 }
 
 ReductionMapBody::ReductionMapBody(unsigned int capacity)
-	: refCount(0), isIdentityMap(true), isCanonical(false)
+	: refCount(0), isIdentityMap(true), isCanonical(false), hashCheck(0)
 {
 	mapArray.reserve(capacity);
+}
+
+ReductionMapBody* ReductionMapBody::Create()
+{
+    auto& fl = getFreeList();
+    if (!fl.empty()) {
+        ReductionMapBody* p = fl.back();
+        fl.pop_back();
+        return p;
+    }
+    return new ReductionMapBody();
+}
+
+ReductionMapBody* ReductionMapBody::Create(unsigned int capacity)
+{
+    auto& fl = getFreeList();
+    if (!fl.empty()) {
+        ReductionMapBody* p = fl.back();
+        fl.pop_back();
+        if (p->mapArray.capacity() < capacity)
+            p->mapArray.reserve(capacity);
+        return p;
+    }
+    return new ReductionMapBody(capacity);
 }
 
 void ReductionMapBody::IncrRef()
@@ -68,38 +93,49 @@ void ReductionMapBody::DecrRef()
 {
   if (--refCount == 0) {    // Warning: Saturation not checked
     if (isCanonical) {
-      ReductionMapHandle::canonicalReductionMapBodySet->DeleteEq(this);
-		//canonicalReductionMapBodySet.erase(this);
+      ReductionMapHandle::canonicalReductionMapBodySet->erase(this);
     }
-    delete this;
+    mapArray.clear();
+    refCount = 0;
+    isCanonical = false;
+    hashCheck = 0;
+    isIdentityMap = true;
+    auto& fl = getFreeList();
+    fl.push_back(this);
+    size_t cap = cflobddConfig.reductionMapFreelistCap;
+    if (cap > 0) {
+      while (fl.size() > cap) {
+        delete fl.front();
+        fl.pop_front();
+      }
+    }
   }
 }
 
-unsigned int ReductionMapBody::Hash(unsigned long modsize)
+// Murmur3 finalizer — ensures full avalanche (each output bit depends on all input bits)
+static inline size_t fmix64(size_t h) {
+    h ^= h >> 33;
+    h *= 0xff51afd7ed558ccdULL;
+    h ^= h >> 33;
+    h *= 0xc4ceb9fe1a85ec53ULL;
+    h ^= h >> 33;
+    return h;
+}
+
+size_t ReductionMapBody::Hash()
 {
-  unsigned int hvalue = 0;
-  /*ReductionMapBodyIterator mi(*this);
-
-  mi.Reset();
-  while (!mi.AtEnd()) {
-    hvalue = (hvalue + (unsigned int)mi.Current()) % modsize;
-    mi.Next();
-  }*/
-  for (unsigned int i = 0; i < mapArray.size(); i++){
-	  hvalue = (117 * (hvalue + 1) + (unsigned int)mapArray[i]) % modsize;
-  }
-
-  return hvalue;
+  return fmix64(hashCheck);
 }
 
 void ReductionMapBody::setHashCheck()
 {
-	unsigned int hvalue = 0;
-
-	for (auto &i : mapArray) {
-		hvalue = (117 * (hvalue + 1) + (int)(i));
-	}
-	hashCheck = hvalue;
+  unsigned int hvalue = 0;
+  const auto* data = mapArray.data();
+  unsigned int sz = mapArray.size();
+  for (unsigned int i = 0; i < sz; i++) {
+      hvalue = (131 * (hvalue + 1) + data[i]);
+  }
+  hashCheck = hvalue;
 }
 
 void ReductionMapBody::AddToEnd(int y)
@@ -114,12 +150,13 @@ bool ReductionMapBody::operator==(const ReductionMapBody &o) const
 {
 	if (hashCheck != o.hashCheck)
 		return false;
-
-	if (mapArray.size() != o.mapArray.size())
+	unsigned int sz = mapArray.size();
+	if (sz != o.mapArray.size())
 		return false;
-
-	for (unsigned int i = 0; i < mapArray.size(); i++){
-		if (mapArray[i] != o.mapArray[i])
+	const auto* d1 = mapArray.data();
+	const auto* d2 = o.mapArray.data();
+	for (unsigned int i = 0; i < sz; i++){
+		if (d1[i] != d2[i])
 			return false;
 	}
 	return true;
@@ -147,11 +184,19 @@ std::ostream& operator<< (std::ostream & out, const ReductionMapBody &r)
 //***************************************************************
 
 // Initializations of static members ---------------------------------
-Hashset<ReductionMapBody> *ReductionMapHandle::canonicalReductionMapBodySet = new Hashset<ReductionMapBody>(HASHSET_NUM_BUCKETS);
+ReductionMapHandle::CanonicalReductionMapBodySet *ReductionMapHandle::initCanonicalSet()
+{
+    auto *s = new CanonicalReductionMapBodySet(REDUCTION_MAP_NUM_BUCKETS);
+    s->max_load_factor(0.8f);
+    return s;
+}
+
+ReductionMapHandle::CanonicalReductionMapBodySet
+    *ReductionMapHandle::canonicalReductionMapBodySet = ReductionMapHandle::initCanonicalSet();
 
 // Default constructor
 ReductionMapHandle::ReductionMapHandle()
-  :  mapContents(new ReductionMapBody)
+  :  mapContents(ReductionMapBody::Create())
 {
   mapContents->IncrRef();
 }
@@ -170,7 +215,7 @@ ReductionMapHandle::ReductionMapHandle(const ReductionMapHandle &r)
 }
 
 ReductionMapHandle::ReductionMapHandle(unsigned int capacity)
-	: mapContents(new ReductionMapBody(capacity))
+	: mapContents(ReductionMapBody::Create(capacity))
 {
 	mapContents->IncrRef();
 }
@@ -213,15 +258,9 @@ std::ostream& operator<< (std::ostream & out, const ReductionMapHandle &r)
   return(out);
 }
 
-unsigned int ReductionMapHandle::Hash(unsigned long modsize)
+size_t ReductionMapHandle::Hash()
 {
-  return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
-}
-
-unsigned int ReductionMapHandle::Size()
-{
-  //return mapContents->Length();
-	return mapContents->Size();
+  return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
 }
 
 void ReductionMapHandle::AddToEnd(int y)
@@ -230,93 +269,12 @@ void ReductionMapHandle::AddToEnd(int y)
   mapContents->AddToEnd(y);
 }
 
-/*
-intpair ReductionMapHandle::Lookup(intpair x)
-{
-	ReductionMapBodyIterator mi(*mapContents);
-	int xx = 0;
-	int x1 = x.First();
-	int x2 = x.Second();
-	int temp;
-	mi.Reset();
-	bool done = false;
-	while (!mi.AtEnd()) {
-		if (xx == x1) {
-			if (done) {
-				return intpair(mi.Current(),temp);
-			}
-			else {
-				done = true;
-				temp = mi.Current();
-			}
-		} 
-		if (xx == x2) {
-			if (done) {
-				return intpair(temp,mi.Current());
-			} else {
-				done = true;
-				temp = mi.Current();
-			}
-		}
-		xx++;
-		mi.Next();
-	}
-	std::cerr << "Failure in ReductionMapHandle::Lookup: " << x << " not found" << std::endl;
-	return intpair(-1,-1);
-}
-
-int ReductionMapHandle::Lookup(int x)
-{
-  ReductionMapBodyIterator mi(*mapContents);
-
-  int xx = 0;
-  mi.Reset();
-  while (!mi.AtEnd()) {
-    if (xx == x) {
-      return mi.Current();
-    }
-    xx++;
-    mi.Next();
-  }
-  std::cerr << "Failure in ReductionMapHandle::Lookup: " << x << " not found" << std::endl;
-  return -1;
-}
-
 int ReductionMapHandle::LookupInv(int y)
 {
-  ReductionMapBodyIterator mi(*mapContents);
-
-  int x = 0;
-  mi.Reset();
-  while (!mi.AtEnd()) {
-    if (mi.Current() == y) {
-      return x;
-    }
-    x++;
-    mi.Next();
-  }
-  return -1;
-}
-*/
-
-intpair ReductionMapHandle::Lookup(intpair& x)
-{
-	if ((unsigned int)x.First() < Size() && (unsigned int)x.Second() < Size())
-		return intpair(mapContents->mapArray[x.First()], mapContents->mapArray[x.Second()]);
-	return intpair(-1, -1);
-}
-
-int ReductionMapHandle::Lookup(int x)
-{
-	if ((unsigned int)x < Size())
-		return mapContents->mapArray[x];
-	return -1;
-}
-
-int ReductionMapHandle::LookupInv(int y)
-{
-	for (unsigned int i = 0; i < Size(); i++){
-		if (mapContents->mapArray[i] == y)
+	const auto* data = mapContents->mapArray.data();
+	unsigned int sz = Size();
+	for (unsigned int i = 0; i < sz; i++){
+		if (data[i] == y)
 			return i;
 	}
 	return -1;
@@ -326,40 +284,20 @@ int ReductionMapHandle::LookupInv(int y)
 void ReductionMapHandle::Canonicalize()
 {
   ReductionMapBody *answerContents;
-  mapContents->setHashCheck();
 
   if (!mapContents->isCanonical) {
-	unsigned int hash = canonicalReductionMapBodySet->GetHash(mapContents);
-    answerContents = canonicalReductionMapBodySet->Lookup(mapContents, hash);
-    if (answerContents == NULL) {
-      canonicalReductionMapBodySet->Insert(mapContents, hash);
+    mapContents->setHashCheck();
+    auto it = canonicalReductionMapBodySet->find(mapContents);
+    if (it == canonicalReductionMapBodySet->end()) {
+      canonicalReductionMapBodySet->insert(mapContents);
       mapContents->isCanonical = true;
     }
     else {
+      answerContents = *it;
       answerContents->IncrRef();
       mapContents->DecrRef();
       mapContents = answerContents;
     }
-	/*
-	  auto it = canonicalReductionMapBodySet.find(mapContents);
-	  if (it == canonicalReductionMapBodySet.end()) {
-		  mapContents->isCanonical = true;
-		  canonicalReductionMapBodySet.insert(mapContents);
-	  }
-	  else {
-		  answerContents = *it;
-		answerContents->IncrRef();
-		mapContents->DecrRef();
-		mapContents = answerContents;
-	  }
-	  */
   }
 }
-
-std::size_t hash_value(const ReductionMapHandle& val)
-{
-	return val.mapContents->hashCheck;
-}
-
-
 

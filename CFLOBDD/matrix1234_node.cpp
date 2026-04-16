@@ -187,8 +187,7 @@ namespace CFL_OBDD {
 		assert(i >= 1);
 		CFLOBDDInternalNode *n = new CFLOBDDInternalNode(i);
 		if (i == 1) {  // Base case
-			CFLOBDDReturnMapHandle m01;
-			m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+			CFLOBDDReturnMapHandle m01 = MakeIdentityReturnMap(2);
 			n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);//m01
 
 			n->numBConnections = 2;
@@ -200,13 +199,12 @@ namespace CFL_OBDD {
 		}
 		else {
 			CFLOBDDNodeHandle temp = MkPauliYInterleavedNode(i - 1);
-			CFLOBDDReturnMapHandle m012;
-			m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+			CFLOBDDReturnMapHandle m012 = MakeIdentityReturnMap(3);
 			n->AConnection = Connection(temp, m012);
 			n->numBConnections = 3;
 			n->BConnection = new Connection[n->numBConnections];
 			CFLOBDDReturnMapHandle m0, m021;
-			m0.AddToEnd(0); m0.Canonicalize();
+			m0 = MakeIdentityReturnMap(1);
 			m021.AddToEnd(0); m021.AddToEnd(2); m021.AddToEnd(1); m021.Canonicalize();
 			n->BConnection[0] = Connection(CFLOBDDNodeHandle::NoDistinctionNode[i - 1], m0);
 			n->BConnection[1] = Connection(temp, m012);
@@ -224,8 +222,7 @@ namespace CFL_OBDD {
 		assert(i >= 1);
 		CFLOBDDInternalNode *n = new CFLOBDDInternalNode(i);
 		if (i == 1) {  // Base case
-			CFLOBDDReturnMapHandle m01;
-			m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+			CFLOBDDReturnMapHandle m01 = MakeIdentityReturnMap(2);
 			n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);//m01
 
 			n->numBConnections = 2;
@@ -237,8 +234,7 @@ namespace CFL_OBDD {
 		}
 		else {
 			CFLOBDDNodeHandle temp = MkPauliZInterleavedNode(i - 1);
-			CFLOBDDReturnMapHandle m012;
-			m012.AddToEnd(0); m012.AddToEnd(1); m012.AddToEnd(2); m012.Canonicalize();
+			CFLOBDDReturnMapHandle m012 = MakeIdentityReturnMap(3);
 			n->AConnection = Connection(temp, m012);
 			n->numBConnections = 3;
 			n->BConnection = new Connection[n->numBConnections];
@@ -334,12 +330,12 @@ namespace CFL_OBDD {
 	{
 		assert(i == 1);
 		CFLOBDDInternalNode *n = new CFLOBDDInternalNode(i);
-		CFLOBDDReturnMapHandle m01; m01.AddToEnd(0); m01.AddToEnd(1); m01.Canonicalize();
+		CFLOBDDReturnMapHandle m01 = MakeIdentityReturnMap(2);
 		n->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);
 		n->numBConnections = 2;
 		n->BConnection = new Connection[n->numBConnections];
 		n->BConnection[0] = Connection(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, m01);
-		CFLOBDDReturnMapHandle m0; m0.AddToEnd(0); m0.Canonicalize();
+		CFLOBDDReturnMapHandle m0 = MakeIdentityReturnMap(1);
 		n->BConnection[1] = Connection(CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle, m01); 
 		n->numExits = 2;
 #ifdef PATH_COUNTING_ENABLED
@@ -558,10 +554,7 @@ namespace CFL_OBDD {
 			else
 				ANodeHandle = MkCNOTNode(level - 1, n, controller_A, controlled_A);
 			g->numBConnections = ANodeHandle.handleContents->numExits;
-			CFLOBDDReturnMapHandle mI;
-			for (int i = 0; i < g->numBConnections; i++)
-				mI.AddToEnd(i);
-			mI.Canonicalize();
+			CFLOBDDReturnMapHandle mI = MakeIdentityReturnMap(g->numBConnections);
 			g->AConnection = Connection(ANodeHandle, mI);
 			g->BConnection = new Connection[g->numBConnections];
 
@@ -578,10 +571,7 @@ namespace CFL_OBDD {
 				}
 				else
 					B0 = MkCNOTNode(level - 1, n, controller_B, controlled_B);
-				CFLOBDDReturnMapHandle mI_B;
-				for (int i = 0; i < B0.handleContents->numExits; i++)
-					mI_B.AddToEnd(i);
-				mI_B.Canonicalize();
+				CFLOBDDReturnMapHandle mI_B = MakeIdentityReturnMap(B0.handleContents->numExits);
 				g->BConnection[0] = Connection(B0, mI_B);
 				// NoDistinct Node
 				if (controlled_A != -1){
@@ -3015,7 +3005,7 @@ namespace CFL_OBDD {
 			n->BConnection = new Connection[n->numBConnections];
 			for (unsigned int i = 0; i < n->numBConnections; i++)
 			{
-				if (*(nhNode->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle){
+				if (nhNode->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle){
 					n->BConnection[i] == nhNode->BConnection[i];
 				}
 				else
@@ -3026,19 +3016,19 @@ namespace CFL_OBDD {
 						m.AddToEnd(nhNode->BConnection[i].returnMapHandle[i]);   // TWR: should j be used?  E.g., nhNode->BConnection[i].returnMapHandle[j]
 					}
 					m.Canonicalize();
-					n->BConnection[i] = Connection(*(nhNode->BConnection[i].entryPointHandle), m);
+					n->BConnection[i] = Connection(nhNode->BConnection[i].entryPointHandle, m);
 				}
 			}
 		}
 		else
 		{
-			CFLOBDDNodeHandle reverseTmp = ReverseColumnsNode(*(nhNode->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle reverseTmp = ReverseColumnsNode(nhNode->AConnection.entryPointHandle);
 			n->AConnection = Connection(reverseTmp,nhNode->AConnection.returnMapHandle);
 			n->numBConnections = nhNode->numBConnections;
 			n->BConnection = new Connection[n->numBConnections];
 			for (unsigned int i = 0; i < n->numBConnections; i++)
 			{
-				CFLOBDDNodeHandle Btmp = ReverseColumnsNode(*(nhNode->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle Btmp = ReverseColumnsNode(nhNode->BConnection[i].entryPointHandle);
 				n->BConnection[i] = Connection(Btmp, nhNode->BConnection[i].returnMapHandle);
 			}
 		}
@@ -3228,12 +3218,7 @@ namespace CFL_OBDD {
 		if (nhNode->level == 1)
 		{
 			CFLOBDDNodeHandle tempHandle(nh);
-			CFLOBDDReturnMapHandle m1;
-			for (int i = 0; i < tempHandle.handleContents->numExits; i++)
-			{
-				m1.AddToEnd(i);
-			}
-			m1.Canonicalize();
+			CFLOBDDReturnMapHandle m1 = MakeIdentityReturnMap(tempHandle.handleContents->numExits);
 			n->AConnection = Connection(nh, m1);
 			n->numBConnections = tempHandle.handleContents->numExits;
 			n->BConnection = new Connection[n->numBConnections];
@@ -3281,9 +3266,9 @@ namespace CFL_OBDD {
 				return nh;
 			}
 			else {
-				assert(*(n->AConnection.entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle);
-				assert(*(n->BConnection[0].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle);
-				assert(*(n->BConnection[1].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle);
+				assert(n->AConnection.entryPointHandle == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle);
+				assert(n->BConnection[0].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle);
+				assert(n->BConnection[1].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle);
 
 				CFLOBDDInternalNode *g = new CFLOBDDInternalNode(1);
 				g->AConnection = Connection(CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle, commonly_used_return_maps[0]);//m0
@@ -3301,12 +3286,12 @@ namespace CFL_OBDD {
 		}
 		else { // Invoke the shift recursively on the AConnection and BConnection
 			CFLOBDDInternalNode *g = new CFLOBDDInternalNode(n->level);
-			CFLOBDDNodeHandle atmp = MatrixShiftVocs13To24Node(memoTable, *(n->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle atmp = MatrixShiftVocs13To24Node(memoTable, n->AConnection.entryPointHandle);
 			g->AConnection = Connection(atmp, n->AConnection.returnMapHandle);
 			g->numBConnections = n->numBConnections;
 			g->BConnection = new Connection[g->numBConnections];
 			for (unsigned int i = 0; i < g->numBConnections; i++) {
-				CFLOBDDNodeHandle temp = MatrixShiftVocs13To24Node(memoTable, *(n->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle temp = MatrixShiftVocs13To24Node(memoTable, n->BConnection[i].entryPointHandle);
 				g->BConnection[i] = Connection(temp, n->BConnection[i].returnMapHandle);
 			}
 			g->numExits = n->numExits;
@@ -3338,7 +3323,7 @@ namespace CFL_OBDD {
 				n = nhNode;
 				return_handle.AddToEnd(0);
 			}
-			else if (*(nhNode->AConnection.entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle)
+			else if (nhNode->AConnection.entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle)
 			{
 				CFLOBDDReturnMapHandle m01, m0, m1;
 				m01.AddToEnd(0);
@@ -3365,7 +3350,7 @@ namespace CFL_OBDD {
 				bool isFork = false;
 				for (unsigned int i = 0; i < nhNode->numBConnections; i++)
 				{
-					if (*(nhNode->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle)
+					if (nhNode->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle)
 						isFork = true;
 				}
 				if (isFork)
@@ -3443,7 +3428,7 @@ namespace CFL_OBDD {
 		}
 		else
 		{
-			auto a_handle = MatrixTransposeNode(hashMap, *(nhNode->AConnection.entryPointHandle));
+			auto a_handle = MatrixTransposeNode(hashMap, nhNode->AConnection.entryPointHandle);
 			n->AConnection = Connection(a_handle.first, nhNode->AConnection.returnMapHandle);
 			n->numBConnections = nhNode->numBConnections;
 			n->BConnection = new Connection[n->numBConnections];
@@ -3451,7 +3436,7 @@ namespace CFL_OBDD {
 			std::unordered_map<unsigned int, unsigned int> reduction_map;
 			for (unsigned int i = 0; i < n->numBConnections; i++)
 			{
-				CFLOBDDNodeHandle btmp = *(nhNode->BConnection[a_handle.second[i]].entryPointHandle);
+				CFLOBDDNodeHandle btmp = nhNode->BConnection[a_handle.second[i]].entryPointHandle;
 				auto b_handle = MatrixTransposeNode(hashMap, btmp);
 				CFLOBDDReturnMapHandle m;
 				for (unsigned int j = 0; j < b_handle.second.Size(); j++){
@@ -3506,7 +3491,7 @@ namespace CFL_OBDD {
 			}
 			else {  // Shift the AConnection to BConnection[0]
 				for (unsigned int i = 0; i < n->numBConnections; i++) {  // Make sure that Vocs 3 and 4 are not in use
-					assert(*(n->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::NoDistinctionNode[1]);
+					assert(n->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::NoDistinctionNode[1]);
 				}
 
 
@@ -3526,12 +3511,12 @@ namespace CFL_OBDD {
 		}
 		else { // Invoke the shift recursively on the AConnection and BConnection
 			CFLOBDDInternalNode *g = new CFLOBDDInternalNode(n->level);
-			CFLOBDDNodeHandle atmp = MatrixShiftVocs12To34Node(memoTable, *(n->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle atmp = MatrixShiftVocs12To34Node(memoTable, n->AConnection.entryPointHandle);
 			g->AConnection = Connection(atmp, n->AConnection.returnMapHandle);
 			g->numBConnections = n->numBConnections;
 			g->BConnection = new Connection[g->numBConnections];
 			for (unsigned int i = 0; i < g->numBConnections; i++) {
-				CFLOBDDNodeHandle temp = MatrixShiftVocs12To34Node(memoTable, *(n->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle temp = MatrixShiftVocs12To34Node(memoTable, n->BConnection[i].entryPointHandle);
 				g->BConnection[i] = Connection(temp, n->BConnection[i].returnMapHandle);
 			}
 			g->numExits = n->numExits;
@@ -3561,18 +3546,18 @@ namespace CFL_OBDD {
 
 		CFLOBDDInternalNode *g = new CFLOBDDInternalNode(n->level);
 		if (n->level == 2) {
-			g->AConnection = Connection(*(n->AConnection.entryPointHandle), n->AConnection.returnMapHandle); // Vocabularies 1 and 2 preserved
+			g->AConnection = Connection(n->AConnection.entryPointHandle, n->AConnection.returnMapHandle); // Vocabularies 1 and 2 preserved
 			g->numBConnections = n->numBConnections;
 			g->BConnection = new Connection[g->numBConnections];
 			for (unsigned int i = 0; i < g->numBConnections; i++) {
-				if (*(n->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::NoDistinctionNode[1]) {  // Nothing to do
+				if (n->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::NoDistinctionNode[1]) {  // Nothing to do
 					g->BConnection[i] = n->BConnection[i];
 				}
 				else { // Shift n->BConnection[i]'s BConnections to g->BConnection[i]'s AConnection
-					assert(n->BConnection[i].entryPointHandle->handleContents->NodeKind() == CFLOBDD_INTERNAL);
-					CFLOBDDInternalNode *nb_i = (CFLOBDDInternalNode *)n->BConnection[i].entryPointHandle->handleContents;  // A node at level 1
-					assert(*(nb_i->AConnection.entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle);
-					assert(*(nb_i->BConnection[0].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle);
+					assert(n->BConnection[i].entryPointHandle.handleContents->NodeKind() == CFLOBDD_INTERNAL);
+					CFLOBDDInternalNode *nb_i = (CFLOBDDInternalNode *)n->BConnection[i].entryPointHandle.handleContents;  // A node at level 1
+					assert(nb_i->AConnection.entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle);
+					assert(nb_i->BConnection[0].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle);
 
 
 					CFLOBDDInternalNode *gb = new CFLOBDDInternalNode(1);
@@ -3592,12 +3577,12 @@ namespace CFL_OBDD {
 			}
 		}
 		else { // Invoke the shift recursively on the AConnection and BConnection
-			CFLOBDDNodeHandle atmp = MatrixShiftVoc43Node(memoTable, *(n->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle atmp = MatrixShiftVoc43Node(memoTable, n->AConnection.entryPointHandle);
 			g->AConnection = Connection(atmp, n->AConnection.returnMapHandle);
 			g->numBConnections = n->numBConnections;
 			g->BConnection = new Connection[g->numBConnections];
 			for (unsigned int i = 0; i < g->numBConnections; i++) {
-				CFLOBDDNodeHandle temp = MatrixShiftVoc43Node(memoTable, *(n->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle temp = MatrixShiftVoc43Node(memoTable, n->BConnection[i].entryPointHandle);
 				g->BConnection[i] = Connection(temp, n->BConnection[i].returnMapHandle);
 			}
 		}
@@ -3629,15 +3614,15 @@ namespace CFL_OBDD {
 		CFLOBDDInternalNode *g = new CFLOBDDInternalNode(n->level);
 		if (n->level == 2) {
 			CFLOBDDInternalNode *gA = new CFLOBDDInternalNode(1);
-			CFLOBDDInternalNode *nA = (CFLOBDDInternalNode *)n->AConnection.entryPointHandle->handleContents;
+			CFLOBDDInternalNode *nA = (CFLOBDDInternalNode *)n->AConnection.entryPointHandle.handleContents;
 			gA->AConnection = nA->AConnection;
 			gA->numBConnections = nA->numBConnections;
 			gA->BConnection = new Connection[gA->numBConnections];
 			for (unsigned int i = 0; i < nA->numBConnections; i++) {  // Make sure that Vocs 2 and 3 not in use
-				assert(*(nA->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle);  // Check Voc 2
-				CFLOBDDInternalNode *nB = (CFLOBDDInternalNode *)n->BConnection[i].entryPointHandle->handleContents;
-				assert(*(nB->AConnection.entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle);  // Check Voc 3
-				CFLOBDDNodeHandle temp = *(nB->BConnection[0].entryPointHandle);
+				assert(nA->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle);  // Check Voc 2
+				CFLOBDDInternalNode *nB = (CFLOBDDInternalNode *)n->BConnection[i].entryPointHandle.handleContents;
+				assert(nB->AConnection.entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle);  // Check Voc 3
+				CFLOBDDNodeHandle temp = nB->BConnection[0].entryPointHandle;
 				gA->BConnection[i] = Connection(temp, n->BConnection[i].returnMapHandle);  // Node n holds the appropriate return map
 			}
 			gA->numExits = n->numExits;
@@ -3645,11 +3630,7 @@ namespace CFL_OBDD {
 			gA->InstallPathCounts();
 #endif
 			CFLOBDDNodeHandle gAHandle(gA);  // Create handle and canonicalize
-			CFLOBDDReturnMapHandle mId;
-			for (unsigned int j = 0; j < n->numExits; j++) {
-				mId.AddToEnd(j);
-			}
-			mId.Canonicalize();
+			CFLOBDDReturnMapHandle mId = MakeIdentityReturnMap(n->numExits);
 
 			g->AConnection = Connection(gAHandle, mId);
 			g->numBConnections = n->numExits;
@@ -3662,12 +3643,12 @@ namespace CFL_OBDD {
 			}
 		}
 		else { // Invoke the shift recursively on the AConnection and BConnection
-			CFLOBDDNodeHandle atmp = MatrixShiftVoc42Node(memoTable, *(n->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle atmp = MatrixShiftVoc42Node(memoTable, n->AConnection.entryPointHandle);
 			g->AConnection = Connection(atmp, n->AConnection.returnMapHandle);
 			g->numBConnections = n->numBConnections;
 			g->BConnection = new Connection[g->numBConnections];
 			for (unsigned int i = 0; i < g->numBConnections; i++) {
-				CFLOBDDNodeHandle temp = MatrixShiftVoc42Node(memoTable, *(n->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle temp = MatrixShiftVoc42Node(memoTable, n->BConnection[i].entryPointHandle);
 				g->BConnection[i] = Connection(temp, n->BConnection[i].returnMapHandle);
 			}
 		}
@@ -3851,11 +3832,7 @@ namespace CFL_OBDD {
 		else {
 
 			unsigned long int M = 1UL + (1UL << (1 << (i - 2)));
-			CFLOBDDReturnMapHandle mA;
-			for (unsigned long int j = 0; j < M; j++) {
-				mA.AddToEnd(j);
-			}
-			mA.Canonicalize();
+			CFLOBDDReturnMapHandle mA = MakeIdentityReturnMap(M);
 
 			CFLOBDDNodeHandle temp = MkFourierDiagonalComponentNode(i - 1);
 			n->AConnection = Connection(temp, mA);
@@ -3899,11 +3876,7 @@ namespace CFL_OBDD {
 		CFLOBDDInternalNode *g = new CFLOBDDInternalNode(n->level + 1);
 
 		if (n->level == 1) {
-			CFLOBDDReturnMapHandle mId;
-			for (unsigned int k = 0; k < n->numExits; k++) {
-				mId.AddToEnd(k);
-			}
-			mId.Canonicalize();
+			CFLOBDDReturnMapHandle mId = MakeIdentityReturnMap(n->numExits);
 			g->AConnection = Connection(nh, mId);
 			g->numBConnections = n->numExits;
 			g->BConnection = new Connection[g->numBConnections];
@@ -3915,12 +3888,12 @@ namespace CFL_OBDD {
 			}
 		}
 		else { // Invoke PromoteInterleavedTo12Node recursively on the AConnection and BConnection
-			CFLOBDDNodeHandle atmp = PromoteInterleavedTo12Node(memoTable, *(n->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle atmp = PromoteInterleavedTo12Node(memoTable, n->AConnection.entryPointHandle);
 			g->AConnection = Connection(atmp, n->AConnection.returnMapHandle);
 			g->numBConnections = n->numBConnections;
 			g->BConnection = new Connection[g->numBConnections];
 			for (unsigned int i = 0; i < g->numBConnections; i++) {
-				CFLOBDDNodeHandle temp = PromoteInterleavedTo12Node(memoTable, *(n->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle temp = PromoteInterleavedTo12Node(memoTable, n->BConnection[i].entryPointHandle);
 				g->BConnection[i] = Connection(temp, n->BConnection[i].returnMapHandle);
 			}
 		}
@@ -3953,20 +3926,20 @@ namespace CFL_OBDD {
 			else {
 				// Make sure that Vocs 3 and 4 are not in use
 				for (unsigned int i = 0; i < n->numBConnections; i++) {
-					assert(*(n->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::NoDistinctionNode[1]);
+					assert(n->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::NoDistinctionNode[1]);
 				}
 				// Return the AConnection
-				return *(n->AConnection.entryPointHandle);
+				return n->AConnection.entryPointHandle;
 			}
 		}
 		else { // Invoke Demote12ToInterleavedNode recursively on the AConnection and BConnection
 			CFLOBDDInternalNode *g = new CFLOBDDInternalNode(n->level - 1);
-			CFLOBDDNodeHandle atmp = Demote12ToInterleavedNode(memoTable, *(n->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle atmp = Demote12ToInterleavedNode(memoTable, n->AConnection.entryPointHandle);
 			g->AConnection = Connection(atmp, n->AConnection.returnMapHandle);
 			g->numBConnections = n->numBConnections;
 			g->BConnection = new Connection[g->numBConnections];
 			for (unsigned int i = 0; i < g->numBConnections; i++) {
-				CFLOBDDNodeHandle temp = Demote12ToInterleavedNode(memoTable, *(n->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle temp = Demote12ToInterleavedNode(memoTable, n->BConnection[i].entryPointHandle);
 				g->BConnection[i] = Connection(temp, n->BConnection[i].returnMapHandle);
 			}
 			g->numExits = n->numExits;
@@ -3991,11 +3964,7 @@ namespace CFL_OBDD {
 		CFLOBDDInternalNode *g = new CFLOBDDInternalNode(n->level + 1);
 
 		if (n->level == 0) {
-			CFLOBDDReturnMapHandle mId;
-			for (unsigned int k = 0; k < n->numExits; k++) {
-				mId.AddToEnd(k);
-			}
-			mId.Canonicalize();
+			CFLOBDDReturnMapHandle mId = MakeIdentityReturnMap(n->numExits);
 			g->AConnection = Connection(nh, mId);
 			g->numBConnections = n->numExits;
 			g->BConnection = new Connection[g->numBConnections];
@@ -4007,12 +3976,12 @@ namespace CFL_OBDD {
 			}
 		}
 		else { // Invoke PromoteInterleavedTo13Node recursively on the AConnection and BConnection
-			CFLOBDDNodeHandle atmp = PromoteInterleavedTo13Node(memoTable, *(n->AConnection.entryPointHandle));
+			CFLOBDDNodeHandle atmp = PromoteInterleavedTo13Node(memoTable, n->AConnection.entryPointHandle);
 			g->AConnection = Connection(atmp, n->AConnection.returnMapHandle);
 			g->numBConnections = n->numBConnections;
 			g->BConnection = new Connection[g->numBConnections];
 			for (unsigned int i = 0; i < g->numBConnections; i++) {
-				CFLOBDDNodeHandle temp = PromoteInterleavedTo13Node(memoTable, *(n->BConnection[i].entryPointHandle));
+				CFLOBDDNodeHandle temp = PromoteInterleavedTo13Node(memoTable, n->BConnection[i].entryPointHandle);
 				g->BConnection[i] = Connection(temp, n->BConnection[i].returnMapHandle);
 			}
 		}
@@ -4052,12 +4021,7 @@ namespace CFL_OBDD {
 		else
 		{
 			CFLOBDDNodeHandle tempHandle = SMatrixNode(s.substr(0, s.length() / 2));
-			CFLOBDDReturnMapHandle m;
-			for (unsigned int i = 0; i < tempHandle.handleContents->numExits; i++)
-			{
-				m.AddToEnd(i);
-			}
-			m.Canonicalize();
+			CFLOBDDReturnMapHandle m = MakeIdentityReturnMap(tempHandle.handleContents->numExits);
 			n->AConnection = Connection(tempHandle, m);
 			n->numBConnections = tempHandle.handleContents->numExits;
 			n->BConnection = new Connection[n->numBConnections];
@@ -4836,13 +4800,13 @@ namespace CFL_OBDD {
 		{
 				std::vector<std::vector<std::pair<int, int>>> returnGeneralMap;
 				if (position == 'A'){
-					if (!(n->numBConnections == 2 && *(n->BConnection[0].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle &&
-					*(n->BConnection[1].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle && n->BConnection[0].returnMapHandle.Lookup(0) == n->BConnection[1].returnMapHandle.Lookup(1) && 
+					if (!(n->numBConnections == 2 && n->BConnection[0].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle &&
+					n->BConnection[1].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle && n->BConnection[0].returnMapHandle.Lookup(0) == n->BConnection[1].returnMapHandle.Lookup(1) && 
 					cReturnMapHandle[n->BConnection[0].returnMapHandle[1]] == cReturnMapHandle[n->BConnection[1].returnMapHandle[0]])){
 						for (int i = 0; i < n->numBConnections; i++)
 						{
 							std::vector<std::pair<int, int>> returnMapI;
-							if (*(n->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle)
+							if (n->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle)
 							{
 								returnMapI.push_back(std::make_pair(2, cReturnMapHandle[n->BConnection[i].returnMapHandle[0]]));
 							}
@@ -4853,7 +4817,7 @@ namespace CFL_OBDD {
 							}
 							returnGeneralMap.push_back(returnMapI);
 						}
-						return std::make_pair(*(n->AConnection.entryPointHandle), returnGeneralMap);
+						return std::make_pair(n->AConnection.entryPointHandle, returnGeneralMap);
 					}
 					else{
 						std::vector<std::pair<int, int>> returnMap;
@@ -4864,19 +4828,19 @@ namespace CFL_OBDD {
 					}
 				}
 				else{
-					if (*(n->AConnection.entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle)
+					if (n->AConnection.entryPointHandle == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle)
 					{
 						std::vector<std::pair<int, int>> returnMapI;
-						if (*(n->BConnection[0].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle && 
-						*(n->BConnection[1].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle)
+						if (n->BConnection[0].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle && 
+						n->BConnection[1].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle)
 						{
 							returnMapI.push_back(std::make_pair(1, std::min(cReturnMapHandle[n->BConnection[0].returnMapHandle[0]], cReturnMapHandle[n->BConnection[1].returnMapHandle[0]])));
 							returnMapI.push_back(std::make_pair(1, std::max(cReturnMapHandle[n->BConnection[1].returnMapHandle[0]], cReturnMapHandle[n->BConnection[0].returnMapHandle[0]])));
 							returnGeneralMap.push_back(returnMapI);
 							return std::make_pair(CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle, returnGeneralMap);
 						}
-						else if (*(n->BConnection[0].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle && 
-						*(n->BConnection[1].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle)
+						else if (n->BConnection[0].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle && 
+						n->BConnection[1].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle)
 						{
 							for (int i = 0; i < 2; i++){
 								if (cReturnMapHandle[n->BConnection[0].returnMapHandle[0]] == cReturnMapHandle[n->BConnection[1].returnMapHandle[i]]){
@@ -4891,8 +4855,8 @@ namespace CFL_OBDD {
 							}
 							return std::make_pair(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, returnGeneralMap);
 						}
-						else if (*(n->BConnection[1].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle && 
-						*(n->BConnection[0].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle)
+						else if (n->BConnection[1].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle && 
+						n->BConnection[0].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle)
 						{
 							for (int i = 0; i < 2; i++){
 								if (cReturnMapHandle[n->BConnection[1].returnMapHandle[0]] != cReturnMapHandle[n->BConnection[0].returnMapHandle[i]]){
@@ -4907,8 +4871,8 @@ namespace CFL_OBDD {
 							}
 							return std::make_pair(CFLOBDDNodeHandle::CFLOBDDForkNodeHandle, returnGeneralMap);
 						}
-						else if (*(n->BConnection[0].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle && 
-						*(n->BConnection[1].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle)
+						else if (n->BConnection[0].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle && 
+						n->BConnection[1].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDForkNodeHandle)
 						{
 							for (int i = 0; i < 2; i++){
 								if (cReturnMapHandle[n->BConnection[0].returnMapHandle[i]] != cReturnMapHandle[n->BConnection[1].returnMapHandle[i]]){
@@ -4926,7 +4890,7 @@ namespace CFL_OBDD {
 					}
 					else{
 						std::vector<std::pair<int, int>> returnMapI;
-						if (*(n->BConnection[0].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle)
+						if (n->BConnection[0].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle)
 						{
 							returnMapI.push_back(std::make_pair(2, cReturnMapHandle[n->BConnection[0].returnMapHandle[0]]));
 							returnGeneralMap.push_back(returnMapI);
@@ -4945,7 +4909,7 @@ namespace CFL_OBDD {
 		}
 		else
 		{
-				auto aConnection = MultiplyOperationNodeInternal(*(n->AConnection.entryPointHandle),
+				auto aConnection = MultiplyOperationNodeInternal(n->AConnection.entryPointHandle,
 				 					maxLevel == n->level ? 'A' : position, maxLevel, n->AConnection.returnMapHandle);
 				CFLOBDDReturnMapHandle mi;
 				g->numBConnections = aConnection.first.handleContents->numExits;
@@ -4963,7 +4927,7 @@ namespace CFL_OBDD {
 					for (unsigned int j = 0; j < n->BConnection[i].returnMapHandle.Size(); j++)
 						m.AddToEnd(j);
 					m.Canonicalize();
-					auto tmpReturn = MultiplyOperationNodeInternal(*(n->BConnection[i].entryPointHandle), maxLevel == n->level ? 'B' : position, maxLevel, m);
+					auto tmpReturn = MultiplyOperationNodeInternal(n->BConnection[i].entryPointHandle, maxLevel == n->level ? 'B' : position, maxLevel, m);
 					tmpBConnections[i] = tmpReturn.first;
 					//if (n->level > 1)
 						changeGeneralMap(tmpReturn.second, n->BConnection[i].returnMapHandle);
@@ -5300,7 +5264,7 @@ namespace CFL_OBDD {
 			CFLOBDDInternalNode* c2_internal = (CFLOBDDInternalNode *)c2.handleContents;
 			std::vector<unsigned int> m1_indices{ 0, 0, 0, 0 }, m2_indices{ 0, 0, 0, 0 };
 			for (unsigned int i = 0; i < c1_internal->numBConnections; i++){
-				if (*(c1_internal->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle){
+				if (c1_internal->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle){
 					m1_indices[2 * i] = c1_internal->BConnection[i].returnMapHandle[0];
 					m1_indices[2 * i + 1] = c1_internal->BConnection[i].returnMapHandle[0];
 				}
@@ -5316,7 +5280,7 @@ namespace CFL_OBDD {
 			}
 
 			for (unsigned int i = 0; i < c2_internal->numBConnections; i++){
-				if (*(c2_internal->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle){
+				if (c2_internal->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle){
 					m2_indices[2 * i] = c2_internal->BConnection[i].returnMapHandle[0];
 					m2_indices[2 * i + 1] = c2_internal->BConnection[i].returnMapHandle[0];
 				}
@@ -5436,14 +5400,14 @@ namespace CFL_OBDD {
 			CFLOBDDInternalNode* c1_internal = (CFLOBDDInternalNode *)c1.handleContents;
 			CFLOBDDInternalNode* c2_internal = (CFLOBDDInternalNode *)c2.handleContents;
 
-			CFLOBDDTopNodeMatMultMapRefPtr aa = MatrixMultiplyV4Node(hashMap, *(c1_internal->AConnection.entryPointHandle),
-				*(c2_internal->AConnection.entryPointHandle));
+			CFLOBDDTopNodeMatMultMapRefPtr aa = MatrixMultiplyV4Node(hashMap, c1_internal->AConnection.entryPointHandle,
+				c2_internal->AConnection.entryPointHandle);
 			CFLOBDDReturnMapHandle mI;
 			for (unsigned int i = 0; i < aa->rootConnection.returnMapHandle.Size(); i++)
 				mI.AddToEnd(i);
 			mI.Canonicalize();
 
-			g->AConnection = Connection(*(aa->rootConnection.entryPointHandle), mI);
+			g->AConnection = Connection(aa->rootConnection.entryPointHandle, mI);
 			g->numBConnections = mI.Size();
 			g->BConnection = new Connection[g->numBConnections];
 			g->numExits = 0;
@@ -5459,8 +5423,8 @@ namespace CFL_OBDD {
 					unsigned int M2_index = v.first.second;
 					//VAL_TYPE factor = v.second;
 					CFLOBDDTopNodeMatMultMapRefPtr bb_old = 
-						MatrixMultiplyV4Node(hashMap, *(c1_internal->BConnection[M1_index].entryPointHandle),
-						*(c2_internal->BConnection[M2_index].entryPointHandle));
+						MatrixMultiplyV4Node(hashMap, c1_internal->BConnection[M1_index].entryPointHandle,
+						c2_internal->BConnection[M2_index].entryPointHandle);
 					CFLOBDDMatMultMapHandle new_bb_return;
 					for (unsigned int j = 0; j < bb_old->rootConnection.returnMapHandle.Size(); j++)
 					{
@@ -5474,7 +5438,7 @@ namespace CFL_OBDD {
 					}
 					new_bb_return.Canonicalize();
 					CFLOBDDTopNodeMatMultMapRefPtr bb =
-						new CFLOBDDTopNodeMatMultMap(*(bb_old->rootConnection.entryPointHandle), new_bb_return);
+						new CFLOBDDTopNodeMatMultMap(bb_old->rootConnection.entryPointHandle, new_bb_return);
 					bb = MkLeftScalarTimesTopNode<MatMultMapHandle, VAL_TYPE>(v.second, bb);
 					// bb = v.second * bb;
 					if (first){
@@ -5503,7 +5467,7 @@ namespace CFL_OBDD {
 					}
 				}
 				ans_return_map.Canonicalize();
-				g->BConnection[i] = Connection(*(ans->rootConnection.entryPointHandle), ans_return_map);
+				g->BConnection[i] = Connection(ans->rootConnection.entryPointHandle, ans_return_map);
 			}
 
 		}
@@ -5558,7 +5522,7 @@ namespace CFL_OBDD {
 			if (c1.handleContents->level == 1){
 				std::vector<int> m1_indices{ 0, 0, 0, 0 }, m2_indices{ 0, 0, 0, 0 };
 				for (unsigned int i = 0; i < c1_internal->numBConnections; i++){
-					if (*(c1_internal->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle){
+					if (c1_internal->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle){
 						m1_indices[2 * i] = c1_internal->BConnection[i].returnMapHandle[0];
 						m1_indices[2 * i + 1] = c1_internal->BConnection[i].returnMapHandle[0];
 					}
@@ -5574,7 +5538,7 @@ namespace CFL_OBDD {
 				}
 
 				for (unsigned int i = 0; i < c2_internal->numBConnections; i++){
-					if (*(c2_internal->BConnection[i].entryPointHandle) == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle){
+					if (c2_internal->BConnection[i].entryPointHandle == CFLOBDDNodeHandle::CFLOBDDDontCareNodeHandle){
 						m2_indices[2 * i] = c2_internal->BConnection[i].returnMapHandle[0];
 						m2_indices[2 * i + 1] = c2_internal->BConnection[i].returnMapHandle[0];
 					}
@@ -5757,14 +5721,14 @@ namespace CFL_OBDD {
 					}
 				}
 
-				CFLOBDDTopNodeMatMultMapRefPtr aa = MatrixMultiplyV4WithInfoNode(hashMap, *(c1_internal->AConnection.entryPointHandle),
-					*(c2_internal->AConnection.entryPointHandle), a_zero_index_c1, a_zero_index_c2);
+				CFLOBDDTopNodeMatMultMapRefPtr aa = MatrixMultiplyV4WithInfoNode(hashMap, c1_internal->AConnection.entryPointHandle,
+					c2_internal->AConnection.entryPointHandle, a_zero_index_c1, a_zero_index_c2);
 				CFLOBDDReturnMapHandle mI;
 				for (unsigned int i = 0; i < aa->rootConnection.returnMapHandle.Size(); i++)
 					mI.AddToEnd(i);
 				mI.Canonicalize();
 
-				g->AConnection = Connection(*(aa->rootConnection.entryPointHandle), mI);
+				g->AConnection = Connection(aa->rootConnection.entryPointHandle, mI);
 				g->numBConnections = mI.Size();
 				g->BConnection = new Connection[g->numBConnections];
 				g->numExits = 0;
@@ -5788,8 +5752,8 @@ namespace CFL_OBDD {
 							unsigned int M2_index = v.first.second;
 							//VAL_TYPE factor = v.second;
 							CFLOBDDTopNodeMatMultMapRefPtr bb_old =
-								MatrixMultiplyV4WithInfoNode(hashMap, *(c1_internal->BConnection[M1_index].entryPointHandle),
-								*(c2_internal->BConnection[M2_index].entryPointHandle), b_zero_indices_c1[M1_index], b_zero_indices_c2[M2_index]);
+								MatrixMultiplyV4WithInfoNode(hashMap, c1_internal->BConnection[M1_index].entryPointHandle,
+								c2_internal->BConnection[M2_index].entryPointHandle, b_zero_indices_c1[M1_index], b_zero_indices_c2[M2_index]);
 							CFLOBDDMatMultMapHandle new_bb_return;
 							for (unsigned int j = 0; j < bb_old->rootConnection.returnMapHandle.Size(); j++)
 							{
@@ -5808,7 +5772,7 @@ namespace CFL_OBDD {
 							}
 							new_bb_return.Canonicalize();
 							CFLOBDDTopNodeMatMultMapRefPtr bb =
-								new CFLOBDDTopNodeMatMultMap(*(bb_old->rootConnection.entryPointHandle), new_bb_return);
+								new CFLOBDDTopNodeMatMultMap(bb_old->rootConnection.entryPointHandle, new_bb_return);
 							if (!(new_bb_return.Size() == 1 &&
 								new_bb_return[0].mapContents->contains_zero_val))
 								bb = MkLeftScalarTimesTopNode<MatMultMapHandle, VAL_TYPE>(v.second, bb);
@@ -5843,7 +5807,7 @@ namespace CFL_OBDD {
 						}
 					}
 					ans_return_map.Canonicalize();
-					g->BConnection[i] = Connection(*(ans->rootConnection.entryPointHandle), ans_return_map);
+					g->BConnection[i] = Connection(ans->rootConnection.entryPointHandle, ans_return_map);
 				}
 
 			}

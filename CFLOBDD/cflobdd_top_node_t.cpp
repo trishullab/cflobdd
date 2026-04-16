@@ -1,5 +1,6 @@
 #include "cflobdd_top_node_t.h"
 #include "ref_ptr.h"
+#include <boost/unordered/unordered_flat_map.hpp>
 
 
 namespace CFL_OBDD{
@@ -83,7 +84,7 @@ namespace CFL_OBDD{
     T CFLOBDDTopNodeT<T>::Evaluate(SH_OBDD::Assignment &assignment)
     {
         SH_OBDD::AssignmentIterator ai(assignment);
-        int i = rootConnection.entryPointHandle->handleContents->Traverse(ai);
+        int i = rootConnection.entryPointHandle.handleContents->Traverse(ai);
         T ans = rootConnection.returnMapHandle.Lookup(i);
         return ans;
     }
@@ -101,7 +102,7 @@ namespace CFL_OBDD{
         TraverseState ts;
         T ans;
 
-        S = new ConsCell<TraverseState>(TraverseState(rootConnection.entryPointHandle->handleContents, FirstVisit), S);
+        S = new ConsCell<TraverseState>(TraverseState(rootConnection.entryPointHandle.handleContents, FirstVisit), S);
         while (S != NULL) {
             ts = S->Item();
             S = S->Next();
@@ -119,12 +120,12 @@ namespace CFL_OBDD{
 
                 if (ts.visitState == FirstVisit) {
                     S = new ConsCell<TraverseState>(TraverseState(n, SecondVisit), S);
-                    S = new ConsCell<TraverseState>(TraverseState(n->AConnection.entryPointHandle->handleContents, FirstVisit), S);
+                    S = new ConsCell<TraverseState>(TraverseState(n->AConnection.entryPointHandle.handleContents, FirstVisit), S);
                 }
                 else if (ts.visitState == SecondVisit) {
                     int i = n->AConnection.returnMapHandle.Lookup(exitIndex);
                     S = new ConsCell<TraverseState>(TraverseState(n, ThirdVisit, i), S);
-                    S = new ConsCell<TraverseState>(TraverseState(n->BConnection[i].entryPointHandle->handleContents, FirstVisit), S);
+                    S = new ConsCell<TraverseState>(TraverseState(n->BConnection[i].entryPointHandle.handleContents, FirstVisit), S);
                 }
                 else {  // if (ts.visitState == ThirdVisit)
                     exitIndex = n->BConnection[ts.index].returnMapHandle.Lookup(exitIndex);
@@ -171,12 +172,12 @@ namespace CFL_OBDD{
 
                 if (ts.visitState == FirstVisit) {
                     S = new ConsCell<TraverseState>(TraverseState(n, SecondVisit), S);
-                    S = new ConsCell<TraverseState>(TraverseState(n->AConnection.entryPointHandle->handleContents, FirstVisit), S);
+                    S = new ConsCell<TraverseState>(TraverseState(n->AConnection.entryPointHandle.handleContents, FirstVisit), S);
                 }
                 else if (ts.visitState == SecondVisit) {
                     int i = n->AConnection.returnMapHandle.Lookup(exitIndex);
                     S = new ConsCell<TraverseState>(TraverseState(n, ThirdVisit, i), S);
-                    S = new ConsCell<TraverseState>(TraverseState(n->BConnection[i].entryPointHandle->handleContents, FirstVisit), S);
+                    S = new ConsCell<TraverseState>(TraverseState(n->BConnection[i].entryPointHandle.handleContents, FirstVisit), S);
                 }
                 else {  // if (ts.visitState == ThirdVisit)
                     exitIndex = n->BConnection[ts.index].returnMapHandle.Lookup(exitIndex);
@@ -198,7 +199,7 @@ namespace CFL_OBDD{
         ConsCell<TraverseState> *S = NULL;   // Traversal stack
         List<ConsCell<TraverseState> *> L;   // Snapshot stack
 
-        S = new ConsCell<TraverseState>(TraverseState(rootConnection.entryPointHandle->handleContents, FirstVisit), S);
+        S = new ConsCell<TraverseState>(TraverseState(rootConnection.entryPointHandle.handleContents, FirstVisit), S);
         PrintYieldAux(out, L, S);
         while (!L.IsEmpty()) {
             S = L.RemoveFirst();
@@ -238,7 +239,7 @@ namespace CFL_OBDD{
     template<typename T>
     bool CFLOBDDTopNodeT<T>::IsValid()
     {
-        return rootConnection.entryPointHandle->handleContents->IsValid();
+        return rootConnection.entryPointHandle.handleContents->IsValid();
     }
 
 
@@ -250,20 +251,20 @@ namespace CFL_OBDD{
     template <typename T>
     void CFLOBDDTopNodeT<T>::DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out /* = std::cout */)
     {
-        rootConnection.entryPointHandle->handleContents->DumpConnections(visited, out);
+        rootConnection.entryPointHandle.handleContents->DumpConnections(visited, out);
         out << rootConnection << std::endl;
     }
 
     template <typename T>
     void CFLOBDDTopNodeT<T>::CountNodes(Hashset<CFLOBDDNodeHandle> *visitedNodes, unsigned int &nodeCount)
     {
-        rootConnection.entryPointHandle->handleContents->CountNodes(visitedNodes, nodeCount);
+        rootConnection.entryPointHandle.handleContents->CountNodes(visitedNodes, nodeCount);
     }
 
     template <typename T>
     void CFLOBDDTopNodeT<T>::CountPaths(Hashset<CFLOBDDNodeHandle> *visitedNodes)
     {
-        rootConnection.entryPointHandle->handleContents->CountPaths(visitedNodes);
+        rootConnection.entryPointHandle.handleContents->CountPaths(visitedNodes);
     }
 
 
@@ -271,7 +272,7 @@ namespace CFL_OBDD{
     void CFLOBDDTopNodeT<T>::CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
         unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount, unsigned int& returnEdgesObjCount)
     {
-        rootConnection.entryPointHandle->handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount, returnEdgesCount);
+        rootConnection.entryPointHandle.handleContents->CountNodesAndEdges(visitedNodes, visitedEdges, nodeCount, edgeCount, returnEdgesCount);
         edgeCount += rootConnection.returnMapHandle.Size();
     }
 
@@ -284,9 +285,9 @@ namespace CFL_OBDD{
 
     // Hash
     template <typename T>
-    unsigned int CFLOBDDTopNodeT<T>::Hash(unsigned long modsize)
+    size_t CFLOBDDTopNodeT<T>::Hash()
     {
-        return rootConnection.Hash(modsize);
+        return rootConnection.Hash();
     }
 
     // Overloaded !=
@@ -307,7 +308,7 @@ namespace CFL_OBDD{
     template <typename T>
     std::ostream& CFLOBDDTopNodeT<T>::print(std::ostream & out) const
     {
-        out << *(rootConnection.entryPointHandle) << std::endl;
+        out << rootConnection.entryPointHandle << std::endl;
         out << rootConnection.returnMapHandle << std::endl;
         return out;
     }
@@ -329,39 +330,31 @@ namespace CFL_OBDD{
     {
         // Perform 2-way cross product of n1 and n2
         PairProductMapHandle MapHandle;
-        CFLOBDDNodeHandle n = PairProduct(*(n1->rootConnection.entryPointHandle),
-            *(n2->rootConnection.entryPointHandle),
+        CFLOBDDNodeHandle n = PairProduct(n1->rootConnection.entryPointHandle,
+            n2->rootConnection.entryPointHandle,
             MapHandle);
 
         // Create returnMapHandle from MapHandle: Fold the pairs in MapHandle by applying
         // [n1->rootConnection.returnMapHandle, n2->rootConnection.returnMapHandle]
         // (component-wise) to each pair.
         ReturnMapHandle<T> returnMapHandle;
-        //PairProductMapBodyIterator MapIterator(*MapHandle.mapContents);
-        //MapIterator.Reset();
-        std::unordered_map<T, unsigned int> reduction_map;
         ReductionMapHandle reductionMapHandle;
+        // Because the range of a BoolOp has <= 2 values (for false and true),
+        // we can record their position in the return map with just two variables.
+        int idx_false = -1, idx_true = -1;
         unsigned int iterator = 0;
-        //while (!MapIterator.AtEnd()) {
         while (iterator < MapHandle.Size()){
-            T c1, c2;
-            int first, second;
-            //first = MapIterator.Current().First();
-            //second = MapIterator.Current().Second();
-            first = MapHandle[iterator].First();
-            second = MapHandle[iterator].Second();
-            c1 = n1->rootConnection.returnMapHandle.Lookup(first);
-            c2 = n2->rootConnection.returnMapHandle.Lookup(second);
+            int first = MapHandle[iterator].First();
+            int second = MapHandle[iterator].Second();
+            T c1 = n1->rootConnection.returnMapHandle.Lookup(first);
+            T c2 = n2->rootConnection.returnMapHandle.Lookup(second);
             T val = op[c1][c2];
-            if (reduction_map.find(val) == reduction_map.end()){
+            int &idx = (val ? idx_true : idx_false);
+            if (idx < 0){
                 returnMapHandle.AddToEnd(val);
-                reduction_map.insert(std::make_pair(val, returnMapHandle.Size() - 1));
-                reductionMapHandle.AddToEnd(returnMapHandle.Size() - 1);
+                idx = returnMapHandle.Size() - 1;
             }
-            else{
-                reductionMapHandle.AddToEnd(reduction_map[val]);
-            }
-            //MapIterator.Next();
+            reductionMapHandle.AddToEnd(idx);
             iterator++;
         }
         returnMapHandle.Canonicalize();
@@ -393,8 +386,8 @@ namespace CFL_OBDD{
         PairProductMapHandle MapHandle;
         /*DisposeOfPairProductCache();
         InitPairProductCache();*/
-        CFLOBDDNodeHandle n = PairProduct(*(n1->rootConnection.entryPointHandle),
-                *(n2->rootConnection.entryPointHandle),
+        CFLOBDDNodeHandle n = PairProduct(n1->rootConnection.entryPointHandle,
+                n2->rootConnection.entryPointHandle,
                 MapHandle);
 
         // Create returnMapHandle from MapHandle: Fold the pairs in MapHandle by applying
@@ -402,50 +395,52 @@ namespace CFL_OBDD{
         // (component-wise) to each pair.
         
         ReturnMapHandle<T> returnMapHandle;
-        //PairProductMapBodyIterator MapIterator(*MapHandle.mapContents);
-        //MapIterator.Reset();
-        
-        boost::unordered_map<T, unsigned int> reductionMap;
         ReductionMapHandle reductionMapHandle;
         unsigned int iterator = 0;
-        //while (!MapIterator.AtEnd()) {
-        while (iterator < MapHandle.Size()){
-            T c1, c2;
-            int first, second;
-            //first = MapIterator.Current().First();
-            //second = MapIterator.Current().Second();
-            first = MapHandle[iterator].First();
-            second = MapHandle[iterator].Second();
-            c1 = n1->rootConnection.returnMapHandle.Lookup(first);
-            c2 = n2->rootConnection.returnMapHandle.Lookup(second);
-            T val = (*func)(c1, c2);
-            unsigned int k = returnMapHandle.Size();
-            for ( k = 0; k < returnMapHandle.Size(); k++)
-            {
-                if (returnMapHandle[k] == val)
-                {
-                    break;
+        if constexpr (std::is_arithmetic_v<T>) {
+            boost::unordered_flat_map<T, unsigned int> reductionMap;
+            while (iterator < MapHandle.Size()){
+                T c1, c2;
+                int first, second;
+                first = MapHandle[iterator].First();
+                second = MapHandle[iterator].Second();
+                c1 = n1->rootConnection.returnMapHandle.Lookup(first);
+                c2 = n2->rootConnection.returnMapHandle.Lookup(second);
+                T val = (*func)(c1, c2);
+                if (reductionMap.find(val) == reductionMap.end()){
+                    returnMapHandle.AddToEnd(val);
+                    reductionMap.insert(std::make_pair(val, returnMapHandle.Size() - 1));
+                    reductionMapHandle.AddToEnd(returnMapHandle.Size() - 1);
                 }
+                else{
+                    reductionMapHandle.AddToEnd(reductionMap[val]);
+                }
+                iterator++;
             }
-            if (k < returnMapHandle.Size())
-            {
-                reductionMapHandle.AddToEnd(k);
+        }
+        else {
+            while (iterator < MapHandle.Size()){
+                T c1, c2;
+                int first, second;
+                first = MapHandle[iterator].First();
+                second = MapHandle[iterator].Second();
+                c1 = n1->rootConnection.returnMapHandle.Lookup(first);
+                c2 = n2->rootConnection.returnMapHandle.Lookup(second);
+                T val = (*func)(c1, c2);
+                unsigned int bound = returnMapHandle.Size();
+                unsigned int k;
+                for (k = 0; k < bound; k++) {
+                    if (returnMapHandle[k] == val) break;
+                }
+                if (k < bound) {
+                    reductionMapHandle.AddToEnd(k);
+                }
+                else {
+                    returnMapHandle.AddToEnd(val);
+                    reductionMapHandle.AddToEnd(bound);
+                }
+                iterator++;
             }
-            else
-            {
-                returnMapHandle.AddToEnd(val);
-                reductionMapHandle.AddToEnd(returnMapHandle.Size() - 1);
-            }
-            // if (reductionMap.find(val) == reductionMap.end()){
-            //     returnMapHandle.AddToEnd(val);
-            //     reductionMap.insert(std::make_pair(val, returnMapHandle.Size() - 1));
-            //     reductionMapHandle.AddToEnd(returnMapHandle.Size() - 1);
-            // }
-            // else{
-            //     reductionMapHandle.AddToEnd(reductionMap[val]);
-            // }
-            //MapIterator.Next();
-            iterator++;
         }
 
             returnMapHandle.Canonicalize();
@@ -476,28 +471,27 @@ namespace CFL_OBDD{
     {
         // Perform 3-way cross product of n1, n2, and n3
         TripleProductMapHandle MapHandle;
-        CFLOBDDNodeHandle n = TripleProduct(*(n1->rootConnection.entryPointHandle),
-            *(n2->rootConnection.entryPointHandle),
-            *(n3->rootConnection.entryPointHandle),
+        CFLOBDDNodeHandle n = TripleProduct(n1->rootConnection.entryPointHandle,
+            n2->rootConnection.entryPointHandle,
+            n3->rootConnection.entryPointHandle,
             MapHandle);
 
-        // Create returnMapHandle from MapHandle: Fold the pairs in MapHandle by applying
+        // Create returnMapHandle from MapHandle: Fold the triples in MapHandle by applying
         // [n1->rootConnection.returnMapHandle, n2->rootConnection.returnMapHandle, n3->rootConnection.returnMapHandle]
         // (component-wise) to each triple.
         ReturnMapHandle<T> returnMapHandle;
-        TripleProductMapBodyIterator MapIterator(*MapHandle.mapContents);
-        MapIterator.Reset();
-        while (!MapIterator.AtEnd()) {
+        const auto* mapData = MapHandle.mapContents->mapArray.data();
+        unsigned int mapSize = MapHandle.mapContents->mapArray.size();
+        for (unsigned int mi = 0; mi < mapSize; mi++) {
             T c1, c2, c3;
             int first, second, third;
-            first = MapIterator.Current().First();
-            second = MapIterator.Current().Second();
-            third = MapIterator.Current().Third();
+            first = mapData[mi].First();
+            second = mapData[mi].Second();
+            third = mapData[mi].Third();
             c1 = n1->rootConnection.returnMapHandle.Lookup(first);
             c2 = n2->rootConnection.returnMapHandle.Lookup(second);
             c3 = n3->rootConnection.returnMapHandle.Lookup(third);
             returnMapHandle.AddToEnd(op[c1][c2][c3]);
-            MapIterator.Next();
         }
         returnMapHandle.Canonicalize();
 
@@ -570,7 +564,7 @@ namespace CFL_OBDD{
     //		eph = CFLOBDDNodeHandle::NoDistinctionNode[g->level];
     //	}
     //	else {
-    //		eph = *(g->rootConnection.entryPointHandle);
+    //		eph = g->rootConnection.entryPointHandle;
     //	}
     //
     //	ReturnMapHandle<T> rmh = c * g->rootConnection.returnMapHandle;
@@ -600,7 +594,7 @@ namespace CFL_OBDD{
     //		eph = CFLOBDDNodeHandle::NoDistinctionNode[g->level];
     //	}
     //	else {
-    //		eph = *(g->rootConnection.entryPointHandle);
+    //		eph = g->rootConnection.entryPointHandle;
     //	}
     //
     //	ReturnMapHandle<T> rmh = c * g->rootConnection.returnMapHandle;
@@ -630,7 +624,7 @@ namespace CFL_OBDD{
     //		eph = CFLOBDDNodeHandle::NoDistinctionNode[g->level];
     //	}
     //	else {
-    //		eph = *(g->rootConnection.entryPointHandle);
+    //		eph = g->rootConnection.entryPointHandle;
     //	}
     //
     //	ReturnMapHandle<T> rmh = c * g->rootConnection.returnMapHandle;
@@ -671,7 +665,7 @@ namespace CFL_OBDD{
             return(new CFLOBDDTopNodeT<T>(reduced_eph, inducedReturnMap));
         }
         else {
-            eph = *(g->rootConnection.entryPointHandle);
+            eph = g->rootConnection.entryPointHandle;
             ReturnMapHandle<T> rmh = c * g->rootConnection.returnMapHandle;
             return(new CFLOBDDTopNodeT<T>(eph, rmh));
         }
@@ -719,7 +713,7 @@ namespace CFL_OBDD{
             return(new CFLOBDDTopNodeT<T>(reduced_eph, inducedReturnMap));
         }
         else {
-            eph = *(f->rootConnection.entryPointHandle);
+            eph = f->rootConnection.entryPointHandle;
             ReturnMapHandle<T> rmh = f->rootConnection.returnMapHandle * c;
             return(new CFLOBDDTopNodeT<T>(eph, rmh));
         }

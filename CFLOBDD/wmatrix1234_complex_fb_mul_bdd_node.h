@@ -52,7 +52,7 @@ namespace CFL_OBDD {
                 {
                     WeightedBDDComplexFloatBoostMulNodeHandle t1 = p.m1;
                     long int t2 = p.offset;
-                    auto hash1 = t1.Hash(997);
+                    auto hash1 = t1.Hash();
                     auto hash2 = t2;
                     return 117 * (hash1 + 1) + hash2;
                 }
@@ -83,8 +83,8 @@ namespace CFL_OBDD {
                 {
                     WeightedBDDComplexFloatBoostMulNodeHandle t1 = p.m1;
                     WeightedBDDComplexFloatBoostMulNodeHandle t2 = p.m2;
-                    auto hash1 = t1.Hash(997);
-                    auto hash2 = t2.Hash(997);
+                    auto hash1 = t1.Hash();
+                    auto hash2 = t2.Hash();
                     return 117 * (hash1 + 1) + hash2;
                 }
             };
@@ -123,8 +123,8 @@ namespace CFL_OBDD {
                 {
                     WeightedBDDComplexFloatBoostMulNodeHandle t1 = p.m1;
                     WeightedBDDComplexFloatBoostMulNodeHandle t2 = p.m2;
-                    auto hash1 = t1.Hash(997);
-                    auto hash2 = t2.Hash(997);
+                    auto hash1 = t1.Hash();
+                    auto hash2 = t2.Hash();
                     return 117 * (hash1 + 1) + hash2;// + (p.rename == false) ? 1 : 0;
                 }
             };

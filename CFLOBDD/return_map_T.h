@@ -29,7 +29,10 @@
 
 #include <iostream>
 #include <fstream>
+#include <unordered_set>
 #include <vector>
+#include <deque>
+#include "cflobdd_config.h"
 #include "list_T.h"
 #include "list_TPtr.h"
 #include "hashset.h"
@@ -37,11 +40,39 @@
 #include "intpair.h"
 #include <complex>
 #include <cstdint>
+#include <typeinfo>
+#ifdef _WIN32
+#include <windows.h>
+#include <psapi.h>
+#endif
 //#include <boost/multiprecision/cpp_int.hpp>
 //#include "hash_functions.h"
 
+inline void printProcessMemoryUsage() {
+#ifdef _WIN32
+    PROCESS_MEMORY_COUNTERS pmc;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+        std::cout << "WorkingSetSize: " << (pmc.WorkingSetSize / (1024*1024)) << " MB"
+                  << ", PeakWorkingSetSize: " << (pmc.PeakWorkingSetSize / (1024*1024)) << " MB"
+                  << std::endl;
+    }
+#endif
+}
+
 template <typename T> class ReturnMapHandle;
 template <typename T> class ReturnMapBody;
+
+// Content-based hash and equality functors for ReturnMapBody* pointers,
+// used by the std::unordered_set canonical store.
+template <typename T>
+struct ReturnMapBodyPtrHash {
+    size_t operator()(ReturnMapBody<T>* p) const { return p->Hash(); }
+};
+
+template <typename T>
+struct ReturnMapBodyPtrEq {
+    bool operator()(ReturnMapBody<T>* a, ReturnMapBody<T>* b) const { return a == b || *a == *b; }
+};
 
 //using namespace boost::multiprecision;
 
@@ -60,7 +91,7 @@ class ReturnMapHandle {
   bool operator!= (const ReturnMapHandle<T> &r);      // Overloaded !=
   bool operator== (const ReturnMapHandle<T> &r);      // Overloaded ==
   T& operator[](unsigned int i);                       // Overloaded []
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   unsigned int Size();
   void AddToEnd(T y);
   bool Member(T y);
@@ -73,8 +104,13 @@ class ReturnMapHandle {
   void InducedReductionAndReturnMap(ReductionMapHandle &inducedReductionMapHandle,
 	                                ReturnMapHandle<T> &inducedReturnMapHandle);
   ReturnMapBody<T> *mapContents;
-  static Hashset<ReturnMapBody<T>> *canonicalReturnMapBodySet;
+  using CanonicalReturnMapBodySet = std::unordered_set<ReturnMapBody<T>*,
+                                                        ReturnMapBodyPtrHash<T>,
+                                                        ReturnMapBodyPtrEq<T>>;
+  static CanonicalReturnMapBodySet *canonicalReturnMapBodySet;
   std::ostream& print(std::ostream & out = std::cout) const;
+ private:
+  static CanonicalReturnMapBodySet *initCanonicalSet();
 };
 
 template <typename T>
@@ -88,7 +124,7 @@ template <typename T>
 class ReturnMapBody {
 
   friend void ReturnMapHandle<T>::Canonicalize();
-  friend unsigned int ReturnMapHandle<T>::Hash(unsigned long modsize);
+  friend size_t ReturnMapHandle<T>::Hash();
 
  public:
   ReturnMapBody();    // Constructor
@@ -96,7 +132,7 @@ class ReturnMapBody {
   //~ReturnMapBody();
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   void setHashCheck();
   unsigned int refCount;         // reference-count value
   std::vector<T> mapArray;
@@ -104,9 +140,19 @@ class ReturnMapBody {
   T& operator[](unsigned int i);                       // Overloaded []
   unsigned int hashCheck;
 
+  static ReturnMapBody<T>* Create();
+  static ReturnMapBody<T>* Create(unsigned int capacity);
+
  protected:
   bool isCanonical;              // Is this ReturnMapBody in *canonicalReturnMapBodySet?
 
+ private:
+  // Heap-allocated so it is never destroyed at program exit, avoiding static
+  // destruction-order issues when DecrRef is called from late static destructors.
+  static std::deque<ReturnMapBody<T>*>& getFreeList() {
+    static std::deque<ReturnMapBody<T>*>* const freeList = new std::deque<ReturnMapBody<T>*>();
+    return *freeList;
+  }
 };
 
 
@@ -142,30 +188,63 @@ void ReturnMapBody<T>::DecrRef()
 {
   if (--refCount == 0) {    // Warning: Saturation not checked
     if (isCanonical) {
-      ReturnMapHandle<T>::canonicalReturnMapBodySet->DeleteEq(this);
+      ReturnMapHandle<T>::canonicalReturnMapBodySet->erase(this);
     }
-    delete this;
+    mapArray.clear();
+    hashCheck = 0;
+    isCanonical = false;
+    auto& fl = getFreeList();
+    fl.push_back(this);
+    size_t cap = cflobddConfig.returnMapFreelistCap;
+    if (cap > 0) {
+      while (fl.size() > cap) {
+        delete fl.front();
+        fl.pop_front();
+      }
+    }
   }
+}
+
+template <typename T>
+ReturnMapBody<T>* ReturnMapBody<T>::Create()
+{
+  auto& fl = getFreeList();
+  if (!fl.empty()) {
+    ReturnMapBody<T>* p = fl.back();
+    fl.pop_back();
+    return p;
+  }
+  return new ReturnMapBody<T>();
+}
+
+template <typename T>
+ReturnMapBody<T>* ReturnMapBody<T>::Create(unsigned int capacity)
+{
+  auto& fl = getFreeList();
+  if (!fl.empty()) {
+    ReturnMapBody<T>* p = fl.back();
+    fl.pop_back();
+    if (p->mapArray.capacity() < capacity)
+      p->mapArray.reserve(capacity);
+    return p;
+  }
+  return new ReturnMapBody<T>(capacity);
 }
 
 template <typename T>
 bool ReturnMapBody<T>::operator==(const ReturnMapBody<T> &o) const
 {
 	if (hashCheck != o.hashCheck)
-	{
 		return false;
-	}
-	else if (mapArray.size() != o.mapArray.size())
-	{
+	unsigned int sz = mapArray.size();
+	if (sz != o.mapArray.size())
 		return false;
-	} else {
-	  for (unsigned i = 0; i < mapArray.size(); i++)
-	  {
-		  if (mapArray[i] != o.mapArray[i])
-		  {
-			  return false;
-		  }
-	  }
+	const auto* d1 = mapArray.data();
+	const auto* d2 = o.mapArray.data();
+	for (unsigned i = 0; i < sz; i++)
+	{
+		if (d1[i] != d2[i])
+			return false;
 	}
 	return true;
 }
@@ -196,20 +275,30 @@ std::ostream& operator<< (std::ostream & out, const ReturnMapBody<T> &r)
 // ReturnMapHandle
 //***************************************************************
 
+// Factory method for static canonical-set member
+template <typename T>
+typename ReturnMapHandle<T>::CanonicalReturnMapBodySet *ReturnMapHandle<T>::initCanonicalSet()
+{
+    auto *s = new CanonicalReturnMapBodySet(RETURN_MAP_NUM_BUCKETS);
+    s->max_load_factor(0.8f);
+    return s;
+}
+
 // Initializations of static members ---------------------------------
-template <typename T> Hashset<ReturnMapBody<T>> *ReturnMapHandle<T>::canonicalReturnMapBodySet = new Hashset<ReturnMapBody<T>>(HASHSET_NUM_BUCKETS);
+template <typename T> typename ReturnMapHandle<T>::CanonicalReturnMapBodySet
+    *ReturnMapHandle<T>::canonicalReturnMapBodySet = ReturnMapHandle<T>::initCanonicalSet();
 
 // Default constructor
 template <typename T>
 ReturnMapHandle<T>::ReturnMapHandle()
-  :  mapContents(new ReturnMapBody<T>)
+  :  mapContents(ReturnMapBody<T>::Create())
 {
   mapContents->IncrRef();
 }
 
 template <typename T>
 ReturnMapHandle<T>::ReturnMapHandle(unsigned int capacity)
-	: mapContents(new ReturnMapBody<T>(capacity))
+	: mapContents(ReturnMapBody<T>::Create(capacity))
 {
 	mapContents->IncrRef();
 }
@@ -287,7 +376,7 @@ std::ostream& operator<< (std::ostream & out, const ReturnMapHandle<T> &r)
 }
 
 template <typename T>
-unsigned int ReturnMapHandle<T>::Hash(unsigned long modsize)
+size_t ReturnMapHandle<T>::Hash()
 {
 	if (!(mapContents->isCanonical)) {
 		std::cout << "Hash of a non-canonical ReturnMapHandle occurred" << std::endl;
@@ -295,7 +384,7 @@ unsigned int ReturnMapHandle<T>::Hash(unsigned long modsize)
 		this->Canonicalize();
 	}
 	assert(mapContents->isCanonical);
-	return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
+	return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
 }
 
 template <typename T>
@@ -304,10 +393,11 @@ unsigned int ReturnMapHandle<T>::Size()
 	try{
 		return mapContents->mapArray.size();
 	}
-	catch (std::exception e){
+	catch (const std::exception& e){
+		std::cout << "Exception type: " << typeid(e).name() << std::endl;
 		std::cout << e.what() << std::endl;
-		std::cout << "Size error" << std::endl;
-		throw e;
+		std::cout << "Size error in ReturnMapHandle<" << typeid(T).name() << ">" << std::endl;
+		throw;
 	}
 }
 
@@ -318,22 +408,24 @@ void ReturnMapHandle<T>::AddToEnd(T y)
 		assert(mapContents->refCount <= 1);
 		mapContents->mapArray.push_back(y);
 	}
-	catch (std::exception e){
+	catch (const std::exception& e){
+		std::cout << "Exception type: " << typeid(e).name() << std::endl;
 		std::cout << e.what() << std::endl;
-		//std::cout << mapContents->refCount << " " << y << " " << Size() << std::endl;
-		std::cout << mapContents->refCount << " " << Size() << std::endl;
-		std::cout << "ReturnMapHandle" << std::endl;
-		//std::cout << y << std::endl;
-		throw e;
+		std::cout << "AddToEnd in ReturnMapHandle<" << typeid(T).name() << ">" << std::endl;
+		std::cout << "refCount: " << mapContents->refCount << ", Size: " << Size() << std::endl;
+		printProcessMemoryUsage();
+		throw;
 	}
 }
 
 template <typename T>
 bool ReturnMapHandle<T>::Member(T y)
 {
-	for (unsigned i = 0; i < mapContents->mapArray.size(); i++)
+	const auto* data = mapContents->mapArray.data();
+	unsigned sz = mapContents->mapArray.size();
+	for (unsigned i = 0; i < sz; i++)
 	{
-		if (mapContents->mapArray[i] == y) {
+		if (data[i] == y) {
 			return true;
 		}
 	}
@@ -349,9 +441,11 @@ T ReturnMapHandle<T>::Lookup(int x)
 template <typename T>
 int ReturnMapHandle<T>::LookupInv(T y)
 {
-	for (unsigned i = 0; i < mapContents->mapArray.size(); i++)
+	const auto* data = mapContents->mapArray.data();
+	unsigned sz = mapContents->mapArray.size();
+	for (unsigned i = 0; i < sz; i++)
 	{
-		if (mapContents->mapArray[i] == y)
+		if (data[i] == y)
 		{
 			return i;
 		}
@@ -364,26 +458,27 @@ void ReturnMapHandle<T>::Canonicalize()
 { 
 	try{
 		ReturnMapBody<T> *answerContents;
-		mapContents->setHashCheck();
 
 		if (!mapContents->isCanonical) {
-			unsigned int hash = canonicalReturnMapBodySet->GetHash(mapContents);
-			answerContents = canonicalReturnMapBodySet->Lookup(mapContents, hash);
-			if (answerContents == NULL) {
-				canonicalReturnMapBodySet->Insert(mapContents, hash);
+			mapContents->setHashCheck();
+			auto it = canonicalReturnMapBodySet->find(mapContents);
+			if (it == canonicalReturnMapBodySet->end()) {
+				canonicalReturnMapBodySet->insert(mapContents);
 				mapContents->isCanonical = true;
 			}
 			else {
+				answerContents = *it;
 				answerContents->IncrRef();
 				mapContents->DecrRef();
 				mapContents = answerContents;
 			}
 		}
 	}
-	catch (std::exception e){
+	catch (const std::exception& e){
+		std::cout << "Exception type: " << typeid(e).name() << std::endl;
 		std::cout << e.what() << std::endl;
-		std::cout << "Canonicalize" << std::endl;
-		throw e;
+		std::cout << "Canonicalize in ReturnMapHandle<" << typeid(T).name() << ">" << std::endl;
+		throw;
 	}
 }
 
@@ -393,9 +488,10 @@ ReturnMapHandle<T> ReturnMapHandle<T>::Compose(ReductionMapHandle redMapHandle)
   T c2, c3;
   ReturnMapHandle<T> answer;
   int size = mapContents->mapArray.size();
+  const auto* srcData = mapContents->mapArray.data();
   for (int i = 0; i < size; i++)
   {
-	  c2 = mapContents->mapArray[i];
+	  c2 = srcData[i];
 	  c3 = redMapHandle.Lookup(c2);
 	  answer.mapContents->mapArray.push_back(c3); 	  // Why not answer.AddToEnd(c3);
   }
@@ -415,9 +511,10 @@ void ReturnMapHandle<T>::InducedReductionAndReturnMap(ReductionMapHandle &induce
 
 		int c1 = 0;
 		int size = mapContents->mapArray.size();
+		const auto* srcData = mapContents->mapArray.data();
 		for (int i = 0; i < size; i++)
 		{
-			c2 = mapContents->mapArray[i];
+			c2 = srcData[i];
 			d = LookupInv(c2);
 			if (d < c1) { // c1 and d are in same range-value equivalence class of this ReturnMap (i.e., [c2])
 				e = inducedReductionMapHandle.Lookup(d);
@@ -433,10 +530,11 @@ void ReturnMapHandle<T>::InducedReductionAndReturnMap(ReductionMapHandle &induce
 		inducedReturnMapHandle.Canonicalize();
 		inducedReductionMapHandle.Canonicalize();
 	}
-	catch (std::exception e){
+	catch (const std::exception& e){
+		std::cout << "Exception type: " << typeid(e).name() << std::endl;
 		std::cout << e.what() << std::endl;
-		std::cout << "InducedReductionAndReturnMap" << std::endl;
-		throw e;
+		std::cout << "InducedReductionAndReturnMap in ReturnMapHandle<" << typeid(T).name() << ">" << std::endl;
+		throw;
 	}
 }
 
@@ -448,9 +546,10 @@ ReturnMapHandle<T> operator*(T1 c, ReturnMapHandle<T> rmh)
 	ReturnMapHandle<T> answer;
 	if (c == 1) return rmh;
 	int size = rmh.mapContents->mapArray.size();
+	const auto* rmhData = rmh.mapContents->mapArray.data();
 	for (int i = 0; i < size; i++)
 	{
-		v = rmh.mapContents->mapArray[i];
+		v = rmhData[i];
 		T val = c * v;
 		answer.AddToEnd(val);
 		// Formerly, answer.mapContents->mapArray.push_back();  // When written as c * v, the compiler gave the message "'operator *' is ambiguous"
@@ -467,9 +566,10 @@ ReturnMapHandle<T> operator*(ReturnMapHandle<T> rmh, int c)
 	ReturnMapHandle<T> answer;
 	if (c == 1) return rmh;
 	int size = rmh.mapContents->mapArray.size();
+	const auto* rmhData = rmh.mapContents->mapArray.data();
 	for (int i = 0; i < size; i++)
 	{
-		v = rmh.mapContents->mapArray[i];
+		v = rmhData[i];
 		answer.AddToEnd(v * c);
 		// Formerly, answer.mapContents->mapArray.push_back(v * c);
 	}

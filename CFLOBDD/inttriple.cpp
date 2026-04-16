@@ -59,14 +59,14 @@ inttriple& inttriple::operator= (const inttriple& i)
 }
 
 // Overloaded !=
-bool inttriple::operator!=(const inttriple& p)
+bool inttriple::operator!=(const inttriple& p) const
 {
   return (first != p.first) || (second != p.second) || (third != p.third);
 }
 
 // Overloaded ==
-bool inttriple::operator==(const inttriple& p)
+bool operator==(const inttriple& lhs, const inttriple& rhs)
 {
-  return (first == p.first) && (second == p.second) && (third == p.third);
+  return (lhs.First() == rhs.First()) && (lhs.Second() == rhs.Second()) && (lhs.Third() == rhs.Third());
 }
 

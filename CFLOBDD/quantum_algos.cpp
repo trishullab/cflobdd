@@ -443,8 +443,8 @@ namespace CFL_OBDD {
 			a = Matrix1234FloatBoost::Demote12ToInterleaved(a);
 
 			printMemory();
-			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->Size() << std::endl;
-			std::cout << CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->Size() << std::endl;
+			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->size() << std::endl;
+			std::cout << CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->size() << std::endl;
 			UFunc = VectorFloatBoost::NoDistinctionNode(UFunc.root->level);
 			SumEx = VectorFloatBoost::NoDistinctionNode(SumEx.root->level);
 			e0 = VectorFloatBoost::NoDistinctionNode(e0.root->level);
@@ -453,8 +453,8 @@ namespace CFL_OBDD {
 			InitPairProductCache();
 			CFLOBDDNodeHandle::DisposeOfReduceCache();
 			CFLOBDDNodeHandle::InitReduceCache();
-			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->Size() << std::endl;
-			std::cout << CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->Size() << std::endl;
+			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->size() << std::endl;
+			std::cout << CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->size() << std::endl;
 			printMemory();
 			
 			std::cout << "a matrix created.." << std::endl;
@@ -553,7 +553,7 @@ namespace CFL_OBDD {
 			InitPairProductCache();
 			CFLOBDDNodeHandle::DisposeOfReduceCache();
 			CFLOBDDNodeHandle::InitReduceCache();
-			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->Size() << std::endl;
+			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->size() << std::endl;
 			std::cout << "UFunc returnMapSize: " << UFunc.root->rootConnection.returnMapHandle.Size() << std::endl;
 			std::cout << "UFunc created ..." << std::endl;
 			unsigned int level = ceil(log2(n));
@@ -735,7 +735,7 @@ namespace CFL_OBDD {
 			//ans = Matrix1234FloatBoost::Demote12ToInterleaved(ans);
 			tmp = Matrix1234FloatBoost::PromoteInterleavedTo12(tmp);
 			ans = Matrix1234FloatBoost::KroneckerProduct(tmp, ans);
-			CFLOBDDInternalNode* x = (CFLOBDDInternalNode *)ans.root->rootConnection.entryPointHandle->handleContents;
+			CFLOBDDInternalNode* x = (CFLOBDDInternalNode *)ans.root->rootConnection.entryPointHandle.handleContents;
 			std::cout << "numBConnections: " << x->numBConnections << std::endl;
 
 			tmp = Matrix1234FloatBoost::PromoteInterleavedTo12(tmp);
@@ -816,13 +816,13 @@ namespace CFL_OBDD {
 			std::cout << "HF matrix created..." << std::endl;
 			CFLOBDDNodeHandle::DisposeOfReduceCache();
 			CFLOBDDNodeHandle::InitReduceCache();
-			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->Size() << std::endl;
+			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->size() << std::endl;
 			HF = Matrix1234FloatBoost::PromoteInterleavedTo12(HF);
 			C = Matrix1234FloatBoost::PromoteInterleavedTo12(C);
 			//CFLOBDD_FLOAT_BOOST temp = Matrix1234FloatBoost::MatrixMultiplyV4(HF, C);
 			CFLOBDDNodeHandle::DisposeOfReduceCache();
 			CFLOBDDNodeHandle::InitReduceCache();
-			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->Size() << std::endl;
+			std::cout << CFLOBDDNodeHandle::canonicalNodeTable->size() << std::endl;
 
 			unsigned int level = ceil(log2(n));
 			CFLOBDD_FLOAT_BOOST SumEx = VectorFloatBoost::NoDistinctionNode(level, 1);
@@ -1426,7 +1426,7 @@ namespace CFL_OBDD {
 			//std::cout << "Step j : " << nodeCount << " " << edgeCount << " " << (nodeCount + edgeCount) << std::endl;
 			ans.CountPaths();
 			std::cout << ans.root->rootConnection.returnMapHandle << std::endl;
-			std::cout << ans.root->rootConnection.entryPointHandle->handleContents->numPathsToExit[1] << std::endl;
+			std::cout << ans.root->rootConnection.entryPointHandle.handleContents->numPathsToExit[1] << std::endl;
 			// std::cout << ans << std::endl;
 			std::string ans_s = "";
 			int count = 0;
@@ -1667,11 +1667,11 @@ namespace CFL_OBDD {
 			std::cout << "loop start" << std::endl;
 
 			// CFLOBDD_COMPLEX_BIG CP = Matrix1234ComplexFloatBoost::MkCPGate(level+1, 2, 3, 0.5);
-			// // std::cout << *(CP.root->rootConnection.entryPointHandle) << std::endl;
+			// // std::cout << CP.root->rootConnection.entryPointHandle << std::endl;
 			// Matrix1234ComplexFloatBoost::MatrixPrintRowMajorInterleaved(CP, std::cout);
 			// CP.CountPaths();
-			// std::cout << CP.root->rootConnection.entryPointHandle->handleContents->numPathsToExit[0] << std::endl;
-			// std::cout << CP.root->rootConnection.entryPointHandle->handleContents->numPathsToExit[1] << std::endl;
+			// std::cout << CP.root->rootConnection.entryPointHandle.handleContents->numPathsToExit[0] << std::endl;
+			// std::cout << CP.root->rootConnection.entryPointHandle.handleContents->numPathsToExit[1] << std::endl;
 
 			for (long long int i = n-1; i >= 0; i--)
 			{

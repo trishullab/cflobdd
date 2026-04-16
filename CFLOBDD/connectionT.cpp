@@ -14,30 +14,28 @@ ConnectionT<Handle>::ConnectionT()
 // Constructor
 template <typename Handle>
 ConnectionT<Handle>::ConnectionT(CFLOBDDNodeHandle &entryPointHandle, Handle &returnMapHandle)
-	: entryPointHandle(new CFLOBDDNodeHandle(entryPointHandle)), returnMapHandle(returnMapHandle)
+	: entryPointHandle(entryPointHandle), returnMapHandle(returnMapHandle)
 {
 }
 
 // Constructor
 template <typename Handle>
 ConnectionT<Handle>::ConnectionT(CFLOBDDNode *entryPoint, Handle &returnMapHandle)
-	: entryPointHandle(new CFLOBDDNodeHandle(entryPoint)), returnMapHandle(returnMapHandle)
+	: entryPointHandle(entryPoint), returnMapHandle(returnMapHandle)
 {
 }
 
 template <typename Handle>
 ConnectionT<Handle>::~ConnectionT()
 {
-	delete entryPointHandle;
-	entryPointHandle = NULL;
 }
 
 // Hash
 template <typename Handle>
-unsigned int ConnectionT<Handle>::Hash(unsigned long modsize)
+size_t ConnectionT<Handle>::Hash()
 {
-	unsigned int hvalue = 0;
-	hvalue = (997 * returnMapHandle.Hash(modsize) + entryPointHandle->Hash(modsize)) % modsize;
+	size_t hvalue = 0;
+	hvalue = (997 * returnMapHandle.Hash() + entryPointHandle.Hash());
 	return hvalue;
 }
 
@@ -47,7 +45,7 @@ ConnectionT<Handle>& ConnectionT<Handle>::operator= (const ConnectionT<Handle>& 
 {
 	if (this != &C)      // don't assign to self!
 	{
-		entryPointHandle = new CFLOBDDNodeHandle(*(C.entryPointHandle));
+		entryPointHandle = C.entryPointHandle;
 		returnMapHandle = C.returnMapHandle;
 	}
 	return *this;
@@ -57,26 +55,26 @@ ConnectionT<Handle>& ConnectionT<Handle>::operator= (const ConnectionT<Handle>& 
 template <typename Handle>
 bool ConnectionT<Handle>::operator!= (const ConnectionT<Handle> & C)
 {
-	return (returnMapHandle != C.returnMapHandle) || ((*entryPointHandle) != (*C.entryPointHandle));
+	return (returnMapHandle != C.returnMapHandle) || (entryPointHandle != C.entryPointHandle);
 }
 
 // Overloaded ==
 template <typename Handle>
 bool ConnectionT<Handle>::operator== (const ConnectionT<Handle> & C)
 {
-	return (returnMapHandle == C.returnMapHandle) && ((*entryPointHandle) == (*C.entryPointHandle));
+	return (returnMapHandle == C.returnMapHandle) && (entryPointHandle == C.entryPointHandle);
 }
 
 // print
 template <typename Handle>
 std::ostream& ConnectionT<Handle>::print(std::ostream & out) const
 {
-	out << (*entryPointHandle);
+	out << entryPointHandle;
 	out << returnMapHandle;
 	return out;
 }
 
-template <typename Handle>	
+template <typename Handle>
 std::ostream& operator<< (std::ostream & out, const ConnectionT<Handle> &c)
 	{
 		c.print(out);

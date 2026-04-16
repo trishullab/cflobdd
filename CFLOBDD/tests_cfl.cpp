@@ -9,6 +9,7 @@
 #include <string>
 #include <chrono>
 #include <boost/rational.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
 #include "cflobdd_node.h"
 #include "cflobdd_t.h"
 #include "cflobdd_int.h"
@@ -30,6 +31,7 @@
 #include "matmult_map.h"
 // #include "matrix1234_node.h"
 #include "matrix1234_int.h"
+#ifdef WCFLOBDD_SUPPORTED
 #include "wmatrix1234_fb_mul.h"
 #include "weighted_cross_product.h"
 #include "wvector_fb_mul.h"
@@ -40,9 +42,15 @@
 #include "weighted_bdd_node_t.h"
 #include "weighted_cross_product_bdd.h"
 #include "wvector_complex_fb_mul_bdd_node.h"
+#endif
+#include "multiplication_crt.h"
 using namespace CFL_OBDD;
 using namespace SH_OBDD;
 using namespace std::chrono;
+
+// Verbose flag: controls printing of intermediate structure sizes and
+// cache diagnostics.  Set via --verbose / -v on the command line.
+bool CFLTests::verbose = false;
 
 void CFLTests::testTopNodes(){
 	std::cout << "Test of TopNodes --------------------------------------" << std::endl;
@@ -373,8 +381,10 @@ void CFLTests::test0() {
 	bool buffer[4];
 	std::memcpy(buffer, &(assignment->get_data())[(1 << 30) - 4], 4);
 	std::cout << "[" << buffer[0] << " " << buffer[1] << " " << buffer[2] << " " << buffer[3] << "]" << std::endl;
+#ifdef PATH_COUNTING_ENABLED
 	e.CountPaths();
 	std::cout << "NumSatisfyingAssignments: " << e.NumSatisfyingAssignments() << std::endl;
+#endif
 }
 void CFLTests::test1(){
   CFLOBDD F, G, H, I;
@@ -382,6 +392,15 @@ void CFLTests::test1(){
   G = MkProjection(7);
   H = MkProjection(5);
   I = MkIfThenElse(F, G, H);
+
+  std::cout << "test1: F = MkProjection(3)" << std::endl;
+  std::cout << F << std::endl;
+  std::cout << "test1: G = MkProjection(7)" << std::endl;
+  std::cout << G << std::endl;
+  std::cout << "test1: H = MkProjection(5)" << std::endl;
+  std::cout << H << std::endl;
+  std::cout << "test1: I = MkIfThenElse(F, G, H)" << std::endl;
+  std::cout << I << std::endl;
 
   // if MaxLevel is 3 or 4, test all assignments
   if (CFLOBDD::maxLevel == 3 || CFLOBDD::maxLevel == 4) {
@@ -415,6 +434,15 @@ void CFLTests::test2(){
   G = MkProjection(7);
   H = MkProjection(5);
   I = MkNegMajority(F, G, H);
+
+  std::cout << "test2: F = MkProjection(3)" << std::endl;
+  std::cout << F << std::endl;
+  std::cout << "test2: G = MkProjection(7)" << std::endl;
+  std::cout << G << std::endl;
+  std::cout << "test2: H = MkProjection(5)" << std::endl;
+  std::cout << H << std::endl;
+  std::cout << "test2: I = MkNegMajority(F, G, H)" << std::endl;
+  std::cout << I << std::endl;
 
   // if MaxLevel is 3 or 4, test all assignments
   if (CFLOBDD::maxLevel == 3 || CFLOBDD::maxLevel == 4) {
@@ -1325,6 +1353,7 @@ void CFLTests::testMatMul(int p)
 			<< " returnEdgesObjCount: " << returnEdgesObjCount << " totalCount: " << (nodeCount + edgeCount) << std::endl;
 }
 
+#ifdef WCFLOBDD_SUPPORTED
 void CFLTests::testWeightedOps(unsigned int level)
 {
 	int cflobdd_kind = 1;
@@ -1785,7 +1814,7 @@ void CFLTests::testSynBenchmark3_CFLOBDD(int size)
 	auto end = high_resolution_clock::now();
 	// std::cout << ans << std::endl;
 	auto I = Matrix1234ComplexFloatBoost::MkIdRelationInterleaved(level);
-	// std::cout << (*(ans.root->rootConnection.entryPointHandle) == *(I.root->rootConnection.entryPointHandle)) << std::endl;
+	// std::cout << (ans.root->rootConnection.entryPointHandle == I.root->rootConnection.entryPointHandle) << std::endl;
 	auto duration = duration_cast<milliseconds>(end - start);
 	unsigned int nodeCount = 0, edgeCount = 0, returnEdgeCount = 0, returnEdgeObjCount = 0;
 	ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
@@ -1862,6 +1891,7 @@ void CFLTests::testSynBenchmark7_CFLOBDD(int size)
 	ans.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
 	std::cout << "Duration: " << duration.count() << " Memory: " << (nodeCount + edgeCount) << std::endl;
 }
+#endif // WCFLOBDD_SUPPORTED
 
 void CFLTests::InitModules()
 {
@@ -1874,10 +1904,11 @@ void CFLTests::InitModules()
 	Matrix1234Int::Matrix1234Initializer();
 	VectorFloatBoost::VectorInitializer();
 
+#ifdef WCFLOBDD_SUPPORTED
 	// typedef double BIG_FLOAT;
 	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitNoDistinctionTable();
 	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitNoDistinctionTable_Ann();
-	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitIdentityNodeTable();	
+	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitIdentityNodeTable();
 	WeightedCFLOBDDNodeHandleT<BIG_FLOAT, std::multiplies<BIG_FLOAT>>::InitReduceCache();
 	WeightedMatrix1234FloatBoostMul::Matrix1234Initializer();
 	WeightedVectorFloatBoostMul::VectorInitializer();
@@ -1885,7 +1916,7 @@ void CFLTests::InitModules()
 
 	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitNoDistinctionTable();
 	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitNoDistinctionTable_Ann();
-	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitIdentityNodeTable();	
+	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitIdentityNodeTable();
 	WeightedCFLOBDDNodeHandleT<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitReduceCache();
 	WeightedMatrix1234ComplexFloatBoostMul::Matrix1234Initializer();
 	WeightedVectorComplexFloatBoostMul::VectorInitializer();
@@ -1893,7 +1924,7 @@ void CFLTests::InitModules()
 
 	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitNoDistinctionTable();
 	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitNoDistinctionTable_Ann();
-	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitIdentityNodeTable();	
+	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitIdentityNodeTable();
 	WeightedCFLOBDDNodeHandleT<fourierSemiring, std::multiplies<fourierSemiring>>::InitReduceCache();
 	WeightedMatrix1234FourierMul::Matrix1234Initializer();
 	WeightedVectorFourierMul::VectorInitializer();
@@ -1901,6 +1932,7 @@ void CFLTests::InitModules()
 
 	WeightedBDDNodeHandle<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>::InitLeafNodes();
 	InitWeightedBDDPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
+#endif
 }
 
 void CFLTests::ClearModules()
@@ -1908,13 +1940,14 @@ void CFLTests::ClearModules()
 	DisposeOfTripleProductCache();
 	DisposeOfPairProductCache();
 	CFLOBDDNodeHandle::DisposeOfReduceCache();
+#ifdef WCFLOBDD_SUPPORTED
 	DisposeOfWeightedPairProductCache<BIG_FLOAT, std::multiplies<BIG_FLOAT>>();
 	DisposeOfWeightedPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
 	DisposeOfWeightedPairProductCache<fourierSemiring, std::multiplies<fourierSemiring>>();
 
 	DisposeOfWeightedBDDPairProductCache<BIG_COMPLEX_FLOAT, std::multiplies<BIG_COMPLEX_FLOAT>>();
+#endif
 }
-
 
 bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 
@@ -1997,6 +2030,7 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 		CFLTests::testMatMul(size);
 	} else if (curTest == "testQFT") {
 		CFLTests::testQFT(size, seed);
+#ifdef WCFLOBDD_SUPPORTED
 	} else if (curTest == "testWeightedOps") {
 		CFLTests::testWeightedOps(size);
 	} else if (curTest == "testGHZAlgo_W") {
@@ -2039,13 +2073,158 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 		CFLTests::testSynBenchmark6_CFLOBDD(size);
 	} else if (curTest == "testSyn7_CFL") {
 		CFLTests::testSynBenchmark7_CFLOBDD(size);
+#endif
+	} else if (curTest == "NumsModK") {
+		// Test NumsModK for small modulus
+		std::cout << "Testing NumsModK..." << std::endl;
+		CFLOBDD numsModA5 = NumsModK(5, A);
+		std::cout << "NumsModK(5, A) created successfully" << std::endl;
+		CFLOBDD numsModB5 = NumsModK(5, B);
+		std::cout << "NumsModK(5, B) created successfully" << std::endl;
+		INPUT_TYPE junk = INPUT_TYPE(0x123456789ABCDEF0ULL);
+		for(INPUT_TYPE i = 0; i < 20; i++) {
+			SH_OBDD::Assignment a = MultRelation::MakeAssignment(i, junk);
+			SH_OBDD::Assignment b = MultRelation::MakeAssignment(junk, i);
+			int a_result = numsModA5.root->Evaluate(a);
+			std::cout << "a_result: " << a_result << std::endl;
+			int b_result = numsModB5.root->Evaluate(b);
+			std::cout << "b_result: " << b_result << std::endl;
+		}
+	} else if (curTest == "MultModK") {
+		// Test MultModK for small modulus
+		std::cout << "Testing MultModK..." << std::endl;
+		CFLOBDD multMod5 = MultModK(5);
+		std::cout << "MultModK(5) created successfully" << std::endl;
+		CFLOBDD multMod7 = MultModK(7);
+		std::cout << "MultModK(7) created successfully" << std::endl;
+		for(INPUT_TYPE i = 18; i < 20; i++) {
+			for(INPUT_TYPE k = 20; k < 24; k++) {
+				SH_OBDD::Assignment a = MultRelation::MakeAssignment(i, k);
+				int a_result = multMod5.root->Evaluate(a);
+				std::cout << i << " * " << k << " mod 5 = " << a_result << " Expected: " << i*k % 5 << std::endl;
+				a_result = multMod7.root->Evaluate(a);
+				std::cout << i << " * " << k << " mod 7 = " << a_result << " Expected: " << i*k % 7  << std::endl;
+			}
+		}
+	} else if (curTest == "MultRelation") {
+		// Test MultRelation: lookup a selection of products
+		std::cout << "Testing MultRelation..." << std::endl;
+		MultRelation R;
+		for(INPUT_TYPE i = 18; i < 20; i++) {
+			for(INPUT_TYPE k = 20; k < 24; k++) {
+				SH_OBDD::Assignment a = MultRelation::MakeAssignment(i, k);
+				for (unsigned int m = 0; m < numberOfMultRelations; m++) {
+					int a_result = R.ModularMultRelations[m].root->Evaluate(a);
+					std::cout << i << " * " << k << " mod " << R.ModuliArray[m] << " = " << a_result << " Expected: " << i*k % R.ModuliArray[m] << std::endl;
+				}
+			}
+		}
+	} else if (curTest == "crt-multiply") {
+		// Test MultRelation::Multiply()
+		MultRelation R;
+		std::cout << "Testing MultRelation::Multiply()" << std::endl;
+		OUTPUT_TYPE answer = R.Multiply(INPUT_TYPE(5000000000), INPUT_TYPE(6000000000));
+		OUTPUT_TYPE expected = ShiftAndAddMultiplication(INPUT_TYPE(5000000000), INPUT_TYPE(6000000000));
+		std::cout << "answer = " << answer << "; expected: " << expected << std::endl;
+	} else if (curTest == "factor") {
+		// Test FactorViaCRT for some simple cases
+		std::cout << "Testing FactorViaCRT..." << std::endl;
+		std::cout << "Factoring 6..." << std::endl;
+		CFLOBDD factors6 = FactorViaCRT(6);
+		std::cout << "FactorViaCRT(6) created successfully" << std::endl;
+		std::cout << "Factoring 15..." << std::endl;
+		CFLOBDD factors15 = FactorViaCRT(15);
+		std::cout << "FactorViaCRT(15) created successfully" << std::endl;
+		std::cout << "Factoring 7 (prime)..." << std::endl;
+		CFLOBDD factors7 = FactorViaCRT(7);
+		std::cout << "FactorViaCRT(7) created successfully" << std::endl;
+	} else if (curTest == "dispose-test") {
+		// Test that DisposeOf*Cache() properly decrements reference counts (via Clear())
+		unsigned int k = (size > 0) ? size : 5;
+		std::cout << "Testing cache disposal with MultModK(" << k << ")" << std::endl;
+		{
+			CFLOBDD result = MultModK(k);
+
+			unsigned long nodesBefore      = CFLOBDDNodeHandle::canonicalNodeTable->size();
+			size_t        returnMapsBefore = CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->size();
+			unsigned long reductionsBefore = ReductionMapHandle::canonicalReductionMapBodySet->size();
+			std::cout << "Before disposal:" << std::endl;
+			std::cout << "  canonicalNodeTable:           " << nodesBefore      << std::endl;
+			std::cout << "  canonicalReturnMapBodySet:    " << returnMapsBefore << std::endl;
+			std::cout << "  canonicalReductionMapBodySet: " << reductionsBefore << std::endl;
+			std::cout << "  reduceCache:                  " << CFLOBDDNodeHandle::ReduceCacheSize() << std::endl;
+			std::cout << "  pairProductCache:             " << PairProductCacheSize()              << std::endl;
+			std::cout << "  tripleProductCache:           " << TripleProductCacheSize()            << std::endl;
+
+			DisposeOfTripleProductCache();
+			DisposeOfPairProductCache();
+			CFLOBDDNodeHandle::DisposeOfReduceCache();
+			CFLOBDDNodeHandle::InitReduceCache();
+			InitPairProductCache();
+			InitTripleProductCache();
+
+			unsigned long nodesAfter      = CFLOBDDNodeHandle::canonicalNodeTable->size();
+			size_t        returnMapsAfter = CFLOBDDReturnMapHandle::canonicalReturnMapBodySet->size();
+			unsigned long reductionsAfter = ReductionMapHandle::canonicalReductionMapBodySet->size();
+			std::cout << "After disposal:" << std::endl;
+			std::cout << "  canonicalNodeTable:           " << nodesAfter      << std::endl;
+			std::cout << "  canonicalReturnMapBodySet:    " << returnMapsAfter << std::endl;
+			std::cout << "  canonicalReductionMapBodySet: " << reductionsAfter << " (expected: 0)" << std::endl;
+			std::cout << "  reduceCache:                  " << CFLOBDDNodeHandle::ReduceCacheSize() << std::endl;
+			std::cout << "  pairProductCache:             " << PairProductCacheSize()              << std::endl;
+			std::cout << "  tripleProductCache:           " << TripleProductCacheSize()            << std::endl;
+
+			assert(nodesAfter      < nodesBefore);
+			assert(returnMapsAfter < returnMapsBefore);
+			assert(reductionsAfter == 0);
+			std::cout << "All assertions passed" << std::endl;
+		}
+	} else if (curTest == "factor-timing") {
+		// Time MultModK(k) and slice construction for each modulus k
+		unsigned int v = (size > 0) ? (unsigned int)size : 35;
+		TimeFactorComponents(v);
+	} else if (curTest == "spec") {
+		// Build and time MultModK for a single modulus
+		unsigned int k = (size > 0) ? size : 5;
+		std::cout << "Building specification CFLOBDD for modulus " << k << std::endl;
+		BuildMultiplicationSpecModK(k);
+	} else if (curTest == "shiftadd") {
+		// Test VerifyShiftAndAddMultiplicationModK for a single modulus
+		unsigned int k = (size > 0) ? size : 5;
+		std::cout << "Testing VerifyShiftAndAddMultiplicationModK for " << k << std::endl;
+		VerifyShiftAndAddMultiplicationModK(k);
+	} else if (curTest == "spec-all") {
+		// Build specification CFLOBDDs for all moduli
+		std::cout << "Building specification CFLOBDDs for all moduli" << std::endl;
+		BuildMultiplicationSpecsModuliwise();
+	} else if (curTest == "shiftadd-all") {
+		// Test VerifyShiftAndAddMultiplicationModuliwise
+		std::cout << "Testing VerifyShiftAndAddMultiplicationModuliwise" << std::endl;
+		VerifyShiftAndAddMultiplicationModuliwise();
+	} else if (curTest == "verify-shiftadd") {
+		// Test VerifyShiftAndAddMultiplication (MultRelation-based)
+		std::cout << "Testing VerifyShiftAndAddMultiplication" << std::endl;
+		MultRelation::VerifyShiftAndAddMultiplication();
+	} else if (curTest == "karatsuba") {
+		// Test VerifySubtractiveKaratsubaOneLevel for a single modulus
+		unsigned int k = (size > 0) ? size : Moduli[numberOfMultRelations-1];
+		std::cout << "Testing VerifySubtractiveKaratsubaOneLevel(" << k << ")" << std::endl;
+		VerifySubtractiveKaratsubaOneLevel(k);
+	} else if (curTest == "karatsuba-all") {
+		// Test VerifySubtractiveKaratsubaOneLevelModuliwise
+		std::cout << "Testing VerifySubtractiveKaratsubaOneLevelModuliwise" << std::endl;
+		VerifySubtractiveKaratsubaOneLevelModuliwise();
 	}
 	else {
 		std::cout << "Unrecognized test name: " << curTest << std::endl;
 	}
 
+	// Print cache sizes
+	std::cout << "reduceCache size: " << CFLOBDDNodeHandle::ReduceCacheSize() << std::endl;
+	std::cout << "pairProductCache size: " << PairProductCacheSize() << std::endl;
+	std::cout << "tripleProductCache size: " << TripleProductCacheSize() << std::endl;
 
-	CFLTests::ClearModules();
+	// CFLTests::ClearModules();
 
 	return false;
 }

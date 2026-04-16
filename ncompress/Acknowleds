@@ -1,0 +1,19 @@
+Acknowledgments:
+
+The previous authors who did most of the real work on "compress"!
+   Spencer W. Thomas   (decvax!harpo!utah-cs!utah-gr!thomas)
+   Jim McKie           (decvax!mcvax!jim)
+   Steve Davies        (decvax!vax135!petsd!peora!srd)
+   Ken Turkowski       (decvax!decwrl!turtlevax!ken)
+   James A. Woods      (decvax!ihnp4!ames!jaw)
+   Joe Orost           (decvax!vax135!petsd!joe)
+   Dave Mack           (csu@alembic.acs.com)
+
+Thanks to Peter Jannesen for the "ncompress" update, and to the people
+who helped him out in the process:
+Also thanks to Frans Meulenbroeks, Jan Christiaan van Winkel,
+Peter van Hooft and the testers of comp.sources.reviewed for testing
+this version on different platforms.
+
+--
+Mike Frysinger

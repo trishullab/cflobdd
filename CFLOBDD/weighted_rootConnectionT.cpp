@@ -35,11 +35,11 @@ WRootConnection<Handle, T, Op>::~WRootConnection()
 
 // Hash
 template <typename Handle, typename T, typename Op>
-unsigned int WRootConnection<Handle, T, Op>::Hash(unsigned long modsize)
+size_t WRootConnection<Handle, T, Op>::Hash()
 {
-	unsigned int hvalue = 0;
+	size_t hvalue = 0;
     boost::hash<T> boost_hash;
-	hvalue = (997 * returnMapHandle.Hash(modsize) + 97 * entryPointHandle->Hash(modsize) + boost_hash(factor) % modsize) % modsize;
+	hvalue = (997 * returnMapHandle.Hash() + 97 * entryPointHandle->Hash() + boost_hash(factor));
 	return hvalue;
 }
 

@@ -36,17 +36,22 @@ class inttriple {
   inttriple(const int i1, const int i2, const int i3);
                                               // Constructor
   inttriple& operator= (const inttriple& p);  // Overloaded assignment
-  bool operator!= (const inttriple& p);       // Overloaded !=
-  bool operator== (const inttriple& p);       // Overloaded ==
+  bool operator!= (const inttriple& p) const;  // Overloaded !=
   int First() const { return first; }         // Access function
   int Second() const { return second; }       // Access function
   int Third() const { return third; }         // Access function
+  struct inttriple_hash {
+    size_t operator()(const inttriple& t) const {
+      return (t.First() * 131) ^ (t.Second() * 524287 + 1) ^ (t.Third() * 16777259 + 3);
+    }
+  };
  private:
   int first;
   int second;
   int third;
 };
 
+bool operator==(const inttriple& lhs, const inttriple& rhs);
 std::ostream& operator<< (std::ostream & out, const inttriple &p);
 
 #endif

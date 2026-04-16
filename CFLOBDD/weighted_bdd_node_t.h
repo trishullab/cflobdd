@@ -20,7 +20,7 @@ namespace CFL_OBDD {
             WeightedBDDNodeHandle(WeightedBDDNode<T,Op> *n);
             WeightedBDDNodeHandle(const WeightedBDDNodeHandle<T,Op> &n);
             ~WeightedBDDNodeHandle();
-            unsigned int Hash(unsigned long modsize);
+            size_t Hash();
             bool operator!= (const WeightedBDDNodeHandle &nh);
             bool operator== (const WeightedBDDNodeHandle &nh) const;
             WeightedBDDNodeHandle<T,Op>& operator= (const WeightedBDDNodeHandle &nh);
@@ -41,7 +41,7 @@ namespace CFL_OBDD {
             struct WeightedBDDNodeHandle_Hash {
             public:
                 size_t operator()(const WeightedBDDNodeHandle<T,Op>& c) const {
-                    return ((reinterpret_cast<std::uintptr_t>(c.handleContents) >> 2) % 997);
+                    return ((reinterpret_cast<std::uintptr_t>(c.handleContents) >> PTR_ALIGN_SHIFT) % 997);
                 }
             };
 
@@ -69,7 +69,7 @@ namespace CFL_OBDD {
             const bool IsCanonical() const { return isCanonical; }
             void SetCanonical() { isCanonical = true;  }
             virtual std::ostream& print(std::ostream &out = std::cout) const = 0;
-            virtual unsigned int Hash(unsigned long modsize) = 0;
+            virtual size_t Hash() = 0;
             virtual void ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedBDDNodeHandle<T,Op>>* visitedNodes);
             long double weightOfPathsAsAmpsToExit;
             protected:
@@ -98,7 +98,7 @@ namespace CFL_OBDD {
             long double leftWeightOfPathsAsAmpsToExit;
             long double rightWeightOfPathsAsAmpsToExit;
 
-            unsigned int Hash(unsigned long modsize);
+            size_t Hash();
             void ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedBDDNodeHandle<T,Op>>* visitedNodes);
 
             private:
@@ -119,7 +119,7 @@ namespace CFL_OBDD {
             BDD_NODEKIND NodeKind() const { return LEAF; }
             std::ostream& print(std::ostream &out = std::cout) const;
             T value;
-            unsigned int Hash(unsigned long modsize);
+            size_t Hash();
             void ComputeWeightOfPathsAsAmpsToExits(Hashset<WeightedBDDNodeHandle<T,Op>>* visitedNodes);
     };
 }

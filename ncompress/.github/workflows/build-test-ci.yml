@@ -1,0 +1,54 @@
+# GitHub actions workflow.
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+
+name: Build+Test CI
+
+on:
+  push:
+    branches: [main, gh-actions]
+    tags: [v*]
+  pull_request:
+    types: [opened]
+    branches: [main]
+
+jobs:
+  build-test-posix:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        cc: [gcc, clang]
+        exclude:
+          - os: macos-latest
+            cc: gcc
+    runs-on: ${{ matrix.os }}
+    env:
+      CC: ${{ matrix.cc }}
+    steps:
+    - uses: actions/checkout@v3
+    - run: make
+    - run: make check
+    - run: make install DESTDIR="${PWD}/root/"
+
+  build-test-windows:
+    strategy:
+      matrix:
+        os: [windows-latest]
+        cc: [mingw32, mingw64]
+    runs-on: ${{ matrix.os }}
+    env:
+      SUBDIR: ${{ matrix.cc }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v3
+    - name: compile
+      run:
+        /c/msys64/${SUBDIR}/bin/clang.exe
+          -o compress
+          -Wall
+          -DNOFUNCDEF -DUSERMEM=800000 -DREGISTERS=3 -D_CRT_SECURE_NO_WARNINGS
+          compress.c
+    # The tests currently fail on Windows.  No idea why.
+    - name: test
+      run: set +e; ./tests/runtests.sh; echo "Test exited $?"; exit 0

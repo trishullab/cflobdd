@@ -1,0 +1,294 @@
+(N)compress version 5.1
+	* Constify & localize fast prime lookup table
+	* Drop support for explicit BYTEORDER
+	* Mark all local functions as static
+	* Use modern standard C function prototypes
+	* Drop support for MAXSEG_64K
+	* Fix nine bits processing
+
+(N)compress version 5.0
+	* New stream for cleanups
+	* Drop support for 2.0 output & -C option
+	* Improve & fix recursive mode
+	* Drop old DEF_ERRNO support
+	* Drop DIRENT/SYSDIR config knobs
+	* Drop support for REGISTER build knob
+	* Drop support for explicit unaligned memory accesses
+	* Drop support for dead operating systems
+	* Fix Windows access fallback logic
+	* Include io.h on Windows
+	* Disable "deprecated" API warnings on Windows
+	* Add setmode binary for stdin and stdout on Windows
+	* Clean up help text a bit
+	* Add a standard -k (keep) option
+	* Use io.h fallbacks on mingw too
+
+(N)compress version 4.2.4.6
+	* Fix tests under macOS
+	* Drop support for NOFUNCDEF
+	* Drop old unused MARK & SIZE_INNER_LOOP defines
+	* Add chmod/chown stubs for AMIGA/DOS
+	* Add a WINDOWS define for disabling chmod/chown
+	* Simplify LSTAT checking
+	* Disable utime usage on AMIGA/DOS/WINDOWS
+	* Add a fallback for access() for DOS & WINDOWS
+	* Disable unistd.h include on DOS & WINDOWS
+	* Disable chmod/chown/utime for mingw builds
+	* Add xxx->_xxx redirects on WINDOWS for filesystem funcs
+	* Add support for Windows in Travis
+	* Add PREFIX conformance, add option to only install main program by Eli Schwartz
+	* Don't strip binaries by default by Eli Schwartz
+	* Set the mandir to use $(PREFIX)/share/man by default by Eli Schwartz
+	* Do not set exit_code when an error is ignored by Petr Kubat
+	* Use default CFLAGS when using GNU make
+	* Fix typos in Makefile.def
+	* Tweak Changes style for better markdown integration
+
+(N)compress version 4.2.4.5
+	* New homepage https://github.com/vapier/ncompress
+	* Switch to intmax_t for nlink_t fields when printing
+	* Make builds more reproducible by dropping datestamps
+	* Fix integer overflow in maxmaxcode computation by Jakub Wilk
+	* Don't leak file descriptor in error cases by Pavel Raiskup
+	* Drop 8.3 filename checks for old DOS/Windows
+	* Change signal ifdef logic to the signal names
+	* Fix -Werror=parentheses errors with newer compilers
+	* Define LSTAT=1 in modern builds by default
+	* Change pathnames to be dynamic to avoid hardcoded 1k limit
+	* Add a standard -h (help) option
+	* Change version output to go to stdout
+	* Start a testsuite!
+	* Add support for -- to halt option parsing
+	* Add a uncompress(1) link to compress(1)
+
+(N)compress version 4.2.4.4
+	* Add some spelling fixes from Kenneth J. Pronovici
+	* Tweak makefile syntax for make 3.82
+	* Tweak by Kenneth J. Pronovici to escape hyphens in man pages for groff
+
+(N)compress version 4.2.4.3
+	* Check return value of chown().
+	* Fix from Fedora for checking malloc() return.
+	* Fix from Fedora/gzip to avoid integer overflow for CVE-2010-0001.
+
+(N)compress version 4.2.4.2
+	* Integrate build/man touchups from Debian.
+	* Add fix from Fedora for handling of 0 byte files.
+	* Pull in POSIX standard headers for prototypes (stdlib,string,unistd).
+	* Replace rindex() with strrchr().
+	* Don't set CC by default in Makefile.def and add CFLAGS/CPPFLAGS/LDFLAGS
+	  where appropriate by default.
+	* Add support for DESTDIR to the install target.
+
+(N)compress version 4.2.4.1
+	* Fix possible bss buffer underflow CVE-2006-1168
+	* New homepage http://ncompress.sourceforge.net/
+
+(N)compress version 4.2.4
+	* Fix '-c' flag.
+	* Fix utime error.
+	* Added AMIGA support (Sascha Wildner).
+	* Div. remarks added.
+
+(N)compress version 4.2.3
+	* Comp.source.reviewed release.
+	* Optimise compress and decompress function and a lot of cleanups.
+	* New fast hash algoritme added (if more than 800Kb available).
+
+(N)compress version 4.2.2
+	Minor changes after the reviews from comp.sources.reviewed
+	* Change the name to ncompress because of version problems.
+	* Start all scripts with ':'
+	* Added library options to build script.
+	* Install zmore zcmp zdiff and manuals.
+	* Added patchlevel.h
+	* Updated README file. Created LZW.INFO
+	* a complete grammatical go-round
+	* Use utime.h if available
+	* Change de default input/output buffer size to BUFSIZ. Because
+	  of performance problems with read a head on systems.
+	* Build generates a makefile.
+
+compress version 4.2.1 improvements
+	* Change the name to ncompress because of version problems.
+	* Completely rewrite of the compress and decompress functions.
+	  compress speedup 25-50% (user cpu time).
+	  decompress speedup 20-30% (user cpu time).
+	* Add special fast compress hash algorithm.
+	* Fix some minor things.
+	* use #include <utime.h> if available.
+	* Cleanup the source code (I think so).
+	* Test if filename is not to long. This is done on runtime no fix length
+	  size any more.
+	* Powerful build script (test almost every thing).
+
+Modifications for version 4.1:
+	* Added -r command line flag to allow recursive compression/
+	  decompression of directory trees. As a side-effect, compress
+	  no longer tries to compress/decompress anything that isn't
+	  a regular file. In particular, it ignores symbolic links.
+	* zcat no longer cares whether a filename ends in .Z or
+	  not - it relies on the magic number in the file. If zcat
+	  is given a filename that doesn't end with .Z and the file
+	  referenced doesn't exist, zcat will append a .Z and try
+	  to open that instead.
+	* compress -f will now compress multiply hardlinked files.
+	  Uncompress does not recreate the hard link, it creates
+	  a new file.
+	* Removed compressdir/uncompressdir - no longer needed.
+	* Removed atob/btoa/tarmail/untarmail - my versions are
+	  based on btoa 5.2 which is not compatible with the atob
+	  included with compress4.0.
+
+Compress version 4.0 improvements:
+	* compress() speedup (10-50%) by changing division hash to xor
+	* decompress() speedup (5-10%)
+	* Memory requirements reduced (3-30%)
+	* Stack requirements reduced to less than 4kb
+	* Removed 'Big+Fast' compress code (FBITS) because of compress speedup
+	* Portability mods for Z8000 and PC/XT (but not zeus 3.2)
+	* Default to 'quiet' mode
+	* Unification of 'force' flags
+	* Manual page overhaul
+	* Portability enhancement for M_XENIX
+	* Removed text on #else and #endif
+	* Added "-V" switch to print version and options
+	* Added #defines for SIGNED_COMPARE_SLOW
+	* Added Makefile and "usermem" program
+	* Removed all floating point computations
+	* Removed ferror() calls in output routine on every output except first
+	* New programs:
+		compressdir - compress all files on a directory
+		uncompressdir - uncompress all files on a directory
+		zcmp - cmp compressed files
+		zdiff - diff compressed files
+	  The following are with thanks to philabs!per:
+		btoa - convert binary to ascii for mailing
+		atob - convert ascii to binary with checksum
+		tarmail - tar, compress, btoa, and mail files
+		untarmail - restore "tarmail" files
+
+		WARNING: These last few programs are not compatible
+		with the original ones from the net.  The encoding
+		has changed.  See btoa.c for more info.
+
+Compress version 3.6:
+	* Remove much wasted storage by overlaying hash table with the tables
+	  used by decompress: tab_suffix[1<<BITS], stack[8000].
+	* Updated USERMEM computations.
+	* Fixed dump_tab() DEBUG routine.
+
+Compress version 3.5:
+	* Change hash function to use exclusive-or.
+	* Rip out hash cache.
+	* These speedups render the megamemory version defunct, for now.
+	* Make decoder stack global.
+	* Parts of the RCS trunks 2.7, 2.6, and 2.1 no longer apply.
+
+Compress version 3.4:
+	* Get rid of all floating-point calculations by doing all compression ratio
+	  calculations in fixed point.
+
+Compress version 3.3:
+	* Incorporate portability suggestion for M_XENIX.
+	* Got rid of text on #else and #endif lines.
+	* Cleaned up #ifdefs for vax and interdata.
+
+Compress version 3.2:
+	* Incorporate portability suggestions for Z8000, IBM PC/XT from mailing list.
+	* Default to "quiet" output (no compression statistics).
+
+Compress version 3.1:
+	* Integrate decompress() stack speedups (from early pointer mods by McKie).
+	* Repair multi-file USERMEM gaffe.
+	* Unify 'force' flags to mimic semantics of SVR2 'pack'.
+	* Streamline block-compress table clear logic.
+	* Increase output byte count by magic number size.
+
+Compress version 3.0:
+	* Set HSIZE depending on BITS.
+	* Set BITS depending on USERMEM.
+	* Unrolled loops in clear routines.
+	* Added "-C" flag for 2.0 compatibility.
+	* Used unsigned compares on Perkin-Elmer.
+	* Fixed foreground check.
+
+Compress version 2.7:
+	* Cache common hash codes based on input statistics; this improves
+	  performance for low-density raster images.
+	* Pass on #ifdef bundle from Turkowski.
+
+Compress version 2.6:
+	* Vary size of hash tables to reduce time for small files.
+	* Tune PDP-11 hash function.
+
+Compress version 2.5:
+	* Junk chaining; replace with the simpler (and, on the VAX, faster)
+	  double hashing, discussed within.
+	* Make block compression standard.
+
+Compress version 2.4:
+	* Introduce adaptive reset for block compression, to boost the rate
+	  another several percent.  (See mailing list notes.)
+
+Compress version 2.3:
+	* Implemented "-B" block compress.
+	* Implemented REVERSE sorting of tab_next.
+	* Bug fix for last bits.
+	* Changed fwrite to putchar loop everywhere.
+
+Compress version 2.2:
+	* Fold in news changes, small machine typedef from thomas,
+	* #ifdef interdata from joe.
+
+Compress version 2.1:
+	* Configured fast table lookup for 32-bit machines.
+	* This cuts user time in half for b <= FBITS, and is useful for news
+	* batching from VAX to PDP sites.
+	* Also sped up decompress() [fwrite->putc] and added signal catcher
+	  [plus beef in write_error()] to delete effluvia.
+
+Compress version 2.0:
+	* Add check for foreground before prompting user.
+	* Insert maxbits into compressed file.
+	* Force file being uncompressed to end with ".Z".
+	* Added "-c" flag and "zcat".
+	* Prepared for release.
+
+Compress version 1.10:
+	* Will only compress regular files (no directories).
+	* Added a magic number header.
+	* Plus an undocumented -n flag to handle old files without headers.
+	* Added -f flag to force overwriting of possibly existing destination file,
+	  otherwise the user is prompted for a response.
+	* Will tack on a .Z to a filename if it doesn't have one when decompressing.
+	* Will only replace file if it was compressed.
+
+Compress version 1.9:
+	* Removed scanargs() & getopt().
+	* Added .Z extension and unlimited number of filenames to compress.
+	* Flags may be clustered (-Ddvb12) or separated (-D -d -v -b 12), or
+	  combination thereof.
+	* Modes and other status is copied with copystat().
+	* -O bug for 4.2 seems to have disappeared with 1.8.
+
+Compress version 1.8:
+	* Made it compatible with vax version, installed jim's fixes/enhancements.
+
+Compress version 1.6:
+	* Sped up algorithm significantly by sorting the compress chain.
+
+Compress version 1.5:
+	* Added C version of vax asm routines.
+	* Changed structure to arrays to save much memory.
+	* Do unsigned compares where possible (faster on Perkin-Elmer).
+
+Compress version 1.4:
+	* Clean up the code a little and lint it.  (Lint complains about all
+	  the regs used in the asm, but I'm not going to "fix" this.)
+
+Compress version 1.3:
+	* Minor fixes.
+
+Compress version 1.2:
+	* Add variable bit length output.

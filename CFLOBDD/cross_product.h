@@ -27,6 +27,7 @@
 //    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+#include <deque>
 #include "intpair.h"
 #include "inttriple.h"
 
@@ -59,7 +60,7 @@ class PairProductMapHandle {
   PairProductMapHandle& operator= (const PairProductMapHandle &r); // Overloaded assignment
   bool operator!= (const PairProductMapHandle &r);      // Overloaded !=
   bool operator== (const PairProductMapHandle &r);      // Overloaded ==
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   unsigned int Size();
   intpair& operator[](unsigned int i);                       // Overloaded []
   void AddToEnd(const intpair& p);
@@ -82,7 +83,7 @@ class PairProductMapBody {//: public List<intpair> {
   PairProductMapBody();    // Constructor
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   unsigned int refCount;         // reference-count value
   void setHashCheck();
   void AddToEnd(const intpair& y);          // Override AddToEnd
@@ -90,11 +91,17 @@ class PairProductMapBody {//: public List<intpair> {
   bool operator==(const PairProductMapBody &p) const;
   intpair& operator[](unsigned int i);                       // Overloaded []
   unsigned int Size();
-  unsigned int hashCheck;
+  size_t hashCheck;
  public:
   bool isCanonical;              // Is this PairProductMapBody in *canonicalPairProductMapBodySet?
   static Hashset<PairProductMapBody> *canonicalPairProductMapBodySet;
 
+  static PairProductMapBody* Create();
+ private:
+  static std::deque<PairProductMapBody*>& getFreeList() {
+    static std::deque<PairProductMapBody*>* const fl = new std::deque<PairProductMapBody*>();
+    return *fl;
+  }
 };
 
 std::ostream& operator<< (std::ostream & out, const PairProductMapBody &r);
@@ -109,7 +116,7 @@ class PairProductKey {
 
  public:
   PairProductKey(CFLOBDDNodeHandle nodeHandle1, CFLOBDDNodeHandle nodeHandle2); // Constructor
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   PairProductKey& operator= (const PairProductKey& p);  // Overloaded assignment
   bool operator!= (const PairProductKey& p);        // Overloaded !=
   bool operator== (const PairProductKey& p);        // Overloaded ==
@@ -155,6 +162,8 @@ CFLOBDDNodeHandle PairProduct(CFLOBDDInternalNode *n1,
 
 void InitPairProductCache();
 void DisposeOfPairProductCache();
+void ClearPairProductCache();
+unsigned long PairProductCacheSize();
 }
 // ********************************************************************
 // 3-Way Cross Product
@@ -170,7 +179,7 @@ class TripleProductKey;
 // TripleProductMapBodyIterator
 //***************************************************************
 
-typedef ListIterator<inttriple> TripleProductMapBodyIterator;
+// TripleProductMapBodyIterator removed: converted to vector-based indexing
 
 //***************************************************************
 // TripleProductMapHandle
@@ -184,7 +193,7 @@ class TripleProductMapHandle {
   TripleProductMapHandle& operator= (const TripleProductMapHandle &r); // Overloaded assignment
   bool operator!= (const TripleProductMapHandle &r);      // Overloaded !=
   bool operator== (const TripleProductMapHandle &r);      // Overloaded ==
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   unsigned int Size();
   void AddToEnd(inttriple t);
   bool Member(inttriple t);
@@ -197,7 +206,7 @@ class TripleProductMapHandle {
 // TripleProductMapBody
 //***************************************************************
 
-class TripleProductMapBody : public List<inttriple> {
+class TripleProductMapBody {
 
   friend void TripleProductMapHandle::Canonicalize();
 
@@ -205,13 +214,26 @@ class TripleProductMapBody : public List<inttriple> {
   TripleProductMapBody();    // Constructor
   void IncrRef();
   void DecrRef();
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   unsigned int refCount;         // reference-count value
+  void setHashCheck();
+  void AddToEnd(const inttriple& y);
+  std::vector<inttriple> mapArray;
+  bool operator==(const TripleProductMapBody &p) const;
+  inttriple& operator[](unsigned int i);
+  unsigned int Size();
+  size_t hashCheck;
 
  public:
   bool isCanonical;              // Is this TripleProductMapBody in *canonicalTripleProductMapBodySet?
   static Hashset<TripleProductMapBody> *canonicalTripleProductMapBodySet;
 
+  static TripleProductMapBody* Create();
+ private:
+  static std::deque<TripleProductMapBody*>& getFreeList() {
+    static std::deque<TripleProductMapBody*>* const fl = new std::deque<TripleProductMapBody*>();
+    return *fl;
+  }
 };
 }
 std::ostream& operator<< (std::ostream & out, const CFL_OBDD::TripleProductMapBody &r);
@@ -226,7 +248,7 @@ class TripleProductKey {
 
  public:
   TripleProductKey(CFLOBDDNodeHandle nodeHandle1, CFLOBDDNodeHandle nodeHandle2, CFLOBDDNodeHandle nodeHandle3); // Constructor
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   TripleProductKey& operator= (const TripleProductKey& p);  // Overloaded assignment
   bool operator!= (const TripleProductKey& p);        // Overloaded !=
   bool operator== (const TripleProductKey& p);        // Overloaded ==
@@ -277,6 +299,10 @@ CFLOBDDNodeHandle TripleProduct(CFLOBDDInternalNode *n1,
 
 void InitTripleProductCache();
 void DisposeOfTripleProductCache();
+void ClearTripleProductCache();
+unsigned long TripleProductCacheSize();
+
+void FlushCaches();
 
 } // namespace CFL_OBDD
 

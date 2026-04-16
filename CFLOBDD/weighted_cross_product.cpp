@@ -57,16 +57,16 @@ namespace CFL_OBDD {
     }
 
     template <typename T>
-    unsigned int WeightedPairProductMapBody<T>::Hash(unsigned long modsize)
+    size_t WeightedPairProductMapBody<T>::Hash()
     {
-        unsigned int hvalue = 0;
+        size_t hvalue = 0;
 
         for (unsigned int i = 0; i < mapArray.size(); i++){
-            hvalue = (997*hvalue + (unsigned int)97*mapArray[i].First() + (unsigned int)mapArray[i].Second()) % modsize;
+            hvalue = (997*hvalue + (unsigned int)97*mapArray[i].First() + (unsigned int)mapArray[i].Second());
         }
         boost::hash<T> boost_hash;
         for (unsigned int i = 0; i < mapArray.size(); i++){
-            hvalue = (997*hvalue + 97*boost_hash(valueArray[i].First()) + boost_hash(valueArray[i].Second())) % modsize;
+            hvalue = (997*hvalue + 97*boost_hash(valueArray[i].First()) + boost_hash(valueArray[i].Second()));
         }
 
         return hvalue;
@@ -210,9 +210,9 @@ namespace CFL_OBDD {
     }
 
     template <typename T>
-    unsigned int WeightedPairProductMapHandle<T>::Hash(unsigned long modsize)
+    size_t WeightedPairProductMapHandle<T>::Hash()
     {
-        return ((unsigned int) reinterpret_cast<uintptr_t>(mapContents) >> 2) % modsize;
+        return reinterpret_cast<uintptr_t>(mapContents) >> PTR_ALIGN_SHIFT;
     }
 
     template <typename T>
@@ -265,16 +265,19 @@ namespace CFL_OBDD {
     void WeightedPairProductMapHandle<T>::Canonicalize()
     {
         WeightedPairProductMapBody<T> *answerContents;
-        unsigned int hash = WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->GetHash(mapContents);
-        answerContents = WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->Lookup(mapContents, hash);
-        if (answerContents == NULL) {
-            WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->Insert(mapContents, hash);
-            mapContents->isCanonical = true;
-        }
-        else {
-            answerContents->IncrRef();
-            mapContents->DecrRef();
-            mapContents = answerContents;
+
+        if (!mapContents->isCanonical) {
+            size_t hash = WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->GetHash(mapContents);
+            answerContents = WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->Lookup(mapContents, hash);
+            if (answerContents == NULL) {
+                WeightedPairProductMapBody<T>::canonicalWeightedPairProductMapBodySet->Insert(mapContents, hash);
+                mapContents->isCanonical = true;
+            }
+            else {
+                answerContents->IncrRef();
+                mapContents->DecrRef();
+                mapContents = answerContents;
+            }
         }
     }
 
@@ -312,12 +315,12 @@ namespace CFL_OBDD {
 
     // Hash
     template <typename T, typename Op>
-    unsigned int WeightedPairProductKey<T,Op>::Hash(unsigned long modsize)
+    size_t WeightedPairProductKey<T,Op>::Hash()
     {
-        unsigned int hvalue = 0;
+        size_t hvalue = 0;
         boost::hash<T> boost_hash;
-        hvalue = (997 * nodeHandle1.Hash(modsize) + nodeHandle2.Hash(modsize)) % modsize;
-        hvalue = (hvalue + (117 * boost_hash(factor1) % modsize + 17 * boost_hash(factor2) % modsize)) % modsize;
+        hvalue = (997 * nodeHandle1.Hash() + nodeHandle2.Hash());
+        hvalue = (hvalue + 117 * boost_hash(factor1) + 17 * boost_hash(factor2));
         return hvalue;
     }
 

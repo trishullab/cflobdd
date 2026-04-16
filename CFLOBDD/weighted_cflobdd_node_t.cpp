@@ -390,9 +390,9 @@ WeightedCFLOBDDNodeHandleT<T,Op>::~WeightedCFLOBDDNodeHandleT()
 
 // Hash
 template <typename T, typename Op>
-unsigned int WeightedCFLOBDDNodeHandleT<T,Op>::Hash(unsigned long modsize)
+size_t WeightedCFLOBDDNodeHandleT<T,Op>::Hash()
 {
-  return ((unsigned int) reinterpret_cast<uintptr_t>(handleContents) >> 2) % modsize;
+  return reinterpret_cast<uintptr_t>(handleContents) >> PTR_ALIGN_SHIFT;
 }
 
 // Overloaded !=
@@ -447,7 +447,7 @@ class ReducePair{
 			size_t operator()(const ReducePair& p) const
 			{
                 boost::hash<T> boost_hash;
-				auto hash1 = p.m.Hash(997);
+				auto hash1 = p.m.Hash();
 				auto hash2 = boost_hash(p.value);
 				return 117 * (hash1 + 1) + hash2;
 			}
@@ -512,7 +512,7 @@ void WeightedCFLOBDDNodeHandleT<T,Op>::Canonicalize()
   WeightedCFLOBDDNode<T,Op> *answerContents;
 
   if (!handleContents->IsCanonical()) {
-	  unsigned int hash = canonicalNodeTable->GetHash(handleContents);
+	  size_t hash = canonicalNodeTable->GetHash(handleContents);
     answerContents = canonicalNodeTable->Lookup(handleContents, hash);
     if (answerContents == NULL) {
       canonicalNodeTable->Insert(handleContents, hash);
@@ -1399,10 +1399,10 @@ WeightedCFLReduceKey<T,Op>::WeightedCFLReduceKey(WeightedCFLOBDDNodeHandleT<T,Op
 
 // Hash
 template <typename T, typename Op>
-unsigned int WeightedCFLReduceKey<T,Op>::Hash(unsigned long modsize)
+size_t WeightedCFLReduceKey<T,Op>::Hash()
 {
-  unsigned int hvalue = 0;
-  hvalue = (997 * nodeHandle.Hash(modsize) + 97 * redMapHandle.Hash(modsize) + valList.Hash(modsize)) % modsize;
+  size_t hvalue = 0;
+  hvalue = (997 * nodeHandle.Hash() + 97 * redMapHandle.Hash() + valList.Hash());
   return hvalue;
 }
 
@@ -1669,7 +1669,7 @@ int WeightedCFLOBDDInternalNode<T,Op>::Traverse(SH_OBDD::AssignmentIterator &ai)
 }
 
 
-inline CFLOBDDReturnMapHandle ComposeAndReduce(CFLOBDDReturnMapHandle& mapHandle, ReductionMapHandle& redMapHandle, ReductionMapHandle& inducedRedMapHandle)
+inline CFLOBDDReturnMapHandle WeightedComposeAndReduce(CFLOBDDReturnMapHandle& mapHandle, ReductionMapHandle& redMapHandle, ReductionMapHandle& inducedRedMapHandle)
 {
 	int c2, c3;
 	int size = mapHandle.mapContents->mapArray.size();
@@ -1737,7 +1737,7 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
      for (unsigned int i = 0; i < numBConnections; i++) {
         ReductionMapHandle inducedReductionMapHandle(redMapHandle.Size());
         CFLOBDDReturnMapHandle inducedReturnMap;
-		    inducedReturnMap = ComposeAndReduce(BConnection[i].returnMapHandle, redMapHandle, inducedReductionMapHandle);
+		    inducedReturnMap = WeightedComposeAndReduce(BConnection[i].returnMapHandle, redMapHandle, inducedReductionMapHandle);
         auto inducedValueList = ComposeValueList<T,Op>(BConnection[i].returnMapHandle, valList);
         // inducedReductionMapHandle.print(std::cout);
         // inducedValueList.first.print(std::cout);
@@ -1761,7 +1761,7 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
   // Reduce the A connection
      ReductionMapHandle inducedAReductionMapHandle;
 	   CFLOBDDReturnMapHandle inducedAReturnMap;
-	   inducedAReturnMap = ComposeAndReduce(AConnection.returnMapHandle, AReductionMapHandle, inducedAReductionMapHandle);
+	   inducedAReturnMap = WeightedComposeAndReduce(AConnection.returnMapHandle, AReductionMapHandle, inducedAReductionMapHandle);
      auto inducedAValueList = ComposeValueList<T,Op>(AConnection.returnMapHandle, AValueList);
      std::pair<WeightedCFLOBDDNodeHandleT<T,Op>, T> tempHandle = AConnection.entryPointHandle->Reduce(inducedAReductionMapHandle, inducedAReturnMap.Size(), inducedAValueList.first, forceReduce);
      n->AConnection = WConnection<T,Op>(tempHandle.first, inducedAReturnMap);
@@ -1775,11 +1775,11 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDInternalNode<T,Op>:
 } // CFLOBDDInternalNode::Reduce
 
 template <typename T, typename Op>
-unsigned int WeightedCFLOBDDInternalNode<T,Op>::Hash(unsigned long modsize)
+size_t WeightedCFLOBDDInternalNode<T,Op>::Hash()
 {
-  unsigned int hvalue = AConnection.Hash(modsize);
+  size_t hvalue = AConnection.Hash();
   for (unsigned int j = 0; j < numBConnections; j++) {
-    hvalue = (997 * hvalue + BConnection[j].Hash(modsize)) % modsize;
+    hvalue = (997 * hvalue + BConnection[j].Hash());
   }
   return hvalue;
 }
@@ -2274,11 +2274,11 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDForkNode<T,Op>::Red
 }
 
 template <typename T, typename Op>
-unsigned int WeightedCFLOBDDForkNode<T,Op>::Hash(unsigned long modsize)
+size_t WeightedCFLOBDDForkNode<T,Op>::Hash()
 {
     boost::hash<T> boost_hash;
-    return (997 * boost_hash(this->lweight) + 97 * boost_hash(this->rweight) + 2) % modsize; 
-//   return (((unsigned int)reinterpret_cast<uintptr_t>(this) >> 2) + 997 * boost_hash(this->lweight) + 97 * boost_hash(this->rweight)) % modsize;
+    return (997 * boost_hash(this->lweight) + 97 * boost_hash(this->rweight) + 2);
+//   return (((unsigned int)reinterpret_cast<uintptr_t>(this) >> 2) + 997 * boost_hash(this->lweight) + 97 * boost_hash(this->rweight));
 }
 
 // Overloaded !=
@@ -2399,11 +2399,11 @@ std::pair<WeightedCFLOBDDNodeHandleT<T,Op>,T> WeightedCFLOBDDDontCareNode<T,Op>:
 }
 
 template <typename T, typename Op>
-unsigned int WeightedCFLOBDDDontCareNode<T,Op>::Hash(unsigned long modsize)
+size_t WeightedCFLOBDDDontCareNode<T,Op>::Hash()
 {
     boost::hash<T> boost_hash;
-    return (997 * boost_hash(this->lweight) + 97 * boost_hash(this->rweight) + 1) % modsize;
-//   return (((unsigned int) reinterpret_cast<uintptr_t>(this) >> 2) + 997 * boost_hash(this->lweight) + 97 * boost_hash(this->rweight)) % modsize;
+    return (997 * boost_hash(this->lweight) + 97 * boost_hash(this->rweight) + 1);
+//   return (((unsigned int) reinterpret_cast<uintptr_t>(this) >> 2) + 997 * boost_hash(this->lweight) + 97 * boost_hash(this->rweight));
 }
 
 // Overloaded !=
@@ -2620,9 +2620,9 @@ void WeightedBDDTopNode<T,Op>::DecrRef()
 }
 
 template <typename T, typename Op>
-unsigned int WeightedBDDTopNode<T,Op>::Hash(unsigned long modsize)
+size_t WeightedBDDTopNode<T,Op>::Hash()
 {
-  return (117 * bddContents.Hash(modsize) + 1) % modsize;
+  return (117 * bddContents.Hash() + 1);
 }
 
 template <typename T, typename Op>

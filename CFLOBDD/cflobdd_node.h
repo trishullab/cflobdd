@@ -40,11 +40,14 @@ class CFLOBDDLeafNode;       //  : public CFLOBDDNode
 class CFLOBDDForkNode;       //  : public CFLOBDDLeafNode
 class CFLOBDDDontCareNode;   //  : public CFLOBDDLeafNode
 class CFLOBDDNodeHandle;
+struct CFLOBDDNodePtrHash;
+struct CFLOBDDNodePtrEq;
 }
 
 #include <iostream>
 #include <fstream>
 #include <cstdint>
+#include <unordered_set>
 //#include <mpirxx.h>
 //#include <boost/multiprecision/cpp_int.hpp>
 
@@ -62,12 +65,21 @@ class CFLOBDDNodeHandle;
 namespace CFL_OBDD {
 	typedef ReturnMapBody<int> CFLOBDDReturnMapBody;
 	typedef ReturnMapHandle<int> CFLOBDDReturnMapHandle;
-}
-#include "connectionT.h"
-namespace CFL_OBDD {
-	typedef ConnectionT<CFLOBDDReturnMapHandle> Connection;
+
+	// Return a canonicalized identity return map [0, 1, 2, ..., k-1].
+	// Results are cached: flat array for k <= 1024, unordered_map for larger k.
+	CFLOBDDReturnMapHandle MakeIdentityReturnMap(unsigned int k);
 }
 #include "reduction_map.h"
+
+// ComposeAndReduce: compose a return map with a reduction map, producing
+// a reduced return map and an induced reduction map.  Defined in
+// return_map_specializations.cpp for cross-TU inlining of hot-path operations.
+CFL_OBDD::CFLOBDDReturnMapHandle ComposeAndReduce(
+    CFL_OBDD::CFLOBDDReturnMapHandle& mapHandle,
+    ReductionMapHandle& redMapHandle,
+    ReductionMapHandle& inducedRedMapHandle);
+
 #include "hash.h"
 #include "hashset.h"
 #include "ref_ptr.h"
@@ -89,7 +101,7 @@ class CFLOBDDNodeHandle {
   CFLOBDDNodeHandle(CFLOBDDNode *n);                          // Constructor
   CFLOBDDNodeHandle(const CFLOBDDNodeHandle &nh);              // Copy constructor
   ~CFLOBDDNodeHandle();                                       // Destructor
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   bool operator!= (const CFLOBDDNodeHandle &nh);              // Overloaded !=
   bool operator== (const CFLOBDDNodeHandle &nh) const;              // Overloaded ==
   CFLOBDDNodeHandle & operator= (const CFLOBDDNodeHandle &nh); // assignment
@@ -110,14 +122,22 @@ class CFLOBDDNodeHandle {
 
  // Table of canonical nodes -------------------------
     public:
-     static Hashset<CFLOBDDNode> *canonicalNodeTable;
+     using CanonicalNodeTable = std::unordered_set<CFLOBDDNode*,
+                                                    CFLOBDDNodePtrHash,
+                                                    CFLOBDDNodePtrEq>;
+     static CanonicalNodeTable *canonicalNodeTable;
      void Canonicalize();
+
+    private:
+     static CanonicalNodeTable *initCanonicalNodeTable();
 
  // Reduce and its associated cache ---------------
     public:
      CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
      static void InitReduceCache();
      static void DisposeOfReduceCache();
+     static void ClearReduceCache();
+     static unsigned long ReduceCacheSize();
 
 	public:
 	 std::ostream& print(std::ostream & out = std::cout) const;
@@ -125,7 +145,7 @@ class CFLOBDDNodeHandle {
 	 struct CFLOBDDNodeHandle_Hash {
 	 public:
 		 size_t operator()(const CFLOBDDNodeHandle& c) const {
-			 return ((reinterpret_cast<std::uintptr_t>(c.handleContents) >> 2) % 997);
+			 return ((reinterpret_cast<std::uintptr_t>(c.handleContents) >> PTR_ALIGN_SHIFT) % 997);
 		 }
 	 };
 };
@@ -158,6 +178,11 @@ extern std::vector<double> ComputeProbabilityOfListNode(CFLOBDDNodeHandle g, std
 
 }
 
+#include "connectionT.h"
+namespace CFL_OBDD {
+	typedef ConnectionT<CFLOBDDReturnMapHandle> Connection;
+}
+
 #include "cross_product.h"
 
 namespace CFL_OBDD {
@@ -171,7 +196,7 @@ namespace CFL_OBDD {
 
 	// Note: If CFLOBDDMaxLevel >= 27, allocating an Assignment may cause
 	//       virtual memory to be exceeded.
-#define CFLOBDD_MAX_LEVEL 30
+#define CFLOBDD_MAX_LEVEL 22
 	unsigned int const CFLOBDDMaxLevel = CFLOBDD_MAX_LEVEL;
 
 	//********************************************************************
@@ -182,7 +207,7 @@ namespace CFL_OBDD {
 
 	public:
 		CFLReduceKey(CFLOBDDNodeHandle nodeHandle, ReductionMapHandle redMap); // Constructor
-		unsigned int Hash(unsigned long modsize);
+		size_t Hash();
 		CFLReduceKey& operator= (const CFLReduceKey& p);  // Overloaded assignment
 		bool operator!= (const CFLReduceKey& p);        // Overloaded !=
 		bool operator== (const CFLReduceKey& p);        // Overloaded ==
@@ -229,7 +254,7 @@ class CFLOBDDNode {
   virtual void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index) = 0;
   virtual int Traverse(SH_OBDD::AssignmentIterator &ai) = 0;
   virtual CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false) = 0;
-  virtual unsigned int Hash(unsigned long modsize) = 0;
+  virtual size_t Hash() = 0;
   virtual void DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out = std::cout) = 0;
   virtual void CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int &returnEdgesCount) = 0;
@@ -255,6 +280,15 @@ class CFLOBDDNode {
 
 std::ostream& operator<< (std::ostream & out, const CFLOBDDNode &n);
 
+// Functors for std::unordered_set<CFLOBDDNode*, ...>
+struct CFLOBDDNodePtrHash {
+    size_t operator()(CFLOBDDNode* p) const { return p->Hash(); }
+};
+
+struct CFLOBDDNodePtrEq {
+    bool operator()(CFLOBDDNode* a, CFLOBDDNode* b) const { return a == b || *a == *b; }
+};
+
 //********************************************************************
 // CFLOBDDInternalNode
 //********************************************************************
@@ -274,11 +308,15 @@ class CFLOBDDInternalNode : public CFLOBDDNode {
  public:
   CFLOBDDInternalNode(const unsigned int l);   // Constructor
   ~CFLOBDDInternalNode();                      // Destructor
+
+  // Object pool: recycle raw memory to avoid malloc/free overhead
+  void* operator new(size_t size);
+  void operator delete(void* ptr);
   CFLOBDD_NODEKIND NodeKind() const { return CFLOBDD_INTERNAL; }
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   void DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out = std::cout);
   void CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount);
@@ -322,7 +360,7 @@ class CFLOBDDLeafNode : public CFLOBDDNode {
   virtual void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index) = 0;
   virtual int Traverse(SH_OBDD::AssignmentIterator &ai) = 0;
   virtual CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false) = 0;
-  virtual unsigned int Hash(unsigned long modsize) = 0;
+  virtual size_t Hash() = 0;
   void DumpConnections(Hashset<CFLOBDDNodeHandle> *visited, std::ostream & out = std::cout);
   void CountNodesAndEdges(Hashset<CFLOBDDNodeHandle> *visitedNodes, Hashset<CFLOBDDReturnMapBody> *visitedEdges, 
 	  unsigned int &nodeCount, unsigned int &edgeCount, unsigned int& returnEdgesCount);
@@ -350,7 +388,7 @@ class CFLOBDDForkNode : public CFLOBDDLeafNode {
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   bool operator!= (const CFLOBDDNode & n);        // Overloaded !=
   bool operator== (const CFLOBDDNode & n);        // Overloaded ==
 
@@ -375,7 +413,7 @@ class CFLOBDDDontCareNode : public CFLOBDDLeafNode {
   void FillSatisfyingAssignment(unsigned int i, SH_OBDD::Assignment &assignment, unsigned int &index);
   int Traverse(SH_OBDD::AssignmentIterator &ai);
   CFLOBDDNodeHandle Reduce(ReductionMapHandle& redMapHandle, unsigned int replacementNumExits, bool forceReduce = false);
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   bool operator!= (const CFLOBDDNode & n);        // Overloaded !=
   bool operator== (const CFLOBDDNode & n);        // Overloaded ==
 

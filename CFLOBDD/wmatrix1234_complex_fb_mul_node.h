@@ -40,8 +40,8 @@ namespace CFL_OBDD {
                 {
                     WeightedCFLOBDDComplexFloatBoostMulNodeHandle t1 = p.m1;
                     WeightedCFLOBDDComplexFloatBoostMulNodeHandle t2 = p.m2;
-                    auto hash1 = t1.Hash(997);
-                    auto hash2 = t2.Hash(997);
+                    auto hash1 = t1.Hash();
+                    auto hash2 = t2.Hash();
                     return 117 * (hash1 + 1) + hash2;
                 }
             };

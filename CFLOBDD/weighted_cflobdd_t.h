@@ -40,7 +40,7 @@ class WEIGHTED_CFLOBDD_T {
 #endif
   bool FindOneSatisfyingAssignment(SH_OBDD::Assignment * &assignment);
                                                 // Find a satisfying assignment
-  unsigned int Hash(unsigned long modsize);
+  size_t Hash();
   bool operator!= (const WEIGHTED_CFLOBDD_T & C) const;          // Overloaded !=
   bool operator== (const WEIGHTED_CFLOBDD_T & C) const;          // Overloaded ==
   WEIGHTED_CFLOBDD_T& operator= (const WEIGHTED_CFLOBDD_T &c);       // assignment
@@ -156,9 +156,9 @@ bool WEIGHTED_CFLOBDD_T<T, Op>::FindOneSatisfyingAssignment(SH_OBDD::Assignment 
 
 // Hash
 template <typename T, typename Op>
-unsigned int WEIGHTED_CFLOBDD_T<T, Op>::Hash(unsigned long modsize)
+size_t WEIGHTED_CFLOBDD_T<T, Op>::Hash()
 {
-	return root->Hash(modsize);
+	return root->Hash();
 }
 
 // Count Nodes

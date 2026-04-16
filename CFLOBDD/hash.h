@@ -13,8 +13,8 @@
 // lookup and insert operations.
 //
 // NOTE: The key type (KeyT) must provide:
-//       1. a Hash member function that takes one parameter k and
-//          returns an integer in the range 0..k-1
+//       1. a Hash member function that returns a size_t hash value
+//          (the table performs % numBuckets internally)
 //       2. a definition of std::ostream &operator<<(std::ostream, const KeyT &)
 //       3. a definition of bool operator==(const KeyT &)
 //       The item type (ItemT) must also provide operator<<.
@@ -70,6 +70,7 @@ template <class KeyT, class ItemT> class Hashtable
   public:
     Hashtable();                       // constructor (default)
     Hashtable(int size);               // constructor
+    Hashtable(int size, double loadThreshold); // constructor with eviction
     ~Hashtable();                      // destructor
     Hashtable(const Hashtable<KeyT, ItemT> & H); // copy constructor
 	RefCounter count;
@@ -80,7 +81,8 @@ template <class KeyT, class ItemT> class Hashtable
         
     // other operations
 
-    int Size() const;
+    unsigned long Size() const;
+    void Clear();
     bool Lookup(KeyT k) const;
     bool Fetch(KeyT k, ItemT &i) const;
 	//ItemT & operator [] (KeyT k);
@@ -89,7 +91,8 @@ template <class KeyT, class ItemT> class Hashtable
 
   private:
     const int numBuckets;
-    int mySize;                        // current size
+    unsigned long mySize;                // current size
+    unsigned long maxLoad;               // eviction threshold (0 = no eviction)
     apvector<List<Pair<KeyT, ItemT> *> > *myItems; // pointer to array of items
 };
 
@@ -110,7 +113,7 @@ template <class KeyT, class ItemT> class HashtableIterator
 
   private:
     apvector<List<Pair<KeyT, ItemT> *> > *myItems; // pointer to array of items
-    int mySize;                        // current size
+    unsigned long mySize;                // current size
     int numBuckets;
     int k;
     int numAccessed;

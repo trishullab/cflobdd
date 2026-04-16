@@ -54,6 +54,7 @@ class CFLTests
         static void testXOR(int size);
         static void testMatMul(int size);
         static void testQFT(int size, int seed);
+        static void testNQueens(int size);
 
 #ifdef WCFLOBDD_SUPPORTED
         static void testWeightedOps(unsigned int size);

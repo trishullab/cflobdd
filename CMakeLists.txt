@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 project(cflobdd)
 
-# Set the C++ standard to 17, as specified in the compile command
-set(CMAKE_CXX_STANDARD 17)
+# Set the C++ standard to 20, as specified in the compile command
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add compiler flags: -g for debugging and -w to suppress warnings
@@ -28,9 +28,13 @@ file(GLOB SOURCES
     "${CFLOBDD_DIR}/*.cpp"
     "${CFLOBDD_DIR}/Solver/uwr/bit_vector/*.cpp"
     "${CFLOBDD_DIR}/Solver/uwr/parsing/*.cpp"
-    "${CFLOBDD_DIR}/cflobdd_c.cpp"
 )
 list(REMOVE_ITEM SOURCES "${CFLOBDD_DIR}/main.cpp")
+
+if(NOT WCFLOBDD_SUPPORTED)
+    file(GLOB WEIGHTED_SOURCES "${CFLOBDD_DIR}/weighted_*.cpp" "${CFLOBDD_DIR}/w*.cpp")
+    list(REMOVE_ITEM SOURCES ${WEIGHTED_SOURCES})
+endif()
 
 file(GLOB JAVA_SOURCES
     "${CFLOBDD_DIR}/java_bindings/src/main/java/org/trishullab/cflobdd/*.java"
@@ -52,7 +56,12 @@ add_custom_target(cflobdd_java ALL DEPENDS ${CFLOBDD_DIR}/java_bindings/target/c
 
 # Link the math library.
 target_link_libraries(cflobdd m)
-target_compile_definitions(cflobdd PUBLIC PATH_COUNTING_ENABLED)
+# target_compile_definitions(cflobdd PUBLIC PATH_COUNTING_ENABLED)
 
 target_link_libraries(cflobdd_test m)
-target_compile_definitions(cflobdd_test PUBLIC PATH_COUNTING_ENABLED)
+# target_compile_definitions(cflobdd_test PUBLIC PATH_COUNTING_ENABLED)
+
+if(WCFLOBDD_SUPPORTED)
+    target_compile_definitions(cflobdd PUBLIC WCFLOBDD_SUPPORTED)
+    target_compile_definitions(cflobdd_test PUBLIC WCFLOBDD_SUPPORTED)
+endif()

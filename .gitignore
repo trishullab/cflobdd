@@ -5,3 +5,66 @@
 *.lai
 *.swp
 build
+
+# Build artifacts
+*.d
+*.exe
+*.Tpo
+
+# Emacs backup/autosave
+*~
+\#*\#
+
+# VSCode
+.vscode/
+
+# VTune profiling
+vtune/
+
+# CUDD build artifacts
+cudd-3.0.0/**/.deps/
+cudd-3.0.0/dddmp/exp/*.sh
+
+# Sequitur build artifacts
+sequitur/seq.exe
+
+# ncompress build artifacts
+ncompress/compress.exe
+ncompress/*.Z
+
+# Compression test generated files
+examples/compression-tests/*.exe
+examples/compression-tests/aaa*.txt
+examples/compression-tests/luby[0-9]*.txt
+!examples/compression-tests/luby32.txt
+examples/compression-tests/testLuby*.txt
+examples/compression-tests/*.png
+examples/compression-tests/*.pdf
+
+# Examples build artifacts
+examples/cudd_build/
+examples/link.map
+examples/link_err.txt
+examples/*_syms.txt
+examples/*_T.txt
+examples/testConv2.map
+
+# Test output and scratch files
+CFLOBDD/cflobdd-mult-tests-*.txt
+CFLOBDD/cflobdd-stretch-tests-*.txt
+CFLOBDD/karatsuba-*.txt
+CFLOBDD/test-outcomes*.txt
+CFLOBDD/test.txt
+CFLOBDD/output.txt
+CFLOBDD/temp.txt
+CFLOBDD/foo.txt
+CFLOBDD/bar.txt
+CFLOBDD/CFLOBDD-tests/
+CFLOBDD/README.txt
+examples/add-mult-tests-*.txt
+examples/add-more-tests-*.txt
+examples/#*#
+
+# Scripts
+launch-vtune.bat
+bisect-grover.sh

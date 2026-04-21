@@ -21,8 +21,16 @@ build
 # VTune profiling
 vtune/
 
-# CUDD build artifacts
+# CUDD build artifacts (autotools-generated)
 cudd-3.0.0/**/.deps/
+cudd-3.0.0/**/.dirstamp
+cudd-3.0.0/Makefile
+cudd-3.0.0/**/Makefile
+cudd-3.0.0/config.h
+cudd-3.0.0/config.status
+cudd-3.0.0/config.log
+cudd-3.0.0/libtool
+cudd-3.0.0/stamp-h1
 cudd-3.0.0/dddmp/exp/*.sh
 
 # Sequitur build artifacts

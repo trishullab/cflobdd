@@ -31,8 +31,12 @@ CUDD_SRCS = $(wildcard $(REL_DIR)/cudd/cudd*.c) $(REL_DIR)/mtr/mtrBasic.c $(REL_
 CUDD_OBJS = $(patsubst $(REL_DIR)/%.c, cudd_build/%.o, $(CUDD_SRCS))
 CUDDOBJ_SRC = $(REL_DIR)/cplusplus/cuddObj.cc
 
-CUDD_CFLAGS = -DHAVE_CONFIG_H -I$(REL_DIR) -I$(REL_DIR)/cudd -I$(REL_DIR)/mtr -I$(REL_DIR)/epd -I$(REL_DIR)/st -I$(REL_DIR)/util -Wall -Wextra -g -O3
-CUDD_CXXFLAGS = $(CUDD_CFLAGS) -std=c++2a
+# -std=gnu99: CUDD C sources pre-date C23 and rely on implicit function
+# declarations being warnings, not errors.  gcc-14 defaults to C23 which
+# makes them errors.
+CUDD_CFLAGS = -DHAVE_CONFIG_H -I$(REL_DIR) -I$(REL_DIR)/cudd -I$(REL_DIR)/mtr -I$(REL_DIR)/epd -I$(REL_DIR)/st -I$(REL_DIR)/util -Wall -Wextra -g -O3 -std=gnu99
+# Override to C++ standard for the C++ wrapper
+CUDD_CXXFLAGS = -DHAVE_CONFIG_H -I$(REL_DIR) -I$(REL_DIR)/cudd -I$(REL_DIR)/mtr -I$(REL_DIR)/epd -I$(REL_DIR)/st -I$(REL_DIR)/util -Wall -Wextra -g -O3 -std=c++2a
 
 cudd_build:
 	mkdir -p cudd_build/cudd cudd_build/mtr cudd_build/st cudd_build/epd cudd_build/util cudd_build/cplusplus

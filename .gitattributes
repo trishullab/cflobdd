@@ -1,0 +1,63 @@
+# Default: let Git auto-detect text vs binary, and normalize line endings
+# (LF in repo, platform-native in working tree when core.autocrlf is on).
+* text=auto
+
+# ---------------------------------------------------------------------------
+# Files that must always have LF line endings, regardless of platform.
+# These are tools that either run via /bin/sh (which cannot handle CRLF
+# shebangs) or are inputs to shell-based generators (configure, autoconf,
+# libtool) whose sed substitutions break when the input has CRLF.
+#
+# MSYS2 / Git Bash on Windows handles LF in these files without issue,
+# so forcing LF is safe across platforms.
+# ---------------------------------------------------------------------------
+
+# Shell scripts
+*.sh text eol=lf
+
+# Autotools inputs and outputs
+configure         text eol=lf
+configure.ac      text eol=lf
+config.h.in       text eol=lf
+aclocal.m4        text eol=lf
+Makefile.am       text eol=lf
+Makefile.in       text eol=lf
+*.m4              text eol=lf
+
+# Autotools helper scripts (match at any depth under build-aux/)
+**/build-aux/config.sub      text eol=lf
+**/build-aux/config.guess    text eol=lf
+**/build-aux/install-sh      text eol=lf
+**/build-aux/missing         text eol=lf
+**/build-aux/depcomp         text eol=lf
+**/build-aux/compile         text eol=lf
+**/build-aux/ar-lib          text eol=lf
+**/build-aux/ltmain.sh       text eol=lf
+**/build-aux/tap-driver.sh   text eol=lf
+
+# Hand-written Makefiles (both MSYS2 make and GNU make handle LF; this
+# avoids any issue if a Makefile is accessed cross-platform via /mnt/c
+# from WSL).
+Makefile          text eol=lf
+GNUmakefile       text eol=lf
+
+# Patch files, diffs, and common scripting languages
+*.patch           text eol=lf
+*.diff            text eol=lf
+*.py              text eol=lf
+
+# ---------------------------------------------------------------------------
+# Binary files — no text conversion at all
+# ---------------------------------------------------------------------------
+*.pdf             binary
+*.png             binary
+*.jpg             binary
+*.jpeg            binary
+*.gif             binary
+*.exe             binary
+*.dll             binary
+*.so              binary
+*.dylib           binary
+*.Z               binary
+*.gz              binary
+*.zip             binary

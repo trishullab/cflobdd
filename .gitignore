@@ -49,6 +49,17 @@ examples/*_syms.txt
 examples/*_T.txt
 examples/testConv2.map
 
+# Linux executables (no .exe suffix)
+examples/addMultiplication[0-9]*
+!examples/addMultiplication[0-9]*.cc
+examples/testConversion
+examples/testSequiturToADD
+examples/testTraceToADD
+examples/compression-tests/gen_repeat
+examples/compression-tests/gen_luby
+sequitur/seq
+ncompress/compress
+
 # Test output and scratch files
 CFLOBDD/cflobdd-mult-tests-*.txt
 CFLOBDD/cflobdd-stretch-tests-*.txt

@@ -1,9 +1,15 @@
 CXX = g++
 CXXFLAGS = -O3 -std=c++11 -w -I. -Isequitur
 
+ifeq ($(OS),Windows_NT)
+    EXE_EXT := .exe
+else
+    EXE_EXT :=
+endif
+
 SRCS = main.cpp sequitur/symbols.cpp sequitur/symbolwrapper.cpp
 OBJS = $(SRCS:.cpp=.o)
-TARGET = seq.exe
+TARGET = seq$(EXE_EXT)
 
 all: $(TARGET)
 

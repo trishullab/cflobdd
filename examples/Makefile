@@ -50,8 +50,25 @@ multmod-direct: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) -c -o addMultiplication.o addMultiplication.cc
 	g++ $(CUDD_CXXFLAGS) -o addMultiplication addMultiplication.o cudd_build/libcudd.a
 
-# Boost include path for multiprecision types
-BOOST_INC = -I../../boost_1_81_0
+# ---- Platform-specific settings ----
+# Windows build uses lld to work around a GNU ld COMDAT bug when linking
+# CFLOBDD + CUDD.  Linux ld handles COMDAT correctly and we don't assume
+# lld is installed, so use the default linker.
+# Windows also needs -lpsapi (for GetProcessMemoryInfo) and --stack=...
+# Linux needs neither.
+ifeq ($(OS),Windows_NT)
+    EXE_EXT           := .exe
+    BOOST_INC         := -I../../boost_1_81_0
+    PLATFORM_LIBS     := -lpsapi
+    LLD_FLAG          := -fuse-ld=lld
+    STACK_FLAG        := -Wl,--stack,16777216
+else
+    EXE_EXT           :=
+    BOOST_INC         :=                  # use system boost (libboost-all-dev)
+    PLATFORM_LIBS     :=
+    LLD_FLAG          :=
+    STACK_FLAG        :=
+endif
 
 # CFLOBDD include/object paths
 CFLOBDD_DIR = ../CFLOBDD
@@ -73,42 +90,42 @@ testConversion: cudd_build/libcudd.a
 	cd $(CFLOBDD_DIR) && $(MAKE) cflobdd32
 	g++ $(CONV_CXXFLAGS) -c -o addToCflobdd.o addToCflobdd.cc
 	g++ $(CONV_CXXFLAGS) -DCFLOBDD_C_EXPORTS -c -o testConversion.o testConversion.cc
-	g++ $(CONV_CXXFLAGS) -fuse-ld=lld -o testConversion.exe testConversion.o addToCflobdd.o \
+	g++ $(CONV_CXXFLAGS) $(LLD_FLAG) -o testConversion$(EXE_EXT) testConversion.o addToCflobdd.o \
 		$(CFLOBDD_DIR)/multiplication_crt.o $(CFLOBDD_OBJS) cudd_build/libcudd.a \
-		-lpsapi -Wl,--stack,16777216
+		$(PLATFORM_LIBS) $(STACK_FLAG)
 
 # Build targets for different bit-widths
 multmod-32: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=32 -c -o addMultiplication.o addMultiplication.cc
-	g++ $(CUDD_CXXFLAGS) -o addMultiplication32 addMultiplication.o cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication32$(EXE_EXT) addMultiplication.o cudd_build/libcudd.a
 
 multmod-64: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=64 -c -o addMultiplication.o addMultiplication.cc
-	g++ $(CUDD_CXXFLAGS) -o addMultiplication64 addMultiplication.o cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication64$(EXE_EXT) addMultiplication.o cudd_build/libcudd.a
 
 multmod-128: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=128 -c -o addMultiplication.o addMultiplication.cc
-	g++ $(CUDD_CXXFLAGS) -o addMultiplication128 addMultiplication.o cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication128$(EXE_EXT) addMultiplication.o cudd_build/libcudd.a
 
 multmod-256: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=256 -c -o addMultiplication.o addMultiplication.cc
-	g++ $(CUDD_CXXFLAGS) -o addMultiplication256 addMultiplication.o cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication256$(EXE_EXT) addMultiplication.o cudd_build/libcudd.a
 
 multmod-512: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=512 -c -o addMultiplication.o addMultiplication.cc
-	g++ $(CUDD_CXXFLAGS) -o addMultiplication512 addMultiplication.o cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication512$(EXE_EXT) addMultiplication.o cudd_build/libcudd.a
 
 multmod-1024: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=1024 -c -o addMultiplication.o addMultiplication.cc
-	g++ $(CUDD_CXXFLAGS) -o addMultiplication1024 addMultiplication.o cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication1024$(EXE_EXT) addMultiplication.o cudd_build/libcudd.a
 
 multmod-2048: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=2048 -c -o addMultiplication.o addMultiplication.cc
-	g++ $(CUDD_CXXFLAGS) -o addMultiplication2048 addMultiplication.o cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication2048$(EXE_EXT) addMultiplication.o cudd_build/libcudd.a
 
 multmod-4096: cudd_build/libcudd.a
 	g++ $(CUDD_CXXFLAGS) $(BOOST_INC) -DNUM_BITS=4096 -c -o addMultiplication.o addMultiplication.cc
-	g++ $(CUDD_CXXFLAGS) -o addMultiplication4096 addMultiplication.o cudd_build/libcudd.a
+	g++ $(CUDD_CXXFLAGS) -o addMultiplication4096$(EXE_EXT) addMultiplication.o cudd_build/libcudd.a
 
 # SEQUITUR grammar -> ADD -> CFLOBDD conversion test
 SEQUITUR_DIR = ../sequitur
@@ -121,10 +138,10 @@ testSequiturToADD: cudd_build/libcudd.a
 	g++ $(SEQ_CXXFLAGS) -c -o sequiturToAdd.o sequiturToAdd.cc
 	g++ $(SEQ_CXXFLAGS) -c -o addToCflobdd.o addToCflobdd.cc
 	g++ $(SEQ_CXXFLAGS) -DCFLOBDD_C_EXPORTS -c -o testSequiturToADD.o testSequiturToADD.cc
-	g++ $(SEQ_CXXFLAGS) -fuse-ld=lld -o testSequiturToADD.exe testSequiturToADD.o sequiturToAdd.o addToCflobdd.o \
+	g++ $(SEQ_CXXFLAGS) $(LLD_FLAG) -o testSequiturToADD$(EXE_EXT) testSequiturToADD.o sequiturToAdd.o addToCflobdd.o \
 		$(SEQUITUR_DIR)/sequitur/symbols.o $(SEQUITUR_DIR)/sequitur/symbolwrapper.o \
 		$(CFLOBDD_OBJS) cudd_build/libcudd.a \
-		-lpsapi -Wl,--stack,16777216
+		$(PLATFORM_LIBS) $(STACK_FLAG)
 
 # Direct trace -> ADD -> CFLOBDD conversion test
 TRACE_CXXFLAGS = $(CUDD_CXXFLAGS) $(CFLOBDD_INC) -std=c++2a -w
@@ -134,9 +151,9 @@ testTraceToADD: cudd_build/libcudd.a
 	g++ $(TRACE_CXXFLAGS) -c -o traceToAdd.o traceToAdd.cc
 	g++ $(TRACE_CXXFLAGS) -c -o addToCflobdd.o addToCflobdd.cc
 	g++ $(TRACE_CXXFLAGS) -DCFLOBDD_C_EXPORTS -c -o testTraceToADD.o testTraceToADD.cc
-	g++ $(TRACE_CXXFLAGS) -fuse-ld=lld -o testTraceToADD.exe testTraceToADD.o traceToAdd.o addToCflobdd.o \
+	g++ $(TRACE_CXXFLAGS) $(LLD_FLAG) -o testTraceToADD$(EXE_EXT) testTraceToADD.o traceToAdd.o addToCflobdd.o \
 		$(CFLOBDD_OBJS) cudd_build/libcudd.a \
-		-lpsapi -Wl,--stack,16777216
+		$(PLATFORM_LIBS) $(STACK_FLAG)
 
 multmod-all: cudd_build/libcudd.a
 	make multmod-32
@@ -148,7 +165,7 @@ multmod-all: cudd_build/libcudd.a
 	make multmod-2048
 	make multmod-4096
 
-MULT = addMultiplication32.exe
+MULT = addMultiplication32$(EXE_EXT)
 spec-all-test:
 	./$(MULT) spec-all
 	./$(MULT) spec-all
@@ -168,18 +185,18 @@ karatsuba-all-test:
 	./$(MULT) karatsuba-all --big-cache
 
 mult-tests:
-	make spec-all-test MULT=addMultiplication32.exe
-	make shiftadd-all-test MULT=addMultiplication32.exe
-	make karatsuba-all-test MULT=addMultiplication32.exe
-	make spec-all-test MULT=addMultiplication64.exe
-	make shiftadd-all-test MULT=addMultiplication64.exe
-	make spec-all-test MULT=addMultiplication128.exe
-	make shiftadd-all-test MULT=addMultiplication128.exe
-	make spec-all-test MULT=addMultiplication256.exe
-	make shiftadd-all-test MULT=addMultiplication256.exe
-	make spec-all-test MULT=addMultiplication512.exe
-	make spec-all-test MULT=addMultiplication1024.exe
-	make shiftadd-all-test MULT=addMultiplication512.exe
+	make spec-all-test MULT=addMultiplication32$(EXE_EXT)
+	make shiftadd-all-test MULT=addMultiplication32$(EXE_EXT)
+	make karatsuba-all-test MULT=addMultiplication32$(EXE_EXT)
+	make spec-all-test MULT=addMultiplication64$(EXE_EXT)
+	make shiftadd-all-test MULT=addMultiplication64$(EXE_EXT)
+	make spec-all-test MULT=addMultiplication128$(EXE_EXT)
+	make shiftadd-all-test MULT=addMultiplication128$(EXE_EXT)
+	make spec-all-test MULT=addMultiplication256$(EXE_EXT)
+	make shiftadd-all-test MULT=addMultiplication256$(EXE_EXT)
+	make spec-all-test MULT=addMultiplication512$(EXE_EXT)
+	make spec-all-test MULT=addMultiplication1024$(EXE_EXT)
+	make shiftadd-all-test MULT=addMultiplication512$(EXE_EXT)
 
 complex:
 	gcc -DHAVE_CONFIG_H -I./$(C_DIR)  -I./$(C_DIR)/cudd -I./$(C_DIR)/mtr -I./$(C_DIR)/epd -I./$(C_DIR)/st -I./$(C_DIR)/util  -MT complex_test.o -MD -MP -MF complex_test.Tpo -c -o complex_test.o `test -f 'complex_test.c' || echo './'`complex_test.c

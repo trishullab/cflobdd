@@ -417,7 +417,7 @@ namespace CFL_OBDD {
 		/*
 		std::vector<std::string> SimonsAlgo(int n, CFLOBDD_FLOAT_BOOST F)
 		{
-			auto m1 = high_resolution_clock::now();
+			auto m1 = steady_clock::now();
 			
 			CFLOBDD_FLOAT_BOOST UFunc = CreateFuncMatrix(F, n);
 			std::cout << "UFunc created ..." << std::endl;
@@ -485,7 +485,7 @@ namespace CFL_OBDD {
 			std::cout << nodeCount << " ";
 			std::cout << ans.root->rootConnection.returnMapHandle.Size() << " ";
 			HowellMatrix::HowellMatrix<BitVector::BV1> *howellMatrix = new HowellMatrix::HowellMatrix<BitVector::BV1>(n + 1, false);
-			auto m2 = high_resolution_clock::now();
+			auto m2 = steady_clock::now();
 			auto duration = duration_cast<seconds>(m2 - m1);
 			std::cout << duration.count() << " ";
 			std::cout << std::endl;
@@ -500,7 +500,7 @@ namespace CFL_OBDD {
 				iter++;
 				//std::cout << iter << std::endl;
 			}
-			auto m3 = high_resolution_clock::now();
+			auto m3 = steady_clock::now();
 			duration = duration_cast<seconds>(m3 - m2);
 			std::cout << duration.count() << " ";
 
@@ -508,7 +508,7 @@ namespace CFL_OBDD {
 			auto sqmatrix_s = HowellMatrix::ModularSquareMatrix<BitVector::BV1>::dualize(modMatrix);
 			HowellMatrix::HowellMatrix<BitVector::BV1> matrix_s = HowellMatrix::HowellMatrix<BitVector::BV1>(*(sqmatrix_s.get_ptr()));
 
-			auto m4 = high_resolution_clock::now();
+			auto m4 = steady_clock::now();
 			duration = duration_cast<seconds>(m4 - m3);
 			std::cout << duration.count() << " ";
 
@@ -547,7 +547,7 @@ namespace CFL_OBDD {
 		
 		std::vector<std::string> SimonsAlgo(int n, CFLOBDD_FLOAT_BOOST F)
 		{
-			auto m1 = high_resolution_clock::now();
+			auto m1 = steady_clock::now();
 			CFLOBDD_FLOAT_BOOST UFunc = CreateFuncMatrix(F, n);
 			DisposeOfPairProductCache();
 			InitPairProductCache();
@@ -617,7 +617,7 @@ namespace CFL_OBDD {
 			ans.CountNodes(numNodesOfAns);
 			std::cout << "numNodesOfAns: " << numNodesOfAns << std::endl;
 			HowellMatrix::HowellMatrix<BitVector::BV1> *howellMatrix = new HowellMatrix::HowellMatrix<BitVector::BV1>(n + 1, false);
-			auto m2 = high_resolution_clock::now();
+			auto m2 = steady_clock::now();
 			auto duration = duration_cast<seconds>(m2 - m1);
 			std::cout << duration.count() << " ";
 			std::cout << std::endl;
@@ -636,7 +636,7 @@ namespace CFL_OBDD {
 				iter++;
 				//std::cout << iter << std::endl;
 			}
-			auto m3 = high_resolution_clock::now();
+			auto m3 = steady_clock::now();
 			duration = duration_cast<seconds>(m3 - m2);
 			std::cout << duration.count() << " ";
 
@@ -644,7 +644,7 @@ namespace CFL_OBDD {
 			auto sqmatrix_s = HowellMatrix::ModularSquareMatrix<BitVector::BV1>::dualize(modMatrix);
 			HowellMatrix::HowellMatrix<BitVector::BV1> matrix_s = HowellMatrix::HowellMatrix<BitVector::BV1>(*(sqmatrix_s.get_ptr()));
 
-			auto m4 = high_resolution_clock::now();
+			auto m4 = steady_clock::now();
 			duration = duration_cast<seconds>(m4 - m3);
 			std::cout << duration.count() << " ";
 			std::cout << matrix_s << std::endl;
@@ -770,7 +770,7 @@ namespace CFL_OBDD {
 			auto sqmatrix_s = HowellMatrix::ModularSquareMatrix<BitVector::BV1>::dualize(modMatrix);
 			HowellMatrix::HowellMatrix<BitVector::BV1> matrix_s = HowellMatrix::HowellMatrix<BitVector::BV1>(*(sqmatrix_s.get_ptr()));
 
-			auto m4 = high_resolution_clock::now();
+			auto m4 = steady_clock::now();
 			std::cout << matrix_s << std::endl;
 			if (matrix_s.size() == 1)
 			{
@@ -805,7 +805,7 @@ namespace CFL_OBDD {
 
 		std::vector<std::string> SimonsAlgoV3(int n, CFLOBDD_FLOAT_BOOST F)
 		{
-			auto m1 = high_resolution_clock::now();
+			auto m1 = steady_clock::now();
 			CFLOBDD_FLOAT_BOOST C = KroneckerPower(Matrix1234FloatBoost::MkCNOTInterleaved, n, 2);
 			std::cout << "C matrix created..." << std::endl;
 			CFLOBDD_FLOAT_BOOST H = KroneckerPower(Matrix1234FloatBoost::MkWalshInterleaved, n, 1);
@@ -865,7 +865,7 @@ namespace CFL_OBDD {
 			ans.CountNodes(numNodesOfAns);
 			std::cout << "numNodesOfAns: " << numNodesOfAns << std::endl;
 			HowellMatrix::HowellMatrix<BitVector::BV1> *howellMatrix = new HowellMatrix::HowellMatrix<BitVector::BV1>(n + 1, false);
-			auto m2 = high_resolution_clock::now();
+			auto m2 = steady_clock::now();
 			auto duration = duration_cast<seconds>(m2 - m1);
 			std::cout << duration.count() << " ";
 			std::cout << std::endl;
@@ -884,7 +884,7 @@ namespace CFL_OBDD {
 				iter++;
 				//std::cout << iter << std::endl;
 			}
-			auto m3 = high_resolution_clock::now();
+			auto m3 = steady_clock::now();
 			duration = duration_cast<seconds>(m3 - m2);
 			std::cout << duration.count() << " ";
 
@@ -892,7 +892,7 @@ namespace CFL_OBDD {
 			auto sqmatrix_s = HowellMatrix::ModularSquareMatrix<BitVector::BV1>::dualize(modMatrix);
 			HowellMatrix::HowellMatrix<BitVector::BV1> matrix_s = HowellMatrix::HowellMatrix<BitVector::BV1>(*(sqmatrix_s.get_ptr()));
 
-			auto m4 = high_resolution_clock::now();
+			auto m4 = steady_clock::now();
 			duration = duration_cast<seconds>(m4 - m3);
 			std::cout << duration.count() << " ";
 			std::cout << matrix_s << std::endl;
@@ -930,7 +930,7 @@ namespace CFL_OBDD {
 		std::pair<CFLOBDD_FLOAT_BOOST, std::vector<std::string>> SimonsAlgoV4(int n, CFLOBDD_FLOAT_BOOST F)
 		{
 			
-			auto m1 = high_resolution_clock::now();
+			auto m1 = steady_clock::now();
 			CFLOBDD_FLOAT_BOOST C = KroneckerPower(Matrix1234FloatBoost::MkCNOTInterleaved, n, 2);
 			std::cout << "C matrix created..." << std::endl;
 			CFLOBDD_FLOAT_BOOST H = KroneckerPower(Matrix1234FloatBoost::MkWalshInterleaved, n, 1);
@@ -976,7 +976,7 @@ namespace CFL_OBDD {
 			
 			CFLOBDD_FLOAT_BOOST ans = vectorTensor;
 			HowellMatrix::HowellMatrix<BitVector::BV1> *howellMatrix = new HowellMatrix::HowellMatrix<BitVector::BV1>(n + 1, false);
-			auto m2 = high_resolution_clock::now();
+			auto m2 = steady_clock::now();
 			auto duration = duration_cast<milliseconds>(m2 - m1);
 			std::cout << std::endl << "quantum_time: " << duration.count() << " ";
 			std::cout << std::endl;
@@ -996,7 +996,7 @@ namespace CFL_OBDD {
 				addEquations(howellMatrix, s);
 				iter++;
 			}
-			auto m3 = high_resolution_clock::now();
+			auto m3 = steady_clock::now();
 			duration = duration_cast<seconds>(m3 - m2);
 			std::cout << "classical time: " << duration.count() << std::endl;
 
@@ -1004,7 +1004,7 @@ namespace CFL_OBDD {
 			auto sqmatrix_s = HowellMatrix::ModularSquareMatrix<BitVector::BV1>::dualize(modMatrix);
 			HowellMatrix::HowellMatrix<BitVector::BV1> matrix_s = HowellMatrix::HowellMatrix<BitVector::BV1>(*(sqmatrix_s.get_ptr()));
 
-			auto m4 = high_resolution_clock::now();
+			auto m4 = steady_clock::now();
 			duration = duration_cast<seconds>(m4 - m3);
 			std::cout << " duration: " << duration.count() << " ";
 			std::cout << matrix_s << std::endl;
@@ -1042,7 +1042,7 @@ namespace CFL_OBDD {
 
 		std::pair<CFLOBDD_FLOAT_BOOST, std::vector<std::string>> SimonsAlgoV4New(int n, std::string s)
 		{
-			auto m1 = high_resolution_clock::now();
+			auto m1 = steady_clock::now();
 			std::cout << "C matrix created..." << std::endl;
 			CFLOBDD_FLOAT_BOOST H = KroneckerPower(Matrix1234FloatBoost::MkWalshInterleaved, n, 1);
 			CFLOBDD_FLOAT_BOOST I = KroneckerPower(Matrix1234FloatBoost::MkIdRelationInterleaved, n, 1);
@@ -1094,7 +1094,7 @@ namespace CFL_OBDD {
 			//std::cout << "vectorTensor returnMapSize: " << vectorTensor.root->rootConnection.returnMapHandle << std::endl;
 			CFLOBDD_FLOAT_BOOST ans = vectorTensor;
 			HowellMatrix::HowellMatrix<BitVector::BV1>* howellMatrix = new HowellMatrix::HowellMatrix<BitVector::BV1>(n + 1, false);
-			auto m2 = high_resolution_clock::now();
+			auto m2 = steady_clock::now();
 			auto duration = duration_cast<seconds>(m2 - m1);
 			std::cout << std::endl << " quantum_time: " << duration.count() << " ";
 			std::cout << std::endl;
@@ -1112,7 +1112,7 @@ namespace CFL_OBDD {
 				addEquations(howellMatrix, s);
 				iter++;
 			}
-			auto m3 = high_resolution_clock::now();
+			auto m3 = steady_clock::now();
 			duration = duration_cast<seconds>(m3 - m2);
 			std::cout << "classical time: " << duration.count() << std::endl;
 
@@ -1120,7 +1120,7 @@ namespace CFL_OBDD {
 			auto sqmatrix_s = HowellMatrix::ModularSquareMatrix<BitVector::BV1>::dualize(modMatrix);
 			HowellMatrix::HowellMatrix<BitVector::BV1> matrix_s = HowellMatrix::HowellMatrix<BitVector::BV1>(*(sqmatrix_s.get_ptr()));
 
-			auto m4 = high_resolution_clock::now();
+			auto m4 = steady_clock::now();
 			duration = duration_cast<seconds>(m4 - m3);
 			std::cout << " duration: " << duration.count() << " ";
 			std::cout << matrix_s << std::endl;
@@ -1159,7 +1159,7 @@ namespace CFL_OBDD {
 		std::vector<std::string> SimonsAlgoV4_Voc2(int n, CFLOBDD_FLOAT_BOOST F)
 		{
 
-			auto m1 = high_resolution_clock::now();
+			auto m1 = steady_clock::now();
 			unsigned int level = ceil(log2(n));
 			CFLOBDD_FLOAT_BOOST C = Matrix1234FloatBoost::MkCNOT(level + 2, 2 * n, 0, n);
 			for (unsigned int i = 1; i < n; i++){
@@ -1210,7 +1210,7 @@ namespace CFL_OBDD {
 			ans.CountNodes(numNodesOfAns);
 			std::cout << "numNodesOfAns: " << numNodesOfAns << std::endl;
 			HowellMatrix::HowellMatrix<BitVector::BV1> *howellMatrix = new HowellMatrix::HowellMatrix<BitVector::BV1>(n + 1, false);
-			auto m2 = high_resolution_clock::now();
+			auto m2 = steady_clock::now();
 			auto duration = duration_cast<seconds>(m2 - m1);
 			std::cout << duration.count() << " ";
 			std::cout << std::endl;
@@ -1229,7 +1229,7 @@ namespace CFL_OBDD {
 				iter++;
 				//std::cout << iter << std::endl;
 			}
-			auto m3 = high_resolution_clock::now();
+			auto m3 = steady_clock::now();
 			duration = duration_cast<seconds>(m3 - m2);
 			std::cout << duration.count() << " ";
 
@@ -1237,7 +1237,7 @@ namespace CFL_OBDD {
 			auto sqmatrix_s = HowellMatrix::ModularSquareMatrix<BitVector::BV1>::dualize(modMatrix);
 			HowellMatrix::HowellMatrix<BitVector::BV1> matrix_s = HowellMatrix::HowellMatrix<BitVector::BV1>(*(sqmatrix_s.get_ptr()));
 
-			auto m4 = high_resolution_clock::now();
+			auto m4 = steady_clock::now();
 			duration = duration_cast<seconds>(m4 - m3);
 			std::cout << duration.count() << " ";
 			std::cout << matrix_s << std::endl;

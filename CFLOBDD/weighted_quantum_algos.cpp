@@ -20,22 +20,22 @@ namespace CFL_OBDD
         std::pair<std::string, WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL> GHZ(unsigned long long int n)
         {
             int level = ceil(log2(n)) + 2;
-            auto s1 = high_resolution_clock::now();
+            auto s1 = steady_clock::now();
 			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL F = WeightedMatrix1234FloatBoostMul::MkCNOT(level, 2*n, 0, n);
 			std::cout << "Starting loop" << std::endl;
 			for (unsigned int i = 1; i < n; i++){
-                // auto x = high_resolution_clock::now(); 
+                // auto x = steady_clock::now(); 
 				WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL tmp = WeightedMatrix1234FloatBoostMul::MkCNOT(level, 2*n, i, n);
-                auto y = high_resolution_clock::now(); 
+                auto y = steady_clock::now(); 
 				F = WeightedMatrix1234FloatBoostMul::MatrixMultiplyV4(F, tmp);
-                auto z = high_resolution_clock::now(); 
+                auto z = steady_clock::now(); 
                 // auto dx = duration_cast<milliseconds>(y - x); 
                 auto dy = duration_cast<milliseconds>(z - y); 
                 // std::cout << i << " " << dy.count() << std::endl;
 			}
             // std::cout << F << std::endl;
             std::cout << "start" << std::endl;
-            auto s2 = high_resolution_clock::now();
+            auto s2 = steady_clock::now();
 			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL e0 = WeightedVectorFloatBoostMul::NoDistinctionNode(level - 2, 1);
             e0 = WeightedVectorFloatBoostMul::VectorToMatrixInterleaved(e0);
 			std::string last_one(2*n, '0');
@@ -43,20 +43,20 @@ namespace CFL_OBDD
 			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL e1 = WeightedVectorFloatBoostMul::MkBasisVector(level - 1, last_one);
             // e1 = WeightedVectorFloatBoostMul::VectorToMatrixInterleaved(e1);
 			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL stateV = WeightedMatrix1234FloatBoostMul::KroneckerProduct2Vocs(e0, e1);
-            auto s3 = high_resolution_clock::now();
+            auto s3 = steady_clock::now();
 			//unsigned int nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount;
 			//stateV.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
 			//std::cout << "Step 1 : " << nodeCount << " " << edgeCount << " " << (nodeCount + edgeCount) << std::endl;
 			WEIGHTED_CFLOBDD_FLOAT_BOOST_MUL H2 = WeightedMatrix1234FloatBoostMul::MkWalshInterleaved(level);
 			stateV = WeightedMatrix1234FloatBoostMul::MatrixMultiplyV4(F, stateV);
-            auto s4 = high_resolution_clock::now();
+            auto s4 = steady_clock::now();
 			//stateV.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
 			//std::cout << "Step 2 : " << nodeCount << " " << edgeCount << " " << (nodeCount + edgeCount) << std::endl;
 			stateV = WeightedMatrix1234FloatBoostMul::MatrixMultiplyV4(H2, stateV);
             // auto val = boost::multiprecision::pow(BIG_FLOAT(sqrt(2)), 3*n).convert_to<BIG_FLOAT>();
             // stateV = val * stateV;
             // stateV.print(std::cout);
-            auto s5 = high_resolution_clock::now();
+            auto s5 = steady_clock::now();
 			//stateV.CountNodesAndEdges(nodeCount, edgeCount, returnEdgeCount, returnEdgeObjCount);
 			//std::cout << "Step 3 : " << nodeCount << " " << edgeCount << " " << (nodeCount + edgeCount) << std::endl;
 			// stateV = VectorFloatBoost::VectorWithAmplitude(stateV);
@@ -65,7 +65,7 @@ namespace CFL_OBDD
 			stateV.ComputeWeightOfPathsAsAmpsToExits();
 			std::string ans_s = "";
             ans_s = WeightedVectorFloatBoostMul::Sampling(stateV, true).substr(0, n + 1);
-            auto s6 = high_resolution_clock::now();
+            auto s6 = steady_clock::now();
             auto d1 = duration_cast<milliseconds>(s2 - s1);
             auto d2 = duration_cast<milliseconds>(s3 - s2);
             auto d3 = duration_cast<milliseconds>(s4 - s3);
@@ -341,19 +341,19 @@ namespace CFL_OBDD
 				WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL H = Hadamard(n, i);
                 // BIG_COMPLEX_FLOAT c = 1.0/sqrt(2);
                 // H = c * H;
-                // auto start = high_resolution_clock::now();
+                // auto start = steady_clock::now();
 				stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(H, stateV);
-                // auto end = high_resolution_clock::now();
+                // auto end = steady_clock::now();
                 // auto duration = duration_cast<milliseconds>(end - start);
                 // std::cout << "(i): " << i << " " << duration.count() << std::endl;
 				for (long int j = 0; j < i; j++)
 				{
 					double theta = std::pow(2, j - i);
 					WEIGHTED_CFLOBDD_COMPLEX_FLOAT_BOOST_MUL CP = WeightedMatrix1234ComplexFloatBoostMul::MkCPGate(level+1, j, i, theta);
-                    // auto start = high_resolution_clock::now();
+                    // auto start = steady_clock::now();
 					stateV = WeightedMatrix1234ComplexFloatBoostMul::MatrixMultiplyV4(CP, stateV);
                     // std::cout << "(i,j): " << i << "," << j << std::endl;
-                    // auto end = high_resolution_clock::now();
+                    // auto end = steady_clock::now();
                     // auto duration = duration_cast<milliseconds>(end - start);
                     // std::cout << "(i,j): " << i << "," << j << " " << duration.count() << std::endl;
 				}

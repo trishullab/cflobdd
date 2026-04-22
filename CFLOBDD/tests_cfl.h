@@ -83,7 +83,11 @@ class CFLTests
         static void InitModules();
 	    static void ClearModules();
         static bool verbose;
-		static bool runTests(const char *arg, int size = 0, int seed = 0, int a = 0);
+		// nargs is the number of positional arguments supplied after the
+		// test name (so size was supplied iff nargs >= 1, seed iff nargs >= 2,
+		// a iff nargs >= 3).  Used to print a usage message when a test
+		// needs arguments that were not provided.
+		static bool runTests(const char *arg, int size = 0, int seed = 0, int a = 0, int nargs = 0);
 };
 }
 

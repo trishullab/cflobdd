@@ -1949,10 +1949,24 @@ void CFLTests::ClearModules()
 #endif
 }
 
-bool CFLTests::runTests(const char *arg, int size, int seed, int a){
+// Prints a usage message and returns false if the number of supplied
+// positional arguments is less than required.  Used to produce a
+// friendlier error than a segfault when required arguments are missing.
+static bool requireArgs(const std::string &test, int nargs, int needed,
+                        const char *argNames) {
+	if (nargs >= needed) return true;
+	std::cerr << "Error: test '" << test << "' requires " << needed
+	          << " argument" << (needed == 1 ? "" : "s")
+	          << " (" << argNames << "), but " << nargs
+	          << " were supplied." << std::endl;
+	std::cerr << "Usage: <program> " << test << " " << argNames << std::endl;
+	return false;
+}
+
+bool CFLTests::runTests(const char *arg, int size, int seed, int a, int nargs){
 
 	CFLTests::InitModules();
-	
+
 	std::string curTest = arg;  
 	if (curTest == "TopNode") {
 		CFLTests::testTopNodes();
@@ -2013,65 +2027,94 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a){
 	// } else if (curTest == "testShortestPath") {
 	// 	CFLTests::testShortestPath();
 	} else if (curTest == "testGHZAlgo") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testGHZAlgo(size);
 	} else if (curTest == "testBVAlgo") {
+		if (!requireArgs(curTest, nargs, 2, "<size> <seed>")) return false;
 		CFLTests::testBVAlgo(size, seed);
 	} else if (curTest == "testDJAlgo") {
+		if (!requireArgs(curTest, nargs, 2, "<size> <seed>")) return false;
 		CFLTests::testDJAlgo(size, seed);
 	} else if (curTest == "testGroversAlgo") {
+		if (!requireArgs(curTest, nargs, 2, "<size> <seed>")) return false;
 		CFLTests::testGroversAlgo(size, seed);
 	} else if (curTest == "testSimonsAlgo") {
+		if (!requireArgs(curTest, nargs, 2, "<size> <seed>")) return false;
 		CFLTests::testSimonsAlgo(size, seed);
 	// } else if (curTest == "testSimonsAlgoNew") {
 	// 	CFLTests::testSimonsAlgoNew(size);
 	} else if (curTest == "testXOR") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testXOR(size);
 	} else if (curTest == "testMatMul") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testMatMul(size);
 	} else if (curTest == "testQFT") {
+		if (!requireArgs(curTest, nargs, 2, "<size> <seed>")) return false;
 		CFLTests::testQFT(size, seed);
 #ifdef WCFLOBDD_SUPPORTED
 	} else if (curTest == "testWeightedOps") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testWeightedOps(size);
 	} else if (curTest == "testGHZAlgo_W") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testGHZAlgo_W(size);
 	} else if (curTest == "testBVAlgo_W") {
+		if (!requireArgs(curTest, nargs, 2, "<size> <seed>")) return false;
 		CFLTests::testBVAlgo_W(size, seed);
 	} else if (curTest == "testDJAlgo_W") {
+		if (!requireArgs(curTest, nargs, 2, "<size> <seed>")) return false;
 		CFLTests::testDJAlgo_W(size, seed);
 	} else if (curTest == "testGroversAlgo_W") {
+		if (!requireArgs(curTest, nargs, 2, "<size> <seed>")) return false;
 		CFLTests::testGroversAlgo_W(size, seed);
 	} else if (curTest == "testQFT_W") {
+		if (!requireArgs(curTest, nargs, 2, "<size> <seed>")) return false;
 		CFLTests::testQFT_W(size, seed);
 	} else if (curTest == "testShorsAlgo_W") {
+		if (!requireArgs(curTest, nargs, 3, "<N> <a> <seed>")) return false;
 		CFLTests::testShorsAlgo_W(size, a, seed); // size = N
 	} else if (curTest == "testSyn1") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark1(size);
 	} else if (curTest == "testSyn2") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark2(size);
 	} else if (curTest == "testSyn3") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark3(size);
 	} else if (curTest == "testSyn4") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark4(size);
 	} else if (curTest == "testSyn5") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark5(size);
 	} else if (curTest == "testSyn6") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark6(size);
 	} else if (curTest == "testSyn7") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark7(size);
 	} else if (curTest == "testSyn1_CFL") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark1_CFLOBDD(size);
 	} else if (curTest == "testSyn2_CFL") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark2_CFLOBDD(size);
 	} else if (curTest == "testSyn3_CFL") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark3_CFLOBDD(size);
 	} else if (curTest == "testSyn4_CFL") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark4_CFLOBDD(size);
 	} else if (curTest == "testSyn5_CFL") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark5_CFLOBDD(size);
 	} else if (curTest == "testSyn6_CFL") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark6_CFLOBDD(size);
 	} else if (curTest == "testSyn7_CFL") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
 		CFLTests::testSynBenchmark7_CFLOBDD(size);
 #endif
 	} else if (curTest == "NumsModK") {

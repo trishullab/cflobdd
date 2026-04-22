@@ -89,18 +89,16 @@ int main(int argc, char * argv[])
 
 	// Supply a default argument for when invoking from Windows (e.g., for debugging)
 	if (posArgs.empty()) {
-		CFL_OBDD::CFLTests::runTests("And");
+		CFL_OBDD::CFLTests::runTests("And", 0, 0, 0, 0);
 	}
-	else if (posArgs.size() == 1) {
-		CFL_OBDD::CFLTests::runTests(posArgs[0].c_str());
-	}
-	else if (posArgs.size() == 2) {
-		CFL_OBDD::CFLTests::runTests(posArgs[0].c_str(), atoi(posArgs[1].c_str()));
-	}
-	else if (posArgs.size() == 3) {
-		CFL_OBDD::CFLTests::runTests(posArgs[0].c_str(), atoi(posArgs[1].c_str()), atoi(posArgs[2].c_str()));
-	}
-	else if (posArgs.size() >= 4) {
-		CFL_OBDD::CFLTests::runTests(posArgs[0].c_str(), atoi(posArgs[1].c_str()), atoi(posArgs[2].c_str()), atoi(posArgs[3].c_str()));
+	else {
+		// nargs is the number of positional arguments past the test name
+		// (0 for just a test name, 1 for test + size, etc.).  runTests
+		// uses this to validate that required arguments were supplied.
+		int nargs = static_cast<int>(posArgs.size()) - 1;
+		int size = posArgs.size() >= 2 ? atoi(posArgs[1].c_str()) : 0;
+		int seed = posArgs.size() >= 3 ? atoi(posArgs[2].c_str()) : 0;
+		int a    = posArgs.size() >= 4 ? atoi(posArgs[3].c_str()) : 0;
+		CFL_OBDD::CFLTests::runTests(posArgs[0].c_str(), size, seed, a, nargs);
 	}
 }

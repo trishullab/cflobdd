@@ -58,6 +58,8 @@ examples/*_T.txt
 examples/testConv2.map
 
 # Linux executables (no .exe suffix)
+CFLOBDD/cflobdd
+CFLOBDD/cflobdd[0-9]*
 examples/addMultiplication[0-9]*
 !examples/addMultiplication[0-9]*.cc
 examples/testConversion

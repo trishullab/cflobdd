@@ -100,54 +100,61 @@ clean-all: clean depclean
 # delete them to force recompilation when switching widths or build modes.
 NUM_BITS_OBJS = multiplication_crt.o tests_cfl.o cflobdd_c.o return_map_specializations.o
 
-.PHONY: cflobdd32 cflobdd64 cflobdd128 cflobdd256 cflobdd512 cflobdd1024 cflobdd2048 cflobdd4096 cflobdd8192
+# Phony per-width wrappers.  The target names use a "build-" prefix to
+# avoid colliding with the produced binary name on Linux (where EXE_EXT
+# is empty and the binary is also "cflobddN", a real file).  The
+# recipes delete NUM_BITS-sensitive objects and recursively invoke
+# make with NUM_BITS set.
+#
+# Usage: make build-32   (builds cflobdd32$(EXE_EXT))
+.PHONY: build-32 build-64 build-128 build-256 build-512 build-1024 build-2048 build-4096 build-8192
 
-cflobdd32:
+build-32:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=32 PROJECT=cflobdd32$(EXE_EXT)
 
-cflobdd64:
+build-64:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=64 PROJECT=cflobdd64$(EXE_EXT)
 
-cflobdd128:
+build-128:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=128 PROJECT=cflobdd128$(EXE_EXT)
 
-cflobdd256:
+build-256:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=256 PROJECT=cflobdd256$(EXE_EXT)
 
-cflobdd512:
+build-512:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=512 PROJECT=cflobdd512$(EXE_EXT)
 
-cflobdd1024:
+build-1024:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=1024 PROJECT=cflobdd1024$(EXE_EXT)
 
-cflobdd2048:
+build-2048:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=2048 PROJECT=cflobdd2048$(EXE_EXT)
 
-cflobdd4096:
+build-4096:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=4096 PROJECT=cflobdd4096$(EXE_EXT)
 
-cflobdd8192:
+build-8192:
 	rm -f $(NUM_BITS_OBJS)
 	$(MAKE) NUM_BITS=8192 PROJECT=cflobdd8192$(EXE_EXT)
 
 all-bit-sizes:
-	make cflobdd32
-	make cflobdd64
-	make cflobdd128
-	make cflobdd256
-	make cflobdd512
-	make cflobdd1024
-	make cflobdd2048
-	make cflobdd4096
-	make cflobdd8192
+	make build-32
+	make build-64
+	make build-128
+	make build-256
+	make build-512
+	make build-1024
+	make build-2048
+	make build-4096
+	make build-8192
 
 MULT = cflobdd32$(EXE_EXT)
 MOD = 59

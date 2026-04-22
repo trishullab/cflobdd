@@ -91,7 +91,7 @@ CFLOBDD_OBJS = $(filter-out $(CFLOBDD_DIR)/main.o $(CFLOBDD_DIR)/tests_cfl.o \
 CONV_CXXFLAGS = $(CUDD_CXXFLAGS) $(CFLOBDD_INC) -std=c++2a -DNUM_BITS=32 -w
 
 testConversion: cudd_build/libcudd.a
-	cd $(CFLOBDD_DIR) && $(MAKE) cflobdd32
+	cd $(CFLOBDD_DIR) && $(MAKE) build-32
 	g++ $(CONV_CXXFLAGS) -c -o addToCflobdd.o addToCflobdd.cc
 	g++ $(CONV_CXXFLAGS) -DCFLOBDD_C_EXPORTS -c -o testConversion.o testConversion.cc
 	g++ $(CONV_CXXFLAGS) $(LLD_FLAG) -o testConversion$(EXE_EXT) testConversion.o addToCflobdd.o \

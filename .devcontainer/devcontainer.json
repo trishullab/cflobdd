@@ -1,17 +1,67 @@
 {
-  "name": "CFLOBDDs C++ Environment",
-  "image": "mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04",
-  "features": {
-    "ghcr.io/devcontainers/features/node:1": {},
-    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  "name": "CFLOBDD Claude Code Sandbox",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "TZ": "${localEnv:TZ:America/Los_Angeles}",
+      "CLAUDE_CODE_VERSION": "latest",
+      "GIT_DELTA_VERSION": "0.18.2",
+      "ZSH_IN_DOCKER_VERSION": "1.2.0"
+    }
   },
+  "runArgs": [
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
+        "anthropic.claude-code",
         "ms-vscode.cpptools",
+        "ms-vscode.makefile-tools",
         "ms-vscode.cmake-tools",
-        "anthropic.claude-code"
-      ]
+        "ms-python.python",
+        "james-yu.latex-workshop",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          }
+        }
+      }
     }
-  }
+  },
+  "remoteUser": "node",
+  // CFLOBDD-specific adaptations from Anthropic's reference devcontainer:
+  //
+  // 1. Mount the host's ~/.claude/ directory (instead of a Docker volume)
+  //    so session history and OAuth credentials are shared between the
+  //    host VSCode Claude Code extension and the container.
+  //
+  // 2. Mount the workspace at the host's literal path instead of
+  //    /workspace.  Claude Code identifies a project by directory path;
+  //    matching the host path means /resume inside the container lists
+  //    sessions from the host under this project.
+  //
+  // 3. Project-specific apt packages are added in the Dockerfile.
+  "mounts": [
+    "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=${localEnv:USERPROFILE}\\.claude,target=/home/node/.claude,type=bind,consistency=cached"
+  ],
+  "containerEnv": {
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "POWERLEVEL9K_DISABLE_GITSTATUS": "true"
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/mnt/c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd,type=bind,consistency=delegated",
+  "workspaceFolder": "/mnt/c/Users/reps/Documents/Software/CFLOBDD-github/cflobdd",
+  "postStartCommand": "sudo /usr/local/bin/init-firewall.sh",
+  "waitFor": "postStartCommand"
 }

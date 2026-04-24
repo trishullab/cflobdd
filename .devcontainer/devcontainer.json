@@ -58,7 +58,13 @@
   // 3. Project-specific apt packages are added in the Dockerfile.
   "mounts": [
     "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-    "source=${localEnv:USERPROFILE}\\.claude,target=/home/node/.claude,type=bind,consistency=cached"
+    "source=${localEnv:USERPROFILE}\\.claude,target=/home/node/.claude,type=bind,consistency=cached",
+    // Share the host's git identity (user.name, user.email) with commits
+    // made inside the container.  Read-only so a compromised container
+    // process cannot modify the host config.  The credential.helper
+    // pointer in this file is a Windows .exe path that silently fails
+    // to execute in Linux, so no credentials are reachable from here.
+    "source=${localEnv:USERPROFILE}\\.gitconfig,target=/home/node/.gitconfig,type=bind,consistency=cached,readonly"
   ],
   "containerEnv": {
     "NODE_OPTIONS": "--max-old-space-size=4096",

@@ -8,19 +8,36 @@ ifeq ($(OS),Windows_NT)
     PLATFORM_LIBS    := -lpsapi
     # --stack only exists on the Windows PE linker
     PLATFORM_LDFLAGS  = -Wl,--stack,$(STACK_SIZE)
+    # Prefer MSYS2's UCRT64 g++ by absolute path when it is installed.
+    # Cygwin's g++ (13.4.0) sits second on PATH behind MSYS2's (15.2.0), so a
+    # bare "g++" silently switches toolchains if MSYS2 ever falls behind it,
+    # and objects from the two do not link together.  When MSYS2 is not
+    # present (e.g. a Cygwin-only or clang64 checkout) this falls back to
+    # whatever "g++" resolves to, so the Makefile stays portable.
+    MSYS2_GXX        := C:/msys64/ucrt64/bin/g++.exe
+    ifneq ($(wildcard $(MSYS2_GXX)),)
+        CXX_DEFAULT  := $(MSYS2_GXX)
+    else
+        CXX_DEFAULT  := g++
+    endif
 else
     # Linux / macOS
     EXE_EXT          :=
     BOOST_INC        :=                 # use system boost (libboost-all-dev)
     PLATFORM_LIBS    :=
     PLATFORM_LDFLAGS :=
+    CXX_DEFAULT      := g++
 endif
 
 PROJECT = cflobdd$(EXE_EXT)
 
 # Compiler
 # CC = g++-11
-CC = g++
+# The platform default is chosen in the ifeq block above.  A plain "=" (not
+# "?=") is deliberate: "?=" would defer to a stray CC in the environment,
+# which defeats the point of pinning.  A command-line override still wins:
+#   make CC=/usr/bin/g++-13
+CC = $(CXX_DEFAULT)
 
 # Run Options
 COMMANDLINE_OPTIONS = #/dev/ttyS0

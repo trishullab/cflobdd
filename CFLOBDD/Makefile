@@ -6,8 +6,14 @@ ifeq ($(OS),Windows_NT)
     EXE_EXT          := .exe
     BOOST_INC        := -I../../boost_1_81_0/
     PLATFORM_LIBS    := -lpsapi
-    # --stack only exists on the Windows PE linker
-    PLATFORM_LDFLAGS  = -Wl,--stack,$(STACK_SIZE)
+    # --stack only exists on the Windows PE linker.
+    # -static embeds the MinGW runtime (libstdc++, libgcc, winpthread) in the
+    # .exe so it cannot load a different copy at run time: Git for Windows ships
+    # its own libstdc++-6.dll and libwinpthread-1.dll in
+    # C:\Program Files\Git\mingw64\bin, which win when launched from Git Bash.
+    # (-static-libstdc++ -static-libgcc alone still leaves libwinpthread-1.dll.)
+    # Windows system DLLs (KERNEL32, UCRT api-ms-win-crt-*) stay dynamic.
+    PLATFORM_LDFLAGS  = -Wl,--stack,$(STACK_SIZE) -static
     # Prefer MSYS2's UCRT64 g++ by absolute path when it is installed.
     # Cygwin's g++ (13.4.0) sits second on PATH behind MSYS2's (15.2.0), so a
     # bare "g++" silently switches toolchains if MSYS2 ever falls behind it,

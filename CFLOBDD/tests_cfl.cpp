@@ -1963,6 +1963,115 @@ static bool requireArgs(const std::string &test, int nargs, int needed,
 	return false;
 }
 
+void CFLTests::testNQueens(int n) {
+	std::cout << "Testing " << n << "-Queens" << std::endl;
+
+	auto start = steady_clock::now();
+	std::vector<std::vector<CFLOBDD>> vars;
+	unsigned int numVars = n * n;
+	unsigned int level = std::ceil(std::log2(numVars));
+	for (unsigned int i = 0; i < n; i++) {
+		vars.push_back(std::vector<CFLOBDD>());
+		for (unsigned int j = 0; j < n; j++) {
+			vars[i].push_back(MkProjection(i * n + j, level));
+		}
+	}
+
+	std::vector<CFLOBDD> orBatch;
+	for (unsigned int i = 0; i < n; i++) {
+		CFLOBDD condition = MkFalse(level);
+		for (unsigned int j = 0; j < n; j++) {
+			condition = MkOr(condition, vars[i][j]);
+		}
+		orBatch.push_back(condition);
+	}
+
+	std::vector<std::vector<CFLOBDD>> impBatch;
+
+	for (unsigned int i = 0; i < n; i++) {
+		std::cout << "Processing implications for row " << i << " / " << n << std::endl;
+		std::vector<CFLOBDD> row;
+		for (unsigned int j = 0; j < n; j++) {
+			CFLOBDD a = MkTrue(level);
+			CFLOBDD b = MkTrue(level);
+			CFLOBDD c = MkTrue(level);
+			CFLOBDD d = MkTrue(level);
+
+			unsigned int k, l;
+
+			/* No one in the same row */
+			for (l = 0; l < n; l++) {
+				if (l != j) {
+					CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[i][l]));
+					a = MkAnd(a, mp);
+				}
+			}
+
+			/* No one in the same column */
+			for (k = 0; k < n; k++) {
+				if (k != i) {
+					CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[k][j]));
+					b = MkAnd(b, mp);
+				}
+			}
+
+			/* No one in the same up-right diagonal */
+			for (k = 0; k < n; k++) {
+				int ll = (int)k - (int)i + (int)j;
+				if (ll >= 0 && ll < n) {
+					if (k != i) {
+						CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[k][ll]));
+						c = MkAnd(c, mp);
+					}
+				}
+			}
+
+			/* No one in the same down-right diagonal */
+			for (k = 0; k < n; k++) {
+				int ll = (int)i + (int)j - (int)k;
+				if (ll >= 0 && ll < n) {
+					if (k != i) {
+						CFLOBDD mp = MkImplies(vars[i][j], MkNot(vars[k][ll]));
+						d = MkAnd(d, mp);
+					}
+				}
+			}
+
+			c = MkAnd(c, d);
+			b = MkAnd(b, c);
+			a = MkAnd(a, b);
+			row.push_back(a);
+		}
+		impBatch.push_back(row);
+	}
+
+	CFLOBDD queen = MkTrue(level);
+
+	for (unsigned int i = 0; i < n; i++) {
+		std::cout << "Combining OR conditions for row " << i << " / " << n << std::endl;
+		queen = MkAnd(queen, orBatch[i]);
+	}
+
+	for (unsigned int i = 0; i < n; i++) {
+		CFLOBDD tmp_queen = MkTrue(level);
+		for (unsigned int j = 0; j < n; j++) {
+			std::cout << "Combining implication conditions for position (" << i << ", " << j << ") " << " / " << n << std::endl;
+			tmp_queen = MkAnd(tmp_queen, impBatch[i][j]);
+		}
+		queen = MkAnd(queen, tmp_queen);
+	}
+
+	auto end = steady_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	std::cout << "Duration: " << duration.count() << " ms" << std::endl;
+	queen.CountPaths();
+	CFLOBDDInternalNode* queen_node = (CFLOBDDInternalNode*) queen.root->rootConnection.entryPointHandle.handleContents;
+
+	// number of solutions = 2 ^ log(num_solutions) / 2 ^ num_dummy_vars = 2^(log(num_solutions) - num_dummy_vars)
+	unsigned int numDummyVars = std::pow(2, std::ceil(std::log2(numVars))) - numVars;
+	std::cout << "Number of solutions for " << n << "-Queens: " << std::round(std::pow(2, queen_node->numPathsToExit[1] - numDummyVars)) << std::endl;
+}
+
 bool CFLTests::runTests(const char *arg, int size, int seed, int a, int nargs){
 
 	CFLTests::InitModules();
@@ -2257,6 +2366,9 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a, int nargs){
 		// Test VerifySubtractiveKaratsubaOneLevelModuliwise
 		std::cout << "Testing VerifySubtractiveKaratsubaOneLevelModuliwise" << std::endl;
 		VerifySubtractiveKaratsubaOneLevelModuliwise();
+	} else if (curTest == "nqueens") {
+		if (!requireArgs(curTest, nargs, 1, "<size>")) return false;
+		CFLTests::testNQueens(size);
 	}
 	else {
 		std::cout << "Unrecognized test name: " << curTest << std::endl;

@@ -2372,6 +2372,7 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a, int nargs){
 	}
 	else {
 		std::cout << "Unrecognized test name: " << curTest << std::endl;
+		return false;
 	}
 
 	// Print cache sizes
@@ -2381,5 +2382,5 @@ bool CFLTests::runTests(const char *arg, int size, int seed, int a, int nargs){
 
 	// CFLTests::ClearModules();
 
-	return false;
+	return true;
 }

@@ -88,8 +88,9 @@ int main(int argc, char * argv[])
 	}
 
 	// Supply a default argument for when invoking from Windows (e.g., for debugging)
+	bool ok;
 	if (posArgs.empty()) {
-		CFL_OBDD::CFLTests::runTests("And", 0, 0, 0, 0);
+		ok = CFL_OBDD::CFLTests::runTests("And", 0, 0, 0, 0);
 	}
 	else {
 		// nargs is the number of positional arguments past the test name
@@ -99,6 +100,7 @@ int main(int argc, char * argv[])
 		int size = posArgs.size() >= 2 ? atoi(posArgs[1].c_str()) : 0;
 		int seed = posArgs.size() >= 3 ? atoi(posArgs[2].c_str()) : 0;
 		int a    = posArgs.size() >= 4 ? atoi(posArgs[3].c_str()) : 0;
-		CFL_OBDD::CFLTests::runTests(posArgs[0].c_str(), size, seed, a, nargs);
+		ok = CFL_OBDD::CFLTests::runTests(posArgs[0].c_str(), size, seed, a, nargs);
 	}
+	return ok ? 0 : 1;
 }
